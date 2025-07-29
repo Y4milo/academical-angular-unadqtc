@@ -1,0 +1,274 @@
+<div class="p-container mt-4">
+  <p-card header="Gestión de Fotos de Carné" class="p-shadow-4">
+    <p-tabView>
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          Pendientes de validar
+          <p-badge [value]="pendingStudents.length" severity="info" />
+        </ng-template>
+        <p-table [value]="pendingStudents" class="p-datatable-sm" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>CÓDIGO</th>
+              <th>NOMBRES Y APELLIDOS</th>
+              <th>SEDE</th>
+              <th>CELULAR</th>
+              <th>FOTO</th>
+              <th>DNI/PP/CE/CI</th>
+              <th>OPCIONES</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-student>
+            <tr>
+              <td>{{ student.code }}</td>
+              <td>{{ student.fullName }}</td>
+              <td>{{ student.campus }}</td>
+              <td>{{ student.cellphone }}</td>
+              <td>
+                <img [src]="appURL + student.photo_path" alt="foto" width="50" height="60" />
+              </td>
+              <td>{{ student.id_student }}</td>
+              <td class="justify-center">
+                <div class="flex justify-center flex-wrap gap-1 mb-6">
+                  <p-button
+                    icon="pi pi-download"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="secondary"
+                    (onClick)="downloadPhoto(student)"
+                    pTooltip="Descargar foto"
+                    tooltipPosition="top"
+                  ></p-button>
+
+                  <p-button
+                    icon="pi pi-check"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="success"
+                    (onClick)="validateCardStudent(student)"
+                    pTooltip="Validar estudiante"
+                    tooltipPosition="top"
+                  ></p-button>
+
+                  <p-button
+                    icon="pi pi-flag"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="warn"
+                    pTooltip="Observar carnet"
+                    tooltipPosition="top"
+                    (onClick)="openObservationPanel($event, student)"
+                  ></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabPanel>
+
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          Validados
+          <p-badge [value]="validatedStudents.length" severity="success" />
+        </ng-template>
+        <div class="w-full mb-3 text-center">
+          <!-- Botón centrado -->
+          <p-button
+            class="mx-2"
+            label="Descargar Lista"
+            icon="pi pi-cloud-download"
+            variant="outlined"
+            severity="success"
+            (click)="downloadStudentCards()"
+          />
+          <p-button
+            class="mx-2"
+            label="Descargar Fotos"
+            icon="pi pi-cloud-download"
+            variant="outlined"
+            severity="success"
+            (click)="downloadPhotosZip()"
+          />
+        </div>
+        <!-- Tabla para validados -->
+        <p-table [value]="validatedStudents" class="p-datatable-sm" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>CÓDIGO</th>
+              <th>NOMBRES Y APELLIDOS</th>
+              <th>SEDE</th>
+              <th>CELULAR</th>
+              <th>FOTO</th>
+              <th>OPCIONES</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-student>
+            <tr>
+              <td>{{ student.code }}</td>
+              <td>{{ student.fullName }}</td>
+              <td>{{ student.campus }}</td>
+              <td>{{ student.cellphone }}</td>
+              <td>
+                <img [src]="appURL + student.photo_path" alt="foto" width="60" height="70" />
+              </td>
+              <td class="align-content-center">
+                <div class="flex justify-center flex-wrap gap-1 mb-6">
+                  <p-button
+                    icon="pi pi-download"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="secondary"
+                    (onClick)="downloadPhoto(student)"
+                    pTooltip="Descargar foto"
+                    tooltipPosition="top"
+                  ></p-button>
+
+                  <p-button
+                    icon="pi pi-times"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="info"
+                    (onClick)="pendingCardStudent(student, 'validated')"
+                    pTooltip="Excluir estudiante"
+                    tooltipPosition="top"
+                  ></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabPanel>
+
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          Observados
+          <p-badge [value]="flaggedStudents.length" severity="warn" />
+        </ng-template>
+        <p-table [value]="flaggedStudents" class="p-datatable-sm" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>CÓDIGO</th>
+              <th>NOMBRES Y APELLIDOS</th>
+              <th>SEDE</th>
+              <th>CELULAR</th>
+              <th>FOTO</th>
+              <th>OBSERVACIONES</th>
+              <th>OPCIONES</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-student>
+            <tr>
+              <td>{{ student.code }}</td>
+              <td>{{ student.fullName }}</td>
+              <td>{{ student.campus }}</td>
+              <td>{{ student.cellphone }}</td>
+              <td>
+                <img [src]="appURL + student.photo_path" alt="foto" width="60" height="70" />
+              </td>
+              <td>
+                @if (student.list_flags.length > 0) {
+                  <ul>
+                    @for (flag of student.list_flags; track flag.code) {
+                      <li class="text-xs text-orange-400">{{ flag.name }}</li>
+                    }
+                  </ul>
+                } @else {
+                  <span class="text-green-600 text-xs">Sin observaciones</span>
+                }
+              </td>
+              <td class="align-content-center">
+                <div class="flex justify-center flex-wrap gap-1 mb-6">
+                  <p-button
+                    icon="pi pi-download"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="secondary"
+                    (onClick)="downloadPhoto(student)"
+                    pTooltip="Descargar foto"
+                    tooltipPosition="top"
+                  ></p-button>
+
+                  <p-button
+                    icon="pi pi-check"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="success"
+                    (onClick)="validateCardStudent(student)"
+                    pTooltip="Validar estudiante"
+                    tooltipPosition="top"
+                  ></p-button>
+
+                  <p-button
+                    icon="pi pi-times"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="info"
+                    (onClick)="pendingCardStudent(student, 'flagged')"
+                    pTooltip="Excluir estudiante"
+                    tooltipPosition="top"
+                  ></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabPanel>
+
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          Sin registro
+          <p-badge [value]="unmatchedStudent.length" severity="danger" />
+        </ng-template>
+        <p-table [value]="unmatchedStudent" class="p-datatable-sm" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>CÓDIGO</th>
+              <th>NOMBRES Y APELLIDOS</th>
+              <th>SEDE</th>
+              <th>CELULAR</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-student>
+            <tr>
+              <td>{{ student.code }}</td>
+              <td>{{ student.fullName }}</td>
+              <td>{{ student.campus }}</td>
+              <td>{{ student.cellphone }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabPanel>
+    </p-tabView>
+  </p-card>
+</div>
+<p-overlayPanel #overlayObservations showCloseIcon="true">
+  <div class="w-32">
+    <div class="w-full mb-3 text-center">
+      <!-- Botón centrado -->
+      <p-button
+        label="Observar Carnet"
+        variant="outlined"
+        severity="warn"
+        class="mx-auto"
+        (click)="onConfirmObservations()"
+      ></p-button>
+    </div>
+
+    <!-- MultiSelect debajo -->
+    <p-multiSelect
+      [options]="statusStudentCardOptions"
+      [(ngModel)]="selectedFlags"
+      optionLabel="name"
+      display="chip"
+      placeholder="Seleccione observaciones"
+      class="w-full"
+      [ngClass]="{ 'p-invalid': showSelectError }"
+    ></p-multiSelect>
+
+  </div>
+</p-overlayPanel>
+
+
+
+
+

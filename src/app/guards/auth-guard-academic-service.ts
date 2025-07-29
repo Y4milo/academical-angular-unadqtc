@@ -22,18 +22,28 @@ export class AuthGuardAcademic implements CanActivate {
 
   canActivate(): boolean {
     const loginToken = sessionStorage.getItem('login_id');
-    if (this.jwtService.isJWT(loginToken)) {
-      const userAdmin:UserLogin = jwtDecode(loginToken);
-      if (userAdmin.user_type_value !== 'academic') {
-        // 🔁 Redirigir al login si no hay sesión
-        this.router.navigate(['/login-admin']);
+
+    if (loginToken) {
+      if (this.jwtService.isJWT(loginToken)) {
+        const userAdmin: UserLogin = jwtDecode(loginToken);
+
+        if (userAdmin.user_type_value !== 'academic') {
+          // Redirige a la página de login completa
+          window.location.href = `${location.origin}/login-admin`;
+          return false;
+        }
+
+        return true;
+      } else {
+        // Token inválido
+        window.location.href = `${location.origin}/login-admin`;
         return false;
       }
     } else {
+      // No hay token
+      window.location.href = `${location.origin}/login-admin`;
       return false;
     }
-
-    return true;
   }
 }
 

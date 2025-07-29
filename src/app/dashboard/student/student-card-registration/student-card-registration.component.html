@@ -1,0 +1,264 @@
+<p-steps [model]="steps" [(activeIndex)]="currentStep"></p-steps>
+
+<div class="flex justify-content-center min-h-screen">
+  <div class="w-full" style="max-width: 800px;">
+    <p-card class="p-3 shadow-2 border-round-lg">
+      <form
+        [formGroup]="registrationForm"
+        (ngSubmit)="submitForm()"
+        class="p-fluid"
+      >
+        <h3 class="text-center text-2xl font-semibold text-primary mb-4" *ngIf="currentStep === 0">
+          Completa tus Datos Personales
+        </h3>
+        <h3 class="text-center text-2xl font-semibold text-primary mb-4" *ngIf="currentStep === 1">
+          Subir la foto para el Carné Universitario
+        </h3>
+        <ng-container *ngIf="currentStep === 0">
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="code_student">Código del Alumno</label>
+            <input
+              id="code_student"
+              name="code_student"
+              pInputText
+              formControlName="code_student"
+              aria-describedby="code_student-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['code_student'].invalid && (form['code_student'].dirty || form['code_student'].touched) }"
+            />
+            <small *ngIf="form['code_student'].invalid && (form['code_student'].dirty || form['code_student'].touched)" class="p-error" id="code_student-help">
+              Este campo es obligatorio (máx. 15 caracteres).
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="id_type">Tipo de Documento</label>
+            <p-dropdown
+              id="id_type"
+              name="id_type"
+              [options]="idTypeOptions"
+              optionLabel="label"
+              optionValue="id"
+              formControlName="id_type"
+              placeholder="Seleccione el tipo de documento"
+              aria-describedby="campus-help"
+              [ngClass]="{
+                'ng-invalid ng-dirty':
+                  form['id_type'].invalid && (form['id_type'].dirty || form['id_type'].touched)
+              }"
+            ></p-dropdown>
+            <small
+              *ngIf="form['id_type'].invalid && (form['id_type'].dirty || form['id_type'].touched)"
+              class="p-error"
+              id="id_type-help"
+            >
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="id_student">DNI</label>
+            <input
+              id="id_student"
+              name="id_student"
+              pInputText
+              formControlName="id_student"
+              aria-describedby="id_student-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['id_student'].invalid && (form['id_student'].dirty || form['id_student'].touched) }"
+            />
+            <small *ngIf="form['id_student'].invalid && (form['id_student'].dirty || form['id_student'].touched)" class="p-error" id="id_student-help">
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="check_digit">Dígito Verificador</label>
+            <input
+              id="check_digit"
+              name="check_digit"
+              type="number"
+              pInputText
+              formControlName="check_digit"
+              aria-describedby="check_digit-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['check_digit'].invalid && (form['check_digit'].dirty || form['check_digit'].touched) }"
+            />
+            <small *ngIf="form['check_digit'].invalid && (form['check_digit'].dirty || form['check_digit'].touched)" class="p-error" id="check_digit-help">
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="names">Nombres</label>
+            <input
+              id="names"
+              name="names"
+              pInputText
+              formControlName="names"
+              aria-describedby="names-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['names'].invalid && (form['names'].dirty || form['names'].touched) }"
+            />
+            <small *ngIf="form['names'].invalid && (form['names'].dirty || form['names'].touched)" class="p-error" id="names-help">
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="father_last_name">Apellido Paterno</label>
+            <input
+              id="father_last_name"
+              name="father_last_name"
+              pInputText
+              formControlName="father_last_name"
+              aria-describedby="father_last_name-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['father_last_name'].invalid && (form['father_last_name'].dirty || form['father_last_name'].touched) }"
+            />
+            <small *ngIf="form['father_last_name'].invalid && (form['father_last_name'].dirty || form['father_last_name'].touched)" class="p-error" id="father_last_name-help">
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="mother_last_name">Apellido Materno</label>
+            <input
+              id="mother_last_name"
+              name="mother_last_name"
+              pInputText
+              formControlName="mother_last_name"
+              aria-describedby="mother_last_name-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['mother_last_name'].invalid && (form['mother_last_name'].dirty || form['mother_last_name'].touched) }"
+            />
+            <small *ngIf="form['mother_last_name'].invalid && (form['mother_last_name'].dirty || form['mother_last_name'].touched)" class="p-error" id="mother_last_name-help">
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="email">Correo Electrónico</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              pInputText
+              formControlName="email"
+              aria-describedby="email-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['email'].invalid && (form['email'].dirty || form['email'].touched) }"
+            />
+            <small *ngIf="form['email'].invalid && (form['email'].dirty || form['email'].touched)" class="p-error" id="email-help">
+              Ingresa un correo electrónico válido.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="cellphone">Celular</label>
+            <input
+              id="cellphone"
+              name="cellphone"
+              pInputText
+              formControlName="cellphone"
+              aria-describedby="cellphone-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['cellphone'].invalid && (form['cellphone'].dirty || form['cellphone'].touched) }"
+            />
+            <small *ngIf="form['cellphone'].invalid && (form['cellphone'].dirty || form['cellphone'].touched)" class="p-error" id="cellphone-help">
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="address">Dirección</label>
+            <input
+              id="address"
+              name="address"
+              pInputText
+              formControlName="address"
+              aria-describedby="address-help"
+              [ngClass]="{ 'ng-invalid ng-dirty': form['address'].invalid && (form['address'].dirty || form['address'].touched) }"
+            />
+            <small *ngIf="form['address'].invalid && (form['address'].dirty || form['address'].touched)" class="p-error" id="address-help">
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
+            <label for="campus">Sede</label>
+            <p-dropdown
+              id="campus"
+              name="campus"
+              [options]="campusOptions"
+              optionLabel="label"
+              optionValue="id"
+              formControlName="campus"
+              placeholder="Seleccione una sede"
+              aria-describedby="campus-help"
+              [ngClass]="{
+                'ng-invalid ng-dirty':
+                  form['campus'].invalid && (form['campus'].dirty || form['campus'].touched)
+              }"
+            ></p-dropdown>
+            <small
+              *ngIf="form['campus'].invalid && (form['campus'].dirty || form['campus'].touched)"
+              class="p-error"
+              id="campus-help"
+            >
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+        </ng-container>
+
+        <ng-container *ngIf="currentStep === 1">
+          <div class="flex flex-row flex-wrap justify-content-center align-items-start gap-4 mt-4">
+
+            <!-- 🖼️ Columna Izquierda: Vista previa de la foto -->
+            <div class="text-center" style="flex: 1 1 300px; min-width: 300px;">
+              <img
+                [src]="previewUrl"
+                alt="Vista previa del carné"
+                style="width: 100%; max-width: 300px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"
+              />
+              <p class="text-sm mt-2 text-gray-700">Vista previa de la foto</p>
+              <!-- 📤 Selector de archivo -->
+              <div class="flex flex-column <!--gap-2--> mt-4 text-center">
+                <p-fileUpload
+                  mode="basic"
+                  name="photo"
+                  [auto]="false"
+                  accept=".jpg"
+                  (onSelect)="onFileSelect($event)"
+                  chooseLabel="Seleccionar Foto (.jpg)"
+                  [showUploadButton]="false"
+                  [showCancelButton]="false"
+                ></p-fileUpload>
+              </div>
+            </div>
+
+            <!-- 📋 Columna Derecha: Requisitos -->
+            <div class="text-left" style="flex: 1 1 300px; min-width: 300px;">
+
+              <h4 class="mb-1">📌 Requisitos de la foto del carné</h4>
+              <ul class="p-0 ml-3" style="list-style-type: disc;">
+                <li>🕵️ Es <b>OBLIGATORIO</b> que tu foto esté validada por la SUNEDU:
+                  <a href="https://siucarne.sunedu.gob.pe/carne/validacion" target="_blank" rel="noopener">
+                    Validar foto aquí
+                  </a>
+                </li>
+                <li>📷 Fondo blanco o claro a partir de los hombros</li>
+                <li>🙎‍♂️ Rostro completamente visible y centrado</li>
+                <li>🧢 Sin gorros, lentes oscuros o mascarillas (a excepción de los invidentes)</li>
+                <li>🚫 Sin sellos ni enmendaduras</li>
+                <li>📏 Dimensión alto: 288 píxeles</li>
+                <li>📏 Dimensión ancho: 240 píxeles</li>
+                <li>🖼️ Formato: JPG</li>
+                <li>💾 Tamaño: 4KB hasta 50KB</li>
+              </ul>
+            </div>
+          </div>
+        </ng-container>
+
+        <div class="text-center">
+          <button pButton label="Anterior" icon="pi pi-arrow-left" (click)="previousStep()" *ngIf="currentStep > 0" type="button"></button>
+          <button pButton label="Siguiente" icon="pi pi-arrow-right" (click)="nextStep()" *ngIf="currentStep === 0" type="button"></button>
+          <button pButton label="Guardar" icon="pi pi-check" type="submit" *ngIf="currentStep === 1"></button>
+        </div>
+      </form>
+    </p-card>
+  </div>
+</div>
