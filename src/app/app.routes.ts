@@ -5,6 +5,7 @@ import {LoginStudentComponent} from './dashboard/student/login-student/login-stu
 import {LoginAdminComponent} from './dashboard/admin/login-admin/login-admin.component';
 import {StudentCardsComponent} from './dashboard/admin/academic/student-cards/student-cards.component';
 import {AuthGuardAcademic} from './guards/auth-guard-academic-service';
+import {RegisterParticipantComponent} from './dashboard/events/register-participant/register-participant.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -20,6 +21,12 @@ export const routes: Routes = [
     canActivate: [AuthGuardAcademic] // ⛔ Protege la ruta
   },
   { path: 'login-admin', component: LoginAdminComponent },
+
+  {
+    path: 'kanchay/register-participant',
+    component: RegisterParticipantComponent,
+  },
+
   { path: '**', redirectTo: 'login' }
 ];
 

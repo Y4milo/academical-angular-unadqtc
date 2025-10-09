@@ -66,5 +66,11 @@ export class DictionaryService {
   getStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
     return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-flags`);
   }
+
+  getParticipantList() {
+    getStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
+      return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-flags`);
+    }
+  }
 }
 

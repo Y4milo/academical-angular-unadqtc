@@ -43,24 +43,24 @@ export class LoginAdminComponent {
 
     this.dictionaryService.logInAdmin(loginData).subscribe({
       next: (loginAdminRes) => {
-        if (loginAdminRes.status === 'success') {
-          this.notification.success(loginAdminRes.payload.message, loginAdminRes.payload.message);
-          sessionStorage.setItem('login_id', loginAdminRes.payload.data);
-          const user: UserLogin = jwtDecode(loginAdminRes.payload.data);
-          let route = "/admin";
-          switch (user.user_type_value){
-            case "accounting":
-              route += "/accounting-payments";
-              break;
-            case "academic":
-              route += "/student-cards";
-          }
-          setTimeout(() => {
-            this.router.navigate([route]);
-          }, 2000);
-        } else if (loginAdminRes.status === 'warning') {
-          this.notification.warning(loginAdminRes.payload.title, loginAdminRes.payload.message);
-        }
+        // if (loginAdminRes.status === 'success') {
+        //   this.notification.success(loginAdminRes.payload.message, loginAdminRes.payload.message);
+        //   sessionStorage.setItem('login_id', loginAdminRes.payload.data);
+        //   const user: UserLogin = jwtDecode(loginAdminRes.payload.data);
+        //   let route = "/admin";
+        //   switch (user.user_type_value){
+        //     case "accounting":
+        //       route += "/accounting-payments";
+        //       break;
+        //     case "academic":
+        //       route += "/student-cards";
+        //   }
+        //   setTimeout(() => {
+        //     this.router.navigate([route]);
+        //   }, 2000);
+        // } else if (loginAdminRes.status === 'warning') {
+        //   this.notification.warning(loginAdminRes.payload.title, loginAdminRes.payload.message);
+        // }
       },
       error: (e) => {
         this.notification.error('Error de conexión', 'El servicio no esta disponible en este momento');

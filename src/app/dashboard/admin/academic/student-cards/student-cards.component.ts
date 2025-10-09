@@ -19,7 +19,7 @@ import {jwtDecode} from 'jwt-decode';
 import {PopoverModule} from 'primeng/popover';
 import {NgClass} from '@angular/common';
 import {FileUpload, FileUploadModule} from 'primeng/fileupload';
-import {isApiResponse} from '../../../../models/api/api-data.model';
+// import {isApiResponse} from '../../../../models/api/api-data.model';
 import {decodeApiData, encodeArray, payloadNotification} from '../../../../helper/helper.util';
 
 @Component({
@@ -36,7 +36,6 @@ import {decodeApiData, encodeArray, payloadNotification} from '../../../../helpe
     MultiSelectModule,
     OverlayPanelModule,
     PopoverModule,
-    NgClass,
     FileUploadModule,
   ],
   templateUrl: './student-cards.component.html',
@@ -214,11 +213,11 @@ export class StudentCardsComponent implements OnInit {
           const text = await blob.text();
           const parsed = JSON.parse(text);
 
-          if (isApiResponse<any>(parsed)) {
-            this.notificationService.warning(parsed.response.title, parsed.response.message);
-            console.log(parsed.response.payload);
-            return;
-          }
+          // if (isApiResponse<any>(parsed)) {
+          //   this.notificationService.warning(parsed.response.title, parsed.response.message);
+          //   console.log(parsed.response.payload);
+          //   return;
+          // }
         } catch {
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -243,10 +242,10 @@ export class StudentCardsComponent implements OnInit {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
           const parsed = JSON.parse(text);
 
-          if (isApiResponse<any>(parsed)) {
-            this.notificationService.warning(parsed.response.title, parsed.response.message);
-            console.log(parsed.response.payload);
-          }
+          // if (isApiResponse<any>(parsed)) {
+          //   this.notificationService.warning(parsed.response.title, parsed.response.message);
+          //   console.log(parsed.response.payload);
+          // }
         }
         catch {
           const url = window.URL.createObjectURL(blob as Blob);
@@ -270,10 +269,10 @@ export class StudentCardsComponent implements OnInit {
         try {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
           const parsed = JSON.parse(text);
-          if (isApiResponse<any>(parsed)) {
-            this.notificationService.warning(parsed.response.title, parsed.response.message);
-            console.log(parsed.response.payload);
-          }
+          // if (isApiResponse<any>(parsed)) {
+          //   this.notificationService.warning(parsed.response.title, parsed.response.message);
+          //   console.log(parsed.response.payload);
+          // }
         }
         catch {
           const url = window.URL.createObjectURL(blob as Blob);
@@ -297,10 +296,10 @@ export class StudentCardsComponent implements OnInit {
         try {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
           const parsed = JSON.parse(text);
-          if (isApiResponse<any>(parsed)) {
-            this.notificationService.warning(parsed.response.title, parsed.response.message);
-            console.log(parsed.response.payload);
-          }
+          // if (isApiResponse<any>(parsed)) {
+          //   this.notificationService.warning(parsed.response.title, parsed.response.message);
+          //   console.log(parsed.response.payload);
+          // }
         } catch {
           // Si no era JSON, descargarlo
           const url = window.URL.createObjectURL(blob as Blob);
@@ -393,16 +392,16 @@ export class StudentCardsComponent implements OnInit {
     this.studentCardService.updateStudentPhoto(formData).subscribe({
       next: (data) => {
         if (data.payload.status === 'success') {
-          // const studentCard = jwtDecode(data.payload.data) as StudentCard;
-          const studentCard = decodeApiData(data);
-          const previous = studentCard.photo_path;
-          studentCard.photo_path = 'img/card-img.png';
-          studentCard.photo_path = previous;
-          this.validatedStudents.push(studentCard);
-          this.flaggedStudents = this.flaggedStudents.filter(s => s.id !== studentCard.id);
-          this.notificationService.success(data.payload.title, data.payload.message);
-        } else if (data.status === 'warning') {
-          this.notificationService.warning(data.payload.title, data.payload.message);
+        //   // const studentCard = jwtDecode(data.payload.data) as StudentCard;
+        //   const studentCard = decodeApiData(data);
+        //   const previous = studentCard.photo_path;
+        //   studentCard.photo_path = 'img/card-img.png';
+        //   studentCard.photo_path = previous;
+        //   this.validatedStudents.push(studentCard);
+        //   this.flaggedStudents = this.flaggedStudents.filter(s => s.id !== studentCard.id);
+        //   this.notificationService.success(data.payload.title, data.payload.message);
+        // } else if (data.status === 'warning') {
+        //   this.notificationService.warning(data.payload.title, data.payload.message);
         }
       },
       error: () => {

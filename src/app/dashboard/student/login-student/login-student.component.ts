@@ -39,16 +39,16 @@ export class LoginStudentComponent {
 
     this.paymentService.validatePayment(loginData).subscribe({
       next: (paymentRes) => {
-        if (paymentRes.status === 'success') {
-          sessionStorage.setItem('payment_id', paymentRes.payload.data);
-          // ✅ Guardar datos en la sesión
-          this.notification.success(paymentRes.payload.title, paymentRes.payload.message);
-          setTimeout(() => {
-            this.router.navigate(['/student-card-registration']);
-          }, 2000);
-        } else if (paymentRes.status === 'warning') {
-          this.notification.warning(paymentRes.payload.title, paymentRes.payload.message);
-        }
+        // if (paymentRes.status === 'success') {
+        //   sessionStorage.setItem('payment_id', paymentRes.payload.data);
+        //   // ✅ Guardar datos en la sesión
+        //   this.notification.success(paymentRes.payload.title, paymentRes.payload.message);
+        //   setTimeout(() => {
+        //     this.router.navigate(['/student-card-registration']);
+        //   }, 2000);
+        // } else if (paymentRes.status === 'warning') {
+        //   this.notification.warning(paymentRes.payload.title, paymentRes.payload.message);
+        // }
       },
       error: (error) => {
         this.notification.error('Error de conexión', 'El servicio no esta disponible en este momento');

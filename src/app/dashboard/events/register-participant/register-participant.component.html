@@ -1,0 +1,93 @@
+<div class="flex justify-content-center align-items-center min-h-screen surface-ground">
+  <p-card class="p-shadow-4 w-full md:w-8 lg:w-6 xl:w-5">
+
+    <!-- Imagen centrada -->
+    <div class="flex justify-content-center mb-4">
+      <img [src]="portrait_url" alt="Foto de carnet" class="portrait">
+    </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-fluid">
+
+      <!-- Tipo de Documento -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="idtype_id">Tipo de documento</label>
+        <p-dropdown
+          id="idtype_id"
+          formControlName="idtype_id"
+          [options]="idTypes"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccione un tipo">
+        </p-dropdown>
+      </div>
+
+      <!-- Número de Documento -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="number">Número de documento</label>
+        <input id="number" type="text" pInputText formControlName="number" placeholder="Ingrese número" />
+      </div>
+
+      <!-- Nombres -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="names">Nombres</label>
+        <input id="names" type="text" pInputText formControlName="names" placeholder="Ingrese nombres" />
+      </div>
+
+      <!-- Apellido Paterno -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="last_name">Apellido paterno</label>
+        <input id="last_name" type="text" pInputText formControlName="last_name" placeholder="Ingrese apellido paterno" />
+      </div>
+
+      <!-- Apellido Materno -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="maternal_last_name">Apellido materno</label>
+        <input id="maternal_last_name" type="text" pInputText formControlName="maternal_last_name" placeholder="Ingrese apellido materno" />
+      </div>
+
+      <!-- Género -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="gender_id">Género</label>
+        <p-dropdown
+          id="gender_id"
+          formControlName="gender_id"
+          [options]="genders"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccione género">
+        </p-dropdown>
+      </div>
+
+      <!-- Celular -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="phone">Celular</label>
+        <input id="phone" type="text" pInputText formControlName="phone" placeholder="Ingrese número de celular" />
+      </div>
+
+      <!-- Correo -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="email">Correo electrónico</label>
+        <input id="email" type="email" pInputText formControlName="email" placeholder="Ingrese su correo" />
+      </div>
+
+      <!-- Tipo de Participante -->
+      <div class="flex flex-column gap-2 mb-4">
+        <label for="participant_type_id">Tipo de participante</label>
+        <p-dropdown
+          id="participant_type_id"
+          formControlName="participant_type_id"
+          [options]="participantTypes"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccione tipo">
+        </p-dropdown>
+      </div>
+
+      <!-- Botón de Envío -->
+      <div class="flex justify-content-center mt-4">
+        <button pButton type="submit" label="Registrar" icon="pi pi-save" [disabled]="form.invalid"></button>
+      </div>
+    </form>
+  </p-card>
+</div>
