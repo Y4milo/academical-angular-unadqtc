@@ -14,7 +14,7 @@ import {jwtDecode} from 'jwt-decode';
     <app-login-base
       [titleLabel]="'Iniciar Sesión'"
       [userLabel]="'Usuario Administrativo'"
-      [alertMessage]="'El usuario es obligatorio'"
+      [userAlertMessage]="'El usuario es obligatorio'"
       [(user)]="user"
       [(password)]="password"
       (login)="login()"
@@ -44,9 +44,9 @@ export class LoginAdminComponent {
     this.dictionaryService.logInAdmin(loginData).subscribe({
       next: (loginAdminRes) => {
         if (loginAdminRes.status === 'success') {
-          this.notification.success(loginAdminRes.response.message, loginAdminRes.response.message);
-          sessionStorage.setItem('login_id', loginAdminRes.response.payload);
-          const user: UserLogin = jwtDecode(loginAdminRes.response.payload);
+          this.notification.success(loginAdminRes.payload.message, loginAdminRes.payload.message);
+          sessionStorage.setItem('login_id', loginAdminRes.payload.data);
+          const user: UserLogin = jwtDecode(loginAdminRes.payload.data);
           let route = "/admin";
           switch (user.user_type_value){
             case "accounting":
@@ -59,7 +59,7 @@ export class LoginAdminComponent {
             this.router.navigate([route]);
           }, 2000);
         } else if (loginAdminRes.status === 'warning') {
-          this.notification.warning(loginAdminRes.response.title, loginAdminRes.response.message);
+          this.notification.warning(loginAdminRes.payload.title, loginAdminRes.payload.message);
         }
       },
       error: (e) => {

@@ -35,7 +35,7 @@
                     [rounded]="true"
                     [text]="true"
                     severity="secondary"
-                    (onClick)="downloadPhoto(student)"
+                    (onClick)="downloadStudentPhoto(student)"
                     pTooltip="Descargar foto"
                     tooltipPosition="top"
                   ></p-button>
@@ -75,11 +75,19 @@
           <!-- Botón centrado -->
           <p-button
             class="mx-2"
-            label="Descargar Lista"
+            label="Descargar Lista PDF"
             icon="pi pi-cloud-download"
             variant="outlined"
             severity="success"
-            (click)="downloadStudentCards()"
+            (click)="downloadStudentCardsPDF()"
+          />
+          <p-button
+            class="mx-2"
+            label="Descargar Lista Excel"
+            icon="pi pi-cloud-download"
+            variant="outlined"
+            severity="success"
+            (click)="downloadStudentCardsExcel()"
           />
           <p-button
             class="mx-2"
@@ -99,6 +107,7 @@
               <th>SEDE</th>
               <th>CELULAR</th>
               <th>FOTO</th>
+              <th>DNI/PP/CE/CI</th>
               <th>OPCIONES</th>
             </tr>
           </ng-template>
@@ -111,6 +120,7 @@
               <td>
                 <img [src]="appURL + student.photo_path" alt="foto" width="60" height="70" />
               </td>
+              <td>{{ student.id_student }}</td>
               <td class="align-content-center">
                 <div class="flex justify-center flex-wrap gap-1 mb-6">
                   <p-button
@@ -118,7 +128,7 @@
                     [rounded]="true"
                     [text]="true"
                     severity="secondary"
-                    (onClick)="downloadPhoto(student)"
+                    (onClick)="downloadStudentPhoto(student)"
                     pTooltip="Descargar foto"
                     tooltipPosition="top"
                   ></p-button>
@@ -152,6 +162,7 @@
               <th>SEDE</th>
               <th>CELULAR</th>
               <th>FOTO</th>
+              <th>DNI/PP/CE/CI</th>
               <th>OBSERVACIONES</th>
               <th>OPCIONES</th>
             </tr>
@@ -165,6 +176,7 @@
               <td>
                 <img [src]="appURL + student.photo_path" alt="foto" width="60" height="70" />
               </td>
+              <td>{{ student.id_student }}</td>
               <td>
                 @if (student.list_flags.length > 0) {
                   <ul>
@@ -179,22 +191,22 @@
               <td class="align-content-center">
                 <div class="flex justify-center flex-wrap gap-1 mb-6">
                   <p-button
+                    icon="pi pi-upload"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="success"
+                    pTooltip="Subir foto"
+                    tooltipPosition="top"
+                    (onClick)="showOverlay($event, student)"
+                  ></p-button>
+
+                  <p-button
                     icon="pi pi-download"
                     [rounded]="true"
                     [text]="true"
                     severity="secondary"
-                    (onClick)="downloadPhoto(student)"
+                    (onClick)="downloadStudentPhoto(student)"
                     pTooltip="Descargar foto"
-                    tooltipPosition="top"
-                  ></p-button>
-
-                  <p-button
-                    icon="pi pi-check"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="success"
-                    (onClick)="validateCardStudent(student)"
-                    pTooltip="Validar estudiante"
                     tooltipPosition="top"
                   ></p-button>
 
@@ -241,6 +253,7 @@
     </p-tabView>
   </p-card>
 </div>
+
 <p-overlayPanel #overlayObservations showCloseIcon="true">
   <div class="w-32">
     <div class="w-full mb-3 text-center">
@@ -267,6 +280,44 @@
 
   </div>
 </p-overlayPanel>
+
+<p-overlayPanel #overlayUploadPhoto>
+  <div class="w-32">
+    <div class="w-full mb-3 text-center">
+      <!-- Botón centrado -->
+      <p-button
+        label="Subir foto"
+        variant="outlined"
+        severity="warn"
+        class="mx-auto"
+        (click)="onConfirmUploadPhoto()"
+      ></p-button>
+    </div>
+
+    <div class="text-center" style="flex: 1 1 300px; min-width: 300px;">
+      <img
+        [src]="previewUrl"
+        alt="Vista previa del carné"
+        style="width: 100%; max-width: 150px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"
+      />
+      <p class="text-sm mt-2 text-gray-700">Vista previa de la foto</p>
+    <!-- MultiSelect debajo -->
+      <p-fileupload
+        #fileUploader
+        mode="basic"
+        name="photo"
+        [auto]="false"
+        accept=".jpg,.jpeg"
+        (onSelect)="onFileSelect($event)"
+        chooseLabel="Seleccionar Foto (.jpg/.jpeg)"
+        [showUploadButton]="false"
+        [showCancelButton]="false"
+      ></p-fileupload>
+
+    </div>
+  </div>
+</p-overlayPanel>
+
 
 
 

@@ -15,8 +15,7 @@ import { Router} from '@angular/router';
 import { StudentCardService } from '../../../services/student-card.service';
 import { jwtDecode } from 'jwt-decode';
 import { Payment } from '../../../models/payment.model';
-import { Dictionary } from '../../../models/dictionary.model';
-import { StudentBasicInfo } from '../../../models/student-basic-info.model';
+import {decodeApiData, payloadNotification, validatePhotoCardStudent} from '../../../helper/helper.util';
 
 @Component({
   selector: 'app-student-registration',
@@ -127,42 +126,15 @@ export class StudentCardRegistrationComponent implements OnInit {
 
     if (!file) return;
 
-    // const maxSize = 50 * 1024; // 50KB
-    // const minSize = 4 * 1024;  // 4KB
+    const requirements = validatePhotoCardStudent(file)
 
-    // // Validar tamaño en KB
-    // if (file.size > maxSize || file.size < minSize) {
-    //   this.notification.error('Tamaño inválido', 'La imagen debe pesar entre 4KB y 50KB.');
-    //   return;
-    // }
-
-    const reader = new FileReader();
-
-    reader.onload = (e: any) => {
-      const img = new Image();
-      img.src = e.target.result;
-
-      img.onload = () => {
-        const width = img.width;
-        const height = img.height;
-
-        // // Validar dimensiones exactas
-        // if (width !== 240 || height !== 288) {
-        //   this.notification.error(
-        //     'Dimensiones incorrectas',
-        //     `La imagen debe medir exactamente 240x288 píxeles. Tamaño actual: ${width}x${height}.`
-        //   );
-        //   return;
-        // }
-
-        // ✅ Si pasa validaciones
-        this.selectedFile = file;
-        this.previewUrl = e.target.result;
-        this.registrationForm.patchValue({ photo: file });
-        this.registrationForm.get('photo')?.markAsTouched();
-      };
-    };
-
+    const reader = requirements.reader!;
+    if (requirements.validated) {
+      this.selectedFile = file;
+      this.previewUrl = requirements.e.target.result;
+      this.registrationForm.patchValue({ photo: file });
+      this.registrationForm.get('photo')?.markAsTouched();
+    }
     reader.readAsDataURL(file);
   }
 
@@ -188,86 +160,100 @@ export class StudentCardRegistrationComponent implements OnInit {
 
       // 🔁 Paso 1: Guardar datos del estudiante
       this.studentService.updateBasicInfo(code_student, this.registrationForm.value).subscribe({
-        next: (studentRes) => {
-          if (studentRes.status === 'success') {
-            this.notification.success(studentRes.response.title, studentRes.response.message);
-            const formData = new FormData();
-            formData.append('photo', this.selectedFile!);
-            formData.append('semester_id', this.semester_id!.toString());
-            formData.append('student_id', studentRes.response.payload.id!.toString());
-            formData.append('payment_id', this.payment_id!.toString());
-
-            this.studentCardService.uploadCardPhoto(formData).subscribe({
-              next: (studentCardRes) => {
-                if (studentCardRes.status === 'success') {
-                  this.notification.success(studentCardRes.response.title, studentCardRes.response.message);
-                } else {
-                  this.notification.warning(studentCardRes.response.title, studentCardRes.response.message);
+        next: (studentData) => {
+          const studentDecoded = decodeApiData(studentData);
+          if (studentDecoded.status === 'success'){
+            if (studentDecoded.payload?.status === 'success'){
+              const studentInfo = studentDecoded.payload!.data;
+              const formData = new FormData();
+              formData.append('photo', this.selectedFile!);
+              formData.append('semester_id', this.semester_id!.toString());
+              formData.append('student_id', studentInfo.id.toString());
+              formData.append('payment_id', this.payment_id!.toString());
+              this.studentCardService.uploadCardPhoto(formData).subscribe({
+                next: (uploadPhoto) => {
+                  payloadNotification(uploadPhoto.payload);
+                },
+                error: () => {
+                  this.notification.error('Error de conexión', 'No se pudo subir la foto.');
                 }
-              },
-              error: () => {
-                this.notification.error('Error de conexión', 'No se pudo subir la foto.');
-              }
-            });
+              });
+            } else {
+              payloadNotification(studentDecoded.payload!);
+            }
           } else {
-            this.notification.error(studentRes.response.title, studentRes.response.message);
+            payloadNotification(studentDecoded);
           }
         },
         error: () => {
           this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
         }
       });
-
     } else {
-      this.notification.error('Error', 'Por favor, complete todos los campos antes de enviar.');
+      this.notification.warning('Error', 'Por favor, complete todos los campos antes de enviar.');
     }
   }
 
 
   loadStudentBasicInformation(studentCode: string) {
     this.dictionaryService.getCampusList().subscribe({
-      next: data => {
-        if (data.status === 'success') {
-          const campus = jwtDecode<Dictionary[]>(data.response.payload.toString());
-          this.campusOptions = campus.map(campus => ({
-            id    : campus.id,
-            value : campus.value,
-            label : campus.label,
-          }))
-          this.dictionaryService.getIdTypeList().subscribe({
-            next: (data) => {
-              if (data.status === 'success') {
-                const idTypes = jwtDecode<Dictionary[]>(data.response.payload.toString());
-                this.idTypeOptions = idTypes.map(type => ({
-                  id: type.id,
-                  label: `${type.value} - ${type.label}`
-                }));
-                this.studentService.getStudentBasicInfoByCode(studentCode).subscribe({
-                  next: (data) => {
-                    if (data.status === 'success') {
-                      //adding Student information to the form
-                      let student = jwtDecode<StudentBasicInfo>(data.response.payload.toString());
-                      this.registrationForm.patchValue(student);
-                    } else if (data.status === 'warning') {
-                      // this.notification.warning(data.response.title, data.response.message);
-                      this.notification.warning("Datos de estudiante no encontrados", "Complete correctamente todos sus datos", 6000);
-                    }
-                  },
-                  error: () => {
-                    this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
+      next: campusData => {
+        const campusDataDecoded = decodeApiData(campusData);
+        if (campusDataDecoded.status === 'success'){
+          if (campusDataDecoded.payload!.status === 'success') {
+            const campusList = campusDataDecoded.payload!.data;
+            this.campusOptions = campusList.map(campus => ({
+              id    : campus.id,
+              value : campus.value,
+              label : campus.label,
+            }));
+            this.dictionaryService.getIdTypeList().subscribe({
+              next: (idTypeData) => {
+                const idTypeDataDecoded = decodeApiData(idTypeData);
+                if (idTypeDataDecoded.status === 'success'){
+                  if (idTypeDataDecoded.payload!.status === 'success') {
+                    const idTypesList = idTypeDataDecoded.payload!.data;
+                    this.idTypeOptions = idTypesList.map(type => ({
+                      id: type.id,
+                      label: `${type.value} - ${type.label}`
+                    }));
+                    this.studentService.getStudentBasicInfoByCode(studentCode).subscribe({
+                      next: (studentData) => {
+                        const studentInfoData = decodeApiData(studentData);
+                        if (studentInfoData.status === 'success'){
+                          if (studentInfoData.payload!.status === 'success') {
+                            //adding Student information to the form
+                            this.registrationForm.patchValue(studentInfoData.payload!.data);
+                          }
+                          else {
+                            this.notification.warning(studentInfoData.payload!.title, studentInfoData.payload!.message)
+                          }
+                        } else {
+                          this.notification.error(studentInfoData.title, studentInfoData.message);
+                        }
+                      },
+                      error: () => {
+                        this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
+                      }
+                    });
+                  } else if (idTypeDataDecoded.payload!.status === 'warning') {
+                    this.notification.warning(idTypeDataDecoded.payload!.title, idTypeDataDecoded.payload!.message);
                   }
-                });
-              } else if (data.status === 'warning') {
-                this.notification.warning(data.response.title, data.response.message);
+                } else {
+                  this.notification.error(idTypeDataDecoded.title, idTypeDataDecoded.message)
+                }
+              },
+              error: () => {
+                this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
               }
-            },
-            error: () => {
-              this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
-            }
-          });
-        }
-        else if(data.status === 'warning') {
-          this.notification.warning(data.response.title, data.response.message);
+            });
+          }
+          else if(campusDataDecoded.payload!.status === 'warning') {
+            this.notification.warning(campusDataDecoded.payload!.title, campusDataDecoded.payload!.message);
+          }
+
+        } else {
+          this.notification.warning(campusDataDecoded.title, campusDataDecoded.message);
         }
       },
       error: (err) => {

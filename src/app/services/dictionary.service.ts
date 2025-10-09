@@ -3,8 +3,9 @@ import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Dictionary } from '../models/dictionary.model';
-import {ApiResponse} from '../models/api-response.model';
+import {ApiData} from '../models/api/api-data.model';
 import {StudentCard} from '../models/student-card.model';
+import {ApiDataEncoded} from '../models/api/api-data-encoded.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,8 +22,8 @@ export class DictionaryService {
    * Endpoint: /campus
    * @returns Observable con array de objetos tipo Dictionary
    */
-  getCampusList(): Observable<ApiResponse<Dictionary[]>> {
-    return this.http.get<ApiResponse<Dictionary[]>>(`${this.apiURL}/campus`);
+  getCampusList(): Observable<ApiDataEncoded<Dictionary[]>> {
+    return this.http.get<ApiDataEncoded<Dictionary[]>>(`${this.apiURL}/campus`);
   }
 
   /**
@@ -30,8 +31,8 @@ export class DictionaryService {
    * Endpoint: /id-type
    * @returns Observable con array de objetos tipo Dictionary
    */
-  getIdTypeList(): Observable<ApiResponse<Dictionary[]>> {
-    return this.http.get<ApiResponse<Dictionary[]>>(`${this.apiURL}/id-types`);
+  getIdTypeList(): Observable<ApiDataEncoded<Dictionary[]>> {
+    return this.http.get<ApiDataEncoded<Dictionary[]>>(`${this.apiURL}/id-types`);
   }
 
   /**
@@ -39,8 +40,8 @@ export class DictionaryService {
    * Endpoint: /gender
    * @returns Observable con array de objetos tipo Dictionary
    */
-  getGenderList(): Observable<ApiResponse<Dictionary[]>> {
-    return this.http.get<ApiResponse<Dictionary[]>>(`${this.apiURL}/gender`);
+  getGenderList(): Observable<ApiData<Dictionary[]>> {
+    return this.http.get<ApiData<Dictionary[]>>(`${this.apiURL}/gender`);
   }
 
   /**
@@ -48,22 +49,22 @@ export class DictionaryService {
    * Endpoint: /current-semester
    * @returns Observable con un objeto tipo Dictionary
    */
-  getCurrentSemester(): Observable<ApiResponse<Dictionary>> {
-    return this.http.get<ApiResponse<Dictionary>>(`${this.apiURL}/semesters/current`);
+  getCurrentSemester(): Observable<ApiData<Dictionary>> {
+    return this.http.get<ApiData<Dictionary>>(`${this.apiURL}/semesters/current`);
   }
   /**
    * Obtiene el semestre actual desde la API.
    * Endpoint: /login-admin
    * @returns Observable con un objeto tipo Dictionary
    */
-  logInAdmin(loginData: FormData): Observable<ApiResponse<string>> {
-    return this.http.post<ApiResponse<string>>(`${this.apiURL}/login-admin`, loginData);
+  logInAdmin(loginData: FormData): Observable<ApiData<string>> {
+    return this.http.post<ApiData<string>>(`${this.apiURL}/login-admin`, loginData);
   }
-  logOutAdmin(): Observable<ApiResponse<Dictionary>> {
-    return this.http.get<ApiResponse<Dictionary>>(`${this.apiURL}/logout-admin`);
+  logOutAdmin(): Observable<ApiData<Dictionary>> {
+    return this.http.get<ApiData<Dictionary>>(`${this.apiURL}/logout-admin`);
   }
-  getStudentCardFlags() :Observable<ApiResponse<string>>{
-    return this.http.get<ApiResponse<string>>(`${environment.apiUrl}/student-card-flags`);
+  getStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
+    return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-flags`);
   }
 }
 

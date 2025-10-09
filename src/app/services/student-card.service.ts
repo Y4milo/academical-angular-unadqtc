@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {ApiResponse} from '../models/api-response.model';
+import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
 import {Dictionary} from '../models/dictionary.model';
 import {StudentCard} from '../models/student-card.model';
+import {ApiDataEncoded} from '../models/api/api-data-encoded.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,41 +16,49 @@ export class StudentCardService {
 
   constructor(private http: HttpClient) { }
 
-  uploadCardPhoto(studentCardData: any): Observable<ApiResponse<Dictionary>> {
-    return this.http.post<ApiResponse<any>>(`${this.apiURL}/student-cards/store`, studentCardData);
+  uploadCardPhoto(studentCardData: any): Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<any>>(`${this.apiURL}/student-cards/store`, studentCardData);
   }
-  getPendingStudentCards() :Observable<ApiResponse<StudentCard[]>> {
-    return this.http.get<ApiResponse<StudentCard[]>>(`${environment.apiUrl}/student-cards/pending`);
+  updateStudentPhoto(formData: FormData):Observable<ApiData<StudentCard>> {
+    return this.http.post<ApiData<StudentCard>>(`${this.apiURL}/student-cards/update-photo`, formData);
   }
-  getUnmatchedStudentCards() :Observable<ApiResponse<StudentCard[]>> {
-    return this.http.get<ApiResponse<StudentCard[]>>(`${environment.apiUrl}/student-cards/unmatched`);
+  getPendingStudentCards() :Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/pending`);
   }
-  getValidatedStudentCards() :Observable<ApiResponse<StudentCard[]>> {
-    return this.http.get<ApiResponse<StudentCard[]>>(`${environment.apiUrl}/student-cards/validated`);
+  getUnmatchedStudentCards() :Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/unmatched`);
   }
-  getFlaggedStudentCards() :Observable<ApiResponse<StudentCard[]>> {
-    return this.http.get<ApiResponse<StudentCard[]>>(`${environment.apiUrl}/student-cards/flagged`);
+  getValidatedStudentCards() :Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/validated`);
   }
-  validateStudentCard(statusStudentCard: FormData) :Observable<ApiResponse<Dictionary>> {
-    return this.http.post<ApiResponse<Dictionary>>(`${environment.apiUrl}/student-cards/validate-student`, statusStudentCard);
+  getFlaggedStudentCards() :Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/flagged`);
   }
-  pendingStudentCard(statusStudentCard: FormData) :Observable<ApiResponse<Dictionary>> {
-    return this.http.post<ApiResponse<Dictionary>>(`${environment.apiUrl}/student-cards/pending-student`, statusStudentCard);
+  validateStudentCard(statusStudentCard: FormData) :Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/validate-student`, statusStudentCard);
   }
-  setFlaggedStudentCard(selectedFlags: FormData) :Observable<ApiResponse<Dictionary>> {
-    return this.http.post<ApiResponse<Dictionary>>(`${environment.apiUrl}/student-cards/set-selected-flags`, selectedFlags);
+  pendingStudentCard(statusStudentCard: FormData) :Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/pending-student`, statusStudentCard);
   }
-  downloadStudentCardsPDF(): Observable<Blob|ApiResponse<any>> {
+  setFlaggedStudentCard(selectedFlags: FormData) :Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/set-selected-flags`, selectedFlags);
+  }
+  downloadStudentCardsPDF(): Observable<Blob> {
     return this.http.get(`${environment.apiUrl}/student-cards/pdf`, {
       responseType: 'blob'  // 👈 No uses 'as json', ni <Blob>
     }) as Observable<Blob>;  // 👈 Esto es lo correcto
   }
-  downloadStudentPhotosZip(): Observable<Blob|ApiResponse<any>> {
+  downloadStudentCardsExcel(): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/student-cards/xlsx`, {
+      responseType: 'blob'  // 👈 No uses 'as json', ni <Blob>
+    }) as Observable<Blob>;  // 👈 Esto es lo correcto
+  }
+  downloadStudentPhotosZip(): Observable<Blob|ApiData<any>> {
     return this.http.get(`${environment.apiUrl}/student-cards/zip`, {
       responseType: 'blob',
     });
   }
-  downloadStudentCardsPhoto(idStudentCard: FormData): Observable<Blob|ApiResponse<any>> {
+  downloadStudentCardPhoto(idStudentCard: FormData): Observable<Blob> {
     return this.http.post(`${environment.apiUrl}/student-cards/download-student-card-photo`, idStudentCard, {
       responseType: 'blob'
     });

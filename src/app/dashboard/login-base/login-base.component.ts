@@ -7,6 +7,7 @@ import {InputText} from 'primeng/inputtext';
 import {NgClass, NgIf} from '@angular/common';
 import {Password} from 'primeng/password';
 import {PrimeTemplate} from 'primeng/api';
+import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-login-base',
@@ -29,19 +30,33 @@ export class LoginBaseComponent {
   @Input() user: string = '';
   @Input() password: string = '';
 
-  @Input() userLabel: string = '';
-  @Input() alertMessage: string = '';
   @Input() titleLabel: string = '';
+  @Input() userLabel: string = '';
+  @Input() userAlertMessage: string = '';
 
   @Output() userChange = new EventEmitter<string>();
   @Output() passwordChange = new EventEmitter<string>();
   // El Output 'login' sigue emitiendo un evento vacío, lo cual es correcto.
   @Output() login = new EventEmitter<void>();
 
-  onLoginClick() {
-    // Emite el evento 'login'. El componente padre se encargará de ejecutar la lógica.
+  constructor(
+    private notification: NotificationService,
+  )
+  {  }
+
+
+  onLoginClick(form: any) {
+    if (form.invalid) {
+      // Marca todos los controles como "tocados" para mostrar errores
+      Object.values(form.controls).forEach((control: any) => {
+        control.markAsTouched();
+      });
+      return; // Evita lanzar el evento login
+    }
+    // Si todo está válido, emite el evento login
     this.login.emit();
   }
+
 
   onUserChange(value: string) {
     this.userChange.emit(value);
