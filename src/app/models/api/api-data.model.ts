@@ -1,6 +1,8 @@
 import {Payload} from './payload.model';
 
 export interface ApiData<T> {
-  payload  : Payload<T>;                  // Datos con metainformación
-  time_exec : string;                           // Tiempo de ejecución (por ejemplo: "12ms")
+  status    : 'success' | 'warning' | 'error' | 'info'; // "success", "error", etc.
+  encoded   : true | false;
+  decoded   : true | false;
+  payload   : Payload<T>;                  // Datos con meta-información
 }

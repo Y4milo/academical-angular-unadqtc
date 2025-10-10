@@ -62,14 +62,14 @@ export class StudentCardsComponent implements OnInit {
   ngOnInit(): void {
     this.dictionaryService.getStudentCardFlags().subscribe({
       next: studentCardFlagsData => {
-        if (studentCardFlagsData.payload!.status === 'success') {
+        if (studentCardFlagsData.status === 'success') {
           const flaggedList = studentCardFlagsData.payload!.data;
           this.statusStudentCardOptions = flaggedList.map((item: Dictionary) => ({
             name: item.label,
             code: item.id.toString(),
           }));
         } else {
-          payloadNotification(studentCardFlagsData.payload!)
+          payloadNotification(studentCardFlagsData)
         }
       },
       error: (err) => {
@@ -80,10 +80,10 @@ export class StudentCardsComponent implements OnInit {
     });
     this.studentCardService.getPendingStudentCards().subscribe({
       next: pendingStudentCardsData => {
-        if (pendingStudentCardsData.payload.status === 'success') {
+        if (pendingStudentCardsData.status === 'success') {
           this.pendingStudents = pendingStudentCardsData.payload.data;
         } else {
-          payloadNotification(pendingStudentCardsData.payload);
+          payloadNotification(pendingStudentCardsData);
         }
       },
       error: (err) => {
@@ -94,10 +94,10 @@ export class StudentCardsComponent implements OnInit {
     });
     this.studentCardService.getUnmatchedStudentCards().subscribe({
       next: unmatchedStudentCardsData => {
-        if (unmatchedStudentCardsData.payload.status === 'success') {
+        if (unmatchedStudentCardsData.status === 'success') {
           this.unmatchedStudent = unmatchedStudentCardsData.payload.data;
         } else {
-          payloadNotification(unmatchedStudentCardsData.payload);
+          payloadNotification(unmatchedStudentCardsData);
         }
       },
       error: (err) => {
@@ -108,10 +108,10 @@ export class StudentCardsComponent implements OnInit {
     });
     this.studentCardService.getValidatedStudentCards().subscribe({
       next: validatedStudentCardsData => {
-        if (validatedStudentCardsData.payload.status === 'success') {
+        if (validatedStudentCardsData.status === 'success') {
           this.validatedStudents = validatedStudentCardsData.payload.data;
         } else {
-          payloadNotification(validatedStudentCardsData.payload);
+          payloadNotification(validatedStudentCardsData);
         }
       },
       error: (err) => {
@@ -122,10 +122,10 @@ export class StudentCardsComponent implements OnInit {
     });
     this.studentCardService.getFlaggedStudentCards().subscribe({
       next: flaggedStudentCardsData => {
-        if (flaggedStudentCardsData.payload.status === 'success') {
+        if (flaggedStudentCardsData.status === 'success') {
           this.flaggedStudents = flaggedStudentCardsData.payload.data;
         } else {
-          payloadNotification(flaggedStudentCardsData.payload);
+          payloadNotification(flaggedStudentCardsData);
         }
       },
       error: (err) => {
@@ -142,7 +142,7 @@ export class StudentCardsComponent implements OnInit {
     const token = encodeArray(payload);
     this.studentCardService.validateStudentCard(token).subscribe({
       next: (data) => {
-        if (data.payload.status === 'success') {
+        if (data.status === 'success') {
           if (student.status) {
             // Si está validado, lo movemos de pendientes a validados
             this.validatedStudents.push(student);
@@ -154,9 +154,9 @@ export class StudentCardsComponent implements OnInit {
             this.pendingStudents.push(student);
             this.validatedStudents = this.validatedStudents.filter(s => s.id !== student.id);
           }
-          payloadNotification(data.payload);
-        } else if (data.payload.status === 'warning') {
-          payloadNotification(data.payload)
+          payloadNotification(data);
+        } else if (data.status === 'warning') {
+          payloadNotification(data)
         } else {
           student.status = previousStatus;
           this.notificationService.error('Error', 'Respuesta inesperada del servidor.');
@@ -176,7 +176,7 @@ export class StudentCardsComponent implements OnInit {
     const statusStudentCard = encodeArray(payload);
     this.studentCardService.pendingStudentCard(statusStudentCard).subscribe({
       next: (data) => {
-        if (data.payload.status === 'success') {
+        if (data.status === 'success') {
           // Si está validado, lo movemos de pendientes a validados
           this.pendingStudents.push(student);
           if (list === 'validated') {
@@ -186,9 +186,9 @@ export class StudentCardsComponent implements OnInit {
             this.flaggedStudents = this.flaggedStudents.filter(s => s.id !== student.id);
           }
           this.notificationService.success(data.payload.title, data.payload.message);
-        } else if (data.payload.status === 'warning') {
+        } else if (data.status === 'warning') {
           student.status = previousStatus;
-          payloadNotification(data.payload);
+          payloadNotification(data);
         } else {
           student.status = previousStatus;
           this.notificationService.error('Error', 'Respuesta inesperada del servidor.');
@@ -339,7 +339,7 @@ export class StudentCardsComponent implements OnInit {
     let selectedFlagsData = encodeArray(payload);
     this.studentCardService.setFlaggedStudentCard(selectedFlagsData).subscribe({
       next: (data) => {
-        if (data.payload.status === 'success') {
+        if (data.status === 'success') {
           const index = this.pendingStudents.findIndex(s => s.id === this.selectedFlaggedCard.id);
           if (index !== -1) {
             const student = this.pendingStudents[index];
@@ -352,9 +352,9 @@ export class StudentCardsComponent implements OnInit {
             // Limpiar los flags seleccionados
             this.selectedFlags = [];
           }
-          payloadNotification(data.payload);
+          payloadNotification(data);
         } else {
-          payloadNotification(data.payload);
+          payloadNotification(data);
         }
       }
     });
@@ -391,17 +391,17 @@ export class StudentCardsComponent implements OnInit {
     formData.append('id', this.selectedUploadCard.id.toString());
     this.studentCardService.updateStudentPhoto(formData).subscribe({
       next: (data) => {
-        if (data.payload.status === 'success') {
-        //   // const studentCard = jwtDecode(data.payload.data) as StudentCard;
-        //   const studentCard = decodeApiData(data);
-        //   const previous = studentCard.photo_path;
-        //   studentCard.photo_path = 'img/card-img.png';
-        //   studentCard.photo_path = previous;
-        //   this.validatedStudents.push(studentCard);
-        //   this.flaggedStudents = this.flaggedStudents.filter(s => s.id !== studentCard.id);
-        //   this.notificationService.success(data.payload.title, data.payload.message);
-        // } else if (data.status === 'warning') {
-        //   this.notificationService.warning(data.payload.title, data.payload.message);
+        if (data.status === 'success') {
+          // const studentCard = jwtDecode(data.payload.data) as StudentCard;
+          // const studentCard = decodeApiData(data);
+          // const previous = studentCard.photo_path;
+          // studentCard.photo_path = 'img/card-img.png';
+          // studentCard.photo_path = previous;
+          // this.validatedStudents.push(studentCard);
+          // this.flaggedStudents = this.flaggedStudents.filter(s => s.id !== studentCard.id);
+          // this.notificationService.success(data.payload.title, data.payload.message);
+        } else if (data.status === 'warning') {
+          this.notificationService.warning(data.payload.title, data.payload.message);
         }
       },
       error: () => {

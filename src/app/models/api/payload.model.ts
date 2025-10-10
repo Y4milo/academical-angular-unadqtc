@@ -2,7 +2,8 @@
  * Modelo que representa el modelo Payload.
  */
 export interface Payload<T> {
-  status    : 'success' | 'warning' | 'error';  // "success", "error", etc.
+  iat       : number;
+  exp       : number;
   message   : string;
   title     : string;
   data      : T;

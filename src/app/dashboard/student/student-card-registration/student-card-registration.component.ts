@@ -163,7 +163,6 @@ export class StudentCardRegistrationComponent implements OnInit {
         next: (studentData) => {
           const studentDecoded = decodeApiData(studentData);
           if (studentDecoded.status === 'success'){
-            if (studentDecoded.payload?.status === 'success'){
               const studentInfo = studentDecoded.payload!.data;
               const formData = new FormData();
               formData.append('photo', this.selectedFile!);
@@ -172,15 +171,13 @@ export class StudentCardRegistrationComponent implements OnInit {
               formData.append('payment_id', this.payment_id!.toString());
               this.studentCardService.uploadCardPhoto(formData).subscribe({
                 next: (uploadPhoto) => {
-                  payloadNotification(uploadPhoto.payload);
+                  payloadNotification(uploadPhoto);
                 },
                 error: () => {
                   this.notification.error('Error de conexión', 'No se pudo subir la foto.');
                 }
               });
-            } else {
-              payloadNotification(studentDecoded.payload!);
-            }
+
           } else {
             payloadNotification(studentDecoded);
           }
@@ -200,7 +197,6 @@ export class StudentCardRegistrationComponent implements OnInit {
       next: campusData => {
         const campusDataDecoded = decodeApiData(campusData);
         if (campusDataDecoded.status === 'success'){
-          if (campusDataDecoded.payload!.status === 'success') {
             const campusList = campusDataDecoded.payload!.data;
             this.campusOptions = campusList.map(campus => ({
               id    : campus.id,
@@ -211,7 +207,6 @@ export class StudentCardRegistrationComponent implements OnInit {
               next: (idTypeData) => {
                 const idTypeDataDecoded = decodeApiData(idTypeData);
                 if (idTypeDataDecoded.status === 'success'){
-                  if (idTypeDataDecoded.payload!.status === 'success') {
                     const idTypesList = idTypeDataDecoded.payload!.data;
                     this.idTypeOptions = idTypesList.map(type => ({
                       id: type.id,
@@ -221,13 +216,9 @@ export class StudentCardRegistrationComponent implements OnInit {
                       next: (studentData) => {
                         const studentInfoData = decodeApiData(studentData);
                         if (studentInfoData.status === 'success'){
-                          if (studentInfoData.payload!.status === 'success') {
                             //adding Student information to the form
                             this.registrationForm.patchValue(studentInfoData.payload!.data);
-                          }
-                          else {
-                            this.notification.warning(studentInfoData.payload!.title, studentInfoData.payload!.message)
-                          }
+
                         } else {
                           this.notification.error(studentInfoData.title, studentInfoData.message);
                         }
@@ -236,9 +227,6 @@ export class StudentCardRegistrationComponent implements OnInit {
                         this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
                       }
                     });
-                  } else if (idTypeDataDecoded.payload!.status === 'warning') {
-                    this.notification.warning(idTypeDataDecoded.payload!.title, idTypeDataDecoded.payload!.message);
-                  }
                 } else {
                   this.notification.error(idTypeDataDecoded.title, idTypeDataDecoded.message)
                 }
@@ -247,11 +235,6 @@ export class StudentCardRegistrationComponent implements OnInit {
                 this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
               }
             });
-          }
-          else if(campusDataDecoded.payload!.status === 'warning') {
-            this.notification.warning(campusDataDecoded.payload!.title, campusDataDecoded.payload!.message);
-          }
-
         } else {
           this.notification.warning(campusDataDecoded.title, campusDataDecoded.message);
         }

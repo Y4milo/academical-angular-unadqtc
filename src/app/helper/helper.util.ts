@@ -6,6 +6,7 @@ import {ApiDataEncoded} from '../models/api/api-data-encoded.model';
 import {PayloadDecoded} from '../models/api/payload-decoded.model';
 import {NotificationService} from '../services/notification.service';
 import {MessageService} from 'primeng/api';
+import {ApiData} from '../models/api/api-data.model';
 
 /**
  * Intenta decodificar un campo de DataResponse si es un JWT string.
@@ -98,35 +99,35 @@ export function validatePhotoCardStudent(file: File){
 /**
  * Intenta mostrar un MessageService.
  * Si ya es un objeto/array, lo devuelve tal cual.
- * @param payload Objeto de tipo Payload<T>
+ * @param data Objeto de tipo Payload<T>
  * @param life tiempo de vida de la notificación
  */
 export function payloadNotification<T>(
-  payload: Payload<T> | PayloadDecoded<T>,
+  data: ApiData<T>,
   life: number = 0)
   : void {
 
   const notification = new NotificationService(new MessageService())
-  switch (payload.status){
+  switch (data.status){
     case "success":
       life?
-      notification.success(payload.title, payload.message, life) :
-        notification.error(payload.title, payload.message);
+      notification.success(data.payload.title, data.payload.message, life) :
+        notification.error(data.payload.title, data.payload.message);
     break;
     case "warning":
       life?
-      notification.warning(payload.title, payload.message, life) :
-        notification.error(payload.title, payload.message);
+      notification.warning(data.payload.title, data.payload.message, life) :
+        notification.error(data.payload.title, data.payload.message);
       break;
     case "error":
       life?
-      notification.error(payload.title, payload.message, life) :
-        notification.error(payload.title, payload.message);
+      notification.error(data.payload.title, data.payload.message, life) :
+        notification.error(data.payload.title, data.payload.message);
       break;
     default:
       life?
-      notification.info(payload.title, payload.message, life) :
-        notification.error(payload.title, payload.message);
+      notification.info(data.payload.title, data.payload.message, life) :
+        notification.error(data.payload.title, data.payload.message);
       break;
   }
 }
