@@ -179,7 +179,7 @@ export class StudentCardRegistrationComponent implements OnInit {
               });
 
           } else {
-            payloadNotification(studentDecoded);
+            // payloadNotification(studentDecoded);
           }
         },
         error: () => {
@@ -195,7 +195,7 @@ export class StudentCardRegistrationComponent implements OnInit {
   loadStudentBasicInformation(studentCode: string) {
     this.dictionaryService.getCampusList().subscribe({
       next: campusData => {
-        const campusDataDecoded = decodeApiData(campusData);
+        const campusDataDecoded = campusData;
         if (campusDataDecoded.status === 'success'){
             const campusList = campusDataDecoded.payload!.data;
             this.campusOptions = campusList.map(campus => ({
@@ -205,7 +205,7 @@ export class StudentCardRegistrationComponent implements OnInit {
             }));
             this.dictionaryService.getIdTypeList().subscribe({
               next: (idTypeData) => {
-                const idTypeDataDecoded = decodeApiData(idTypeData);
+                const idTypeDataDecoded = idTypeData;
                 if (idTypeDataDecoded.status === 'success'){
                     const idTypesList = idTypeDataDecoded.payload!.data;
                     this.idTypeOptions = idTypesList.map(type => ({
@@ -228,7 +228,7 @@ export class StudentCardRegistrationComponent implements OnInit {
                       }
                     });
                 } else {
-                  this.notification.error(idTypeDataDecoded.title, idTypeDataDecoded.message)
+                  // this.notification.error(idTypeDataDecoded.title, idTypeDataDecoded.message)
                 }
               },
               error: () => {
@@ -236,7 +236,7 @@ export class StudentCardRegistrationComponent implements OnInit {
               }
             });
         } else {
-          this.notification.warning(campusDataDecoded.title, campusDataDecoded.message);
+          // this.notification.warning(campusDataDecoded.title, campusDataDecoded.message);
         }
       },
       error: (err) => {

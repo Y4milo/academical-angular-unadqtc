@@ -22,8 +22,10 @@ export class DictionaryService {
    * Endpoint: /campus
    * @returns Observable con array de objetos tipo Dictionary
    */
-  getCampusList(): Observable<ApiDataEncoded<Dictionary[]>> {
-    return this.http.get<ApiDataEncoded<Dictionary[]>>(`${this.apiURL}/campus`);
+  // getCampusList(): Observable<ApiDataEncoded<Dictionary[]>> {
+  getCampusList(): Observable<ApiData<Dictionary[]>> {
+    // return this.http.get<ApiDataEncoded<Dictionary[]>>(`${this.apiURL}/campus`);
+    return this.http.get<ApiData<Dictionary[]>>(`${this.apiURL}/campus`);
   }
 
   /**
@@ -31,8 +33,10 @@ export class DictionaryService {
    * Endpoint: /id-type
    * @returns Observable con array de objetos tipo Dictionary
    */
-  getIdTypeList(): Observable<ApiDataEncoded<Dictionary[]>> {
-    return this.http.get<ApiDataEncoded<Dictionary[]>>(`${this.apiURL}/id-types`);
+  // getIdTypeList(): Observable<ApiDataEncoded<Dictionary[]>> {
+  getIdTypeList(): Observable<ApiData<Dictionary[]>> {
+    // return this.http.get<ApiDataEncoded<Dictionary[]>>(`${this.apiURL}/id-types`);
+    return this.http.get<ApiData<Dictionary[]>>(`${this.apiURL}/id-types`);
   }
 
   /**
@@ -40,7 +44,9 @@ export class DictionaryService {
    * Endpoint: /gender
    * @returns Observable con array de objetos tipo Dictionary
    */
+  // getGenderList(): Observable<ApiData<Dictionary[]>> {
   getGenderList(): Observable<ApiData<Dictionary[]>> {
+    return this.http.get<ApiData<Dictionary[]>>(`${this.apiURL}/gender`);
     return this.http.get<ApiData<Dictionary[]>>(`${this.apiURL}/gender`);
   }
 
@@ -66,11 +72,8 @@ export class DictionaryService {
   getStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
     return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-flags`);
   }
-
   getParticipantList() {
-    getStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
-      return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-flags`);
-    }
+      return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/get-participant-types`);
   }
 }
 
