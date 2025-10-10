@@ -9,7 +9,9 @@ import {InputTextModule} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
 import {DictionaryService} from '../../../services/dictionary.service';
 import {Dictionary} from '../../../models/dictionary.model';
-import {payloadNotification} from '../../../helper/helper.util';
+import {decodeApiData, payloadNotification} from '../../../helper/helper.util';
+import {ParticipantService} from '../../../services/participant.service';
+import {DialogModule} from 'primeng/dialog';
 
 @Component({
   selector: 'app-register-participant',
@@ -18,7 +20,8 @@ import {payloadNotification} from '../../../helper/helper.util';
     CardModule,
     DropdownModule,
     InputTextModule,
-    ButtonModule
+    ButtonModule,
+    DialogModule
   ],
   templateUrl: './register-participant.component.html',
   standalone: true,
@@ -32,11 +35,15 @@ export class RegisterParticipantComponent {
   portrait_url: string = '/img/portada_kanchay.png'; // imagen por defecto
   loading = false;
 
+  showWhatsappModal: boolean = false;
+  whatsappLink: string = '#';
+
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
     private notificationService: NotificationService,
-    private dictionaryService: DictionaryService
+    private dictionaryService: DictionaryService,
+    private participantService: ParticipantService
   ) {}
 
   ngOnInit(): void {
@@ -65,17 +72,17 @@ export class RegisterParticipantComponent {
     const base = environment.apiUrl;
 
     this.dictionaryService.getIdTypeList().subscribe({
-      // next: idTypeList => {
-      //   if (idTypeList.payload!.status === 'success') {
-      //     const flaggedList = idTypeList.payload!.data;
-      //     this.statusStudentCardOptions = flaggedList.map((item: Dictionary) => ({
-      //       name: item.label,
-      //       code: item.id.toString(),
-      //     }));
-      //   } else {
-      //     payloadNotification(idTypeList.payload!)
-      //   }
-      // },
+      next: idTypeList => {
+        if (idTypeList.status === 'success') {
+          const idTypeListData = idTypeList.payload.data;
+          this.idTypes = idTypeListData.map((item: Dictionary) => ({
+            name: item.label,
+            code: item.id.toString(),
+          }));
+        } else {
+          payloadNotification(idTypeList)
+        }
+      },
       error: (err) => {
         // Si hay un error de red o del servidor
         this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
@@ -84,17 +91,17 @@ export class RegisterParticipantComponent {
     });
 
     this.dictionaryService.getGenderList().subscribe({
-      // next: idTypeList => {
-      //   if (idTypeList.payload!.status === 'success') {
-      //     const flaggedList = idTypeList.payload!.data;
-      //     this.statusStudentCardOptions = flaggedList.map((item: Dictionary) => ({
-      //       name: item.label,
-      //       code: item.id.toString(),
-      //     }));
-      //   } else {
-      //     payloadNotification(idTypeList.payload!)
-      //   }
-      // },
+      next: idTypeList => {
+        if (idTypeList.status === 'success') {
+          const genderListData = idTypeList.payload.data;
+          this.genders = genderListData.map((item: Dictionary) => ({
+            name: item.label,
+            code: item.id.toString(),
+          }));
+        } else {
+          payloadNotification(idTypeList)
+        }
+      },
       error: (err) => {
         // Si hay un error de red o del servidor
         this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
@@ -103,17 +110,17 @@ export class RegisterParticipantComponent {
     });
 
     this.dictionaryService.getParticipantList().subscribe({
-      // next: idTypeList => {
-      //   if (idTypeList.payload!.status === 'success') {
-      //     const flaggedList = idTypeList.payload!.data;
-      //     this.statusStudentCardOptions = flaggedList.map((item: Dictionary) => ({
-      //       name: item.label,
-      //       code: item.id.toString(),
-      //     }));
-      //   } else {
-      //     payloadNotification(idTypeList.payload!)
-      //   }
-      // },
+      next: participantList => {
+        if (participantList.status === 'success') {
+          const flaggedList = participantList.payload.data;
+          this.participantTypes = flaggedList.map((item: Dictionary) => ({
+            name: item.label,
+            code: item.id.toString(),
+          }));
+        } else {
+          payloadNotification(participantList)
+        }
+      },
       error: (err) => {
         // Si hay un error de red o del servidor
         this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
@@ -129,27 +136,31 @@ export class RegisterParticipantComponent {
         'Campos incompletos',
         'Por favor, complete todos los campos obligatorios.'
       );
-      return;
     }
 
     this.loading = true;
     const payload = this.form.value;
 
-    this.http.post(`${environment.apiUrl}/guests`, payload).subscribe({
-      next: (res: any) => {
-        this.notificationService.success(
-          'Éxito',
-          'El registro se completó correctamente.'
-        );
-
-        this.form.reset();
+    this.participantService.storeParticipant(payload).subscribe({
+      next: participantResponse => {
+        const response = participantResponse.payload;
+        if (participantResponse.status === 'success') {
+          this.notificationService.success(response.title, response.message)
+          this.whatsappLink = response.data.link_group;
+          this.showWhatsappModal = true;
+        } else {
+          this.notificationService.warning(response.title, response.message)
+        }
       },
       error: (err) => {
+        // Si hay un error de red o del servidor
+        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
         console.error(err);
-        this.notificationService.error('Error', 'Ocurrió un error al guardar el registro.');
-
-      },
-      complete: () => (this.loading = false),
+      }
     });
+  }
+
+  closeModal() {
+    this.showWhatsappModal = false;
   }
 }
