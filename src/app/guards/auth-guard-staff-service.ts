@@ -14,7 +14,7 @@ import {app_path} from '../core/constants/app-paths';
   providedIn: 'root',
 })
 
-export class AuthGuardAcademic implements CanActivate {
+export class AuthGuardStaff implements CanActivate {
 
   constructor() {}
 
@@ -23,7 +23,8 @@ export class AuthGuardAcademic implements CanActivate {
 
     if (loginUser) {
       switch (loginUser.role_id.value) {
-        case role.academic:
+        case role.professor:
+        case role.administrative:
           return true;
         case role.student:
           window.location.href = app_path.login.student;
@@ -32,9 +33,9 @@ export class AuthGuardAcademic implements CanActivate {
           window.location.href = app_path.login.staff;
           return false;
       }
+
     }
     else {
-      // No hay token
       window.location.href = app_path.login.staff;
       return false;
     }

@@ -2,11 +2,7 @@ import { Component } from '@angular/core';
 import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {Router} from '@angular/router';
-import {environment} from '../../../../environments/environment';
-import {DictionaryService} from '../../../services/dictionary.service';
-import jwtEncode from 'jwt-encode';
-import {UserLogin} from '../../../models/user-login.model';
-import {jwtDecode} from 'jwt-decode';
+import {UsersService} from '../../../services/users.service';
 
 @Component({
   imports: [LoginBaseComponent],
@@ -28,7 +24,7 @@ export class LoginAdminComponent {
   constructor(
     private notification: NotificationService,
     private router: Router,
-    private dictionaryService: DictionaryService
+    private usersService: UsersService
   ) {}
 
   login() {
@@ -40,24 +36,29 @@ export class LoginAdminComponent {
     const loginData = new FormData();
     loginData.append('payload', JSON.stringify(payload));
 
-    this.dictionaryService.logInAdmin(loginData).subscribe({
-      next: (loginAdminRes) => {
-        if (loginAdminRes.status === 'success') {
-          sessionStorage.setItem('login_id', loginAdminRes.payload.data);
-          const user: UserLogin = jwtDecode(loginAdminRes.payload.data);
+    this.usersService.logIn(loginData).subscribe({
+      next: (loginUserData) => {
+        if (loginUserData.status === 'success') {
+          const userLogin = loginUserData.payload.data;
+          sessionStorage.setItem('login_id', JSON.stringify(userLogin));
           let route = "/admin";
-          switch (user.user_type_value){
+          switch (userLogin.role_id.value) {
             case "accounting":
               route += "/accounting-payments";
               break;
             case "academic":
               route += "/student-cards";
+              break;
+              // ASISTENCIA PARA DOCENTES Y ADMINISTRATIVOS
+            case "professor":
+            case "administrative":
+              route += "/attendances";
           }
           setTimeout(() => {
             this.router.navigate([route]);
           }, 2000);
         }
-        this.notification.notifyApiData(loginAdminRes);
+        this.notification.notifyApiData(loginUserData);
       },
       error: (e) => {
         this.notification.error('Error de conexión', 'El servicio no esta disponible en este momento');

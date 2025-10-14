@@ -6,10 +6,17 @@ import {LoginAdminComponent} from './dashboard/staff/login-admin/login-admin.com
 import {StudentCardsComponent} from './dashboard/staff/academic/student-cards/student-cards.component';
 import {AuthGuardAcademic} from './guards/auth-guard-academic-service';
 import {RegisterParticipantComponent} from './events/register-participant/register-participant.component';
+import {AttendanceComponent} from './dashboard/staff/attendace/attendance.component';
+import {AuthGuardStaff} from './guards/auth-guard-staff-service';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginStudentComponent },
+  {
+    path: 'staff/attendance',
+    component: AttendanceComponent,
+    // canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
+  },
   {
     path: 'student-card-registration',
     component: StudentCardRegistrationComponent,
@@ -26,7 +33,8 @@ export const routes: Routes = [
     path: 'kanchay/register-participant',
     component: RegisterParticipantComponent,
   },
-
-  { path: '**', redirectTo: 'login' }
+  {
+    path: '**', redirectTo: 'login'
+  }
 ];
 

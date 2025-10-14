@@ -2,12 +2,8 @@ import {Payload} from '../models/api/payload.model';
 import {jwtDecode} from 'jwt-decode';
 import jwtEncode from 'jwt-encode';
 import {environment} from '../../environments/environment';
-import {ApiDataEncoded} from '../models/api/api-data-encoded.model';
-import {PayloadDecoded} from '../models/api/payload-decoded.model';
-import {NotificationService} from '../services/notification.service';
-import {MessageService} from 'primeng/api';
+import {Dictionary} from '../models/dictionary.model';
 import {ApiData} from '../models/api/api-data.model';
-
 
 /**
  * Intenta decodificar un campo de DataResponse si es un JWT string.
@@ -32,21 +28,21 @@ export function encodeArray<T>(
  * @return messageResult
  */
 export function decodeApiData<T>(
-  apiData: ApiDataEncoded<T>,
-): PayloadDecoded<T> {
+  apiData: ApiData<T>,
+): any {
   const titleResult = 'Error';
   const messageResult = 'No se puede decodificar';
 
   // Si no existe, devolver null
   if (!apiData.payload) {
     console.warn(`⚠️ El 'payload' está vacío`);
-    return { status: 'error', payload: undefined, title: titleResult, message: messageResult };
+    return { status: 'error', title: titleResult, message: messageResult };
   }
 
   // Si el campo indica que está codificado y es string, decodificar
   try {
-    const payloadDecoded = jwtDecode<T>(apiData.payload) as Payload<T>;
-    return { status: 'error', payload: payloadDecoded, title: '', message: '' };
+    // const payloadDecoded = jwtDecode<T>(apiData.payload) as Payload<T>;
+    return { status: 'error', title: '', message: '' };
   } catch (error) {
     console.error(`❌ Error al decodificar el 'payload' como JWT`, error);
     return { status: 'error', payload: undefined, title: titleResult, message: messageResult };

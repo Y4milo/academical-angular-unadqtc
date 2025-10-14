@@ -4,8 +4,6 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {StudentBasicInfo} from '../models/student-basic-info.model';
 import {ApiData} from '../models/api/api-data.model';
-import {Dictionary} from '../models/dictionary.model';
-import {ApiDataEncoded} from '../models/api/api-data-encoded.model';
 
 @Injectable({
   providedIn: 'root'

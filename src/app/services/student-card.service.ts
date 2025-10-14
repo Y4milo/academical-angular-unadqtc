@@ -5,7 +5,6 @@ import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
 import {Dictionary} from '../models/dictionary.model';
 import {StudentCard} from '../models/student-card.model';
-import {ApiDataEncoded} from '../models/api/api-data-encoded.model';
 
 @Injectable({
   providedIn: 'root'

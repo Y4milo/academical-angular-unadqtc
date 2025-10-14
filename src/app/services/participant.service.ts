@@ -3,10 +3,7 @@ import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
-import {ApiDataEncoded} from '../models/api/api-data-encoded.model';
-import {StudentBasicInfo} from '../models/student-basic-info.model';
 import {FormGroup} from '@angular/forms';
-import {Dictionary} from '../models/dictionary.model';
 import {ParticipantResponse} from '../models/participant-response.model';
 
 @Injectable({
