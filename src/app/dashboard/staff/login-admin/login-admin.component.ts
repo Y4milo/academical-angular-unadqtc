@@ -13,7 +13,7 @@ import {jwtDecode} from 'jwt-decode';
   template: `
     <app-login-base
       [titleLabel]="'Iniciar Sesión'"
-      [userLabel]="'Usuario Administrativo'"
+      [userLabel]="'Personal Universitario'"
       [userAlertMessage]="'El usuario es obligatorio'"
       [(user)]="user"
       [(password)]="password"
@@ -32,19 +32,17 @@ export class LoginAdminComponent {
   ) {}
 
   login() {
-    const key = environment.tokenKey;
     const payload = {
       user: this.user,
       password: this.password
     };
 
-    let loginData = new FormData();
-    loginData.append('payload', jwtEncode(payload, key))
+    const loginData = new FormData();
+    loginData.append('payload', JSON.stringify(payload));
 
     this.dictionaryService.logInAdmin(loginData).subscribe({
       next: (loginAdminRes) => {
         if (loginAdminRes.status === 'success') {
-          this.notification.success(loginAdminRes.payload.message, loginAdminRes.payload.message);
           sessionStorage.setItem('login_id', loginAdminRes.payload.data);
           const user: UserLogin = jwtDecode(loginAdminRes.payload.data);
           let route = "/admin";
@@ -58,9 +56,8 @@ export class LoginAdminComponent {
           setTimeout(() => {
             this.router.navigate([route]);
           }, 2000);
-        } else if (loginAdminRes.status === 'warning') {
-          this.notification.warning(loginAdminRes.payload.title, loginAdminRes.payload.message);
         }
+        this.notification.notifyApiData(loginAdminRes);
       },
       error: (e) => {
         this.notification.error('Error de conexión', 'El servicio no esta disponible en este momento');

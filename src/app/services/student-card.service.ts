@@ -40,7 +40,7 @@ export class StudentCardService {
   pendingStudentCard(statusStudentCard: FormData) :Observable<ApiData<Dictionary>> {
     return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/pending-student`, statusStudentCard);
   }
-  setFlaggedStudentCard(selectedFlags: FormData) :Observable<ApiData<Dictionary>> {
+  setFlaggedStudentCard(selectedFlags: any) :Observable<ApiData<Dictionary>> {
     return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/set-selected-flags`, selectedFlags);
   }
   downloadStudentCardsPDF(): Observable<Blob> {

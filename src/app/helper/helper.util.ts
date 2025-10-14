@@ -97,44 +97,4 @@ export function validatePhotoCardStudent(file: File){
   return requirements;
 }
 
-/**
- * Intenta mostrar un MessageService.
- * Si ya es un objeto/array, lo devuelve tal cual.
- * @param data Objeto de tipo Payload<T>
- * @param life tiempo de vida de la notificación
- */
-export function payloadNotification<T>(
-  data: ApiData<T>,
-  life: number = 0,
-  messageService?: NotificationService // recibe el servicio inyectado
-): void {
-  if (!messageService) {
-    console.error('NotificationService no está definido');
-    return;
-  }
-
-  switch (data.status) {
-    case "success":
-      life > 0 ?
-        messageService.success(data.payload.title, data.payload.message, life) :
-        messageService.success(data.payload.title, data.payload.message);
-      break;
-    case "warning":
-      life > 0 ?
-        messageService.warning(data.payload.title, data.payload.message, life) :
-        messageService.warning(data.payload.title, data.payload.message);
-      break;
-    case "error":
-      life > 0 ?
-        messageService.error(data.payload.title, data.payload.message, life) :
-        messageService.error(data.payload.title, data.payload.message);
-      break;
-    default:
-      life > 0 ?
-        messageService.info(data.payload.title, data.payload.message, life) :
-        messageService.info(data.payload.title, data.payload.message);
-      break;
-  }
-}
-
 

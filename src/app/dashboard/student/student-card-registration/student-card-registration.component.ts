@@ -15,7 +15,7 @@ import { Router} from '@angular/router';
 import { StudentCardService } from '../../../services/student-card.service';
 import { jwtDecode } from 'jwt-decode';
 import { Payment } from '../../../models/payment.model';
-import {decodeApiData, payloadNotification, validatePhotoCardStudent} from '../../../helper/helper.util';
+import {decodeApiData, validatePhotoCardStudent} from '../../../helper/helper.util';
 
 @Component({
   selector: 'app-student-registration',
@@ -58,7 +58,7 @@ export class StudentCardRegistrationComponent implements OnInit {
    */
   constructor(
     private fb: FormBuilder,
-    private notification: NotificationService,
+    private notificationService: NotificationService,
     private dictionaryService: DictionaryService,
     private studentService: StudentService,
     private studentCardService: StudentCardService,
@@ -91,7 +91,7 @@ export class StudentCardRegistrationComponent implements OnInit {
       this.loadStudentBasicInformation(this.code_student);
     }
     else {
-      this.notification.warning('Credenciales no validas','Vuelva a iniciar sesión')
+      this.notificationService.warning('Credenciales no validas','Vuelva a iniciar sesión')
       setTimeout(() => {
         this.router.navigate(['/login']);
       }, 2000);
@@ -111,7 +111,7 @@ export class StudentCardRegistrationComponent implements OnInit {
         control.markAsTouched();
         control.updateValueAndValidity();
       });
-      this.notification.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
+      this.notificationService.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
     }
   }
 
@@ -148,22 +148,22 @@ export class StudentCardRegistrationComponent implements OnInit {
 
       // Verificar que la foto exista
       if (!photo) {
-        this.notification.warning('Falta la foto', 'Debe seleccionar una foto del carné.');
+        // this.notificationService.warning('Falta la foto', 'Debe seleccionar una foto del carné.');
         return;
       }
 
       const code_student = this.code_student;
       if (!code_student) {
-        this.notification.error('Error', 'No se encontró el ID del estudiante.');
+        this.notificationService.error('Error', 'No se encontró el ID del estudiante.');
         return;
       }
 
       // 🔁 Paso 1: Guardar datos del estudiante
       this.studentService.updateBasicInfo(code_student, this.registrationForm.value).subscribe({
-        next: (studentData) => {
-          const studentDecoded = decodeApiData(studentData);
-          if (studentDecoded.status === 'success'){
-              const studentInfo = studentDecoded.payload!.data;
+        next: (student) => {
+
+          if (student.status === 'success'){
+              const studentInfo = student.payload!.data;
               const formData = new FormData();
               formData.append('photo', this.selectedFile!);
               formData.append('semester_id', this.semester_id!.toString());
@@ -171,10 +171,10 @@ export class StudentCardRegistrationComponent implements OnInit {
               formData.append('payment_id', this.payment_id!.toString());
               this.studentCardService.uploadCardPhoto(formData).subscribe({
                 next: (uploadPhoto) => {
-                  payloadNotification(uploadPhoto);
+                  this.notificationService.notifyApiData(uploadPhoto);
                 },
                 error: () => {
-                  this.notification.error('Error de conexión', 'No se pudo subir la foto.');
+                  this.notificationService.error('Error de conexión', 'No se pudo subir la foto.');
                 }
               });
 
@@ -183,11 +183,11 @@ export class StudentCardRegistrationComponent implements OnInit {
           }
         },
         error: () => {
-          this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
+          this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
         }
       });
     } else {
-      this.notification.warning('Error', 'Por favor, complete todos los campos antes de enviar.');
+      // this.notificationService.warning('Error', 'Por favor, complete todos los campos antes de enviar.');
     }
   }
 
@@ -214,34 +214,34 @@ export class StudentCardRegistrationComponent implements OnInit {
                     }));
                     this.studentService.getStudentBasicInfoByCode(studentCode).subscribe({
                       next: (studentData) => {
-                        const studentInfoData = decodeApiData(studentData);
-                        if (studentInfoData.status === 'success'){
+
+                        if (studentData.status === 'success'){
                             //adding Student information to the form
-                            this.registrationForm.patchValue(studentInfoData.payload!.data);
+                            this.registrationForm.patchValue(studentData.payload!.data);
 
                         } else {
-                          this.notification.error(studentInfoData.title, studentInfoData.message);
+                          this.notificationService.notifyApiData(studentData);
                         }
                       },
                       error: () => {
-                        this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
+                        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
                       }
                     });
                 } else {
-                  // this.notification.error(idTypeDataDecoded.title, idTypeDataDecoded.message)
+                  this.notificationService.notifyApiData(idTypeDataDecoded)
                 }
               },
               error: () => {
-                this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
+                this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
               }
             });
         } else {
-          // this.notification.warning(campusDataDecoded.title, campusDataDecoded.message);
+          // this.notificationService.warning(campusDataDecoded.title, campusDataDecoded.message);
         }
       },
       error: (err) => {
         // Si hay un error de red o del servidor
-        this.notification.error('Error de conexión', 'No se pudo conectar con el servidor.');
+        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
         console.error(err);
       }
     })

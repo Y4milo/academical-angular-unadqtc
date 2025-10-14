@@ -1,16 +1,13 @@
 import { Component } from '@angular/core';
 import {CardModule} from 'primeng/card';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {HttpClient} from '@angular/common/http';
-import {NotificationService} from '../../../services/notification.service';
-import {environment} from '../../../../environments/environment';
+import {NotificationService} from '../../services/notification.service';
 import {DropdownModule} from 'primeng/dropdown';
 import {InputTextModule} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
-import {DictionaryService} from '../../../services/dictionary.service';
-import {Dictionary} from '../../../models/dictionary.model';
-import {decodeApiData, payloadNotification} from '../../../helper/helper.util';
-import {ParticipantService} from '../../../services/participant.service';
+import {DictionaryService} from '../../services/dictionary.service';
+import {Dictionary} from '../../models/dictionary.model';
+import {ParticipantService} from '../../services/participant.service';
 import {DialogModule} from 'primeng/dialog';
 
 @Component({
@@ -40,7 +37,6 @@ export class RegisterParticipantComponent {
 
   constructor(
     private fb: FormBuilder,
-    private http: HttpClient,
     private notificationService: NotificationService,
     private dictionaryService: DictionaryService,
     private participantService: ParticipantService
@@ -69,8 +65,6 @@ export class RegisterParticipantComponent {
 
   /** Carga los datos para los dropdowns desde la API */
   private loadDropdowns(): void {
-    const base = environment.apiUrl;
-
     this.dictionaryService.getIdTypeList().subscribe({
       next: idTypeList => {
         if (idTypeList.status === 'success') {
@@ -80,7 +74,7 @@ export class RegisterParticipantComponent {
             code: item.id.toString(),
           }));
         } else {
-          payloadNotification(idTypeList)
+          (idTypeList)
         }
       },
       error: (err) => {
@@ -99,7 +93,7 @@ export class RegisterParticipantComponent {
             code: item.id.toString(),
           }));
         } else {
-          payloadNotification(idTypeList)
+          this.notificationService.notifyApiData(idTypeList)
         }
       },
       error: (err) => {
@@ -118,7 +112,7 @@ export class RegisterParticipantComponent {
             code: item.id.toString(),
           }));
         } else {
-          payloadNotification(participantList)
+          this.notificationService.notifyApiData(participantList)
         }
       },
       error: (err) => {
@@ -145,12 +139,11 @@ export class RegisterParticipantComponent {
       next: participantResponse => {
         const response = participantResponse.payload;
         if (participantResponse.status === 'success') {
-          this.notificationService.success(response.title, response.message)
           this.whatsappLink = response.data.link_group;
           this.showWhatsappModal = true;
-        } else {
-          this.notificationService.warning(response.title, response.message)
         }
+        this.notificationService.notifyApiData(participantResponse)
+
       },
       error: (err) => {
         // Si hay un error de red o del servidor

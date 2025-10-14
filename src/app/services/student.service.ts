@@ -19,11 +19,11 @@ export class StudentService {
     return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/id/${id}`);
   }
 
-  getStudentBasicInfoByCode(code: string): Observable<ApiDataEncoded<StudentBasicInfo>> {
-    return this.http.get<ApiDataEncoded<StudentBasicInfo>>(`${environment.apiUrl}/students/code/${code}`);
+  getStudentBasicInfoByCode(code: string): Observable<ApiData<StudentBasicInfo>> {
+    return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/code/${code}`);
   }
 
-  updateBasicInfo(id: string, studentData: StudentBasicInfo): Observable<ApiDataEncoded<StudentBasicInfo>> {
-    return this.http.put<ApiDataEncoded<any>>(`${this.apiURL}/students/${id}/basic`, studentData);
+  updateBasicInfo(id: string, studentData: StudentBasicInfo): Observable<ApiData<StudentBasicInfo>> {
+    return this.http.put<ApiData<any>>(`${this.apiURL}/students/${id}/basic`, studentData);
   }
 }
