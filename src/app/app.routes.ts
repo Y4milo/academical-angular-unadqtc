@@ -8,6 +8,10 @@ import {AuthGuardAcademic} from './guards/auth-guard-academic-service';
 import {RegisterParticipantComponent} from './events/register-participant/register-participant.component';
 import {AttendanceComponent} from './dashboard/staff/attendace/attendance.component';
 import {EventAttendanceCheckInComponent} from './events/event-attendance-check-in/event-attendance-check-in.component';
+import {
+  EventQuestionsWithCheckOutComponent
+} from './events/event-questions-with-check-out/event-questions-with-check-out.component';
+
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -35,6 +39,10 @@ export const routes: Routes = [
   {
     path: 'kanchay/event-attendance-check-in/:id',
     component: EventAttendanceCheckInComponent,
+  },
+  {
+    path: 'kanchay/event-question-check-out/:id',
+    component: EventQuestionsWithCheckOutComponent,
   },
   {
     path: '**', redirectTo: 'login'

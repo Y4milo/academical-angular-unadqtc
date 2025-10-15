@@ -14,7 +14,10 @@ export class AttendanceService {
 
   constructor(private http: HttpClient) { }
 
-  storeAttendancePerson(formData: FormData): Observable<ApiData<EventAttendance>> {
+  storeAttendanceCheckIn(formData: FormData): Observable<ApiData<EventAttendance>> {
     return this.http.post<ApiData<EventAttendance>>(`${this.apiURL}/event/attendance-check-in`, formData);
+  }
+  storeAttendanceCheckOut(formData: FormData): Observable<ApiData<EventAttendance>> {
+    return this.http.post<ApiData<EventAttendance>>(`${this.apiURL}/event/attendance-check-out`, formData);
   }
 }

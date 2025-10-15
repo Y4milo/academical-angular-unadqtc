@@ -68,7 +68,7 @@ export class EventAttendanceCheckInComponent implements OnInit {
     formData.append('number', this.number);
     formData.append('event_date_id', this.eventDateId.toString());
 
-    this.attendanceService.storeAttendancePerson(formData).subscribe({
+    this.attendanceService.storeAttendanceCheckIn(formData).subscribe({
       next: (res) => {
 
           this.response = res;

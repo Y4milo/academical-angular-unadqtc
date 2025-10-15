@@ -1,0 +1,87 @@
+<div class="flex justify-content-center align-items-center min-h-screen surface-ground">
+  <p-card class="p-shadow-4 w-full md:w-8 lg:w-6 xl:w-5">
+    <div class="p-4">
+      <h2 class="text-center font-bold text-xl mb-3">Preguntas de Salida</h2>
+
+      <!-- Steps -->
+      <p-steps [model]="steps" [(activeIndex)]="activeStep"></p-steps>
+
+      <div class="mt-4">
+
+        <!-- Paso 1: Buscar DNI -->
+        @if(activeStep === 0) {
+          <form (ngSubmit)="searchParticipant()" [formGroup]="stepForm">
+            <div class="flex flex-column gap-2 mb-4">
+              <label class="mb-2" for="number">Número de documento</label>
+              <input id="number" type="text" pInputText formControlName="number"/>
+              @if (showNumberError) {
+                <div class="text-red-500 mt-1">
+                  {{errorMessage}}
+                </div>
+              }
+            </div>
+            <div class="flex justify-content-center mt-4">
+              <button pButton type="submit" label="Siguiente" pButtonIcon="pi pi-save"></button>
+            </div>
+          </form>
+        }
+
+        <!-- Paso 2: Listar preguntas -->
+        @if(activeStep === 1) {
+          @for (question of questions; track question.id) {
+            <div class="mb-4" [ngClass]="{ 'border-red-500 border-2 p-2 rounded-md': question.invalid }">
+              <p class="font-bold">{{ question.question_schema.question }}</p>
+
+              @if (question.question_schema.open_ended) {
+                <input
+                  type="text"
+                  pInputText
+                  [(ngModel)]="question.answer"
+                  (ngModelChange)="updateOpenEndedAnswer(question)"
+                  placeholder="Escribe tu respuesta"
+                  class="w-full"
+                />
+              }
+
+              @else if (question.question_schema.multiple_choice) {
+                @for (option of question.question_schema.options; track option.text) {
+                  <label class="flex align-items-center gap-2">
+                    <p-checkbox
+                      [(ngModel)]="option.selected"
+                      [binary]="true"
+                      (onChange)="handleCheckboxChange(question)"
+                    ></p-checkbox>
+                    {{ option.text }}
+                  </label>
+                }
+              }
+
+              @else {
+                @for (option of question.question_schema.options; track option.text) {
+                  <div class="flex align-items-center gap-2 mb-2">
+                    <p-radioButton
+                      name="group-{{ question.id }}"
+                      [value]="option.text"
+                      [(ngModel)]="question.answer"
+                      (onClick)="handleRadioChange(question)"
+                    ></p-radioButton>
+                    <label>{{ option.text }}</label>
+                  </div>
+                }
+              }
+
+              <!-- ⚠️ Mensaje de advertencia -->
+              @if (question['invalid']) {
+                <p class="text-red-600 text-sm mt-1">Esta pregunta debe ser respondida.</p>
+              }
+            </div>
+          }
+
+          <div class="flex justify-content-center mt-4">
+            <button pButton type="submit" label="Enviar" pButtonIcon="pi pi-save" (click)="submitAnswers()"></button>
+          </div>
+        }
+      </div>
+    </div>
+  </p-card>
+</div>
