@@ -8,4 +8,6 @@ export interface Payload<T> {
   title     : string;
   data      : T;
   log       : T;
+  error     : string;
+  errors?: Record<string, string[]>;
 }

@@ -1,0 +1,94 @@
+<div class="flex justify-content-center align-items-center min-h-screen surface-ground">
+  <p-card class="p-shadow-4 w-full md:w-8 lg:w-6 xl:w-5">
+    <div class="flex flex-column gap-4 p-4">
+      <h2 class="text-center font-bold text-xl mb-3">Registro de Asistencia a Evento</h2>
+
+      <!-- Input and button -->
+      <div class="flex gap-2">
+        <input
+          type="text"
+          pInputText
+          placeholder="Ingrese el DNI o escanee el código de barras"
+          [(ngModel)]="number"
+          (keyup)="onKeyUp($event)"
+          class="w-full"
+          autofocus
+        />
+        <button
+          pButton
+          label="Buscar"
+          icon="pi pi-search"
+          class="p-button-primary"
+          (click)="searchParticipant()"
+        ></button>
+      </div>
+
+      <!-- Message result -->
+      <div class="mt-4">
+        @if (response?.status === null) {
+          <div class="p-3 text-blue-600 border-l-4 bg-blue-200 rounded-lg">
+            <h3 class="font-semibold text-lg">✅ Ingrese un numero</h3>
+            <p class="mt-2 font-medium">
+              👤 Busque un DNI o Escanee
+            </p>
+          </div>
+        }
+        @if (response?.status === 'success') {
+          <div class="p-3 text-green-700 border-l-4 border-green-500 rounded-lg">
+            <h3 class="font-semibold text-lg">✅ {{ response!.payload.title }}</h3>
+            <p>{{ response!.payload.message }}</p>
+            <p class="mt-2 font-medium">
+              👤 {{ response!.payload.data.person_id.names }}
+              {{ response!.payload.data.person_id.last_name }}
+              {{ response!.payload.data.person_id.maternal_last_name }}
+            </p>
+          </div>
+        }
+        @else if (response?.status === 'warning') {
+          <div class="p-3 text-yellow-700 border-l-4 bg-yellow-50 rounded-lg">
+            <h3 class="font-semibold text-lg">⚠️ {{ response!.payload.title }}</h3>
+            <p>{{ response!.payload.message }}</p>
+            @if (response!.payload.errors) {
+              <ul class="list-disc pl-6">
+                @for (error of response!.payload.errors | keyvalue; track error.key) {
+                  <li>
+                    <strong>{{ error.key }}:</strong>
+                    @for (msg of error.value; track msg) {
+                      <span>{{ msg }}</span><br />
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+        @else if (response?.status === 'error') {
+          <div class="p-3 text-red-700 border-l-4 border-red-500 rounded-lg">
+            <h3 class="font-semibold text-lg">❌ {{ response!.payload.title }}</h3>
+            <p>{{ response!.payload.message }}</p>
+            @if (response!.payload.errors) {
+              <ul class="list-disc pl-6">
+                @for (error of response!.payload.errors | keyvalue; track error.key) {
+                  <li>
+                    <strong>{{ error.key }}:</strong>
+                    @for (msg of error.value; track msg) {
+                      <span>{{ msg }}</span><br />
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+        @else if (response?.status === 'info') {
+          <div class="p-3 text-blue-700 border-l-4 border-blue-500 rounded-lg">
+            <h3 class="font-semibold text-lg">ℹ️ {{ response!.payload.title }}</h3>
+            <p>{{ response!.payload.message }}</p>
+          </div>
+        }
+      </div>
+
+
+    </div>
+  </p-card>
+</div>
