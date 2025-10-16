@@ -8,6 +8,7 @@ export interface EventAttendance {
 
 interface Person {
   id: number;
+  number: number
   names: string;
   last_name: string;
   maternal_last_name: string;

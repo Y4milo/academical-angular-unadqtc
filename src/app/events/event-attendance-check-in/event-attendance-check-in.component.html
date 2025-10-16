@@ -24,71 +24,93 @@
       </div>
 
       <!-- Message result -->
-      <div class="mt-4">
+      <div class="mt-2">
         @if (response?.status === null) {
-          <div class="p-3 text-blue-600 border-l-4 bg-blue-200 rounded-lg">
-            <h3 class="font-semibold text-lg">✅ Ingrese un numero</h3>
-            <p class="mt-2 font-medium">
-              👤 Busque un DNI o Escanee
-            </p>
-          </div>
+          <p-panel header="Asistencia de entrada" styleClass="mt-2">
+            <p class="mt-2 font-medium">👤 Busque un DNI o escanee</p>
+          </p-panel>
+
         }
         @if (response?.status === 'success') {
-          <div class="p-3 text-green-700 border-l-4 border-green-500 rounded-lg">
-            <h3 class="font-semibold text-lg">✅ {{ response!.payload.title }}</h3>
-            <p>{{ response!.payload.message }}</p>
-            <p class="mt-2 font-medium">
-              👤 {{ response!.payload.data.person_id.names }}
-              {{ response!.payload.data.person_id.last_name }}
-              {{ response!.payload.data.person_id.maternal_last_name }}
-            </p>
-          </div>
+          <p-panel header="✅ {{ response?.payload?.title }}" styleClass="mt-2 text-green-700">
+            <div class="text-center items-center">
+              <p class="mt-2 font-light">{{ response?.payload?.message }}</p>
+              @if (response?.payload?.data) {
+                <h1 class="mt-2">
+                  👤 {{ response?.payload?.data?.person_id?.names }}
+                  {{ response?.payload?.data?.person_id?.last_name }}
+                  {{ response?.payload?.data?.person_id?.maternal_last_name }}
+                </h1>
+              }
+            </div>
+          </p-panel>
         }
         @else if (response?.status === 'warning') {
-          <div class="p-3 text-yellow-700 border-l-4 bg-yellow-50 rounded-lg">
-            <h3 class="font-semibold text-lg">⚠️ {{ response!.payload.title }}</h3>
-            <p>{{ response!.payload.message }}</p>
-            @if (response!.payload.errors) {
-              <ul class="list-disc pl-6">
-                @for (error of response!.payload.errors | keyvalue; track error.key) {
-                  <li>
-                    <strong>{{ error.key }}:</strong>
-                    @for (msg of error.value; track msg) {
-                      <span>{{ msg }}</span><br />
-                    }
-                  </li>
-                }
-              </ul>
-            }
-          </div>
+          <p-panel header="⚠️ {{ response?.payload?.title }}" styleClass="mt-2 text-yellow-700">
+            <div class="text-center items-center">
+              <p class="mt-2 font-light">{{ response!.payload.message }}</p>
+              @if(response?.payload?.data?.person_id) {
+
+                <h1 class="mt-2">
+                  👤 {{ response?.payload?.data?.person_id?.names }}
+                  {{ response?.payload?.data?.person_id?.last_name }}
+                  {{ response?.payload?.data?.person_id?.maternal_last_name }}
+                </h1>
+              }
+              @if (response!.payload.errors) {
+                <ul class="list-disc pl-6">
+                  @for (error of response!.payload.errors | keyvalue; track error.key) {
+                    <li>
+                      <strong>{{ error.key }}:</strong>
+                      @for (msg of error.value; track msg) {
+                        <span>{{ msg }}</span><br />
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </p-panel>
         }
         @else if (response?.status === 'error') {
-          <div class="p-3 text-red-700 border-l-4 border-red-500 rounded-lg">
-            <h3 class="font-semibold text-lg">❌ {{ response!.payload.title }}</h3>
-            <p>{{ response!.payload.message }}</p>
-            @if (response!.payload.errors) {
-              <ul class="list-disc pl-6">
-                @for (error of response!.payload.errors | keyvalue; track error.key) {
-                  <li>
-                    <strong>{{ error.key }}:</strong>
-                    @for (msg of error.value; track msg) {
-                      <span>{{ msg }}</span><br />
-                    }
-                  </li>
-                }
-              </ul>
-            }
-          </div>
+          <p-panel header="❌  {{ response?.payload?.title }}" styleClass="mt-2 text-red-700">
+            <div class="text-center items-center">
+              <p class="mt-2 font-light">{{ response!.payload.message }}</p>
+              @if (response!.payload.errors) {
+                <ul class="list-disc pl-6">
+                  @for (error of response!.payload.errors | keyvalue; track error.key) {
+                    <li>
+                      <strong>{{ error.key }}:</strong>
+                      @for (msg of error.value; track msg) {
+                        <span>{{ msg }}</span><br />
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </p-panel>
         }
         @else if (response?.status === 'info') {
-          <div class="p-3 text-blue-700 border-l-4 border-blue-500 rounded-lg">
-            <h3 class="font-semibold text-lg">ℹ️ {{ response!.payload.title }}</h3>
-            <p>{{ response!.payload.message }}</p>
-          </div>
+          <p-panel header="❌ {{ response?.payload?.title }}" styleClass="mt-2 text-red-700">
+            <div class="text-center items-center">
+              <p class="mt-2 font-light">{{ response!.payload.message }}</p>
+              @if (response!.payload.errors) {
+                <ul class="list-disc pl-6">
+                  @for (error of response!.payload.errors | keyvalue; track error.key) {
+                    <li>
+                      <strong>{{ error.key }}:</strong>
+                      @for (msg of error.value; track msg) {
+                        <span>{{ msg }}</span><br />
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </p-panel>
         }
       </div>
-
-
     </div>
   </p-card>
 </div>

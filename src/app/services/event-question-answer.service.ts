@@ -15,11 +15,15 @@ export class EventQuestionAnswerService {
 
   constructor(private http: HttpClient) { }
 
-  confirmParticipant(formData: FormData): Observable<ApiData<string>> {
-    return this.http.post<ApiData<string>>(`${this.apiURL}/event/confirm-participant`, formData);
+  confirmParticipant(formData: FormData): Observable<ApiData<number>> {
+    return this.http.post<ApiData<number>>(`${this.apiURL}/event/confirm-participant`, formData);
   }
 
   listQuestionsByEventDate(formData: FormData): Observable<ApiData<EventQuestion[]>> {
     return this.http.post<ApiData<EventQuestion[]>>(`${this.apiURL}/event/question/list`, formData);
+  }
+
+  storeAnswerEvent(formData: FormData): Observable<ApiData<string>> {
+    return this.http.post<ApiData<string>>(`${this.apiURL}/event/answers/store`, formData);
   }
 }

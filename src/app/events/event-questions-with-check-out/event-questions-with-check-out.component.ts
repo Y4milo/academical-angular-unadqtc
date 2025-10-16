@@ -12,6 +12,7 @@ import {ActivatedRoute} from '@angular/router';
 import {RadioButtonModule} from 'primeng/radiobutton';
 import {NotificationService} from '../../services/notification.service';
 import {EventQuestionAnswerService} from '../../services/event-question-answer.service';
+import {Panel} from 'primeng/panel';
 
 @Component({
   selector: 'app-event-questions-with-check-out',
@@ -27,6 +28,7 @@ import {EventQuestionAnswerService} from '../../services/event-question-answer.s
     CheckboxModule,
     ButtonIcon,
     RadioButtonModule,
+    Panel,
   ],
   templateUrl: './event-questions-with-check-out.component.html',
   styleUrl: './event-questions-with-check-out.component.css'
@@ -35,11 +37,13 @@ export class EventQuestionsWithCheckOutComponent implements OnInit {
 
   steps = [
     {label: 'Buscar DNI'},
-    {label: 'Preguntas de salida'}
+    {label: 'Preguntas de salida'},
+    {label: 'Agradecimiento'}
   ];
   stepForm!: FormGroup;
   activeStep = 0;
   id_person: number = 0;
+  name_person: string = '';
   errorMessage: string = '';
   eventDateId!: number;
   showNumberError = false;
@@ -48,10 +52,7 @@ export class EventQuestionsWithCheckOutComponent implements OnInit {
     questionId: number;
     answer: string | string[]; // texto o lista de opciones seleccionadas
   }[] = [];
-
   hasValidationError: boolean = false;
-
-
   questions!: EventQuestion[];
 
   constructor(
@@ -108,12 +109,12 @@ export class EventQuestionsWithCheckOutComponent implements OnInit {
     formData.append("number", this.stepForm.get('number')?.value);
     formData.append("event_date_id", this.eventDateId.toString());
     this.eventQuestionAnswerService.confirmParticipant(formData).subscribe({
-      next: (particpantData) => {
-        if (particpantData.status === "success") {
+      next: (participantData) => {
+        if (participantData.status === "success") {
+          this.id_person = participantData.payload.data;
           this.showNumberError = false;
           const formData = new FormData();
           formData.append('id_event_date', this.route.snapshot.paramMap.get('id')!.toString())
-          // formData.append('id_person', particpantData.payload.data)
           this.eventQuestionAnswerService.listQuestionsByEventDate(formData).subscribe({
             next: (res) => {
               if (res.status === "success") {
@@ -128,7 +129,7 @@ export class EventQuestionsWithCheckOutComponent implements OnInit {
         }
         else {
           this.showNumberError = true;
-          this.errorMessage = "Numero (ID) no registrado al evento"
+          this.errorMessage = participantData.payload.message;
         }
       }
     })
@@ -145,7 +146,6 @@ export class EventQuestionsWithCheckOutComponent implements OnInit {
       questionId: question.id,
       answer: question.answer || ''
     };
-
     if (index > -1) {
       this.answersList[index] = entry;
     } else {
@@ -226,6 +226,66 @@ export class EventQuestionsWithCheckOutComponent implements OnInit {
     }
 
     this.hasValidationError = false;
-    console.log('✅ Todas las respuestas:', this.answersList);
+
+    // 🧾 Construir FormData
+    const formData = new FormData();
+    formData.append('id_event_date', this.route.snapshot.paramMap.get('id')!.toString());
+    formData.append('id_person', this.id_person.toString());
+
+    this.questions.forEach((q, index) => {
+      const key = `answers[${index}]`;
+      let answerValue: string;
+
+      if (q.question_schema.open_ended) {
+        // 📝 Pregunta abierta → guardar texto
+        answerValue = q.answer?.trim() || '';
+      } else if (q.question_schema.multiple_choice) {
+        // ✅ Opción múltiple → guardar índices seleccionados
+        answerValue = JSON.stringify(
+          q.question_schema.options
+            .map((opt, i) => opt.selected ? i : null)
+            .filter(i => i !== null)
+        );
+      } else {
+        // 🔘 Opción única (radio) → guardar índice seleccionado
+        const selectedIndex = q.question_schema.options.findIndex(opt => opt.text === q.answer);
+        answerValue = selectedIndex >= 0 ? selectedIndex.toString() : '';
+      }
+
+      formData.append(`${key}[question_id]`, q.id.toString());
+      formData.append(`${key}[answer]`, answerValue);
+    });
+
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    // 📤 Enviar al servicio
+    this.eventQuestionAnswerService.storeAnswerEvent(formData).subscribe({
+      next: (questionData) => {
+        if (questionData.status === 'success') {
+          const formData = new FormData();
+          formData.append('number', this.stepForm.get('number')?.value);
+          formData.append('event_date_id', this.eventDateId.toString());
+          formData.append('status', 'check-out');
+
+          this.attendanceService.storeAttendance(formData).subscribe({
+            next: (attendanceData) => {
+              if (attendanceData.status === 'success') {
+                const attendance = attendanceData.payload.data;
+                this.name_person = attendance.person_id.names;
+                this.activeStep = 3;
+              }
+              this.notificationService.notifyApiData(attendanceData);
+            }
+          });
+        }
+        this.notificationService.notifyApiData(questionData);
+      },
+      error: err => {
+        this.notificationService.error('❌ Error', 'No se pudo enviar las preguntas.');
+        console.error('Error al enviar:', err);
+      }
+    });
   }
 }

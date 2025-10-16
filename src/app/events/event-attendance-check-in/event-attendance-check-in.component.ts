@@ -10,6 +10,7 @@ import {ApiData} from '../../models/api/api-data.model';
 import {EventAttendance} from '../../models/event-attendance.model';
 import {ActivatedRoute} from '@angular/router';
 import {CommonModule} from '@angular/common';
+import {Panel} from 'primeng/panel';
 
 @Component({
   selector: 'app-event-attendance-check-in',
@@ -23,6 +24,7 @@ import {CommonModule} from '@angular/common';
     ButtonModule,
     FormsModule,
     Card,
+    Panel,
   ]
 })
 export class EventAttendanceCheckInComponent implements OnInit {
@@ -67,8 +69,9 @@ export class EventAttendanceCheckInComponent implements OnInit {
     const formData = new FormData();
     formData.append('number', this.number);
     formData.append('event_date_id', this.eventDateId.toString());
+    formData.append('status', 'check-in');
 
-    this.attendanceService.storeAttendanceCheckIn(formData).subscribe({
+    this.attendanceService.storeAttendance(formData).subscribe({
       next: (res) => {
 
           this.response = res;

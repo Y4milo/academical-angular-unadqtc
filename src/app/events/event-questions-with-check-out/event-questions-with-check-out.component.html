@@ -81,6 +81,17 @@
             <button pButton type="submit" label="Enviar" pButtonIcon="pi pi-save" (click)="submitAnswers()"></button>
           </div>
         }
+
+        @if (activeStep === 3) {
+          <p-panel header="🎉 Gracias por participar" styleClass="mt-4">
+            <h2 class="text-lg font-semibold text-green-700">
+              ¡Agradecemos, {{ name_person }}, por tu participación en la actividad de hoy!
+            </h2>
+            <p class="text-sm text-gray-600">
+              Tus respuestas han sido registradas correctamente. Te esperamos en la próxima sesión.
+            </p>
+          </p-panel>
+        }
       </div>
     </div>
   </p-card>
