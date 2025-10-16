@@ -82,11 +82,18 @@
           </div>
         }
 
-        @if (activeStep === 3) {
+        @if (activeStep === 2) {
           <p-panel header="🎉 Gracias por participar" styleClass="mt-4">
-            <h2 class="text-lg font-semibold text-green-700">
-              ¡Agradecemos, {{ name_person }}, por tu participación en la actividad de hoy!
-            </h2>
+            @if(person_name){
+              <h2 class="text-lg font-semibold text-green-700">
+                ¡Agradecemos, {{ person_name }}, por tu participación en la actividad de hoy!
+              </h2>
+            } @else
+            {
+              <h2 class="text-lg font-semibold text-green-700">
+                ¡Agradecemos tu participación en la actividad de hoy!
+              </h2>
+            }
             <p class="text-sm text-gray-600">
               Tus respuestas han sido registradas correctamente. Te esperamos en la próxima sesión.
             </p>

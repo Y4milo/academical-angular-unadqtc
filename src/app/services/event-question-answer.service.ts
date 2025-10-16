@@ -26,8 +26,4 @@ export class EventQuestionAnswerService {
   storeAnswerEvent(formData: FormData): Observable<ApiData<string>> {
     return this.http.post<ApiData<string>>(`${this.apiURL}/event/answers/store`, formData);
   }
-
-  storeAnswerEvent(formData: FormData): Observable<ApiData<EventQuestion[]>> {
-    return this.http.post<ApiData<EventQuestion[]>>(`${this.apiURL}/event/answers/store`, formData);
-  }
 }
