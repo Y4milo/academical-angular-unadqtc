@@ -4,6 +4,7 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {EventAttendance} from '../models/event-attendance.model';
+import {Attendance} from '../models/attendance.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,5 +17,8 @@ export class AttendanceService {
 
   storeAttendance(formData: FormData): Observable<ApiData<EventAttendance>> {
     return this.http.post<ApiData<EventAttendance>>(`${this.apiURL}/event/attendance/store`, formData);
+  }
+  listAttendancesByNumber(formData: FormData): Observable<ApiData<Attendance[]>> {
+    return this.http.post<ApiData<Attendance[]>>(`${this.apiURL}/staff-attendance/list-by-number`, formData);
   }
 }

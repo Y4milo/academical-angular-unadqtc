@@ -6,11 +6,11 @@ import {LoginAdminComponent} from './dashboard/staff/login-admin/login-admin.com
 import {StudentCardsComponent} from './dashboard/staff/academic/student-cards/student-cards.component';
 import {AuthGuardAcademic} from './guards/auth-guard-academic-service';
 import {RegisterParticipantComponent} from './events/register-participant/register-participant.component';
-import {AttendanceComponent} from './dashboard/staff/attendace/attendance.component';
 import {EventAttendanceCheckInComponent} from './events/event-attendance-check-in/event-attendance-check-in.component';
 import {
   EventQuestionsWithCheckOutComponent
 } from './events/event-questions-with-check-out/event-questions-with-check-out.component';
+import {AttendanceListComponent} from './dashboard/staff/attendace/attendance.component';
 
 
 export const routes: Routes = [
@@ -18,7 +18,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginStudentComponent },
   {
     path: 'staff/attendance',
-    component: AttendanceComponent,
+    component: AttendanceListComponent,
     // canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
   },
   {

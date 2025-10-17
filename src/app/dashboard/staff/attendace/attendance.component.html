@@ -1,10 +1,77 @@
 <div class="flex justify-content-center align-items-center min-h-screen surface-ground">
-  <p-card class="p-shadow-4 w-full md:w-8 lg:w-6 xl:w-5">
+  <p-card class="p-shadow-4 w-full md:w-9 lg:w-7 xl:w-6">
+
+    <!-- Encabezado -->
     <div class="flex flex-column align-items-center mb-4">
       <h2>{{ user }}</h2>
-      <h3>Registro de asistencias del día de hoy</h3>
-      <h4>{{ today | date:'dd/MM/yyyy' }}</h4>
+      <h3>Registro de asistencias</h3>
 
     </div>
+
+    <!-- Rango de fechas -->
+    <div class="flex justify-content-center mb-3 gap-2">
+      <input
+        type="text"
+        pInputText
+        placeholder="Número de empleado o DNI"
+        [(ngModel)]="number"
+        class="w-full md:w-4"
+      />
+
+      <p-calendar
+        [(ngModel)]="dateRange"
+        selectionMode="range"
+        dateFormat="dd/mm/yy"
+        showIcon
+        placeholder="Seleccionar rango"
+        [maxDate]="today">
+      </p-calendar>
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-search"
+        label="Buscar"
+        (click)="loadAttendances()"
+        class="p-button-sm">
+      </button>
+    </div>
+
+    <!-- Tabla de asistencias -->
+    <p-table
+      [value]="attendances"
+      [paginator]="true"
+      [rows]="8"
+      [loading]="loading"
+      [responsiveLayout]="'scroll'"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+      class="p-datatable-gridlines">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Hora</th>
+          <th>Tipo</th>
+          <th>Campus</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.punch_time }}</td>
+          <td class="flex align-items-center">
+            <i [ngClass]="getVerifyIcon(item.verify_type)" class="mr-2 text-primary"></i>
+            {{ item.verify_type }}
+          </td>
+          <td>{{ item.campus }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3" class="text-center">No hay registros</td>
+        </tr>
+      </ng-template>
+    </p-table>
   </p-card>
 </div>
