@@ -50,21 +50,24 @@
 
       <ng-template pTemplate="header">
         <tr>
-          <th>Hora</th>
-          <th>Tipo</th>
-          <th>Campus</th>
+          <th class="text-center">Fecha</th>
+          <th class="text-center">Hora</th>
+          <th class="text-center">Tipo de marcado</th>
+          <th class="text-center">Sede</th>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.punch_time }}</td>
-          <td class="flex align-items-center">
-            <i [ngClass]="getVerifyIcon(item.verify_type)" class="mr-2 text-primary"></i>
-            {{ item.verify_type }}
+          <td class="text-center">{{ item.punch_time.split(' ')[0] }}</td> <!-- Fecha -->
+          <td class="text-center">{{ item.punch_time.split(' ')[1] }}</td> <!-- Hora -->
+          <td class="justify-content-center align-items-center text-center" [ngClass]="getVerifyClass(item.verify_type)">
+            <i [ngClass]="getVerifyIcon(item.verify_type)" style="font-size: 1.5rem;"></i>
+            <div class="font-italic mt-1" style="font-size: 0.5rem;">{{getVerifyName(item.verify_type)}}</div>
           </td>
-          <td>{{ item.campus }}</td>
+          <td class="text-center" style="font-size: 0.75rem"> {{ item.campus| uppercase }}</td>
         </tr>
+
       </ng-template>
 
       <ng-template pTemplate="emptymessage">

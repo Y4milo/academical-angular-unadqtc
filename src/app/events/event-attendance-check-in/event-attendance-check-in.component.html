@@ -32,30 +32,31 @@
 
         }
         @if (response?.status === 'success') {
-          <p-panel header="✅ {{ response?.payload?.title }}" styleClass="mt-2 text-green-700">
+          <p-panel header="{{ response?.payload?.message }}" styleClass="mt-2 text-green-700">
             <div class="text-center items-center">
-              <p class="mt-2 font-light">{{ response?.payload?.message }}</p>
-              @if (response?.payload?.data) {
-                <h1 class="mt-2">
-                  👤 {{ response?.payload?.data?.person_id?.names }}
+              <p class="mt-2 font-light"> <i class="pi pi-check-square mr-2" style="font-size: 3rem"></i></p>
+              @if(response?.payload?.data?.person_id) {
+                <div class="mt-2 font-semibold" style="font-size: 2rem">{{ response?.payload?.data?.person_id?.number }}</div>
+                <div class="mt-2 font-bold" style="font-size: 2.5rem">
+                  {{ response?.payload?.data?.person_id?.names }}
                   {{ response?.payload?.data?.person_id?.last_name }}
                   {{ response?.payload?.data?.person_id?.maternal_last_name }}
-                </h1>
+                </div>
               }
             </div>
           </p-panel>
         }
         @else if (response?.status === 'warning') {
-          <p-panel header="⚠️ {{ response?.payload?.title }}" styleClass="mt-2 text-yellow-700">
+          <p-panel header="{{ response?.payload?.message }}" styleClass="mt-2 text-yellow-700">
             <div class="text-center items-center">
-              <p class="mt-2 font-light">{{ response!.payload.message }}</p>
+              <p class="mt-2 font-light"> <i class="pi pi-bell mr-2" style="font-size: 4rem"></i></p>
               @if(response?.payload?.data?.person_id) {
-
-                <h1 class="mt-2">
-                  👤 {{ response?.payload?.data?.person_id?.names }}
+                <div class="mt-2 font-semibold" style="font-size: 2rem">{{ response?.payload?.data?.person_id?.number }}</div>
+                <div class="mt-2 font-bold" style="font-size: 2.5rem">
+                  {{ response?.payload?.data?.person_id?.names }}
                   {{ response?.payload?.data?.person_id?.last_name }}
                   {{ response?.payload?.data?.person_id?.maternal_last_name }}
-                </h1>
+                </div>
               }
               @if (response!.payload.errors) {
                 <ul class="list-disc pl-6">

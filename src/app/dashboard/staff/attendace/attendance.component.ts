@@ -2,8 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import {Card} from "primeng/card";
 import {DropdownModule} from "primeng/dropdown";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {SharedModule} from "primeng/api";
-import {DatePipe, NgClass} from '@angular/common';
 import {LoginUser} from '../../../models/login-user.model';
 import {AttendanceService} from '../../../services/attendance.service';
 import {NotificationService} from '../../../services/notification.service';
@@ -11,9 +9,9 @@ import {Attendance} from '../../../models/attendance.model';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
-import {resolve} from '@angular/compiler-cli';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
+import {NgClass, UpperCasePipe} from '@angular/common';
 
 @Component({
   selector: 'app-attendace',
@@ -21,7 +19,6 @@ import {InputTextModule} from 'primeng/inputtext';
     Card,
     DropdownModule,
     ReactiveFormsModule,
-    SharedModule,
     TableModule,
     ProgressSpinnerModule,
     NgClass,
@@ -29,6 +26,7 @@ import {InputTextModule} from 'primeng/inputtext';
     CalendarModule,
     ButtonModule,
     InputTextModule,
+    UpperCasePipe,
   ],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
@@ -36,10 +34,12 @@ import {InputTextModule} from 'primeng/inputtext';
 export class AttendanceListComponent implements OnInit {
   user = 'Empleado';
   today = new Date();
-  number = ''; // 🆕 campo de búsqueda
+  number = '';
   dateRange: Date[] = [];
   attendances: Attendance[] = [];
   loading = false;
+
+  showCalendar = false; // ✅ Flag para renderizar calendario después del ciclo inicial
 
   constructor(
     private attendanceService: AttendanceService,
@@ -47,17 +47,13 @@ export class AttendanceListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    //this.loadTodayAttendances();
-  }
-
-  loadTodayAttendances() {
-    const todayStr = this.formatDate(this.today);
-    this.loadAttendances(todayStr, todayStr);
+    // Renderizar calendario después de la inicialización
+    setTimeout(() => this.showCalendar = true, 0);
   }
 
   loadAttendances(startDate?: string, endDate?: string) {
     if (!this.number.trim()) {
-      this.notificationService.warning('Atención','Debe ingresar el número de empleado o DNI.',);
+      this.notificationService.warning('Atención','Debe ingresar el número de empleado o DNI.');
       return;
     }
 
@@ -72,8 +68,7 @@ export class AttendanceListComponent implements OnInit {
         this.loading = false;
         if (res.status === 'success') {
           this.attendances = res.payload.data;
-        }
-        else {
+        } else {
           this.notificationService.notifyApiData(res);
         }
       },
@@ -89,15 +84,28 @@ export class AttendanceListComponent implements OnInit {
   }
 
   getVerifyIcon(type: string): string {
-    switch (type) {
-      case 'fingerprint':
-        return 'pi pi-fingerprint';
-      case 'face':
-        return 'pi pi-user';
-      case 'card':
-        return 'pi pi-id-card';
-      default:
-        return 'pi pi-question-circle';
+    switch (type?.toLowerCase()?.trim()) {
+      case 'fingerprint': return 'pi pi-bullseye';
+      case 'face': return 'pi pi-face-smile';
+      case 'card': return 'pi pi-id-card';
+      default: return 'pi pi-question-circle text-warning';
+    }
+  }
+  getVerifyName(type: string): string {
+    switch (type?.toLowerCase()?.trim()) {
+      case 'fingerprint': return 'HUELLA DIGITAL';
+      case 'face': return 'ROSTRO';
+      case 'card': return 'TARJETA';
+      default: return 'DESCONOCIDO';
+    }
+  }
+  getVerifyClass(type: string): string {
+    switch (type?.toLowerCase()?.trim()) {
+      case 'fingerprint': return 'text-primary';
+      case 'face': return 'text-info';
+      case 'card': return 'text-secondary';
+      default: return 'text-warning';
     }
   }
 }
+
