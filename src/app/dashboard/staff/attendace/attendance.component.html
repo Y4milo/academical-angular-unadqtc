@@ -65,9 +65,12 @@
             <i [ngClass]="getVerifyIcon(item.verify_type)" style="font-size: 1.5rem;"></i>
             <div class="font-italic mt-1" style="font-size: 0.5rem;">{{getVerifyName(item.verify_type)}}</div>
           </td>
-          <td class="text-center" style="font-size: 0.75rem"> {{ item.campus| uppercase }}</td>
+          <td class="text-center" style="font-size: 0.75rem">
+            <i class="pi pi-map-marker mb-2 text-red-500"></i>
+            <br>
+           {{ item.campus| uppercase }}
+          </td>
         </tr>
-
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
