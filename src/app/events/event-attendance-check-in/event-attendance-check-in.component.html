@@ -34,7 +34,7 @@
         @if (response?.status === 'success') {
           <p-panel header="{{ response?.payload?.message }}" styleClass="mt-2 text-green-700">
             <div class="text-center items-center">
-              <p class="mt-2 font-light"> <i class="pi pi-check-square mr-2" style="font-size: 3rem"></i></p>
+              <p class="mt-2 font-light"> <i class="pi pi-check-square mr-2" style="font-size: 5rem"></i></p>
               @if(response?.payload?.data?.person_id) {
                 <div class="mt-2 font-semibold" style="font-size: 2rem">{{ response?.payload?.data?.person_id?.number }}</div>
                 <div class="mt-2 font-bold" style="font-size: 2.5rem">
@@ -47,9 +47,9 @@
           </p-panel>
         }
         @else if (response?.status === 'warning') {
-          <p-panel header="{{ response?.payload?.message }}" styleClass="mt-2 text-yellow-700">
+          <p-panel header="{{ response?.payload?.title }}" styleClass="mt-2 text-yellow-700">
             <div class="text-center items-center">
-              <p class="mt-2 font-light"> <i class="pi pi-bell mr-2" style="font-size: 4rem"></i></p>
+              <p class="mt-2 font-light"> <i class="pi pi-bell mr-2" style="font-size: 5rem"></i></p>
               @if(response?.payload?.data?.person_id) {
                 <div class="mt-2 font-semibold" style="font-size: 2rem">{{ response?.payload?.data?.person_id?.number }}</div>
                 <div class="mt-2 font-bold" style="font-size: 2.5rem">
@@ -74,8 +74,9 @@
           </p-panel>
         }
         @else if (response?.status === 'error') {
-          <p-panel header="❌  {{ response?.payload?.title }}" styleClass="mt-2 text-red-700">
+          <p-panel header="{{ response?.payload?.title }}" styleClass="mt-2 text-red-700">
             <div class="text-center items-center">
+              <p class="mt-2 font-light"> <i class="pi pi-question mr-2" style="font-size: 5rem"></i></p>
               <p class="mt-2 font-light">{{ response!.payload.message }}</p>
               @if (response!.payload.errors) {
                 <ul class="list-disc pl-6">
@@ -93,8 +94,10 @@
           </p-panel>
         }
         @else if (response?.status === 'info') {
-          <p-panel header="❌ {{ response?.payload?.title }}" styleClass="mt-2 text-red-700">
+          <p-panel header="{{ response?.payload?.title }}" styleClass="mt-2 text-red-700">
             <div class="text-center items-center">
+              <p class="mt-2 font-light"> <i class="pi pi-times mr-2" style="font-size: 5rem"></i></p>
+              <p class="mt-2 font-light">{{ response!.payload.message }}</p>
               <p class="mt-2 font-light">{{ response!.payload.message }}</p>
               @if (response!.payload.errors) {
                 <ul class="list-disc pl-6">
