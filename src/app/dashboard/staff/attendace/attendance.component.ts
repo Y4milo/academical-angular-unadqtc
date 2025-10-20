@@ -12,7 +12,17 @@ import {ButtonModule} from 'primeng/button';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {NgClass, UpperCasePipe} from '@angular/common';
+import {
+  CircleAlertIcon,
+  FileIcon,
+  Fingerprint,
+  IdCard,
+  LucideAngularModule,
+  LucideIconNode, MapPinCheck,
+  ScanFace
+} from 'lucide-angular';
 
+// @ts-ignore
 @Component({
   selector: 'app-attendace',
   imports: [
@@ -27,6 +37,7 @@ import {NgClass, UpperCasePipe} from '@angular/common';
     ButtonModule,
     InputTextModule,
     UpperCasePipe,
+    LucideAngularModule,
   ],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
@@ -83,12 +94,12 @@ export class AttendanceListComponent implements OnInit {
     return date.toISOString().split('T')[0];
   }
 
-  getVerifyIcon(type: string): string {
+  getVerifyIcon(type: string): readonly LucideIconNode[]{
     switch (type?.toLowerCase()?.trim()) {
-      case 'fingerprint': return 'pi pi-bullseye';
-      case 'face': return 'pi pi-face-smile';
-      case 'card': return 'pi pi-id-card';
-      default: return 'pi pi-question-circle text-warning';
+      case 'fingerprint': return Fingerprint;
+      case 'face': return ScanFace;
+      case 'card': return IdCard;
+      default: return CircleAlertIcon;
     }
   }
   getVerifyName(type: string): string {
@@ -102,10 +113,12 @@ export class AttendanceListComponent implements OnInit {
   getVerifyClass(type: string): string {
     switch (type?.toLowerCase()?.trim()) {
       case 'fingerprint': return 'text-primary';
-      case 'face': return 'text-info';
+      case 'face': return 'text-indigo-400';
       case 'card': return 'text-secondary';
-      default: return 'text-warning';
+      default: return 'text-indigo-400';
     }
   }
+
+  protected readonly MapPinCheck = MapPinCheck;
 }
 
