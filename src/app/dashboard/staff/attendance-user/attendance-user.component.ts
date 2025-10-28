@@ -1,20 +1,18 @@
 import {Component, OnInit} from '@angular/core';
-import {Card} from "primeng/card";
-import {DropdownModule} from "primeng/dropdown";
-import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {LoginUser} from '../../../models/login-user.model';
-import {AttendanceService} from '../../../services/attendance.service';
-import {NotificationService} from '../../../services/notification.service';
-import {Attendance} from '../../../models/attendance.model';
+import {Card} from 'primeng/card';
+import {DropdownModule} from 'primeng/dropdown';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {TableModule} from 'primeng/table';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
+import {NgClass, UpperCasePipe} from '@angular/common';
 import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
-import {TableModule} from 'primeng/table';
-import {InputTextModule} from 'primeng/inputtext';
-import {NgClass, UpperCasePipe} from '@angular/common';
+import {Attendance} from '../../../models/attendance.model';
+import {AttendanceService} from '../../../services/attendance.service';
+import {NotificationService} from '../../../services/notification.service';
+import {User} from '../../../models/login-user.model';
 import {
   CircleAlertIcon,
-  FileIcon,
   Fingerprint,
   IdCard,
   LucideAngularModule,
@@ -22,9 +20,8 @@ import {
   ScanFace
 } from 'lucide-angular';
 
-// @ts-ignore
 @Component({
-  selector: 'app-attendace',
+  selector: 'app-attendance-user',
   imports: [
     Card,
     DropdownModule,
@@ -35,15 +32,14 @@ import {
     FormsModule,
     CalendarModule,
     ButtonModule,
-    InputTextModule,
     UpperCasePipe,
     LucideAngularModule,
   ],
-  templateUrl: './attendance.component.html',
-  styleUrl: './attendance.component.css'
+  templateUrl: './attendance-user.component.html',
+  styleUrl: './attendance-user.component.css'
 })
-export class AttendanceListComponent implements OnInit {
-  user = 'Empleado';
+export class AttendanceUserComponent implements OnInit{
+  names = 'Empleado';
   today = new Date();
   number = '';
   dateRange: Date[] = [];
@@ -51,6 +47,8 @@ export class AttendanceListComponent implements OnInit {
   loading = false;
 
   showCalendar = false; // ✅ Flag para renderizar calendario después del ciclo inicial
+
+  protected readonly MapPinCheck = MapPinCheck;
 
   constructor(
     private attendanceService: AttendanceService,
@@ -60,6 +58,13 @@ export class AttendanceListComponent implements OnInit {
   ngOnInit() {
     // Renderizar calendario después de la inicialización
     setTimeout(() => this.showCalendar = true, 0);
+    const userData = sessionStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData) as User;
+      this.names = 'Hola ' + user.staff.names + "!";
+      this.number = user.staff.number;
+      this.loadAttendances()
+    }
   }
 
   loadAttendances(startDate?: string, endDate?: string) {
@@ -118,7 +123,4 @@ export class AttendanceListComponent implements OnInit {
       default: return 'text-indigo-400';
     }
   }
-
-  protected readonly MapPinCheck = MapPinCheck;
 }
-

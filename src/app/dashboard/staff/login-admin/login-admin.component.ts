@@ -34,15 +34,16 @@ export class LoginAdminComponent {
     };
 
     const loginData = new FormData();
-    loginData.append('payload', JSON.stringify(payload));
+    loginData.append('nick', this.user);
+    loginData.append('password', this.password);
 
     this.usersService.logIn(loginData).subscribe({
       next: (loginUserData) => {
         if (loginUserData.status === 'success') {
           const userLogin = loginUserData.payload.data;
-          sessionStorage.setItem('login_id', JSON.stringify(userLogin));
+          sessionStorage.setItem('user', JSON.stringify(userLogin));
           let route = "/admin";
-          switch (userLogin.role_id.value) {
+          switch (userLogin.role.value) {
             case "accounting":
               route += "/accounting-payments";
               break;
@@ -52,7 +53,7 @@ export class LoginAdminComponent {
               // ASISTENCIA PARA DOCENTES Y ADMINISTRATIVOS
             case "professor":
             case "administrative":
-              route += "/attendances";
+              route = "/staff/attendance-user";
           }
           setTimeout(() => {
             this.router.navigate([route]);

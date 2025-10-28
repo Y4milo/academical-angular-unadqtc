@@ -4,11 +4,18 @@ import {LoginPerson} from './login-person.model';
 /**
  * Modelo que representa un los datos de un usuario.
  */
-export interface LoginUser {
+export interface User {
   id: string;
   nick: string;
   position: string;
-  role_id: Dictionary;
-  dependency_id: Dictionary;
-  person_id: LoginPerson;
+  role: Dictionary;
+  staff: Staff;
+  dependency: Dictionary;
+  status_relation: Dictionary;
+}
+
+export interface Staff {
+  id: string;
+  number: string,
+  names: string
 }

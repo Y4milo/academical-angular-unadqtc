@@ -10,7 +10,9 @@ import {EventAttendanceCheckInComponent} from './events/event-attendance-check-i
 import {
   EventQuestionsWithCheckOutComponent
 } from './events/event-questions-with-check-out/event-questions-with-check-out.component';
-import {AttendanceListComponent} from './dashboard/staff/attendace/attendance.component';
+import {AttendanceListComponent} from './dashboard/staff/attendace-admin/attendance.component';
+import {AttendanceUserComponent} from './dashboard/staff/attendance-user/attendance-user.component';
+import {AuthGuardStaff} from './guards/auth-guard-staff-service';
 
 
 export const routes: Routes = [
@@ -20,6 +22,11 @@ export const routes: Routes = [
     path: 'staff/attendance',
     component: AttendanceListComponent,
     // canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
+  },
+  {
+    path: 'staff/attendance-user',
+    component: AttendanceUserComponent,
+    canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
   },
   {
     path: 'student-card-registration',

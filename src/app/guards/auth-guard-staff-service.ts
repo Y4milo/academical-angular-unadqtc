@@ -4,7 +4,7 @@ import {
   Router,
 } from '@angular/router';
 import {JwtService} from '../services/jwt.service';
-import {LoginUser} from '../models/login-user.model';
+import {User} from '../models/login-user.model';
 import {log} from '@angular-devkit/build-angular/src/builders/ssr-dev-server';
 import {role} from '../core/constants/role';
 import {app_path} from '../core/constants/app-paths';
@@ -19,10 +19,10 @@ export class AuthGuardStaff implements CanActivate {
   constructor() {}
 
   canActivate(): boolean {
-    const loginUser = JSON.parse(sessionStorage.getItem('login_id')!) as LoginUser;
+    const loginUser = JSON.parse(sessionStorage.getItem('user')!) as User;
 
     if (loginUser) {
-      switch (loginUser.role_id.value) {
+      switch (loginUser.role.value) {
         case role.professor:
         case role.administrative:
           return true;
