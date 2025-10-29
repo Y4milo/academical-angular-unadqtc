@@ -69,15 +69,27 @@ export class AttendanceUserComponent implements OnInit{
 
   loadAttendances(startDate?: string, endDate?: string) {
     if (!this.number.trim()) {
-      this.notificationService.warning('Atención','Debe ingresar el número de empleado o DNI.');
+      this.notificationService.warning('Atención', 'Debe ingresar el número de empleado o DNI.');
       return;
     }
 
     this.loading = true;
+
+    // Función para obtener la fecha de Lima en formato YYYY-MM-DD
+    const getLimaDate = (date?: Date): string => {
+      const now = date ? new Date(date) : new Date();
+      // Convertir a UTC y luego restar 5 horas (Lima = UTC-5)
+      const limaTime = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+      const year = limaTime.getUTCFullYear();
+      const month = (limaTime.getUTCMonth() + 1).toString().padStart(2, '0');
+      const day = limaTime.getUTCDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     const formData = new FormData();
     formData.append('number', this.number);
-    formData.append('start_date', startDate ?? this.formatDate(this.dateRange[0] ?? this.today));
-    formData.append('end_date', endDate ?? this.formatDate(this.dateRange[1] ?? this.today));
+    formData.append('start_date', startDate ?? getLimaDate(this.dateRange[0] ?? this.today));
+    formData.append('end_date', endDate ?? getLimaDate(this.dateRange[1] ?? this.today));
 
     this.attendanceService.listAttendancesByNumber(formData).subscribe({
       next: (res) => {
@@ -94,6 +106,31 @@ export class AttendanceUserComponent implements OnInit{
       },
     });
   }
+
+
+  /**
+   * 🕒 Convierte una fecha al formato "YYYY-MM-DD HH:mm:ss" en hora de Lima (UTC−5)
+   */
+  private getLimaDate(date: Date, type: 'start' | 'end'): string {
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: 'America/Lima',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    };
+
+    // Generar la fecha exacta en hora de Lima
+    const [month, day, year] = new Intl.DateTimeFormat('en-US', options)
+      .format(date)
+      .split('/');
+
+    // Definir hora de inicio o fin del día
+    const time = type === 'start' ? '00:00:00' : '23:59:59';
+
+    return `${year}-${month}-${day} ${time}`;
+  }
+
+
 
   formatDate(date: Date): string {
     return date.toISOString().split('T')[0];
