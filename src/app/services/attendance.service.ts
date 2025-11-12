@@ -21,4 +21,10 @@ export class AttendanceService {
   listAttendancesByNumber(formData: FormData): Observable<ApiData<Attendance[]>> {
     return this.http.post<ApiData<Attendance[]>>(`${this.apiURL}/staff-attendance/list-by-number`, formData);
   }
+  downloadAttendancesExcel(formData: FormData): Observable<Blob> {
+    return this.http.post(`${this.apiURL}/staff-attendance/export-by-contract-type`, formData, {
+      responseType: 'blob'
+    });
+  }
+
 }

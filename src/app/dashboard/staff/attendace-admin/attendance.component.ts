@@ -118,5 +118,38 @@ export class AttendanceListComponent implements OnInit {
   }
 
   protected readonly MapPinCheck = MapPinCheck;
+
+  protected downloadAttendancesExcel(startDate?: string, endDate?: string) {
+    this.loading = true;
+    const formData = new FormData();
+    formData.append('contract_type', "5");
+    formData.append('start_date', startDate ?? this.formatDate(this.dateRange[0] ?? this.today));
+    formData.append('end_date', endDate ?? this.formatDate(this.dateRange[1] ?? this.today));
+
+    this.attendanceService.downloadAttendancesExcel(formData).subscribe({
+      next: async (blob) => {
+        try {
+          const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
+          const parsed = JSON.parse(text);
+          // if (isApiResponse<any>(parsed)) {
+          //   this.notificationService.warning(parsed.response.title, parsed.response.message);
+          //   console.log(parsed.response.payload);
+          // }
+        }
+        catch {
+          const url = window.URL.createObjectURL(blob as Blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'asistencia_docentes.xlsx';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        }
+      },
+      error: (err) => {
+        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
+        console.error(err);
+      }
+    });
+  }
 }
 

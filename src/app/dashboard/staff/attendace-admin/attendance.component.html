@@ -45,6 +45,18 @@
           (click)="loadAttendances()"
           class="p-button-sm w-full md:w-auto">
         </button>
+
+        <!-- Botón buscar -->
+        <div class="w-full md:w-auto">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-search"
+            label="Descargar excel"
+            (click)="downloadAttendancesExcel()"
+            class="p-button-sm w-full md:w-auto">
+          </button>
+        </div>
       </div>
     </div>
 
