@@ -21,7 +21,7 @@ export const routes: Routes = [
   {
     path: 'staff/attendance',
     component: AttendanceListComponent,
-    // canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
+    canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
   },
   {
     path: 'staff/attendance-user',
