@@ -44,6 +44,9 @@ export class LoginAdminComponent {
           sessionStorage.setItem('user', JSON.stringify(userLogin));
           let route = "/admin";
           switch (userLogin.role.value) {
+            case "human-resources":
+              route += "/staff/attendance";
+              break;
             case "accounting":
               route += "/accounting-payments";
               break;
