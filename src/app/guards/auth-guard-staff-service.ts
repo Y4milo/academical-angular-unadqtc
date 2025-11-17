@@ -23,6 +23,7 @@ export class AuthGuardStaff implements CanActivate {
 
     if (loginUser) {
       switch (loginUser.role.value) {
+        case role.rh:
         case role.professor:
         case role.administrative:
           return true;

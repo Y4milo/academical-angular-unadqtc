@@ -10,18 +10,28 @@ import {EventAttendanceCheckInComponent} from './events/event-attendance-check-i
 import {
   EventQuestionsWithCheckOutComponent
 } from './events/event-questions-with-check-out/event-questions-with-check-out.component';
-import {AttendanceListComponent} from './dashboard/staff/attendace-admin/attendance.component';
+import {AttendanceListComponent} from './dashboard/staff/hr-admin/attendace-admin/attendance.component';
 import {AttendanceUserComponent} from './dashboard/staff/attendance-user/attendance-user.component';
 import {AuthGuardStaff} from './guards/auth-guard-staff-service';
+import {HrHomeComponent} from './dashboard/staff/hr-admin/hr-home/hr-home.component';
 
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginStudentComponent },
   {
-    path: 'staff/attendance',
-    component: AttendanceListComponent,
-    canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
+    path: 'hr',
+    canActivate: [AuthGuardStaff], // ⛔ Protege todo lo que esté dentro
+    children: [
+      {
+        path: '',
+        component: HrHomeComponent
+      },
+      {
+        path: 'staff/attendance',
+        component: AttendanceListComponent
+      }
+    ]
   },
   {
     path: 'staff/attendance-user',

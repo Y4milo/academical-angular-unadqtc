@@ -1,0 +1,20 @@
+<div class="flex justify-content-center align-items-center min-h-screen surface-ground">
+  <p-card class="p-shadow-4 w-full md:w-9 lg:w-7 xl:w-6">
+    <p-menubar [model]="items">
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [href]="item">
+
+          @if (item.icon) {
+            <lucide-icon
+              [name]="item.icon"
+              class="mr-2 w-4 h-4"
+            />
+            <lucide-icon name="house" class="my-icon"></lucide-icon>
+          }
+          <span>{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+    <h2>Panel de Recursos Humanos</h2>
+  </p-card>
+</div>

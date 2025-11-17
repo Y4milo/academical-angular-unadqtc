@@ -28,11 +28,6 @@ export class LoginAdminComponent {
   ) {}
 
   login() {
-    const payload = {
-      user: this.user,
-      password: this.password
-    };
-
     const loginData = new FormData();
     loginData.append('nick', this.user);
     loginData.append('password', this.password);
@@ -42,23 +37,27 @@ export class LoginAdminComponent {
         if (loginUserData.status === 'success') {
           const userLogin = loginUserData.payload.data;
           sessionStorage.setItem('user', JSON.stringify(userLogin));
-          let route = "/admin";
+          let route = "";
           switch (userLogin.role.value) {
-            case "/human-resources":
-              route += "/staff/attendance";
-              break;
             case "accounting":
-              route += "/accounting-payments";
+              route += "/admin/accounting-payments";
               break;
             case "academic":
-              route += "/student-cards";
+              route += "/admin/student-cards";
               break;
               // ASISTENCIA PARA DOCENTES Y ADMINISTRATIVOS
             case "professor":
             case "administrative":
               route = "/staff/attendance-user";
+              break;
+            case "human-resources":
+              // route = "/staff/attendance";
+              route = "/hr";
+              break;
           }
           setTimeout(() => {
+            // console.log(route)
+            // console.log(userLogin.role.value);
             this.router.navigate([route]);
           }, 2000);
         }

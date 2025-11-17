@@ -2,9 +2,9 @@ import {Component, OnInit} from '@angular/core';
 import {Card} from "primeng/card";
 import {DropdownModule} from "primeng/dropdown";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {AttendanceService} from '../../../services/attendance.service';
-import {NotificationService} from '../../../services/notification.service';
-import {Attendance} from '../../../models/attendance.model';
+import {AttendanceService} from '../../../../services/attendance.service';
+import {NotificationService} from '../../../../services/notification.service';
+import {Attendance} from '../../../../models/attendance.model';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
@@ -16,7 +16,8 @@ import {
   Fingerprint,
   IdCard,
   LucideAngularModule,
-  LucideIconNode, MapPinCheck,
+  LucideIconNode,
+  MapPinCheck,
   ScanFace
 } from 'lucide-angular';
 
