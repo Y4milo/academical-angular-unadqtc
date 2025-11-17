@@ -1,0 +1,60 @@
+<div class="text-center">
+  <h2>Reporte mensual de asistencias</h2>
+</div>
+<form [formGroup]="reportForm">
+  <div class="grid w-full">
+    <!-- COLUMNA 1 -->
+    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
+      <label for="id_employment_agreement">Tipo de Documento</label>
+      <p-dropdown
+        id="id_employment_agreement"
+        name="id_employment_agreement"
+        [options]="employmentAgreementOptions"
+        optionLabel="label"
+        optionValue="id"
+        formControlName="id_employment_agreement"
+        placeholder="Seleccione el régimen laboral"
+      ></p-dropdown>
+    </div>
+
+    <!-- COLUMNA 2 -->
+    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
+      <label for="id_month">Selecciona el mes</label>
+      <p-dropdown
+        id="id_month"
+        name="id_month"
+        [options]="monthOptions"
+        optionLabel="label"
+        optionValue="id"
+        formControlName="id_month"
+        placeholder="Seleccione el mes"
+      ></p-dropdown>
+    </div>
+
+    <!-- COLUMNA 3 -->
+    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
+      <label for="id_year">Selecciona el año</label>
+      <p-dropdown
+        id="id_year"
+        name="id_year"
+        [options]="yearOptions"
+        optionLabel="label"
+        optionValue="id"
+        formControlName="id_year"
+        placeholder="Seleccione el año"
+      ></p-dropdown>
+    </div>
+
+    <!-- COLUMNA 4 -->
+    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2 justify-content-end">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-search"
+        label="Descargar excel"
+        (click)="downloadReportExcel()">
+      </button>
+    </div>
+  </div>
+</form>
+

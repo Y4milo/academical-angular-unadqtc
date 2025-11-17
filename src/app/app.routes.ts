@@ -14,6 +14,12 @@ import {AttendanceListComponent} from './dashboard/staff/hr-admin/attendace-admi
 import {AttendanceUserComponent} from './dashboard/staff/attendance-user/attendance-user.component';
 import {AuthGuardStaff} from './guards/auth-guard-staff-service';
 import {HrHomeComponent} from './dashboard/staff/hr-admin/hr-home/hr-home.component';
+import {
+  HrLayOutComponentComponent
+} from './dashboard/staff/hr-admin/hr-lay-out-component/hr-lay-out-component.component';
+import {
+  HrReportAttendanceComponentComponent
+} from './dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component';
 
 
 export const routes: Routes = [
@@ -21,7 +27,8 @@ export const routes: Routes = [
   { path: 'login', component: LoginStudentComponent },
   {
     path: 'hr',
-    canActivate: [AuthGuardStaff], // ⛔ Protege todo lo que esté dentro
+    // canActivate: [AuthGuardStaff], // ⛔ Protege todo lo que esté dentro
+    component: HrLayOutComponentComponent,
     children: [
       {
         path: '',
@@ -30,7 +37,11 @@ export const routes: Routes = [
       {
         path: 'staff/attendance',
         component: AttendanceListComponent
-      }
+      },
+      {
+        path: 'staff/attendance/reports',
+        component: HrReportAttendanceComponentComponent
+      },
     ]
   },
   {

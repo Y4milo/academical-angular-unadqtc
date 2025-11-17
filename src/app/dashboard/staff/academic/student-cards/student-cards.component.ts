@@ -43,7 +43,7 @@ export class StudentCardsComponent implements OnInit {
   unmatchedStudent: StudentCard[] = [];
   flaggedStudents: StudentCard[] = [];
   appURL = environment.apiUrlPublic;
-  statusStudentCardOptions: { name: string; code: string }[] = [];
+  statusStudentCardOptions: Dictionary[] = [];
   selectedFlags: [] = [];
   selectedFlaggedCard!: StudentCard;
   showSelectError: boolean = false;
@@ -61,8 +61,8 @@ export class StudentCardsComponent implements OnInit {
         if (studentCardFlagsData.status === 'success') {
           const flaggedList = studentCardFlagsData.payload!.data;
           this.statusStudentCardOptions = flaggedList.map((item: Dictionary) => ({
-            name: item.label,
-            code: item.id.toString(),
+            id: item.id,
+            label: item.label,
           }));
         } else {
           this.notificationService.notifyApiData(studentCardFlagsData)

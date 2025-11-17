@@ -15,7 +15,8 @@ import { Router} from '@angular/router';
 import { StudentCardService } from '../../../services/student-card.service';
 import { jwtDecode } from 'jwt-decode';
 import { Payment } from '../../../models/payment.model';
-import {decodeApiData, validatePhotoCardStudent} from '../../../helper/helper.util';
+import {validatePhotoCardStudent} from '../../../helper/helper.util';
+import {Dictionary} from '../../../models/dictionary.model';
 
 @Component({
   selector: 'app-student-registration',
@@ -44,8 +45,8 @@ export class StudentCardRegistrationComponent implements OnInit {
 
   registrationForm!: FormGroup;
   selectedFile: File | null = null;
-  campusOptions: any[] = [];
-  idTypeOptions: any[] = [];
+  campusOptions: Dictionary[] = [];
+  idTypeOptions: Dictionary[] = [];
   previewUrl: string = 'img/card-img.png';
   // Imagen por defecto
 

@@ -5,6 +5,7 @@ import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {EventAttendance} from '../models/event-attendance.model';
 import {Attendance} from '../models/attendance.model';
+import {Dictionary} from '../models/dictionary.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,7 @@ export class AttendanceService {
   listAttendancesByNumber(formData: FormData): Observable<ApiData<Attendance[]>> {
     return this.http.post<ApiData<Attendance[]>>(`${this.apiURL}/staff-attendance/list-by-number`, formData);
   }
+
   downloadAttendancesExcel(formData: FormData): Observable<Blob> {
     return this.http.post(`${this.apiURL}/staff-attendance/export-by-contract-type`, formData, {
       responseType: 'blob'

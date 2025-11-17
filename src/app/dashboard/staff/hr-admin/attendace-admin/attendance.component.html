@@ -1,39 +1,45 @@
-<div class="flex justify-content-center align-items-center min-h-screen surface-ground">
-  <p-card class="p-shadow-4 w-full md:w-9 lg:w-7 xl:w-6">
+  <!-- Encabezado -->
+  <div class="flex flex-column align-items-center mb-4">
+    <h3>Registro de asistencias</h3>
+  </div>
 
-    <!-- Encabezado -->
-    <div class="flex flex-column align-items-center mb-4">
-      <h2>{{ user }}</h2>
-      <h3>Registro de asistencias</h3>
+  <!-- Rango de fechas -->
+  <div class="flex flex-column md:flex-row justify-content-center align-items-center mb-3 gap-2 w-full">
 
+    <!-- Input DNI -->
+    <div class="w-full md:w-4">
+      <input
+        type="text"
+        pInputText
+        placeholder="Número de empleado o DNI"
+        [(ngModel)]="number"
+        class="w-full"
+      />
     </div>
 
-    <!-- Rango de fechas -->
-    <div class="flex flex-column md:flex-row justify-content-center align-items-center mb-3 gap-2 w-full">
+    <!-- Calendario rango -->
+    <div class="w-full md:w-4">
+      <p-calendar
+        [(ngModel)]="dateRange"
+        selectionMode="range"
+        dateFormat="dd/mm/yy"
+        showIcon
+        placeholder="Seleccionar rango"
+        [maxDate]="today"
+        class="w-full">
+      </p-calendar>
+    </div>
 
-      <!-- Input DNI -->
-      <div class="w-full md:w-4">
-        <input
-          type="text"
-          pInputText
-          placeholder="Número de empleado o DNI"
-          [(ngModel)]="number"
-          class="w-full"
-        />
-      </div>
-
-      <!-- Calendario rango -->
-      <div class="w-full md:w-4">
-        <p-calendar
-          [(ngModel)]="dateRange"
-          selectionMode="range"
-          dateFormat="dd/mm/yy"
-          showIcon
-          placeholder="Seleccionar rango"
-          [maxDate]="today"
-          class="w-full">
-        </p-calendar>
-      </div>
+    <!-- Botón buscar -->
+    <div class="w-full md:w-auto">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-search"
+        label="Buscar"
+        (click)="loadAttendances()"
+        class="p-button-sm w-full md:w-auto">
+      </button>
 
       <!-- Botón buscar -->
       <div class="w-full md:w-auto">
@@ -41,66 +47,54 @@
           pButton
           type="button"
           icon="pi pi-search"
-          label="Buscar"
-          (click)="loadAttendances()"
+          label="Descargar excel"
+          (click)="downloadAttendancesExcel()"
           class="p-button-sm w-full md:w-auto">
         </button>
-
-        <!-- Botón buscar -->
-        <div class="w-full md:w-auto">
-          <button
-            pButton
-            type="button"
-            icon="pi pi-search"
-            label="Descargar excel"
-            (click)="downloadAttendancesExcel()"
-            class="p-button-sm w-full md:w-auto">
-          </button>
-        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Tabla de asistencias -->
-    <p-table
-      [value]="attendances"
-      [paginator]="true"
-      [rows]="8"
-      [loading]="loading"
-      [responsiveLayout]="'scroll'"
-      [showCurrentPageReport]="true"
-      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-      class="p-datatable-gridlines">
+  <!-- Tabla de asistencias -->
+  <p-table
+    [value]="attendances"
+    [paginator]="true"
+    [rows]="8"
+    [loading]="loading"
+    [responsiveLayout]="'scroll'"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+    class="p-datatable-gridlines">
 
-      <ng-template pTemplate="header">
-        <tr>
-          <th class="text-center">Fecha</th>
-          <th class="text-center">Hora</th>
-          <th class="text-center">Marcación</th>
-          <th class="text-center">Sede</th>
-        </tr>
-      </ng-template>
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="text-center">Fecha</th>
+        <th class="text-center">Hora</th>
+        <th class="text-center">Marcación</th>
+        <th class="text-center">Sede</th>
+      </tr>
+    </ng-template>
 
-      <ng-template pTemplate="body" let-item>
-        <tr>
-          <td class="text-center">{{ item.punch_time.split(' ')[0] }}</td> <!-- Fecha -->
-          <td class="text-center">{{ item.punch_time.split(' ')[1] }}</td> <!-- Hora -->
-          <td class="justify-content-center align-items-center text-center" [ngClass]="getVerifyClass(item.verify_type)">
-            <i-lucide [img]="getVerifyIcon(item.verify_type)" size="35"></i-lucide>
-            <div class="font-italic mt-1" style="font-size: 0.5rem;">{{getVerifyName(item.verify_type)}}</div>
-          </td>
-          <td class="text-center" style="font-size: 0.7rem">
-            <i-lucide [img]="MapPinCheck" size="20" class="text-red-500"></i-lucide>
-            <br>
-           {{ item.campus | uppercase }}
-          </td>
-        </tr>
-      </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td class="text-center">{{ item.punch_time.split(' ')[0] }}</td> <!-- Fecha -->
+        <td class="text-center">{{ item.punch_time.split(' ')[1] }}</td> <!-- Hora -->
+        <td class="justify-content-center align-items-center text-center" [ngClass]="getVerifyClass(item.verify_type)">
+          <i-lucide [img]="getVerifyIcon(item.verify_type)" size="35"></i-lucide>
+          <div class="font-italic mt-1" style="font-size: 0.5rem;">{{getVerifyName(item.verify_type)}}</div>
+        </td>
+        <td class="text-center" style="font-size: 0.7rem">
+          <i-lucide [img]="MapPinCheck" size="20" class="text-red-500"></i-lucide>
+          <br>
+         {{ item.campus | uppercase }}
+        </td>
+      </tr>
+    </ng-template>
 
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="4" class="text-center font-italic text-orange-500">Aún no hay Asistencias</td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
-</div>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4" class="text-center font-italic text-orange-500">Aún no hay Asistencias</td>
+      </tr>
+    </ng-template>
+  </p-table>
+

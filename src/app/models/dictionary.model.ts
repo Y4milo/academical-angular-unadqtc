@@ -3,6 +3,6 @@
  */
 export interface Dictionary {
   id: number;
-  value: string;
+  value?: string;
   label: string;
 }

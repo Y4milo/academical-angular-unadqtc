@@ -25,7 +25,6 @@ import {
 @Component({
   selector: 'app-attendace-admin',
   imports: [
-    Card,
     DropdownModule,
     ReactiveFormsModule,
     TableModule,
