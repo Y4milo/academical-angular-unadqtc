@@ -20,60 +20,70 @@ import {
 import {
   HrReportAttendanceComponentComponent
 } from './dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component';
-
+import {paths} from './core/constants/paths';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: LoginStudentComponent },
   {
-    path: 'hr',
-    // canActivate: [AuthGuardStaff], // ⛔ Protege todo lo que esté dentro
+    path: '',
+    redirectTo: paths.login.staff,
+    pathMatch: 'full'
+  },
+  {
+    path: paths.login.student,
+    component: LoginStudentComponent
+  },
+  {
+    path: paths.login.staff,
+    component: LoginAdminComponent
+  },
+  {
+    path: paths.hr.path,
+    canActivate: [AuthGuardStaff], // ⛔ Protege todo lo que esté dentro
     component: HrLayOutComponentComponent,
     children: [
       {
-        path: '',
+        path: paths.hr.staff.attendance.home.route,
         component: HrHomeComponent
       },
       {
-        path: 'staff/attendance',
+        path: paths.hr.staff.attendance.list.route,
         component: AttendanceListComponent
       },
       {
-        path: 'staff/attendance/reports',
+        path: paths.hr.staff.attendance.reports.route,
         component: HrReportAttendanceComponentComponent
       },
     ]
   },
   {
-    path: 'staff/attendance-user',
+    path: paths.staff.user,
     component: AttendanceUserComponent,
     canActivate: [AuthGuardStaff] // ⛔ Protege la ruta
   },
   {
-    path: 'student-card-registration',
+    path: paths.student.card.registration,
     component: StudentCardRegistrationComponent,
     canActivate: [AuthGuardStudent] // ⛔ Protege la ruta
   },
   {
-    path: 'admin/student-cards',
+    path: paths.academic.student.card.panel,
     component: StudentCardsComponent,
     canActivate: [AuthGuardAcademic] // ⛔ Protege la ruta
   },
-  { path: 'login-admin', component: LoginAdminComponent },
   {
-    path: 'kanchay/register-participant',
+    path: paths.event.participant.register,
     component: RegisterParticipantComponent,
   },
   {
-    path: 'kanchay/event-attendance-check-in/:id',
+    path: paths.event.attendance.check_in,
     component: EventAttendanceCheckInComponent,
   },
   {
-    path: 'kanchay/event-question-check-out/:id',
+    path: paths.event.attendance.check_in,
     component: EventQuestionsWithCheckOutComponent,
   },
   {
-    path: '**', redirectTo: 'login'
+    path: '**', redirectTo: paths.login.staff
   }
 ];
 

@@ -29,4 +29,10 @@ export class AttendanceService {
     });
   }
 
+  downloadConsolidatedExcel(formData: FormData): Observable<Blob> {
+    return this.http.post(`${this.apiURL}/staff-attendance/export-consolidated-attendance`, formData, {
+      responseType: 'blob'
+    });
+  }
+
 }

@@ -4,6 +4,7 @@ import {Menubar} from 'primeng/menubar';
 import {LucideAngularModule, FileIcon, Fingerprint, CalendarCheck} from 'lucide-angular';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {Component, OnInit} from '@angular/core';
+import {paths} from '../../../../core/constants/paths';
 
 @Component({
   selector: 'app-hr-lay-out-component',
@@ -27,12 +28,12 @@ export class HrLayOutComponentComponent implements OnInit {
       {
         label: 'Asistencias',
         lucide: Fingerprint,
-        routerLink: 'staff/attendance'
+        routerLink: paths.hr.staff.attendance.list.route
       },
       {
         label: 'Reportes',
         lucide: CalendarCheck,
-        routerLink: '/staff/resports'
+        routerLink: paths.hr.staff.attendance.reports.route
       },
     ]
   }

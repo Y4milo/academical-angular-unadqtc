@@ -7,7 +7,7 @@ import {JwtService} from '../services/jwt.service';
 import {User} from '../models/login-user.model';
 import {log} from '@angular-devkit/build-angular/src/builders/ssr-dev-server';
 import {role} from '../core/constants/role';
-import {app_path} from '../core/constants/app-paths';
+import {paths} from '../core/constants/paths';
 
 
 @Injectable({
@@ -26,16 +26,16 @@ export class AuthGuardAcademic implements CanActivate {
         case role.academic:
           return true;
         case role.student:
-          window.location.href = app_path.login.student;
+          window.location.href = `${location.origin}/${paths.login.student}`;
           return false;
         default:
-          window.location.href = app_path.login.staff;
+          window.location.href = `${location.origin}/${paths.login.staff}`;
           return false;
       }
     }
     else {
       // No hay token
-      window.location.href = app_path.login.staff;
+      window.location.href = `${location.origin}/${paths.login.staff}`;
       return false;
     }
   }

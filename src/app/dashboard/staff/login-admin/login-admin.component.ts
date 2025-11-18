@@ -3,6 +3,7 @@ import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {Router} from '@angular/router';
 import {UsersService} from '../../../services/users.service';
+import {paths} from '../../../core/constants/paths';
 
 @Component({
   imports: [LoginBaseComponent],
@@ -40,19 +41,22 @@ export class LoginAdminComponent {
           let route = "";
           switch (userLogin.role.value) {
             case "accounting":
-              route += "/admin/accounting-payments";
+              route = "/admin/accounting-payments";
+              route = `/${paths.accounting.payments}`;
               break;
             case "academic":
-              route += "/admin/student-cards";
+              route += `/${paths.academic.student.card.panel}`;
               break;
               // ASISTENCIA PARA DOCENTES Y ADMINISTRATIVOS
             case "professor":
             case "administrative":
               route = "/staff/attendance-user";
+              route = `/${paths.staff.user}`;
               break;
             case "human-resources":
               // route = "/staff/attendance";
-              route = "/hr";
+              // route = "/hr";
+              route = `/${paths.hr.staff.attendance.home.link}`;
               break;
           }
           setTimeout(() => {

@@ -7,6 +7,7 @@ import {InputText} from 'primeng/inputtext';
 import {DropdownModule} from 'primeng/dropdown';
 import {NgClass, NgIf} from '@angular/common';
 import {ButtonDirective} from 'primeng/button';
+import {AttendanceService} from '../../../../services/attendance.service';
 
 @Component({
   selector: 'app-hr-report-attendance-component',
@@ -44,6 +45,7 @@ export class HrReportAttendanceComponentComponent implements OnInit {
   constructor(
     private dictionaryService: DictionaryService,
     private notificationService: NotificationService,
+    private attendanceService: AttendanceService,
     private fb: FormBuilder,
   ) {  }
 
@@ -117,7 +119,46 @@ export class HrReportAttendanceComponentComponent implements OnInit {
   }
 
   downloadReportExcel(){
+    if (this.reportForm.invalid) {
+      this.notificationService.warning(
+        'Formulario incompleto',
+        'Debe seleccionar todos los campos.'
+      );
+      this.reportForm.markAllAsTouched();
+      return;
+    }
 
+    const formValues = this.reportForm.value;
+
+    const formData = new FormData();
+    formData.append('id_employment_agreement', formValues.id_employment_agreement);
+    formData.append('id_month', formValues.id_month);
+    formData.append('id_year', formValues.id_year);
+
+    this.attendanceService.downloadConsolidatedExcel(formData).subscribe({
+      next: async (blob) => {
+        try {
+          const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
+          const parsed = JSON.parse(text);
+          // if (isApiResponse<any>(parsed)) {
+          //   this.notificationService.warning(parsed.response.title, parsed.response.message);
+          //   console.log(parsed.response.payload);
+          // }
+        }
+        catch {
+          const url = window.URL.createObjectURL(blob as Blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'consolidado_personal.xlsx';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        }
+      },
+      error: (err) => {
+        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
+        console.error(err);
+      }
+    });
   }
 
 }
