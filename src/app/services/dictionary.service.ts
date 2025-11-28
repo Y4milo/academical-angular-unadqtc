@@ -76,5 +76,8 @@ export class DictionaryService {
   getEmploymentAgreement() :Observable<ApiData<Dictionary[]>> {
     return this.http.get<ApiData<Dictionary[]>>(`${this.apiURL}/employment-agreement`)
   }
+  getTopStudentRanking(): Observable<ApiData<Dictionary[]>> {
+    return this.http.get<ApiData<Dictionary[]>>(`${this.apiURL}/student-ranking-top`);
+  }
 }
 

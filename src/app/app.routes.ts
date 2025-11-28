@@ -21,6 +21,10 @@ import {
   HrReportAttendanceComponentComponent
 } from './dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component';
 import {paths} from './core/constants/paths';
+import {
+  AcademicLayOutComponentComponent
+} from './dashboard/staff/academic/academic-lay-out-component/academic-lay-out-component.component';
+import {StudentRankingComponent} from './dashboard/staff/academic/student-ranking/student-ranking.component';
 
 export const routes: Routes = [
   {
@@ -66,9 +70,23 @@ export const routes: Routes = [
     canActivate: [AuthGuardStudent] // ⛔ Protege la ruta
   },
   {
-    path: paths.academic.student.card.panel,
-    component: StudentCardsComponent,
-    canActivate: [AuthGuardAcademic] // ⛔ Protege la ruta
+    path: paths.academic.path,
+    component: AcademicLayOutComponentComponent,
+    canActivate: [AuthGuardAcademic], // ⛔ Protege la ruta
+    children: [
+      {
+        path: paths.academic.home.route,
+        component: AttendanceUserComponent
+      },
+      {
+        path: paths.academic.student.card.panel.route,
+        component: StudentCardsComponent
+      },
+      {
+        path: paths.academic.student.ranking.route,
+        component: StudentRankingComponent
+      },
+    ]
   },
   {
     path: paths.event.participant.register,

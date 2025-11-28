@@ -45,7 +45,7 @@ export class LoginAdminComponent {
               route = `/${paths.accounting.payments}`;
               break;
             case "academic":
-              route += `/${paths.academic.student.card.panel}`;
+              route += `/${paths.academic.home.link}`;
               break;
               // ASISTENCIA PARA DOCENTES Y ADMINISTRATIVOS
             case "professor":

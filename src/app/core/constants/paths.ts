@@ -35,11 +35,23 @@ export const paths = {
     payments: `accounting/student/payments`,
   },
   academic: {
+    path: `academic`,
+    home: {
+      route:  `home`,
+      link:   `academic/home`,
+    },
     student: {
       card: {
-        panel : `academic/student/card/panel`,
+        panel : {
+          route:  `student/card/panel`,
+          link:   `academic/student/card/panel`,
+        },
+      },
+      ranking: {
+        route:  `student/ranking`,
+        link:   `academic/student/ranking`,
       }
-    }
+    },
   },
   event: {
     participant: {

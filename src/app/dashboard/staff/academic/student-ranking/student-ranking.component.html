@@ -1,0 +1,71 @@
+
+  <!-- Encabezado -->
+  <div class="flex flex-column align-items-center mb-4">
+    <h3>Ranking Academico de Estudiante</h3>
+  </div>
+
+  <!-- Rango de fechas -->
+  <form [formGroup]="reportForm">
+    <div class="grid w-full pb-3">
+      <!-- Input Student Code -->
+      <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
+        <label for="id_employment_agreement">Estudiante</label>
+        <input
+          type="text"
+          pInputText
+          placeholder="Codigo de Estudiante"
+          formControlName="student"
+          class="w-full"
+        />
+      </div>
+      <!-- Categoria de ranking -->
+      <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
+        <label for="id_employment_agreement">Categoría</label>
+        <p-dropdown
+          id="id_employment_agreement"
+          name="id_employment_agreement"
+          [options]="topStudentRankingOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="top_student_ranking"
+          placeholder="Seleccione la categoría"
+        ></p-dropdown>
+      </div>
+      <!-- Botón buscar -->
+      <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2 justify-content-end">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-search"
+          label="Obtener Ranking"
+          class="w-full"
+          (click)="loadRanking()">
+        </button>
+      </div>
+      @if (show_ranking){
+        <div class="col-12 flex flex-column gap-2 justify-content-end">
+          <p-card [header]="student.fullname">
+            <div class="grid">
+              <div class="xs:col-12 md:col-6 font-bold">Código:</div>
+              <div class="xs:col-12 md:col-6">{{ student.student }}</div>
+              <div class="xs:col-12 md:col-6 font-bold">Carrera:</div>
+              <div class="xs:col-12 md:col-6">{{ student.career }}</div>
+              <div class="xs:col-12 md:col-6 font-bold">Promedio:</div>
+              <div class="xs:col-12 md:col-6">{{ student.student_average }}</div>
+              <div class="xs:col-12 md:col-6 font-bold">Posición en el ranking:</div>
+              <div class="xs:col-12 md:col-6">{{ student.position_in_ranking }}</div>
+              <div class="xs:col-12 md:col-6 font-bold">Total de estudiantes:</div>
+              <div class="xs:col-12 md:col-6">{{ student.total_students }}</div>
+              <div class="xs:col-12 md:col-6 font-bold">Categoría:</div>
+              <div class="xs:col-12 md:col-6">{{ student.ranking_type }}</div>
+              <div class="xs:col-12 md:col-6 font-bold">Pertence:</div>
+              <div class="xs:col-12 md:col-6">{{ student.is_inside_ranking ? 'Si' : 'No' }}</div>
+            </div>
+          </p-card>
+        </div>
+      }
+    </div>
+  </form>
+
+
+
