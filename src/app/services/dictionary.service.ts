@@ -58,7 +58,7 @@ export class DictionaryService {
   }
   /**
    * Obtiene el semestre actual desde la API.
-   * Endpoint: /login-admin
+   * Endpoint: /login-staff
    * @returns Observable con un objeto tipo Dictionary
    */
   logInAdmin(loginData: FormData): Observable<ApiData<string>> {

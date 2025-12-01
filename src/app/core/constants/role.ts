@@ -1,8 +1,8 @@
-export const role = {
+export const ROLE = {
   administrative: 'administrative',
   student: 'student',
   professor: 'professor',
   accounting: 'accounting',
   academic: 'academic',
-  rh: 'human-resources',
+  hr: 'hr',
 }

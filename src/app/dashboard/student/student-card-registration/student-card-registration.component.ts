@@ -17,6 +17,8 @@ import { jwtDecode } from 'jwt-decode';
 import { Payment } from '../../../models/payment.model';
 import {validatePhotoCardStudent} from '../../../helper/helper.util';
 import {Dictionary} from '../../../models/dictionary.model';
+import {STATUS} from '../../../core/constants/status';
+import {NOTIFICATION_MESSAGE} from '../../../core/constants/notification_message';
 
 @Component({
   selector: 'app-student-registration',
@@ -163,7 +165,7 @@ export class StudentCardRegistrationComponent implements OnInit {
       this.studentService.updateBasicInfo(code_student, this.registrationForm.value).subscribe({
         next: (student) => {
 
-          if (student.status === 'success'){
+          if (student.status === STATUS.success){
               const studentInfo = student.payload!.data;
               const formData = new FormData();
               formData.append('photo', this.selectedFile!);
@@ -174,8 +176,12 @@ export class StudentCardRegistrationComponent implements OnInit {
                 next: (uploadPhoto) => {
                   this.notificationService.notifyApiData(uploadPhoto);
                 },
-                error: () => {
-                  this.notificationService.error('Error de conexión', 'No se pudo subir la foto.');
+                error: (e) => {
+                  this.notificationService.error(
+                    NOTIFICATION_MESSAGE.error_connection.title,
+                    NOTIFICATION_MESSAGE.error_connection.message
+                  );
+                  console.error(e);
                 }
               });
 
@@ -183,8 +189,12 @@ export class StudentCardRegistrationComponent implements OnInit {
             // payloadNotification(studentDecoded);
           }
         },
-        error: () => {
-          this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
+        error: (e) => {
+          this.notificationService.error(
+            NOTIFICATION_MESSAGE.error_connection.title,
+            NOTIFICATION_MESSAGE.error_connection.message
+          );
+          console.error(e);
         }
       });
     } else {
@@ -197,7 +207,7 @@ export class StudentCardRegistrationComponent implements OnInit {
     this.dictionaryService.getCampusList().subscribe({
       next: campusData => {
         const campusDataDecoded = campusData;
-        if (campusDataDecoded.status === 'success'){
+        if (campusDataDecoded.status === STATUS.success){
             const campusList = campusDataDecoded.payload!.data;
             this.campusOptions = campusList.map(campus => ({
               id    : campus.id,
@@ -207,7 +217,7 @@ export class StudentCardRegistrationComponent implements OnInit {
             this.dictionaryService.getIdTypeList().subscribe({
               next: (idTypeData) => {
                 const idTypeDataDecoded = idTypeData;
-                if (idTypeDataDecoded.status === 'success'){
+                if (idTypeDataDecoded.status === STATUS.success){
                     const idTypesList = idTypeDataDecoded.payload!.data;
                     this.idTypeOptions = idTypesList.map(type => ({
                       id: type.id,
@@ -216,7 +226,7 @@ export class StudentCardRegistrationComponent implements OnInit {
                     this.studentService.getStudentBasicInfoByCode(studentCode).subscribe({
                       next: (studentData) => {
 
-                        if (studentData.status === 'success'){
+                        if (studentData.status === STATUS.success){
                             //adding Student information to the form
                             this.registrationForm.patchValue(studentData.payload!.data);
 
@@ -224,26 +234,36 @@ export class StudentCardRegistrationComponent implements OnInit {
                           this.notificationService.notifyApiData(studentData);
                         }
                       },
-                      error: () => {
-                        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
+                      error: (e) => {
+                        this.notificationService.error(
+                          NOTIFICATION_MESSAGE.error_connection.title,
+                          NOTIFICATION_MESSAGE.error_connection.message
+                        );
+                        console.error(e);
                       }
                     });
                 } else {
                   this.notificationService.notifyApiData(idTypeDataDecoded)
                 }
               },
-              error: () => {
-                this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
+              error: (e) => {
+                this.notificationService.error(
+                  NOTIFICATION_MESSAGE.error_connection.title,
+                  NOTIFICATION_MESSAGE.error_connection.message
+                );
+                console.error(e);
               }
             });
         } else {
           // this.notificationService.warning(campusDataDecoded.title, campusDataDecoded.message);
         }
       },
-      error: (err) => {
-        // Si hay un error de red o del servidor
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     })
   }

@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {StudentCard} from '../../../../models/student-card.model';
+import {StudentCard} from '../../../../models/student/student-card.model';
 import {FormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
 import {StudentCardService} from '../../../../services/student-card.service';
@@ -17,6 +17,8 @@ import {Dictionary} from '../../../../models/dictionary.model';
 import {PopoverModule} from 'primeng/popover';
 import {FileUpload, FileUploadModule} from 'primeng/fileupload';
 import {ApiData} from '../../../../models/api/api-data.model';
+import {STATUS} from '../../../../core/constants/status';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
 
 @Component({
   selector: 'app-student-cards',
@@ -58,7 +60,7 @@ export class StudentCardsComponent implements OnInit {
   ngOnInit(): void {
     this.dictionaryService.getStudentCardFlags().subscribe({
       next: studentCardFlagsData => {
-        if (studentCardFlagsData.status === 'success') {
+        if (studentCardFlagsData.status === STATUS.success) {
           const flaggedList = studentCardFlagsData.payload!.data;
           this.statusStudentCardOptions = flaggedList.map((item: Dictionary) => ({
             id: item.id,
@@ -68,66 +70,76 @@ export class StudentCardsComponent implements OnInit {
           this.notificationService.notifyApiData(studentCardFlagsData)
         }
       },
-      error: (err) => {
-        // Si hay un error de red o del servidor
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
     this.studentCardService.getPendingStudentCards().subscribe({
       next: pendingStudentCardsData => {
-        if (pendingStudentCardsData.status === 'success') {
+        if (pendingStudentCardsData.status === STATUS.success) {
           this.pendingStudents = pendingStudentCardsData.payload.data;
         } else {
           this.notificationService.notifyApiData(pendingStudentCardsData);
         }
       },
-      error: (err) => {
-        // Si hay un error de red o del servidor
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
     this.studentCardService.getUnmatchedStudentCards().subscribe({
       next: unmatchedStudentCardsData => {
-        if (unmatchedStudentCardsData.status === 'success') {
+        if (unmatchedStudentCardsData.status === STATUS.success) {
           this.unmatchedStudent = unmatchedStudentCardsData.payload.data;
         } else {
           this.notificationService.notifyApiData(unmatchedStudentCardsData);
         }
       },
-      error: (err) => {
-        // Si hay un error de red o del servidor
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
     this.studentCardService.getValidatedStudentCards().subscribe({
       next: validatedStudentCardsData => {
-        if (validatedStudentCardsData.status === 'success') {
+        if (validatedStudentCardsData.status === STATUS.success) {
           this.validatedStudents = validatedStudentCardsData.payload.data;
         } else {
           this.notificationService.notifyApiData(validatedStudentCardsData);
         }
       },
-      error: (err) => {
-        // Si hay un error de red o del servidor
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
     this.studentCardService.getFlaggedStudentCards().subscribe({
       next: flaggedStudentCardsData => {
-        if (flaggedStudentCardsData.status === 'success') {
+        if (flaggedStudentCardsData.status === STATUS.success) {
           this.flaggedStudents = flaggedStudentCardsData.payload.data;
         } else {
           this.notificationService.notifyApiData(flaggedStudentCardsData);
         }
       },
-      error: (err) => {
-        // Si hay un error de red o del servidor
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
@@ -138,7 +150,7 @@ export class StudentCardsComponent implements OnInit {
     payload.append('id', student.id.toString());
     this.studentCardService.validateStudentCard(payload).subscribe({
       next: (data) => {
-        if (data.status === 'success') {
+        if (data.status === STATUS.success) {
           if (student.status) {
             // Si está validado, lo movemos de pendientes a validados
             this.validatedStudents.push(student);
@@ -155,10 +167,12 @@ export class StudentCardsComponent implements OnInit {
         }
         this.notificationService.notifyApiData(data);
       },
-      error: (err) => {
-        student.status = previousStatus;
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
@@ -169,7 +183,7 @@ export class StudentCardsComponent implements OnInit {
     payload.append('id', student.id.toString());
     this.studentCardService.pendingStudentCard(payload).subscribe({
       next: (pending) => {
-        if (pending.status === 'success') {
+        if (pending.status === STATUS.success) {
           // Si está validado, lo movemos de pendientes a validados
           this.pendingStudents.push(student);
           if (list === 'validated') {
@@ -183,10 +197,12 @@ export class StudentCardsComponent implements OnInit {
         }
         this.notificationService.notifyApiData(pending);
       },
-      error: (err) => {
-        student.status = previousStatus;
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
@@ -216,9 +232,12 @@ export class StudentCardsComponent implements OnInit {
           window.URL.revokeObjectURL(url);
         }
       },
-      error: (err) => {
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
 
@@ -245,9 +264,12 @@ export class StudentCardsComponent implements OnInit {
           window.URL.revokeObjectURL(url);
         }
       },
-      error: (err) => {
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
@@ -272,9 +294,12 @@ export class StudentCardsComponent implements OnInit {
           window.URL.revokeObjectURL(url);
         }
       },
-      error: (err) => {
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
@@ -299,8 +324,12 @@ export class StudentCardsComponent implements OnInit {
           window.URL.revokeObjectURL(url);
         }
       },
-      error: () => {
-        this.notificationService.error('Error de conexión', 'No se pudo descargar el archivo ZIP');
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
@@ -327,7 +356,7 @@ export class StudentCardsComponent implements OnInit {
 
     this.studentCardService.setFlaggedStudentCard(payload).subscribe({
       next: (data) => {
-        if (data.status === 'success') {
+        if (data.status === STATUS.success) {
           const index = this.pendingStudents.findIndex(s => s.id === this.selectedFlaggedCard.id);
           if (index !== -1) {
             const student = this.pendingStudents[index];
@@ -379,7 +408,7 @@ export class StudentCardsComponent implements OnInit {
     formData.append('id', this.selectedUploadCard.id.toString());
     this.studentCardService.updateStudentPhoto(formData).subscribe({
       next: (studentCardData) => {
-        if (studentCardData.status === 'success') {
+        if (studentCardData.status === STATUS.success) {
           const studentCard = studentCardData.payload.data;
           const previous = studentCard.photo_path;
           studentCard.photo_path = 'img/card-img.png';
@@ -389,8 +418,12 @@ export class StudentCardsComponent implements OnInit {
         }
         this.notificationService.notifyApiData(studentCardData);
       },
-      error: () => {
-        this.notificationService.error('Error de conexión', 'No se pudo cargar la foto');
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }

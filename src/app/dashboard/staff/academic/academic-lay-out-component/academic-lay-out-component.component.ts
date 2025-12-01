@@ -1,44 +1,66 @@
 import {Component, OnInit} from '@angular/core';
-import {Card} from "primeng/card";
-import {CalendarCheck, Fingerprint, LucideAngularModule, FileIcon} from "lucide-angular";
+import {CalendarCheck, Fingerprint, House, LucideAngularModule} from "lucide-angular";
 import {Menubar} from "primeng/menubar";
 import {MenuItem, PrimeTemplate} from "primeng/api";
 import {RouterLink, RouterOutlet} from "@angular/router";
-import {paths} from '../../../../core/constants/paths';
+import {PATHS} from '../../../../core/constants/paths';
 
 @Component({
+  standalone: true,
   selector: 'app-academic-lay-out-component',
   imports: [
     LucideAngularModule,
     Menubar,
-    PrimeTemplate,
     RouterOutlet,
-    RouterLink
   ],
   templateUrl: './academic-lay-out-component.component.html',
   styleUrl: './academic-lay-out-component.component.css'
 })
 export class AcademicLayOutComponentComponent implements OnInit {
   items: MenuItem[] | undefined;
-  readonly FileIcon = FileIcon;
-
+  readonly icons = {
+    fingerprint: Fingerprint,
+    calendar: CalendarCheck,
+  };
   ngOnInit() {
     this.items = [
       {
         label: 'Asistencias',
-        lucide: Fingerprint,
-        routerLink: paths.academic.home.route
+        icon: 'fingerprint',
+        routerLink: PATHS.academic.home.path
       },
       {
-        label: 'Carnet Universitario',
-        lucide: CalendarCheck,
-        routerLink: paths.academic.student.card.panel.route
+        label: 'Alumnos',
+        icon: 'fingerprint',
+        items: [
+          {
+            label: 'Carnet Universitario',
+            routerLink: PATHS.academic.student.card.panel.path
+          },
+          {
+            label: 'Ranking Académico',
+            routerLink: PATHS.academic.student.ranking.path
+          },
+        ]
       },
       {
-        label: 'Ranking Académico',
-        lucide: CalendarCheck,
-        routerLink: paths.academic.student.ranking.route
+        label: 'Mi cuenta',
+        icon:'calendar',
+        items: [
+          {
+            label: 'Cambiar contraseña',
+            lucide: Fingerprint,
+          },
+          {
+            label: 'Cerrar Sesión',
+            lucide: Fingerprint,
+          },
+        ],
       },
     ]
+  }
+
+  getLucideIcon(iconKey: string) {
+    return this.icons[iconKey as keyof typeof this.icons] || House;  // Fallback a House si no coincide
   }
 }

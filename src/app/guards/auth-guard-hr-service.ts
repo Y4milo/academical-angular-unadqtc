@@ -4,25 +4,25 @@ import {
 } from '@angular/router';
 import {StaffUser} from '../models/staff-user.model';
 import {ROLE} from '../core/constants/role';
-import {LoginService} from '../services/login.service';
 import {PATHS} from '../core/constants/paths';
+import {LoginService} from '../services/login.service';
 
 
 @Injectable({
   providedIn: 'root',
 })
 
-export class AuthGuardAcademic implements CanActivate {
+export class AuthGuardHr implements CanActivate {
 
   constructor(
     private loginService: LoginService,
   ) {}
 
   canActivate(): boolean {
-    const loginUser = this.loginService.getUser();
+    const loginUser = JSON.parse(sessionStorage.getItem('user')!) as StaffUser;
     // console.log('User:' + loginUser);
     // console.log('Role:' + ROLE.academic);
-    const allowedRoles = [ROLE.academic];
+    const allowedRoles = [ROLE.hr];
     const login_result =  this.loginService.getResultLogin(loginUser, allowedRoles)
     // console.log(login_result);
     if (login_result.canActivate)
@@ -31,5 +31,6 @@ export class AuthGuardAcademic implements CanActivate {
       window.location.href = login_result.link;
       return false;
     }
+    // return true;
   }
 }

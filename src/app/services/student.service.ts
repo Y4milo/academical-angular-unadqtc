@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {StudentBasicInfo} from '../models/student-basic-info.model';
+import {StudentBasicInfo} from '../models/student/student-basic-info.model';
 import {ApiData} from '../models/api/api-data.model';
-import {StudentRaking} from '../models/student-ranking.model';
+import {StudentRaking} from '../models/student/student-ranking.model';
 import {Dictionary} from '../models/dictionary.model';
 
 @Injectable({

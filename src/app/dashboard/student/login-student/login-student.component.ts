@@ -4,6 +4,8 @@ import {NotificationService} from '../../../services/notification.service';
 import {Router} from '@angular/router';
 import {PaymentService} from '../../../services/payment.service';
 import {encodeArray} from '../../../helper/helper.util';
+import {NOTIFICATION_MESSAGE} from '../../../core/constants/notification_message';
+import {STATUS} from '../../../core/constants/status';
 
 @Component({
   selector: 'app-login-page',
@@ -39,7 +41,7 @@ export class LoginStudentComponent {
 
     this.paymentService.validatePayment(loginData).subscribe({
       next: (paymentRes) => {
-        // if (paymentRes.status === 'success') {
+        // if (paymentRes.status === STATUS.success) {
         //   sessionStorage.setItem('payment_id', paymentRes.payload.data);
         //   // ✅ Guardar datos en la sesión
         //   this.notification.success(paymentRes.payload.title, paymentRes.payload.message);
@@ -51,7 +53,10 @@ export class LoginStudentComponent {
         // }
       },
       error: (error) => {
-        this.notification.error('Error de conexión', 'El servicio no esta disponible en este momento');
+        this.notification.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
         console.error(error);
       }
     });

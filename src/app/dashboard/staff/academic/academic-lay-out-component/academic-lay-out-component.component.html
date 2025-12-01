@@ -1,21 +1,11 @@
-<div class="flex justify-content-center min-h-screen surface-ground">
+<div class="flex justify-content-center min-h-screen">
   <div class="p-shadow-4 w-full md:w-9 lg:w-10 xl:w-10 mt-5">
-    <p-menubar [model]="items">
-      <ng-template pTemplate="item" let-item>
-        <a class="p-menuitem-link" [routerLink]="item.routerLink">
-          @if (item.icon) {
-            <lucide-icon
-              [name]="item.icon"
-              class="mr-2 w-4 h-4"
-            />
-          }
-          <span>{{ item.label }}</span>
-        </a>
-      </ng-template>
-    </p-menubar>
-    <!-- 🔵 AQUÍ SE CARGAN TODAS LAS RUTAS HIJAS -->
+    <p-menubar [model]="items"></p-menubar>
     <div class="mt-4">
       <router-outlet></router-outlet>
     </div>
   </div>
 </div>
+
+
+

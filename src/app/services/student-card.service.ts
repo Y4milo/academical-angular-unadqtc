@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
 import {Dictionary} from '../models/dictionary.model';
-import {StudentCard} from '../models/student-card.model';
+import {StudentCard} from '../models/student/student-card.model';
 
 @Injectable({
   providedIn: 'root'

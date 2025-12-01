@@ -5,12 +5,14 @@ import {LucideAngularModule} from 'lucide-angular';
 import {TableModule} from 'primeng/table';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
-import {StudentRaking} from '../../../../models/student-ranking.model';
+import {StudentRaking} from '../../../../models/student/student-ranking.model';
 import {StudentService} from '../../../../services/student.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {DictionaryService} from '../../../../services/dictionary.service';
 import {Dictionary} from '../../../../models/dictionary.model';
-import {DropdownModule} from 'primeng/dropdown';
+import {STATUS} from '../../../../core/constants/status';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {Select} from 'primeng/select';
 
 @Component({
   selector: 'app-student-ranking',
@@ -21,8 +23,8 @@ import {DropdownModule} from 'primeng/dropdown';
     TableModule,
     FormsModule,
     InputText,
-    DropdownModule,
     ReactiveFormsModule,
+    Select,
   ],
   templateUrl: './student-ranking.component.html',
   styleUrl: './student-ranking.component.css'
@@ -48,7 +50,7 @@ export class StudentRankingComponent implements OnInit {
     // Cargar régimen laboral
     this.dictionaryService.getTopStudentRanking().subscribe({
       next: list => {
-        if (list.status === 'success') {
+        if (list.status === STATUS.success) {
           this.topStudentRankingOptions = list.payload.data.map((item: Dictionary) => ({
             id: item.id,
             value: item.value,
@@ -57,6 +59,13 @@ export class StudentRankingComponent implements OnInit {
         } else {
           this.notificationService.notifyApiData(list);
         }
+      },
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
@@ -90,10 +99,13 @@ export class StudentRankingComponent implements OnInit {
           this.notificationService.notifyApiData(res);
         }
       },
-      error: (error) => {
-        console.log(error);
-        this.notificationService.error('Error', 'Ocurrió un problema al cargar los registros.');
-      },
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
+      }
     });
   }
 }

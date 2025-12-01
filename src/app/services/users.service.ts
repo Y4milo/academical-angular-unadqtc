@@ -3,8 +3,7 @@ import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
-import {LoginPerson} from '../models/login-person.model';
-import {User} from '../models/login-user.model';
+import {StaffUser} from '../models/staff-user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +12,7 @@ export class UsersService {
   private apiURL = environment.apiUrl;
   constructor(private http: HttpClient) { }
 
-  logIn(loginData: FormData): Observable<ApiData<User>> {
-    return this.http.post<ApiData<User>>(`${this.apiURL}/users/v1/login`, loginData);
+  logIn(loginData: FormData): Observable<ApiData<StaffUser>> {
+    return this.http.post<ApiData<StaffUser>>(`${this.apiURL}/users/v1/login`, loginData);
   }
 }

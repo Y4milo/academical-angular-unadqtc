@@ -7,10 +7,10 @@ import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {NgClass, UpperCasePipe} from '@angular/common';
 import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
-import {Attendance} from '../../../models/attendance.model';
-import {AttendanceService} from '../../../services/attendance.service';
-import {NotificationService} from '../../../services/notification.service';
-import {User} from '../../../models/login-user.model';
+import {Attendance} from '../../../../models/attendance.model';
+import {AttendanceService} from '../../../../services/attendance.service';
+import {NotificationService} from '../../../../services/notification.service';
+import {StaffUser} from '../../../../models/staff-user.model';
 import {
   CircleAlertIcon,
   Fingerprint,
@@ -19,11 +19,13 @@ import {
   LucideIconNode, MapPinCheck,
   ScanFace
 } from 'lucide-angular';
+import {DatePicker} from 'primeng/datepicker';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {STATUS} from '../../../../core/constants/status';
 
 @Component({
   selector: 'app-attendance-user',
   imports: [
-    Card,
     DropdownModule,
     ReactiveFormsModule,
     TableModule,
@@ -34,6 +36,7 @@ import {
     ButtonModule,
     UpperCasePipe,
     LucideAngularModule,
+    DatePicker,
   ],
   templateUrl: './attendance-user.component.html',
   styleUrl: './attendance-user.component.css'
@@ -42,7 +45,7 @@ export class AttendanceUserComponent implements OnInit{
   names = 'Empleado';
   today = new Date();
   number = '';
-  dateRange: Date[] = [];
+  dateRange: Date[] = [new Date()];
   attendances: Attendance[] = [];
   loading = false;
 
@@ -56,12 +59,14 @@ export class AttendanceUserComponent implements OnInit{
   ) {}
 
   ngOnInit() {
+    // set spanish language for datepicker
+
     // Renderizar calendario después de la inicialización
     setTimeout(() => this.showCalendar = true, 0);
     const userData = sessionStorage.getItem('user');
     if (userData) {
-      const user = JSON.parse(userData) as User;
-      this.names = 'Hola ' + user.staff.names + "!";
+      const user = JSON.parse(userData) as StaffUser;
+      this.names = user.staff.names;
       this.number = user.staff.number;
       this.loadAttendances()
     }
@@ -94,19 +99,21 @@ export class AttendanceUserComponent implements OnInit{
     this.attendanceService.listAttendancesByNumber(formData).subscribe({
       next: (res) => {
         this.loading = false;
-        if (res.status === 'success') {
+        if (res.status === STATUS.success) {
           this.attendances = res.payload.data;
         } else {
           this.notificationService.notifyApiData(res);
         }
       },
-      error: () => {
-        this.loading = false;
-        this.notificationService.error('Error', 'Ocurrió un problema al cargar los registros.');
-      },
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
+      }
     });
   }
-
 
   /**
    * 🕒 Convierte una fecha al formato "YYYY-MM-DD HH:mm:ss" en hora de Lima (UTC−5)

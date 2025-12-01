@@ -3,19 +3,19 @@ import {DictionaryService} from '../../../../services/dictionary.service';
 import {Dictionary} from '../../../../models/dictionary.model';
 import {NotificationService} from '../../../../services/notification.service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {InputText} from 'primeng/inputtext';
-import {DropdownModule} from 'primeng/dropdown';
-import {NgClass, NgIf} from '@angular/common';
 import {ButtonDirective} from 'primeng/button';
 import {AttendanceService} from '../../../../services/attendance.service';
+import {STATUS} from '../../../../core/constants/status';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {Select} from 'primeng/select';
 
 @Component({
   selector: 'app-hr-report-attendance-component',
   imports: [
     FormsModule,
-    DropdownModule,
     ReactiveFormsModule,
     ButtonDirective,
+    Select,
   ],
   templateUrl: './hr-report-attendance-component.component.html',
   styleUrl: './hr-report-attendance-component.component.css'
@@ -61,7 +61,7 @@ export class HrReportAttendanceComponentComponent implements OnInit {
     // Cargar régimen laboral
     this.dictionaryService.getEmploymentAgreement().subscribe({
       next: list => {
-        if (list.status === 'success') {
+        if (list.status === STATUS.success) {
           this.employmentAgreementOptions = list.payload.data.map((item: Dictionary) => ({
             id: item.id,
             label: item.label
@@ -69,6 +69,13 @@ export class HrReportAttendanceComponentComponent implements OnInit {
         } else {
           this.notificationService.notifyApiData(list);
         }
+      },
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
 
@@ -154,9 +161,12 @@ export class HrReportAttendanceComponentComponent implements OnInit {
           window.URL.revokeObjectURL(url);
         }
       },
-      error: (err) => {
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }

@@ -1,5 +1,6 @@
 
   <!-- Encabezado -->
+  <script src="student-ranking.component.ts"></script>
   <div class="flex flex-column align-items-center mb-4">
     <h3>Ranking Academico de Estudiante</h3>
   </div>
@@ -21,7 +22,7 @@
       <!-- Categoria de ranking -->
       <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
         <label for="id_employment_agreement">Categoría</label>
-        <p-dropdown
+        <p-select
           id="id_employment_agreement"
           name="id_employment_agreement"
           [options]="topStudentRankingOptions"
@@ -29,7 +30,7 @@
           optionValue="value"
           formControlName="top_student_ranking"
           placeholder="Seleccione la categoría"
-        ></p-dropdown>
+        ></p-select>
       </div>
       <!-- Botón buscar -->
       <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2 justify-content-end">

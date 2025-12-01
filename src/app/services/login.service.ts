@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import {User} from '../models/login-user.model';
-import {paths} from '../core/constants/paths';
-import {role} from '../core/constants/role';
+import {StaffUser} from '../models/staff-user.model';
+import {PATHS} from '../core/constants/paths';
+import {ROLE} from '../core/constants/role';
+import {ApiData} from '../models/api/api-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -10,29 +11,53 @@ export class LoginService {
 
   constructor() { }
 
-  getResultLogin(user: User, valueRole: string):
-    {
-      canActivate: boolean,
-      link: string
-    } {
-    let  canActivate: boolean = false;
-    let link: string = "";
+  getResultLogin(
+    user: StaffUser,
+    allowedRoles: string[] // <--- ahora es un array
+  ): {
+    canActivate: boolean,
+    link: string
+  } {
+
+    let canActivate = false;
+    let link = "";
+
     if (user) {
-      if (user.role.value === valueRole) {
+      // ✔ Si el usuario tiene un rol incluido en allowedRoles
+      if (allowedRoles.includes(user.role.value!)) {
         canActivate = true;
       } else {
+        // ❌ No tiene permiso → redirección según su rol
         switch (user.role.value) {
-          case role.student:
-            link = `${location.origin}/${paths.login.student}`;
-          break;
+          case ROLE.student:
+            link = `${location.origin}/${PATHS.login.student}`;
+            break;
+
           default:
-            link = `${location.origin}/${paths.login.staff}`;
-          break;
+            link = `${location.origin}/${PATHS.login.staff}`;
+            break;
         }
       }
     } else {
-      link = `${location.origin}/${paths.login.staff}`;
+      // Usuario no logueado
+      link = `${location.origin}/${PATHS.login.staff}`;
     }
-    return {canActivate: canActivate, link: link};
+
+    return { canActivate, link };
+  }
+
+
+  setUser(apiData:  ApiData<StaffUser>): StaffUser {
+    const user = apiData.payload.data as StaffUser;
+    sessionStorage.setItem('user', JSON.stringify(user));
+    return user;
+  }
+
+  getUser(): StaffUser {
+    return JSON.parse(sessionStorage.getItem('user')!) as StaffUser;
+  }
+
+  removeUser(): void {
+    sessionStorage.removeItem('user');
   }
 }

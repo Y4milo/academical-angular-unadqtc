@@ -1,6 +1,4 @@
 import {Component, OnInit} from '@angular/core';
-import {Card} from "primeng/card";
-import {DropdownModule} from "primeng/dropdown";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {AttendanceService} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
@@ -20,12 +18,14 @@ import {
   MapPinCheck,
   ScanFace
 } from 'lucide-angular';
+import {STATUS} from '../../../../core/constants/status';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {DatePicker} from 'primeng/datepicker';
 
 // @ts-ignore
 @Component({
   selector: 'app-attendace-admin',
   imports: [
-    DropdownModule,
     ReactiveFormsModule,
     TableModule,
     ProgressSpinnerModule,
@@ -36,6 +36,7 @@ import {
     InputTextModule,
     UpperCasePipe,
     LucideAngularModule,
+    DatePicker,
   ],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
@@ -75,7 +76,7 @@ export class AttendanceListComponent implements OnInit {
     this.attendanceService.listAttendancesByNumber(formData).subscribe({
       next: (res) => {
         this.loading = false;
-        if (res.status === 'success') {
+        if (res.status === STATUS.success) {
           this.attendances = res.payload.data;
         } else {
           this.notificationService.notifyApiData(res);
@@ -145,9 +146,12 @@ export class AttendanceListComponent implements OnInit {
           window.URL.revokeObjectURL(url);
         }
       },
-      error: (err) => {
-        this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
-        console.error(err);
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
       }
     });
   }
