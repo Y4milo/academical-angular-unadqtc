@@ -32,7 +32,6 @@ export class LoginService {
           case ROLE.student:
             link = `${location.origin}/${PATHS.login.student}`;
             break;
-
           default:
             link = `${location.origin}/${PATHS.login.staff}`;
             break;
