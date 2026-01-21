@@ -9,8 +9,6 @@ import {ApiData} from '../models/api/api-data.model';
 })
 export class EventService {
 
-  private apiURL = environment.apiUrl;
-
   constructor(private http: HttpClient) { }
 
   getEventBasicDataBySlug(slug: string): Observable<ApiData<Event>> {

@@ -1,5 +1,3 @@
-import {Dictionary} from './dictionary.model';
-
 /**
  * Modelo que representa un los datos de un usuario.
  */

@@ -13,8 +13,6 @@ import {Dictionary} from '../models/dictionary.model';
 })
 export class ParticipantService {
 
-  private apiURL = environment.apiUrl;
-
   constructor(private http: HttpClient) { }
 
   storeParticipant(form: FormGroup): Observable<ApiData<Event>> {

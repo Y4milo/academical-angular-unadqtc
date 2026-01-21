@@ -1,12 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {Button, ButtonDirective} from 'primeng/button';
-
 import {InputText} from 'primeng/inputtext';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {NotificationService} from '../../services/notification.service';
 import {ParticipantService} from '../../services/participant.service';
-import {EventService} from '../../services/event.service';
-import {ActivatedRoute} from '@angular/router';
 import {Event} from '../../models/events/event';
 import {environment} from '../../../environments/environment';
 import {Card} from 'primeng/card';

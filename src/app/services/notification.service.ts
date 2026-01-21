@@ -13,7 +13,7 @@ export class NotificationService {
   constructor(private messageService: MessageService) {}
 
   notifyApiData(responseData: HttpErrorResponse | ApiData<any>, life: number = 3000): void {
-    let apiData: ApiData<any> | null = null;
+    let apiData: ApiData<any> | null;
 
     if (responseData instanceof HttpErrorResponse) {
       // Si el backend devuelve ApiData en el cuerpo del error
