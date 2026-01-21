@@ -86,12 +86,18 @@ export const PATHS = {
     },
   },
   event: {
+    path: `event`,
     participant: {
-      register: `event/participant/register/:slug`,
+      register: `participant/register/:slug`,
     },
     attendance: {
-      check_in: `event/attendance/check-in/:slug/:id`,
-      check_out: `event/attendance/check-out/:slug/:id`,
+      path: `attendance`,
+      check_in: `check-in/:slug/:id`,
+      check_out: `check-out/:slug/:id`,
+    },
+    certification: {
+      download: `certification/download`,
+      validate: `certification/validate/:slug`,
     }
   }
 }

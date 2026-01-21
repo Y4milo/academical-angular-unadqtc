@@ -139,7 +139,7 @@ export class RegisterParticipantComponent {
       next: participantResponse => {
         const response = participantResponse.payload;
         if (participantResponse.status === 'success') {
-          this.whatsappLink = response.data.link_group;
+          this.whatsappLink = response.data.link_group!;
           this.showWhatsappModal = true;
         }
         this.notificationService.notifyApiData(participantResponse)

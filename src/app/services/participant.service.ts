@@ -4,7 +4,9 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {FormGroup} from '@angular/forms';
-import {ParticipantResponse} from '../models/participant-response.model';
+import {Event} from '../models/events/event';
+import {Person} from '../models/person.model';
+import {Dictionary} from '../models/dictionary.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +17,19 @@ export class ParticipantService {
 
   constructor(private http: HttpClient) { }
 
-  storeParticipant(form: FormGroup): Observable<ApiData<ParticipantResponse>> {
-    return this.http.post<ApiData<ParticipantResponse>>(`${environment.apiUrl}/participant/store`, form);
+  storeParticipant(form: FormGroup): Observable<ApiData<Event>> {
+    return this.http.post<ApiData<Event>>(`${environment.apiUrl}/participant/store`, form);
+  }
+
+  getParticipatedEvents(number: string):
+  Observable<ApiData<{
+    person: Person,
+    events: { event: Event, participant_type: Dictionary }[]
+  }>>
+  {
+    return this.http.get<ApiData<{
+      person: Person,
+      events: { event: Event, participant_type: Dictionary
+      }[] }>>(`${environment.apiUrl}/event/participant/participated-events/${number}`);
   }
 }

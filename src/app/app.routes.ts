@@ -29,6 +29,12 @@ import {AuthGuardHr} from './guards/auth-guard-hr-service';
 import {
   StaffUserLayOutComponentComponent
 } from './dashboard/staff/staff-user/staff-user-lay-out-component/staff-user-lay-out-component.component';
+import {
+  EventDownloadCertificateComponent
+} from './events/event-download-certificate/event-download-certificate.component';
+import {
+  EventValidateCertificateComponent
+} from './events/event-validate-certificate/event-validate-certificate.component';
 
 export const routes: Routes = [
   {
@@ -99,17 +105,47 @@ export const routes: Routes = [
     ]
   },
   {
-    path: PATHS.event.participant.register,
-    component: RegisterParticipantComponent,
+    path: PATHS.event.path,
+    children: [
+      {
+        path: PATHS.event.participant.register,
+        component: RegisterParticipantComponent,
+      },
+      {
+        path: PATHS.event.attendance.path,
+        children: [
+          {
+            path: PATHS.event.attendance.check_in,
+            component: EventAttendanceCheckInComponent,
+          },
+          {
+            path: PATHS.event.attendance.check_out,
+            component: EventQuestionsWithCheckOutComponent,
+          }
+        ]
+      },
+      {
+        path: PATHS.event.certification.download,
+        component: EventDownloadCertificateComponent,
+      },
+      {
+        path: PATHS.event.certification.validate,
+        component: EventValidateCertificateComponent,
+      }
+    ]
   },
-  {
-    path: PATHS.event.attendance.check_in,
-    component: EventAttendanceCheckInComponent,
-  },
-  {
-    path: PATHS.event.attendance.check_out,
-    component: EventQuestionsWithCheckOutComponent,
-  },
+  // {
+  //   path: PATHS.event.participant.register,
+  //   component: RegisterParticipantComponent,
+  // },
+  // {
+  //   path: PATHS.event.attendance.check_in,
+  //   component: EventAttendanceCheckInComponent,
+  // },
+  // {
+  //   path: PATHS.event.attendance.check_out,
+  //   component: EventQuestionsWithCheckOutComponent,
+  // },
   {
     path: '**', redirectTo: PATHS.login.staff
   }

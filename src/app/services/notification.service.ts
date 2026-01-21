@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import {ApiData} from '../models/api/api-data.model';
+import {HttpErrorResponse} from '@angular/common/http';
 
 /**
  * Servicio para mostrar notificaciones tipo "toast" en toda la aplicación.
@@ -11,10 +12,39 @@ export class NotificationService {
 
   constructor(private messageService: MessageService) {}
 
-  notifyApiData(apiData: ApiData<any>, life: number = 3000): void {
-    const allowedStatuses = ['success', 'warn', 'error', 'info', 'exception'];
-    const normalized = allowedStatuses.includes(apiData.status) ? apiData.status : 'info';
-    const severity = normalized === 'exception' ? 'error' : normalized;
+  notifyApiData(responseData: HttpErrorResponse | ApiData<any>, life: number = 3000): void {
+    let apiData: ApiData<any> | null = null;
+
+    if (responseData instanceof HttpErrorResponse) {
+      // Si el backend devuelve ApiData en el cuerpo del error
+      apiData = responseData.error as ApiData<any>;
+    } else {
+      apiData = responseData;
+    }
+
+    // Seguridad: si por alguna razón no hay payload, no procesamos
+    if (!apiData || !apiData.payload) {
+      this.error(
+        'Servicio Temporalmente Interrumpido',
+        'No pudimos completar tu solicitud. Por favor, repórtalo a la OTI para ayudarte.'
+      );
+      console.error('Respuesta del servidor', responseData);
+      return
+    }
+
+    const status = apiData.status;
+
+    // Mapeo de estados de ApiData a severidades de PrimeNG
+    const severityMap: Record<string, 'success' | 'info' | 'warn' | 'error'> = {
+      'success': 'success',
+      'info': 'info',
+      'warning': 'warn',
+      'warn': 'warn',
+      'error': 'error',
+      'exception': 'error'
+    };
+
+    const severity = severityMap[status] || 'info';
 
     this.messageService.add({
       severity,

@@ -1,0 +1,86 @@
+<div class="flex justify-content-center min-h-screen surface-ground pt-6">
+  <p-card class="p-shadow-4 w-full md:w-8 lg:w-8 xl:w-5">
+    @switch (flag_slug) {
+      @case (0) {
+        <div class="grid w-full-pb-2 text-center">
+          <div class="col-12 md:col-6 lg:col-6 flex flex-column justify-content-center text-green-600">
+            <i class="pi pi-spin pi-spinner" style="font-size: 8rem"></i>
+          </div>
+          <div class="col-12 md:col-6 lg:col-4 flex flex-column justify-content-center text-4xl">
+            Cargando...
+          </div>
+        </div>
+      }
+      @case (1) {
+        <div class="grid w-full-pb-2 text-center">
+          <div class="col-12 md:col-6 lg:col-6 flex flex-column justify-content-center text-yellow-600">
+            <i class="pi pi-exclamation-triangle" style="font-size: 8rem"></i>
+          </div>
+          <div class="col-12 md:col-6 lg:col-4 flex flex-column justify-content-center text-4xl">
+            El evento no existe o aún no ha sido creado
+          </div>
+        </div>
+      }
+      @case (2) {
+        <!-- Imagen centrada -->
+        <div class="flex justify-content-center mb-4">
+          <img [src]="url_banner" alt="banner" class="portrait">
+        </div>
+
+        <p-dataView #dv>
+          <ng-template #list let-items>
+            <div class="grid grid-cols-12 gap-4 grid-nogutter">
+              @for (ed of event_data; track ed; let first = $first) {
+                <div class="col-span-12">
+                  <div
+                    class="flex flex-col sm:flex-row sm:items-center pt-6 grid"
+                    [ngClass]="{ 'border-t border-surface-200 dark:border-surface-700': !first }"
+                  >
+                    <div class="col-12 md:col-4 relative">
+                      <img
+                        class="block xl:block mx-auto rounded-border w-full"
+                        [src]="apiUrlPublic + '/' + ed.event.url_banner"
+                        [alt]="ed.event.slug"
+                      />
+                      <p-tag
+                        [value]="ed.event.event_mode?.label"
+                        styleClass="text-white {{ getModeColor(ed.event.event_mode?.value) }}"
+                        class="absolute m-2"
+                        [style.left.px]="4"
+                        [style.top.px]="4"
+                      />
+                    </div>
+                    <div class="col-12 md:col-8 grid">
+                      <div class="col-12 md:col-10 justify-between items-start gap-2 flex align-items-center">
+                        <div>
+                          <div class="text-lg font-medium text-surface-900 dark:text-surface-0 mt-2">{{ ed.event.title }}</div>
+                          <span [class]="['text-upper', 'text-secondary', 'font-light', 'text-sm']">
+                              {{ full_name }}
+                            </span>
+                          <br>
+                          <span [class]="['font-italic', 'text-secondary', 'font-light', 'text-sm', getParticipantColor(ed.participant_type.value)]">
+                              {{ ed.participant_type.label }}
+                            </span>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-2 flex align-items-center">
+                        <p-button
+                          icon="pi pi-download"
+                          class="flex-auto md:flex-initial whitespace-nowrap"
+                          pTooltip="Descargar Certificado"
+                          [rounded]="true"
+                          variant="outlined"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </ng-template>
+        </p-dataView>
+      }
+    }
+  </p-card>
+</div>
+
