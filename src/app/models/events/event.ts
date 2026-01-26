@@ -11,6 +11,7 @@ export interface Event {
   link_group?: string;
   slug?: string
   url_banner?: string;
+  url_logo?: string;
   description?: string;
   url_description?: string;
 }

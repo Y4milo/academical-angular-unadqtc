@@ -36,9 +36,9 @@ export class EventDownloadCertificateComponent implements OnInit{
   loading = false;
   apiUrlPublic = environment.apiUrlPublic;
   participant_color: { [key: string]: string } = {
-    'attendee': 'text-yellow-500',
-    'speaker': 'text-cyan-500',
-    'collaborator': 'text-orange-400',
+    'attendee': 'text-attendee',
+    'speaker': 'text-speaker',
+    'collaborator': 'text-collaborator',
   };
 
   mode_color: { [key: string]: string } = {
@@ -100,8 +100,6 @@ export class EventDownloadCertificateComponent implements OnInit{
   }
 
   protected getParticipantColor(item: string|undefined) {
-    const color = item? this.participant_color[item] : 'text-green-500';
-    console.log(color);
-    return color;
+    return item ? this.participant_color[item] : 'text-default';
   }
 }

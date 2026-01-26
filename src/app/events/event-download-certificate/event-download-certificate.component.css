@@ -1,3 +1,108 @@
 .portrait{
   width: 100%;
 }
+
+:host {
+  color-scheme: light;
+  --p-surface-0: #ffffff;
+  --p-surface-50: #f8fafc;
+  --p-text-color: #1b1f2a;
+  --p-text-muted-color: #6b7280;
+}
+
+.event-download-bg {
+  background-image: url('/img/events/events_background.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.logo-unadqtc {
+  height: 80px;
+  width: auto;
+}
+
+.logo-events {
+  height: 100px;
+  width: auto;
+}
+
+.btn-search {
+  background-color: #102B48;
+  border-color: #102B48;
+  color: #fff;
+}
+
+.btn-search:hover,
+.btn-search:focus {
+  background-color: #2561a3;
+  border-color: #2561a3;
+}
+
+.footer-sticky {
+  margin-top: auto;
+  width: 100%;
+}
+
+.footer-sticky a {
+  text-decoration: none;
+}
+
+.footer-sticky a:hover,
+.footer-sticky a:focus {
+  text-decoration: none;
+}
+
+:host ::ng-deep .p-component,
+:host ::ng-deep .p-card,
+:host ::ng-deep .p-card-content,
+:host ::ng-deep .p-dataview,
+:host ::ng-deep .p-dataview-content,
+:host ::ng-deep .p-dataview-list {
+  background: #fff;
+  color: #1b1f2a;
+}
+
+:host ::ng-deep .p-button.btn-search {
+  background: #102B48;
+  border-color: #102B48;
+  color: #fff;
+}
+
+:host ::ng-deep .p-button.btn-search:hover,
+:host ::ng-deep .p-button.btn-search:focus {
+  background: #2561a3;
+  border-color: #2561a3;
+}
+
+:host ::ng-deep .p-tag.tag-onsite {
+  background: #1B4C8F;
+}
+
+:host ::ng-deep .p-tag.tag-virtual {
+  background: #4172B5;
+}
+
+:host ::ng-deep .p-tag.tag-hybrid {
+  background: #1F5188;
+}
+
+:host ::ng-deep .p-tag.tag-default {
+  background: #1B4C8F;
+}
+
+.text-attendee {
+  color: #1B4C8F;
+}
+
+.text-speaker {
+  color: #4172B5;
+}
+
+.text-collaborator {
+  color: #1F5188;
+}
+
+.text-default {
+  color: #1B4C8F;
+}
