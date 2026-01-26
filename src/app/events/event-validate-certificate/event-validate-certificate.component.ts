@@ -34,7 +34,7 @@ export class EventValidateCertificateComponent implements OnInit{
   flag_slug: number = 0;
   full_name = '';
   event_data: { event: Event; participant_type: Dictionary; }[] = [];
-  apiUrlPublic = environment.apiUrlPublic;
+  apiStorage = environment.apiBase;
   participant_color: { [key: string]: string } = {
     'attendee': 'text-yellow-500',
     'speaker': 'text-cyan-500',
@@ -64,7 +64,7 @@ export class EventValidateCertificateComponent implements OnInit{
         if (eventResponse.status === 'success') {
           this.flag_slug = 2;
           const event = eventResponse.payload.data as Event;
-          this.url_banner = this.apiUrlPublic + '/' + event.url_banner!;
+          this.url_banner = this.apiStorage + '/' + event.url_banner!;
         }
         else {
           this.flag_slug = 1;

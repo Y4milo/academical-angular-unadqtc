@@ -44,7 +44,7 @@ export class StudentCardsComponent implements OnInit {
   validatedStudents: StudentCard[] = [];
   unmatchedStudent: StudentCard[] = [];
   flaggedStudents: StudentCard[] = [];
-  appURL = environment.apiUrlPublic;
+  appURL = environment.apiUrl;
   statusStudentCardOptions: Dictionary[] = [];
   selectedFlags: [] = [];
   selectedFlaggedCard!: StudentCard;

@@ -34,7 +34,7 @@ export class EventDownloadCertificateComponent implements OnInit{
   full_name = '';
   event_data: { event: Event; participant_type: Dictionary; }[] = [];
   loading = false;
-  apiUrlPublic = environment.apiUrlPublic;
+  apiBase = environment.apiBase;
   participant_color: { [key: string]: string } = {
     'attendee': 'text-attendee',
     'speaker': 'text-speaker',
