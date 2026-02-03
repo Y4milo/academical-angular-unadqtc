@@ -21,7 +21,6 @@ import {TooltipModule} from 'primeng/tooltip';
     ReactiveFormsModule,
     Card,
     NgClass,
-    Button,
     DataView,
     TooltipModule,
     Tag,
@@ -34,7 +33,7 @@ export class EventDownloadCertificateComponent implements OnInit{
   full_name = '';
   event_data: { event: Event; participant_type: Dictionary; }[] = [];
   loading = false;
-  apiBase = environment.apiBase;
+  apiBase = environment.apiBaseUrl;
   participant_color: { [key: string]: string } = {
     'attendee': 'text-attendee',
     'speaker': 'text-speaker',

@@ -34,7 +34,7 @@ export class EventValidateCertificateComponent implements OnInit{
   flag_slug: number = 0;
   full_name = '';
   event_data: { event: Event; participant_type: Dictionary; }[] = [];
-  apiStorage = environment.apiBase;
+  apiStorage = environment.apiBaseUrl;
   participant_color: { [key: string]: string } = {
     'attendee': 'text-yellow-500',
     'speaker': 'text-cyan-500',

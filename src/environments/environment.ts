@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   apiUrl:       'http://academical.test/api',
-  apiBase: 'http://academical.test',
+  apiBaseUrl: 'http://academical.test',
   tokenKey:     'OtiProduction@2025.UNADQTC',
   baseUrl: 'http://localhost:4200'
 };
