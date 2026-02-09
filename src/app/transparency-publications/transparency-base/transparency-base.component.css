@@ -1,0 +1,33 @@
+.home-header {
+  position: relative;
+  line-height: 0;
+
+  --logo-height: 4rem;
+  --extra-space: 1.5rem;
+
+  height: calc(var(--logo-height) + var(--extra-space));
+}
+
+/* breakpoints alineados con PrimeFlex */
+@media (min-width: 576px) {
+  .home-header { --logo-height: 5rem; }
+}
+
+@media (min-width: 768px) {
+  .home-header { --logo-height: 6rem; }
+}
+
+@media (min-width: 992px) {
+  .home-header { --logo-height: 7rem; }
+}
+
+.home-header__bg {
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-header__logo {
+  left: 2%;
+  top: 50%;
+  transform: translateY(-50%);
+}

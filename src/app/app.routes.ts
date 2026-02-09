@@ -35,6 +35,7 @@ import {
 import {
   EventValidateCertificateComponent
 } from './events/event-validate-certificate/event-validate-certificate.component';
+import {TransparencyBaseComponent} from './transparency-publications/transparency-base/transparency-base.component';
 
 export const routes: Routes = [
   {
@@ -132,6 +133,16 @@ export const routes: Routes = [
         path: PATHS.event.certification.validate,
         component: EventValidateCertificateComponent,
       }
+    ]
+  },
+  {
+    path: PATHS.transparency_publications.path,
+    component: TransparencyBaseComponent,
+    children: [
+      {
+        path: PATHS.event.participant.register,
+        component: RegisterParticipantComponent,
+      },
     ]
   },
   // {

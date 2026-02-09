@@ -99,5 +99,11 @@ export const PATHS = {
       download: `certification/download`,
       validate: `certification/validate/:slug`,
     }
+  },
+  transparency_publications: {
+    path: `transparency-publications`,
+    home: {
+      register: `participant/register/:slug`,
+    },
   }
 }
