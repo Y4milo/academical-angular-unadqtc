@@ -12,11 +12,13 @@ import {NgClass} from '@angular/common';
 import {DataView} from 'primeng/dataview';
 import {Dictionary} from '../../models/dictionary.model';
 import {TooltipModule} from 'primeng/tooltip';
+import {Person} from '../../models/person.model';
 
 @Component({
   selector: 'app-event-download-certificate',
   imports: [
     ButtonDirective,
+    Button,
     InputText,
     ReactiveFormsModule,
     Card,
@@ -30,7 +32,7 @@ import {TooltipModule} from 'primeng/tooltip';
 })
 export class EventDownloadCertificateComponent implements OnInit{
   form!: FormGroup;
-  full_name = '';
+  person!: Person;
   event_data: { event: Event; participant_type: Dictionary; }[] = [];
   loading = false;
   apiBase = environment.apiBaseUrl;
@@ -80,7 +82,7 @@ export class EventDownloadCertificateComponent implements OnInit{
         const response = dataResponse.payload;
         if (dataResponse.status === 'success') {
           this.event_data = response.data.events;
-          this.full_name = response.data.person.full_name;
+          this.person = response.data.person
         }
         this.notificationService.notifyApiData(dataResponse)
       },
@@ -90,7 +92,7 @@ export class EventDownloadCertificateComponent implements OnInit{
     });
   }
 
-  protected downloadCertificate(slug: any) {
+  protected downloadCertificate(event_id: number) {
 
   }
 

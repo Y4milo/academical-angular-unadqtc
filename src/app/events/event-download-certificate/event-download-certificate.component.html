@@ -59,7 +59,7 @@
                       <div>
                         <div class="text-lg font-medium text-surface-900 mt-2">{{ ed.event.title }}</div>
                         <span [class]="['text-upper', 'text-secondary', 'font-light', 'text-sm']">
-                          {{ full_name }}
+                          {{ person.full_name }}
                         </span>
                         <br>
                         <span [class]="['font-italic', 'text-secondary', 'font-bold', 'text-sm', getParticipantColor(ed.participant_type.value)]">
@@ -68,13 +68,14 @@
                       </div>
                     </div>
                     <div class="col-12 md:col-2 flex align-items-center">
-                      <!--<p-button
+                      <p-button
                         icon="pi pi-download"
                         class="flex-auto md:flex-initial whitespace-nowrap"
                         pTooltip="Descargar Certificado"
                         [rounded]="true"
                         variant="outlined"
-                      />-->
+                        (click)="downloadCertificate(ed.event.id!)"
+                      />
                     </div>
                   </div>
                 </div>
