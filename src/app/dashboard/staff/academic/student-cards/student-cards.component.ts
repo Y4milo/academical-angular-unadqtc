@@ -10,7 +10,7 @@ import {TabViewModule} from 'primeng/tabview';
 import {ButtonModule} from 'primeng/button';
 import {BadgeModule} from 'primeng/badge';
 import {TooltipModule} from 'primeng/tooltip';
-import {MultiSelectModule} from 'primeng/multiselect';
+import {MultiSelect, MultiSelectModule} from 'primeng/multiselect';
 import {OverlayPanel, OverlayPanelModule} from 'primeng/overlaypanel';
 import {DictionaryService} from '../../../../services/dictionary.service';
 import {Dictionary} from '../../../../models/dictionary.model';
@@ -44,13 +44,14 @@ export class StudentCardsComponent implements OnInit {
   validatedStudents: StudentCard[] = [];
   unmatchedStudent: StudentCard[] = [];
   flaggedStudents: StudentCard[] = [];
-  appURL = environment.apiUrl;
+  storageURL = environment.storage + '/';
   statusStudentCardOptions: Dictionary[] = [];
-  selectedFlags: [] = [];
-  selectedFlaggedCard!: StudentCard;
+  selectedFlags: Dictionary[] = [];
+  selectedFlaggedCard?: StudentCard;
   showSelectError: boolean = false;
   previewUrl: string = 'img/card-img.png';
   selectedUploadCard!: StudentCard;
+  private observationsMultiSelectTimer?: ReturnType<typeof setTimeout>;
   constructor(
     private studentCardService: StudentCardService,
     private dictionaryService: DictionaryService,
@@ -240,7 +241,6 @@ export class StudentCardsComponent implements OnInit {
         console.error(e);
       }
     });
-
   }
 
   downloadStudentCardsPDF() {
@@ -335,12 +335,50 @@ export class StudentCardsComponent implements OnInit {
   }
 
   @ViewChild('overlayObservations') overlayObservations!: OverlayPanel;
+  @ViewChild('observationsMultiSelect') observationsMultiSelect!: MultiSelect;
 
   openObservationPanel(event: Event, student: StudentCard) {
+    if (this.selectedFlaggedCard?.id === student.id) {
+      return;
+    }
+
+    this.clearObservationPanelTimer();
+    this.observationsMultiSelect?.hide();
     this.selectedFlags = [];
     this.selectedFlaggedCard = student;
-    this.overlayObservations.toggle(event);
+    this.showSelectError = false;
+    this.observationsMultiSelectTimer = setTimeout(() => {
+      this.overlayObservations.show(event);
+      this.observationsMultiSelect.show();
+    });
   }
+
+  onCancelObservations(): void {
+    this.clearObservationPanelState();
+    this.observationsMultiSelect.hide();
+    this.overlayObservations.hide();
+  }
+
+  clearObservationPanelState(): void {
+    this.clearObservationPanelTimer();
+    this.selectedFlaggedCard = undefined;
+    this.selectedFlags = [];
+    this.showSelectError = false;
+  }
+
+  private clearObservationPanelTimer(): void {
+    if (this.observationsMultiSelectTimer) {
+      clearTimeout(this.observationsMultiSelectTimer);
+      this.observationsMultiSelectTimer = undefined;
+    }
+  }
+
+  onObservationSelectionChange(): void {
+    if (this.selectedFlags?.length) {
+      this.showSelectError = false;
+    }
+  }
+
   onConfirmObservations() {
     if (!this.selectedFlags || this.selectedFlags.length === 0) {
       this.showSelectError = true;
@@ -348,26 +386,27 @@ export class StudentCardsComponent implements OnInit {
       return;
     }
     this.showSelectError = false;
+    const selectedCard = this.selectedFlaggedCard;
+    const selectedFlags = [...this.selectedFlags];
+
+    if (!selectedCard) {
+      return;
+    }
 
     const payload = {
-      id: this.selectedFlaggedCard.id,
-      flags: this.selectedFlags
+      id: selectedCard.id,
+      flags: selectedFlags
     };
 
     this.studentCardService.setFlaggedStudentCard(payload).subscribe({
       next: (data) => {
         if (data.status === STATUS.success) {
-          const index = this.pendingStudents.findIndex(s => s.id === this.selectedFlaggedCard.id);
+          const index = this.pendingStudents.findIndex(s => s.id === selectedCard.id);
           if (index !== -1) {
             const student = this.pendingStudents[index];
-            // Asignar la copia al estudiante
-            student.list_flags = [...this.selectedFlags];
-            // Eliminar de la lista de pendientes
+            student.list_flags = selectedFlags;
             this.pendingStudents.splice(index, 1);
-            // Agregar a la lista de observados
             this.flaggedStudents.push(student);
-            // Limpiar los flags seleccionados
-            this.selectedFlags = [];
           }
           this.notificationService.notifyApiData(data);
         } else {
@@ -375,6 +414,8 @@ export class StudentCardsComponent implements OnInit {
         }
       }
     });
+    this.clearObservationPanelState();
+    this.observationsMultiSelect.hide();
     this.overlayObservations.hide();
   }
 

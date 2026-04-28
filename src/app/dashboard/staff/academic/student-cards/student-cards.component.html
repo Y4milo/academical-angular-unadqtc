@@ -25,7 +25,7 @@
               <td>{{ student.campus }}</td>
               <td>{{ student.cellphone }}</td>
               <td>
-                <img [src]="appURL + student.photo_path" alt="foto" width="50" height="60" />
+                <img [src]="storageURL + student.photo_path" alt="foto" width="50" height="60" />
               </td>
               <td>{{ student.id_student }}</td>
               <td class="justify-center">
@@ -57,6 +57,7 @@
                     severity="warn"
                     pTooltip="Observar carnet"
                     tooltipPosition="top"
+                    [disabled]="selectedFlaggedCard?.id === student.id"
                     (onClick)="openObservationPanel($event, student)"
                   ></p-button>
                 </div>
@@ -118,7 +119,7 @@
               <td>{{ student.campus }}</td>
               <td>{{ student.cellphone }}</td>
               <td>
-                <img [src]="appURL + student.photo_path" alt="foto" width="60" height="70" />
+                <img [src]="storageURL + student.photo_path" alt="foto" width="60" height="70" />
               </td>
               <td>{{ student.id_student }}</td>
               <td class="align-content-center">
@@ -174,14 +175,14 @@
               <td>{{ student.campus }}</td>
               <td>{{ student.cellphone }}</td>
               <td>
-                <img [src]="appURL + student.photo_path" alt="foto" width="60" height="70" />
+                <img [src]="storageURL + student.photo_path" alt="foto" width="60" height="70" />
               </td>
               <td>{{ student.id_student }}</td>
               <td>
                 @if (student.list_flags.length > 0) {
                   <ul>
-                    @for (flag of student.list_flags; track flag.code) {
-                      <li class="text-xs text-orange-400">{{ flag.name }}</li>
+                    @for (flag of student.list_flags; track flag.code || flag.id) {
+                      <li class="text-xs text-orange-400">{{ flag.name || flag.label }}</li>
                     }
                   </ul>
                 } @else {
@@ -251,6 +252,73 @@
         </p-table>
       </p-tabPanel>
     </p-tabView>
+
+    <p-overlayPanel #overlayObservations [showCloseIcon]="true" appendTo="body" (onHide)="clearObservationPanelState()">
+      <div class="flex flex-column gap-3" style="width: 18rem">
+        <p-multiSelect
+          #observationsMultiSelect
+          [options]="statusStudentCardOptions"
+          [(ngModel)]="selectedFlags"
+          optionLabel="label"
+          placeholder="Seleccione observaciones"
+          display="chip"
+          class="w-full"
+          (onChange)="onObservationSelectionChange()"
+        >
+          <ng-template pTemplate="footer">
+            <div class="flex flex-column gap-2 p-3">
+              @if (showSelectError) {
+                <small class="text-red-500">Debe seleccionar al menos una observación.</small>
+              }
+              <div class="flex justify-content-end gap-2">
+                <p-button
+                  label="Cancelar"
+                  severity="secondary"
+                  [text]="true"
+                  (onClick)="onCancelObservations()"
+                ></p-button>
+                <p-button
+                  label="Confirmar"
+                  icon="pi pi-check"
+                  severity="warn"
+                  (onClick)="onConfirmObservations()"
+                ></p-button>
+              </div>
+            </div>
+          </ng-template>
+        </p-multiSelect>
+
+      </div>
+    </p-overlayPanel>
+
+    <p-overlayPanel #overlayUploadPhoto [showCloseIcon]="true" appendTo="body">
+      <div class="flex flex-column gap-3" style="width: 18rem">
+        <img [src]="previewUrl" alt="Vista previa" width="120" height="140" class="align-self-center" />
+        <p-fileUpload
+          #fileUploader
+          mode="basic"
+          chooseLabel="Seleccionar foto"
+          accept=".jpg,.jpeg,image/jpeg"
+          [auto]="false"
+          [customUpload]="true"
+          (onSelect)="onFileSelect($event)"
+        ></p-fileUpload>
+        <div class="flex justify-content-end gap-2">
+          <p-button
+            label="Cancelar"
+            severity="secondary"
+            [text]="true"
+            (onClick)="overlayUploadPhoto.hide()"
+          ></p-button>
+          <p-button
+            label="Subir"
+            icon="pi pi-upload"
+            severity="success"
+            (onClick)="onConfirmUploadPhoto()"
+          ></p-button>
+        </div>
+      </div>
+    </p-overlayPanel>
   </p-card>
 </div>
 
