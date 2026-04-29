@@ -3,5 +3,6 @@ export const environment = {
   apiUrl:       'http://academical.test/api',
   apiBaseUrl: 'http://academical.test',
   tokenKey:     'OtiProduction@2025.UNADQTC',
-  baseUrl: 'http://localhost:4200'
+  baseUrl: 'http://localhost:4200',
+  storage: 'http://academical.test/storage',
 };
