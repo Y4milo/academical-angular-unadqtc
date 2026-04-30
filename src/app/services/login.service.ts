@@ -3,6 +3,7 @@ import {StaffUser} from '../models/staff-user.model';
 import {PATHS} from '../core/constants/paths';
 import {ROLE} from '../core/constants/role';
 import {ApiData} from '../models/api/api-data.model';
+import {StudentUser} from '../models/student-user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -58,5 +59,15 @@ export class LoginService {
 
   removeUser(): void {
     sessionStorage.removeItem('user');
+  }
+
+  setStudent(apiData:  ApiData<StudentUser>): StudentUser {
+    const user = apiData.payload.data as StudentUser;
+    sessionStorage.setItem('user', JSON.stringify(user));
+    return user;
+  }
+
+  getStudent(): StudentUser {
+    return JSON.parse(sessionStorage.getItem('user')!) as StudentUser;
   }
 }

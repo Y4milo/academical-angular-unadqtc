@@ -13,12 +13,12 @@ import { DictionaryService } from '../../../services/dictionary.service';
 import { StudentService } from '../../../services/student.service';
 import { Router} from '@angular/router';
 import { StudentCardService } from '../../../services/student-card.service';
-import { jwtDecode } from 'jwt-decode';
-import { Payment } from '../../../models/payment.model';
 import {validatePhotoCardStudent} from '../../../helper/helper.util';
 import {Dictionary} from '../../../models/dictionary.model';
 import {STATUS} from '../../../core/constants/status';
 import {NOTIFICATION_MESSAGE} from '../../../core/constants/notification_message';
+import {LoginService} from '../../../services/login.service';
+import {HttpResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-student-registration',
@@ -47,14 +47,18 @@ export class StudentCardRegistrationComponent implements OnInit {
 
   registrationForm!: FormGroup;
   selectedFile: File | null = null;
+  selectedDniFile: File | null = null;
   campusOptions: Dictionary[] = [];
   idTypeOptions: Dictionary[] = [];
   previewUrl: string = 'img/card-img.png';
+  dniPreviewUrl: string = 'img/dni-img.png';
   // Imagen por defecto
 
   payment_id: string|null = '';
-  semester_id: string|null = '';
-  code_student: string|null = '';
+  number: string|null = '';
+  code: string|null = '';
+  hasValidatedPhoto = false;
+  private previewObjectUrl: string | null = null;
 
   /**
    * Constructor - se inyectan FormBuilder y MessageService para formularios y notificaciones
@@ -66,6 +70,7 @@ export class StudentCardRegistrationComponent implements OnInit {
     private studentService: StudentService,
     private studentCardService: StudentCardService,
     private router: Router,
+    private loginService: LoginService,
   ) { }
 
   ngOnInit(): void {
@@ -81,17 +86,18 @@ export class StudentCardRegistrationComponent implements OnInit {
       cellphone: ['', [Validators.required, Validators.maxLength(20)]],
       address: ['', [Validators.required, Validators.maxLength(255)]],
       campus: [null, Validators.required],
-      photo: [null]
+      photo: [null],
+      dni_photo: [null]
     });
 
+    const student = this.loginService.getStudent();
+    this.payment_id = student.payment_id;
+    this.code = student.code;
+    this.number = student.number;
 
-    const payment = jwtDecode<Payment>(sessionStorage.getItem('payment_id')! );
+    if (this.payment_id && this.number) {
 
-    if (payment) {
-      this.payment_id = payment.payment_id.toString()!;
-      this.semester_id = payment.semester_id.toString()!;
-      this.code_student = payment.code_student;
-      this.loadStudentBasicInformation(this.code_student);
+      this.loadStudentBasicInformation(this.number);
     }
     else {
       this.notificationService.warning('Credenciales no validas','Vuelva a iniciar sesión')
@@ -133,11 +139,32 @@ export class StudentCardRegistrationComponent implements OnInit {
 
     const reader = requirements.reader!;
     if (requirements.validated) {
+      this.revokePreviewObjectUrl();
       this.selectedFile = file;
       this.previewUrl = requirements.e.target.result;
       this.registrationForm.patchValue({ photo: file });
       this.registrationForm.get('photo')?.markAsTouched();
     }
+    reader.readAsDataURL(file);
+  }
+
+  onDniSelect(event: any): void {
+    const file: File = event.files?.[0];
+
+    if (!file) return;
+
+    this.selectedDniFile = file;
+    this.registrationForm.patchValue({ dni_photo: file });
+    this.registrationForm.get('dni_photo')?.markAsTouched();
+
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.dniPreviewUrl = reader.result as string;
+    };
     reader.readAsDataURL(file);
   }
 
@@ -155,7 +182,7 @@ export class StudentCardRegistrationComponent implements OnInit {
         return;
       }
 
-      const code_student = this.code_student;
+      const code_student = this.code;
       if (!code_student) {
         this.notificationService.error('Error', 'No se encontró el ID del estudiante.');
         return;
@@ -169,12 +196,16 @@ export class StudentCardRegistrationComponent implements OnInit {
               const studentInfo = student.payload!.data;
               const formData = new FormData();
               formData.append('photo', this.selectedFile!);
-              formData.append('semester_id', this.semester_id!.toString());
+              if (this.selectedDniFile) {
+                formData.append('dni_photo', this.selectedDniFile);
+              }
+              // formData.append('semester_id', this.semester_id!.toString());
               formData.append('student_id', studentInfo.id.toString());
               formData.append('payment_id', this.payment_id!.toString());
               this.studentCardService.uploadCardPhoto(formData).subscribe({
                 next: (uploadPhoto) => {
                   this.notificationService.notifyApiData(uploadPhoto);
+
                 },
                 error: (e) => {
                   this.notificationService.error(
@@ -203,7 +234,7 @@ export class StudentCardRegistrationComponent implements OnInit {
   }
 
 
-  loadStudentBasicInformation(studentCode: string) {
+  loadStudentBasicInformation(number: string) {
     this.dictionaryService.getCampusList().subscribe({
       next: campusData => {
         const campusDataDecoded = campusData;
@@ -223,12 +254,18 @@ export class StudentCardRegistrationComponent implements OnInit {
                       id: type.id,
                       label: `${type.value} - ${type.label}`
                     }));
-                    this.studentService.getStudentBasicInfoByCode(studentCode).subscribe({
+                    this.studentService.getStudentBasicInfoById(number).subscribe({
                       next: (studentData) => {
 
                         if (studentData.status === STATUS.success){
-                            //adding Student information to the form
-                            this.registrationForm.patchValue(studentData.payload!.data);
+                            const studentInfo = studentData.payload!.data;
+
+                            this.registrationForm.patchValue({
+                              ...studentInfo,
+                              id_type: studentInfo.id_type?.id ?? null,
+                              campus: studentInfo.campus?.id ?? null,
+                            });
+                            this.loadLastValidatedStudentPhoto(studentInfo.id.toString());
 
                         } else {
                           this.notificationService.notifyApiData(studentData);
@@ -266,5 +303,57 @@ export class StudentCardRegistrationComponent implements OnInit {
         console.error(e);
       }
     })
+  }
+
+  private loadLastValidatedStudentPhoto(studentId: string): void {
+    this.studentCardService.getLastValidatedStudentPhoto(studentId).subscribe({
+      next: async (response: HttpResponse<Blob>) => {
+        const photoBlob = response.body;
+        const contentType = response.headers.get('content-type') ?? photoBlob?.type ?? '';
+
+        if (!photoBlob) {
+          return;
+        }
+
+        if (contentType.includes('application/json')) {
+          return;
+        }
+
+        const fileName = this.getPhotoFileName(response);
+        const file = new File([photoBlob], fileName, {
+          type: photoBlob.type || 'image/jpeg',
+        });
+
+        this.revokePreviewObjectUrl();
+        this.previewObjectUrl = URL.createObjectURL(file);
+        this.previewUrl = this.previewObjectUrl;
+        this.selectedFile = file;
+        this.hasValidatedPhoto = true;
+        this.registrationForm.patchValue({ photo: file });
+        this.registrationForm.get('photo')?.markAsTouched();
+      },
+      error: () => {
+        this.hasValidatedPhoto = false;
+        this.previewUrl = 'img/card-img.png';
+      }
+    });
+  }
+
+  private getPhotoFileName(response: HttpResponse<Blob>): string {
+    const contentDisposition = response.headers.get('content-disposition') ?? '';
+    const match = contentDisposition.match(/filename="?([^"]+)"?/i);
+
+    if (match?.[1]) {
+      return match[1];
+    }
+
+    return `validated-student-photo-${this.number ?? 'student'}.jpg`;
+  }
+
+  private revokePreviewObjectUrl(): void {
+    if (this.previewObjectUrl) {
+      URL.revokeObjectURL(this.previewObjectUrl);
+      this.previewObjectUrl = null;
+    }
   }
 }

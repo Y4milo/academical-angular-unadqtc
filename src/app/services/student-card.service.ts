@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpResponse} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
@@ -16,7 +16,14 @@ export class StudentCardService {
   constructor(private http: HttpClient) { }
 
   uploadCardPhoto(studentCardData: any): Observable<ApiData<Dictionary>> {
-    return this.http.post<ApiData<any>>(`${this.apiURL}/student-cards/store`, studentCardData);
+    return this.http.post<ApiData<any>>(`${this.apiURL}/student-cards/store/photo`, studentCardData);
+  }
+
+  getLastValidatedStudentPhoto(idStudent: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiURL}/student-cards/get-last-validated-photo/${idStudent}`, {
+      observe: 'response',
+      responseType: 'blob'
+    });
   }
   updateStudentPhoto(formData: FormData):Observable<ApiData<StudentCard>> {
     return this.http.post<ApiData<StudentCard>>(`${this.apiURL}/student-cards/update-photo`, formData);

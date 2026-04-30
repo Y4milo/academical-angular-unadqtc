@@ -12,11 +12,11 @@
           Completa tus Datos Personales
         </h3>
         <h3 class="text-center text-2xl font-semibold text-primary mb-4" *ngIf="currentStep === 1">
-          Subir la foto para el Carné Universitario
+          Subir la foto para el Carne Universitario
         </h3>
         <ng-container *ngIf="currentStep === 0">
           <div class="flex flex-column gap-2 mb-4">
-            <label for="code_student">Código del Alumno</label>
+            <label for="code_student">Codigo del Alumno</label>
             <input
               id="code_student"
               name="code_student"
@@ -26,7 +26,7 @@
               [ngClass]="{ 'ng-invalid ng-dirty': form['code_student'].invalid && (form['code_student'].dirty || form['code_student'].touched) }"
             />
             <small *ngIf="form['code_student'].invalid && (form['code_student'].dirty || form['code_student'].touched)" class="p-error" id="code_student-help">
-              Este campo es obligatorio (máx. 15 caracteres).
+              Este campo es obligatorio (max. 15 caracteres).
             </small>
           </div>
 
@@ -71,7 +71,7 @@
           </div>
 
           <div class="flex flex-column gap-2 mb-4">
-            <label for="check_digit">Dígito Verificador</label>
+            <label for="check_digit">Digito Verificador</label>
             <input
               id="check_digit"
               name="check_digit"
@@ -132,7 +132,7 @@
           </div>
 
           <div class="flex flex-column gap-2 mb-4">
-            <label for="email">Correo Electrónico</label>
+            <label for="email">Correo Electronico</label>
             <input
               id="email"
               name="email"
@@ -143,7 +143,7 @@
               [ngClass]="{ 'ng-invalid ng-dirty': form['email'].invalid && (form['email'].dirty || form['email'].touched) }"
             />
             <small *ngIf="form['email'].invalid && (form['email'].dirty || form['email'].touched)" class="p-error" id="email-help">
-              Ingresa un correo electrónico válido.
+              Ingresa un correo electronico valido.
             </small>
           </div>
 
@@ -163,7 +163,7 @@
           </div>
 
           <div class="flex flex-column gap-2 mb-4">
-            <label for="address">Dirección</label>
+            <label for="address">Direccion</label>
             <input
               id="address"
               name="address"
@@ -201,22 +201,18 @@
               Este campo es obligatorio.
             </small>
           </div>
-
         </ng-container>
 
         <ng-container *ngIf="currentStep === 1">
           <div class="flex flex-row flex-wrap justify-content-center align-items-start gap-4 mt-4">
-
-            <!-- 🖼️ Columna Izquierda: Vista previa de la foto -->
             <div class="text-center" style="flex: 1 1 300px; min-width: 300px;">
               <img
                 [src]="previewUrl"
-                alt="Vista previa del carné"
+                alt="Vista previa de la foto"
                 style="width: 100%; max-width: 300px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"
               />
               <p class="text-sm mt-2 text-gray-700">Vista previa de la foto</p>
-              <!-- 📤 Selector de archivo -->
-              <div class="flex flex-column <!--gap-2--> mt-4 text-center">
+              <div class="flex flex-column mt-4 text-center">
                 <p-fileUpload
                   mode="basic"
                   name="photo"
@@ -230,24 +226,58 @@
               </div>
             </div>
 
-            <!-- 📋 Columna Derecha: Requisitos -->
-            <div class="text-left" style="flex: 1 1 300px; min-width: 300px;">
+            <div class="text-center" style="flex: 1 1 300px; min-width: 300px;">
+              <img
+                [src]="dniPreviewUrl"
+                alt="Vista previa del DNI"
+                style="width: 100%; max-width: 300px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"
+              />
+              <p class="text-sm mt-2 text-gray-700">Vista previa del DNI</p>
+              <div class="flex flex-column mt-4 text-center">
+                <p-fileUpload
+                  mode="basic"
+                  name="dni_photo"
+                  [auto]="false"
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  (onSelect)="onDniSelect($event)"
+                  chooseLabel="Seleccionar DNI"
+                  [showUploadButton]="false"
+                  [showCancelButton]="false"
+                ></p-fileUpload>
+              </div>
+            </div>
 
-              <h4 class="mb-1">📌 Requisitos de la foto del carné</h4>
+            <div class="text-left" style="flex: 1 1 300px; min-width: 300px;">
+              <div
+                *ngIf="hasValidatedPhoto"
+                class="mb-3 p-3 border-round"
+                style="background: #ecfdf3; border: 1px solid #86efac; color: #166534;"
+              >
+                Ya tienes una foto validada cargada. Puedes continuar con esa foto o actualizarla por una nueva.
+              </div>
+
+              <h4 class="mb-1">Requisitos de la foto del carne</h4>
               <ul class="p-0 ml-3" style="list-style-type: disc;">
-                <li>🕵️ Es <b>OBLIGATORIO</b> que tu foto esté validada por la SUNEDU:
+                <li>Es <b>OBLIGATORIO</b> que tu foto este validada por la SUNEDU:
                   <a href="https://siucarne.sunedu.gob.pe/carne/validacion" target="_blank" rel="noopener">
-                    Validar foto aquí
+                    Validar foto aqui
                   </a>
                 </li>
-                <li>📷 Fondo blanco o claro a partir de los hombros</li>
-                <li>🙎‍♂️ Rostro completamente visible y centrado</li>
-                <li>🧢 Sin gorros, lentes oscuros o mascarillas (a excepción de los invidentes)</li>
-                <li>🚫 Sin sellos ni enmendaduras</li>
-                <li>📏 Dimensión alto: 288 píxeles</li>
-                <li>📏 Dimensión ancho: 240 píxeles</li>
-                <li>🖼️ Formato: JPG</li>
-                <li>💾 Tamaño: 4KB hasta 50KB</li>
+                <li>Fondo blanco o claro a partir de los hombros</li>
+                <li>Rostro completamente visible y centrado</li>
+                <li>Sin gorros, lentes oscuros o mascarillas</li>
+                <li>Sin sellos ni enmendaduras</li>
+                <li>Dimension alto: 288 pixeles</li>
+                <li>Dimension ancho: 240 pixeles</li>
+                <li>Formato: JPG</li>
+                <li>Tamano: 4KB hasta 50KB</li>
+              </ul>
+
+              <h4 class="mb-1 mt-4">Requisitos del DNI</h4>
+              <ul class="p-0 ml-3" style="list-style-type: disc;">
+                <li>La imagen debe verse completa y legible</li>
+                <li>No debe estar cortada, borrosa ni con reflejos</li>
+                <li>Formatos permitidos: JPG, JPEG, PNG o PDF</li>
               </ul>
             </div>
           </div>

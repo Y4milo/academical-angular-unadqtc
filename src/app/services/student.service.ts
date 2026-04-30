@@ -6,6 +6,8 @@ import {StudentBasicInfo} from '../models/student/student-basic-info.model';
 import {ApiData} from '../models/api/api-data.model';
 import {StudentRaking} from '../models/student/student-ranking.model';
 import {Dictionary} from '../models/dictionary.model';
+import {StaffUser} from '../models/staff-user.model';
+import {StudentUser} from '../models/student-user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,11 +18,11 @@ export class StudentService {
   constructor(private http: HttpClient) { }
 
   getStudentBasicInfoById(id: string): Observable<ApiData<StudentBasicInfo>> {
-    return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/id/${id}`);
+    return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/basic-info-by-code-or-id/${id}`);
   }
 
   getStudentBasicInfoByCode(code: string): Observable<ApiData<StudentBasicInfo>> {
-    return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/code/${code}`);
+    return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/code/${code}/`);
   }
 
   updateBasicInfo(id: string, studentData: StudentBasicInfo): Observable<ApiData<StudentBasicInfo>> {
@@ -40,5 +42,8 @@ export class StudentService {
 
   getExcelStudentRanking(): Observable<ApiData<Dictionary>> {
     return this.http.get<ApiData<Dictionary>>(`${this.apiURL}/student-ranking-top`);
+  }
+  logIn(loginData: FormData): Observable<ApiData<StudentUser>> {
+    return this.http.post<ApiData<StudentUser>>(`${this.apiURL}/students/v1/login`, loginData);
   }
 }

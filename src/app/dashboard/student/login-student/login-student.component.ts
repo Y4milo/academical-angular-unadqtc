@@ -1,14 +1,13 @@
-import {Component, contentChild} from '@angular/core';
+import {Component} from '@angular/core';
 import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {Router} from '@angular/router';
-import {encodeArray} from '../../../helper/helper.util';
 import {NOTIFICATION_MESSAGE} from '../../../core/constants/notification_message';
 import {STATUS} from '../../../core/constants/status';
 import {LoginService} from '../../../services/login.service';
-import {UsersService} from '../../../services/users.service';
 import {home_link, HomeKey} from '../../../core/constants/home_link';
 import {PATHS} from '../../../core/constants/paths';
+import {StudentService} from '../../../services/student.service';
 
 @Component({
   selector: 'app-login-page',
@@ -17,8 +16,8 @@ import {PATHS} from '../../../core/constants/paths';
   template: `
     <app-login-base
       [titleLabel]="'Iniciar Sesión'"
-      [userLabel]="'Código de Alumno'"
-      [userAlertMessage]="'El código es obligatorio'"
+      [userLabel]="'DNI'"
+      [userAlertMessage]="'El DNI es obligatorio'"
       [(user)]="user"
       [(password)]="password"
       (login)="login()"
@@ -32,7 +31,7 @@ export class LoginStudentComponent {
   constructor(
     private notificationService: NotificationService,
     private router: Router,
-    private usersService: UsersService,
+    private studentService: StudentService,
     private loginService: LoginService,
   ) {}
 
@@ -41,20 +40,32 @@ export class LoginStudentComponent {
     loginData.append('nick', this.user);
     loginData.append('password', this.password);
 
-    this.usersService.logIn(loginData).subscribe({
-      next: (loginUserData) => {
-        if (loginUserData.status === STATUS.success) {
-          const staff_user = this.loginService.setUser(loginUserData);
+    this.studentService.logIn(loginData).subscribe({
+      next: (loginStudentData) => {
+        if (loginStudentData.status === STATUS.success) {
+          const staff_user = this.loginService.setStudent(loginStudentData);
           const key = staff_user.role.value as HomeKey;
           let route = home_link[key];
-          if (route === undefined)
-            route = PATHS.login.student;
-            console.log('route: ' + route);
-            // setTimeout(() => {
-            //   this.router.navigate([route]);
-            // }, 2000);
+          const paymentId = loginStudentData.payload?.data?.payment_id;
+
+          if (route === undefined) {
+            route = PATHS.student.card.registration;
+          }
+
+          if (paymentId === undefined || paymentId === null) {
+            this.notificationService.warning(
+              'Inicio de sesion incompleto',
+              'La API no devolvio el payment_id del estudiante.'
+            );
+            return;
+          }
+
+          sessionStorage.setItem('payment_id', String(paymentId));
+          setTimeout(() => {
+            this.router.navigate([route]);
+          }, 2000);
         }
-        this.notificationService.notifyApiData(loginUserData);
+        this.notificationService.notifyApiData(loginStudentData);
       },
       error: (error) => {
         this.notificationService.error(
