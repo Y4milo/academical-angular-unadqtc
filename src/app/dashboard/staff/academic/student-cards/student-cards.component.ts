@@ -219,11 +219,6 @@ export class StudentCardsComponent implements OnInit {
           const text = await blob.text();
           const parsed = JSON.parse(text);
 
-          // if (isApiResponse<any>(parsed)) {
-          //   this.notificationService.warning(parsed.response.title, parsed.response.message);
-          //   console.log(parsed.response.payload);
-          //   return;
-          // }
         } catch {
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -244,7 +239,7 @@ export class StudentCardsComponent implements OnInit {
   }
 
   downloadStudentCardsPDF() {
-    this.studentCardService.downloadStudentCardsPDF().subscribe({
+    this.studentCardService.downloadStudentCardsPdf().subscribe({
       next: async (blob) => {
         try {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob

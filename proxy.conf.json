@@ -1,0 +1,14 @@
+{
+  "/api": {
+    "target": "http://academical.test",
+    "secure": false,
+    "changeOrigin": true,
+    "withCredentials": true
+  },
+  "/sanctum": {
+    "target": "http://academical.test",
+    "secure": false,
+    "changeOrigin": true,
+    "withCredentials": true
+  }
+}

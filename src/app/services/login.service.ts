@@ -3,6 +3,7 @@ import {StaffUser} from '../models/staff-user.model';
 import {PATHS} from '../core/constants/paths';
 import {ROLE} from '../core/constants/role';
 import {ApiData} from '../models/api/api-data.model';
+import {StudentUser} from '../models/student-user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,37 +13,30 @@ export class LoginService {
   constructor() { }
 
   getResultLogin(
-    user: StaffUser,
-    allowedRoles: string[] // <--- ahora es un array
+    user: StaffUser | null,
+    allowedRoles: string[]
   ): {
     canActivate: boolean,
     link: string
   } {
 
-    let canActivate = false;
-    let link = "";
-
-    if (user) {
-      // ✔ Si el usuario tiene un rol incluido en allowedRoles
-      if (allowedRoles.includes(user.role.value!)) {
-        canActivate = true;
-      } else {
-        // ❌ No tiene permiso → redirección según su rol
-        switch (user.role.value) {
-          case ROLE.student:
-            link = `${location.origin}/${PATHS.login.student}`;
-            break;
-          default:
-            link = `${location.origin}/${PATHS.login.staff}`;
-            break;
-        }
-      }
-    } else {
-      // Usuario no logueado
-      link = `${location.origin}/${PATHS.login.staff}`;
+    if (!user) {
+      return {
+        canActivate: false,
+        link: `${location.origin}/${PATHS.login.staff}`
+      };
     }
 
-    return { canActivate, link };
+    if (allowedRoles.includes(user.role.value!)) {
+      return { canActivate: true, link: '' };
+    }
+
+    // Redirección por rol
+    const link = user.role.value === ROLE.student
+      ? `${location.origin}/${PATHS.login.student}`
+      : `${location.origin}/${PATHS.login.staff}`;
+
+    return { canActivate: false, link };
   }
 
 
@@ -58,5 +52,25 @@ export class LoginService {
 
   removeUser(): void {
     sessionStorage.removeItem('user');
+  }
+
+  setStudent(apiData:  ApiData<StudentUser>): StudentUser {
+    const user = apiData.payload.data as StudentUser;
+    sessionStorage.setItem('user', JSON.stringify(user));
+    return user;
+  }
+
+  getStudent(): StudentUser {
+    return JSON.parse(sessionStorage.getItem('user')!) as StudentUser;
+  }
+
+  isStudentLoggedIn(): boolean {
+    const user = this.getStudent();
+
+    if (!user) return false;
+
+    return !!(
+      user.role?.value
+    );
   }
 }
