@@ -40,40 +40,39 @@ export class LoginStudentComponent {
     loginData.append('nick', this.user);
     loginData.append('password', this.password);
 
-    this.studentService.logIn(loginData).subscribe({
-      next: (loginStudentData) => {
-        if (loginStudentData.status === STATUS.success) {
-          const staff_user = this.loginService.setStudent(loginStudentData);
-          const key = staff_user.role.value as HomeKey;
-          let route = home_link[key];
-          const paymentId = loginStudentData.payload?.data?.payment_id;
+    // this.studentService.getCsrfCookie().subscribe(() => {
+    //   this.studentService.logIn(loginData).subscribe(res => {
+    //     console.log('Login correcto');
+    //   });
+    // });
 
-          if (route === undefined) {
-            route = PATHS.student.card.registration;
+    this.studentService.getCsrfCookie().subscribe(() => {
+      this.studentService.logIn(loginData).subscribe({
+        next: (loginStudentData) => {
+          if (loginStudentData.status === STATUS.success) {
+            const student_user = this.loginService.setStudent(loginStudentData);
+
+            const key = student_user.role.value as HomeKey;
+            let route = home_link[key];
+
+            if (route === undefined) {
+              route = PATHS.student.card.registration;
+            }
+
+            setTimeout(() => {
+              this.router.navigate([route]);
+            }, 2000);
           }
-
-          if (paymentId === undefined || paymentId === null) {
-            this.notificationService.warning(
-              'Inicio de sesion incompleto',
-              'La API no devolvio el payment_id del estudiante.'
-            );
-            return;
-          }
-
-          sessionStorage.setItem('payment_id', String(paymentId));
-          setTimeout(() => {
-            this.router.navigate([route]);
-          }, 2000);
+          this.notificationService.notifyApiData(loginStudentData);
+        },
+        error: (error) => {
+          this.notificationService.error(
+            NOTIFICATION_MESSAGE.error_connection.title,
+            NOTIFICATION_MESSAGE.error_connection.message
+          );
+          console.error(error);
         }
-        this.notificationService.notifyApiData(loginStudentData);
-      },
-      error: (error) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(error);
-      }
+      });
     });
   }
 

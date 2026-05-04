@@ -17,35 +17,17 @@ export class AuthGuardStudent implements CanActivate {
   ) {}
 
   canActivate(): boolean {
-    const paymentId = sessionStorage.getItem('payment_id');
-    const loginUser = sessionStorage.getItem('user');
-
-    if (!paymentId) {
-      window.location.href = `${location.origin}/${PATHS.login.student}`;
-      return false;
-    }
-
     try {
-      if (!loginUser) {
+      if (this.loginService.isStudentLoggedIn()) {
+        return true;
+      }
+      else{
         window.location.href = `${location.origin}/${PATHS.login.student}`;
         return false;
       }
-
-      const userStudent = this.loginService.getUser();
-
-      if (userStudent.role.value !== 'student') {
-        window.location.href = `${location.origin}/${PATHS.login.student}`;
-        return false;
-      }
-
-      return true;
     } catch (e) {
-      console.error('Error al validar la sesion del estudiante:', e);
+      console.error('Error al validar la sesión del estudiante:', e);
       return false;
     }
   }
 }
-
-// export const authGuard: CanActivateFn = (route, state) => {
-//   return true;
-// };

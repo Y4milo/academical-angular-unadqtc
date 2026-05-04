@@ -15,58 +15,138 @@ export class StudentCardService {
 
   constructor(private http: HttpClient) { }
 
-  uploadCardPhoto(studentCardData: any): Observable<ApiData<Dictionary>> {
-    return this.http.post<ApiData<any>>(`${this.apiURL}/student-cards/store/photo`, studentCardData);
+  /**
+   * ============================================
+   * 🎓 STUDENT CARD SERVICES
+   * ============================================
+   * Servicios relacionados a la gestión del carné estudiantil
+   * (subida de fotos, documentos y consulta de imágenes validadas)
+   */
+  uploadCardPhoto(studentCardData: FormData): Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<any>>(
+      `${this.apiURL}/student-cards/student/store/file/photo`,
+      studentCardData
+    );
   }
 
-  getLastValidatedStudentPhoto(idStudent: string): Observable<HttpResponse<Blob>> {
-    return this.http.get(`${this.apiURL}/student-cards/get-last-validated-photo/${idStudent}`, {
-      observe: 'response',
-      responseType: 'blob'
-    });
+  uploadDniPhoto(studentDniData: FormData) {
+    return this.http.post<ApiData<any>>(
+      `${this.apiURL}/student-cards/student/store/file/dni`,
+      studentDniData,
+    );
   }
-  updateStudentPhoto(formData: FormData):Observable<ApiData<StudentCard>> {
-    return this.http.post<ApiData<StudentCard>>(`${this.apiURL}/student-cards/update-photo`, formData);
+
+  // downloadLastValidatedStudentPhoto() {
+  //   return this.http.get(
+  //     '/api/student-cards/student/download/file/last-validated-photo?t=' + Date.now(),
+  //     {
+  //       responseType: 'blob',
+  //       observe: 'response'
+  //     }
+  //   );
+  // }
+  downloadFile(type: 'photo' | 'dni') {
+    return this.http.get(
+      `/api/student-cards/student/download/file/${type}?t=${Date.now()}`,
+      {
+        responseType: 'blob',
+        observe: 'response'
+      }
+    );
   }
-  getPendingStudentCards() :Observable<ApiData<StudentCard[]>> {
-    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/pending`);
+
+  /**
+   * ============================================
+   * 🎓 STUDENT CARD SERVICES - ACADEMIC (ADMIN)
+   * ============================================
+   * Servicios usados por el área académica para:
+   * - Validación de fotos
+   * - Gestión de estados (pending, validated, flagged)
+   * - Exportación de archivos (PDF, Excel, ZIP)
+   */
+  // 📸 Actualizar foto
+  updateStudentPhoto(formData: FormData): Observable<ApiData<StudentCard>> {
+    return this.http.post<ApiData<StudentCard>>(
+      `${this.apiURL}/student-cards/academic/set/update-photo`,
+      formData
+    );
   }
-  getUnmatchedStudentCards() :Observable<ApiData<StudentCard[]>> {
-    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/unmatched`);
+
+// 📋 LISTADOS
+
+  getPendingStudentCards(): Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(
+      `${this.apiURL}/student-cards/academic/list/pending`
+    );
   }
-  getValidatedStudentCards() :Observable<ApiData<StudentCard[]>> {
-    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/validated`);
+
+  getUnmatchedStudentCards(): Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(
+      `${this.apiURL}/student-cards/academic/list/unmatched`
+    );
   }
-  getFlaggedStudentCards() :Observable<ApiData<StudentCard[]>> {
-    return this.http.get<ApiData<StudentCard[]>>(`${environment.apiUrl}/student-cards/flagged`);
+
+  getValidatedStudentCards(): Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(
+      `${this.apiURL}/student-cards/academic/list/validated`
+    );
   }
-  validateStudentCard(statusStudentCard: FormData) :Observable<ApiData<Dictionary>> {
-    return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/validate-student`, statusStudentCard);
+
+  getFlaggedStudentCards(): Observable<ApiData<StudentCard[]>> {
+    return this.http.get<ApiData<StudentCard[]>>(
+      `${this.apiURL}/student-cards/academic/list/flagged`
+    );
   }
-  pendingStudentCard(statusStudentCard: FormData) :Observable<ApiData<Dictionary>> {
-    return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/pending-student`, statusStudentCard);
+
+// 🔄 CAMBIO DE ESTADO
+
+  validateStudentCard(data: FormData): Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<Dictionary>>(
+      `${this.apiURL}/student-cards/academic/set/validate-student`,
+      data
+    );
   }
-  setFlaggedStudentCard(selectedFlags: any) :Observable<ApiData<Dictionary>> {
-    return this.http.post<ApiData<Dictionary>>(`${environment.apiUrl}/student-cards/set-selected-flags`, selectedFlags);
+
+  pendingStudentCard(data: FormData): Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<Dictionary>>(
+      `${this.apiURL}/student-cards/academic/set/pending-student`,
+      data
+    );
   }
-  downloadStudentCardsPDF(): Observable<Blob> {
-    return this.http.get(`${environment.apiUrl}/student-cards/pdf`, {
-      responseType: 'blob'  // 👈 No uses 'as json', ni <Blob>
-    }) as Observable<Blob>;  // 👈 Esto es lo correcto
+
+  setFlaggedStudentCard(data: any): Observable<ApiData<Dictionary>> {
+    return this.http.post<ApiData<Dictionary>>(
+      `${this.apiURL}/student-cards/academic/set/selected-flags`,
+      data
+    );
   }
+
+// 📦 DESCARGAS
+
+  downloadStudentPhotosZip(): Observable<Blob> {
+    return this.http.get(
+      `${this.apiURL}/student-cards/academic/download/zip`,
+      { responseType: 'blob' }
+    );
+  }
+
   downloadStudentCardsExcel(): Observable<Blob> {
-    return this.http.get(`${environment.apiUrl}/student-cards/xlsx`, {
-      responseType: 'blob'  // 👈 No uses 'as json', ni <Blob>
-    }) as Observable<Blob>;  // 👈 Esto es lo correcto
-  }
-  downloadStudentPhotosZip(): Observable<Blob|ApiData<any>> {
-    return this.http.get(`${environment.apiUrl}/student-cards/zip`, {
-      responseType: 'blob',
-    });
-  }
-  downloadStudentCardPhoto(idStudentCard: FormData): Observable<Blob> {
-    return this.http.post(`${environment.apiUrl}/student-cards/download-student-card-photo`, idStudentCard, {
+    return this.http.get(`${this.apiURL}/student-cards/academic/download/xlsx`, {
       responseType: 'blob'
     });
+  }
+
+  downloadStudentCardsPdf(): Observable<Blob> {
+    return this.http.get(`${this.apiURL}/student-cards/academic/download/xlsx`, {
+      responseType: 'blob'
+    });
+  }
+
+  downloadStudentCardPhoto(formData: FormData): Observable<Blob> {
+    return this.http.post(
+      `${this.apiURL}/student-cards/academic/download/photo`,
+      formData,
+      { responseType: 'blob' }
+    );
   }
 }

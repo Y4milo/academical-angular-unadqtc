@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {Observable} from 'rxjs';
+import {Observable, switchMap} from 'rxjs';
 import {StudentBasicInfo} from '../models/student/student-basic-info.model';
 import {ApiData} from '../models/api/api-data.model';
 import {StudentRaking} from '../models/student/student-ranking.model';
 import {Dictionary} from '../models/dictionary.model';
-import {StaffUser} from '../models/staff-user.model';
 import {StudentUser} from '../models/student-user.model';
 
 @Injectable({
@@ -17,16 +16,29 @@ export class StudentService {
 
   constructor(private http: HttpClient) { }
 
-  getStudentBasicInfoById(id: string): Observable<ApiData<StudentBasicInfo>> {
-    return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/basic-info-by-code-or-id/${id}`);
+  getCsrfCookie() {
+    return this.http.get('/sanctum/csrf-cookie', {
+      withCredentials: true
+    });
   }
 
-  getStudentBasicInfoByCode(code: string): Observable<ApiData<StudentBasicInfo>> {
-    return this.http.get<ApiData<StudentBasicInfo>>(`${environment.apiUrl}/students/code/${code}/`);
+  setPaymentSession(): Observable<ApiData<any>> {
+    return this.http.get<ApiData<any>>(
+      `${environment.apiUrl}/payment/set/student`,
+    );
   }
 
-  updateBasicInfo(id: string, studentData: StudentBasicInfo): Observable<ApiData<StudentBasicInfo>> {
-    return this.http.put<ApiData<any>>(`${this.apiURL}/students/${id}/basic`, studentData);
+  getStudentBasicInfo(): Observable<ApiData<StudentBasicInfo>> {
+    return this.http.get<ApiData<StudentBasicInfo>>(
+      `${environment.apiUrl}/students/get/basic-info`,
+    );
+  }
+
+  updateBasicInfo(studentData: StudentBasicInfo): Observable<ApiData<StudentBasicInfo>> {
+    return this.http.put<ApiData<any>>(
+      `${this.apiURL}/students/update/basic-info`,
+      studentData,
+    );
   }
 
   getStudentRanking(studentData: { student: string; ranking: string }): Observable<ApiData<StudentRaking>> {
@@ -43,7 +55,22 @@ export class StudentService {
   getExcelStudentRanking(): Observable<ApiData<Dictionary>> {
     return this.http.get<ApiData<Dictionary>>(`${this.apiURL}/student-ranking-top`);
   }
+
+
+
   logIn(loginData: FormData): Observable<ApiData<StudentUser>> {
-    return this.http.post<ApiData<StudentUser>>(`${this.apiURL}/students/v1/login`, loginData);
+
+    return this.http.get('/sanctum/csrf-cookie', {
+      withCredentials: true
+    }).pipe(
+
+      switchMap(() =>
+        this.http.post<ApiData<StudentUser>>(
+          `${this.apiURL}/users/v1/student/login`,
+          loginData
+        )
+      )
+
+    );
   }
 }
