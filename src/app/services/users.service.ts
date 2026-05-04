@@ -13,6 +13,6 @@ export class UsersService {
   constructor(private http: HttpClient) { }
 
   logIn(loginData: FormData): Observable<ApiData<StaffUser>> {
-    return this.http.post<ApiData<StaffUser>>(`${this.apiURL}/users/v1/login`, loginData);
+    return this.http.post<ApiData<StaffUser>>(`${this.apiURL}/users/v1/staff/login`, loginData);
   }
 }
