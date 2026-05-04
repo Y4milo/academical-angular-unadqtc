@@ -54,7 +54,7 @@ export class StudentCardRegistrationComponent implements OnInit {
 
   campusOptions: Dictionary[] = [];
   idTypeOptions: Dictionary[] = [];
-  dniPreviewUrl!: SafeResourceUrl;
+  genderOptions: Dictionary[] = [];
   // Imagen por defecto
 
   studentUser!: StudentUser;
@@ -100,17 +100,32 @@ export class StudentCardRegistrationComponent implements OnInit {
 
     this.studentService.setPaymentSession().pipe(
 
-      switchMap(() => this.dictionaryService.getCampusList()),
+      // 🔥 1. GENDER
+      switchMap(() => this.dictionaryService.getGenderList()),
 
+      switchMap((genderData) => {
+        if (genderData.status === STATUS.success) {
+
+          this.genderOptions = genderData.payload!.data.map(g => ({
+            id: g.id,
+            value: g.value,
+            label: g.label,
+          }));
+
+          return this.dictionaryService.getCampusList();
+        }
+
+        throw new Error('Error cargando género');
+      }),
+
+      // 🔥 2. CAMPUS
       switchMap((campusData) => {
         if (campusData.status === STATUS.success) {
 
-          const campusList = campusData.payload!.data;
-
-          this.campusOptions = campusList.map(campus => ({
-            id: campus.id,
-            value: campus.value,
-            label: campus.label,
+          this.campusOptions = campusData.payload!.data.map(c => ({
+            id: c.id,
+            value: c.value,
+            label: c.label,
           }));
 
           return this.dictionaryService.getIdTypeList();
@@ -119,12 +134,11 @@ export class StudentCardRegistrationComponent implements OnInit {
         throw new Error('Error cargando campus');
       }),
 
+      // 🔥 3. ID TYPES
       switchMap((idTypeData) => {
         if (idTypeData.status === STATUS.success) {
 
-          const idTypesList = idTypeData.payload!.data;
-
-          this.idTypeOptions = idTypesList.map(type => ({
+          this.idTypeOptions = idTypeData.payload!.data.map(type => ({
             id: type.id,
             label: `${type.value} - ${type.label}`
           }));
@@ -135,6 +149,7 @@ export class StudentCardRegistrationComponent implements OnInit {
         throw new Error('Error cargando tipos');
       }),
 
+      // 🔥 4. STUDENT
       switchMap((studentData) => {
         if (studentData.status === STATUS.success) {
 
@@ -146,7 +161,6 @@ export class StudentCardRegistrationComponent implements OnInit {
             campus: studentInfo.campus?.id ?? null,
           });
 
-          // 🔥 AQUÍ EL CAMBIO IMPORTANTE
           return forkJoin({
             photo: this.studentCardService.downloadFile('photo'),
             dni: this.studentCardService.downloadFile('dni')
@@ -157,17 +171,10 @@ export class StudentCardRegistrationComponent implements OnInit {
       })
 
     ).subscribe({
-
       next: ({ photo, dni }) => {
-
-        // 📸 FOTO
         this.handlePhotoResponse(photo);
-
-        // 🪪 DNI (puedes hacer otro handler)
         this.handleDniResponse(dni);
-
       },
-
       error: (e) => {
         console.error(e);
         this.notificationService.error(
@@ -179,14 +186,25 @@ export class StudentCardRegistrationComponent implements OnInit {
   }
 
   handleDniResponse(response: HttpResponse<Blob>) {
-    const blob = response.body;
 
-    if (!blob) return;
+    const blob = response.body;
+    const contentType = response.headers.get('content-type') ?? blob?.type ?? '';
+
+    // 🔥 DETECTAR SI NO HAY ARCHIVO REAL
+    if (!blob || contentType.includes('application/json')) {
+
+      console.log('❌ No hay DNI, mostrando placeholder');
+
+      this.dniImageUrl = null;
+      this.dniPdfUrl = null;
+
+      return;
+    }
 
     const url = URL.createObjectURL(blob);
 
     if (blob.type === 'application/pdf') {
-      this.dniPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url); // 🔥 CLAVE
+      this.dniPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
       this.dniImageUrl = null;
     } else {
       this.dniImageUrl = url;
@@ -245,6 +263,7 @@ export class StudentCardRegistrationComponent implements OnInit {
       cellphone: ['', Validators.required],
       address: ['', Validators.required],
       campus: [null, Validators.required],
+      gender: [null, Validators.required],
       photo: [null],
       dni_photo: [null]
     });
