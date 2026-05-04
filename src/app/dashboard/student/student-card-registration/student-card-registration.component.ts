@@ -159,6 +159,7 @@ export class StudentCardRegistrationComponent implements OnInit {
             ...studentInfo,
             id_type: studentInfo.id_type?.id ?? null,
             campus: studentInfo.campus?.id ?? null,
+            gender: studentInfo.gender?.id ?? null
           });
 
           return forkJoin({
@@ -397,7 +398,8 @@ export class StudentCardRegistrationComponent implements OnInit {
       email: formValues.email,
       cellphone: formValues.cellphone,
       address: formValues.address,
-      campus: formValues.campus
+      campus: formValues.campus,
+      gender: formValues.gender
     };
 
     // 🔁 Guardar datos del estudiante
