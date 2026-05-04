@@ -98,6 +98,31 @@
           </div>
 
           <div class="flex flex-column gap-2 mb-4">
+            <label for="gender">Sexo</label>
+            <p-select
+              id="gender"
+              name="gender"
+              [options]="genderOptions"
+              optionLabel="label"
+              optionValue="id"
+              formControlName="gender"
+              placeholder="Seleccione su genero"
+              aria-describedby="gender-help"
+              [ngClass]="{
+                'ng-invalid ng-dirty':
+                  form['gender'].invalid && (form['gender'].dirty || form['gender'].touched)
+              }"
+            ></p-select>
+            <small
+              *ngIf="form['gender'].invalid && (form['gender'].dirty || form['gender'].touched)"
+              class="p-error"
+              id="gender-help"
+            >
+              Este campo es obligatorio.
+            </small>
+          </div>
+
+          <div class="flex flex-column gap-2 mb-4">
             <label for="names">Nombres</label>
             <input
               id="names"
@@ -215,7 +240,7 @@
         </ng-container>
 
         <ng-container *ngIf="currentStep === 1">
-          <div class="flex flex-row flex-wrap justify-content-center align-items-start gap-4 mt-4">
+          <div class="flex flex-row flex-wrap justify-content-center align-items-end gap-4 mt-4">
             <div class="text-center" style="flex: 1 1 300px; min-width: 300px;">
               <img
                 [src]="previewUrl || 'img/card-img.png'"
@@ -255,7 +280,7 @@
 
                 <!-- 🪪 PLACEHOLDER -->
                 <img *ngIf="!dniImageUrl && !dniPdfUrl"
-                     src="img/dni-placeholder.png"
+                     src="/img/dni-placeholder.png"
                      class="preview-placeholder" />
 
               </div>

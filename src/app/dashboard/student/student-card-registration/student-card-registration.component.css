@@ -21,13 +21,15 @@ li {
   justify-content: center;
 }
 
-
+::ng-deep .p-fileupload-basic input[type="file"] {
+  display: none !important;
+}
 
 /* 🖼️ Imagen */
 .preview-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* 📄 PDF */
