@@ -15,7 +15,8 @@ export interface StudentBasicInfo {
   email?: string;               // Correo electrónico
   cellphone?: string;           // Celular
   address?: string;             // Dirección
-  campus?: Dictionary;              // ID de la sede
+  campus?: Dictionary;
+  gender?: Dictionary; // ID de la sede
 }
 
 
