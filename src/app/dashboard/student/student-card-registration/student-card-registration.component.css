@@ -46,3 +46,12 @@ li {
   object-fit: contain;
   padding: 20px;
 }
+
+/* 🔴 ERROR (rojo moderno) */
+.p-error {
+  color: #f59e0b;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
