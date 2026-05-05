@@ -254,12 +254,24 @@ export class StudentCardRegistrationComponent implements OnInit {
   initForm() {
     this.registrationForm = this.fb.group({
       id_type: [null, Validators.required],
-      code: ['', [Validators.required, Validators.maxLength(15)]],
+      code: ['', [
+        Validators.required,
+        Validators.maxLength(15),
+        Validators.pattern(/^[0-9]+$/)
+      ]],
       number: [{ value: '', disabled: true }],
       names: [{ value: '', disabled: true }],
       father_last_name: [{ value: '', disabled: true }],
       mother_last_name: [{ value: '', disabled: true }],
-      check_digit: [null, Validators.required],
+      check_digit: [
+        null,
+        [
+          Validators.required,
+          Validators.min(0),
+          Validators.max(9),
+          Validators.pattern(/^[0-9]$/)
+        ]
+      ],
       email: ['', [Validators.required, Validators.email]],
       cellphone: ['', Validators.required],
       address: ['', Validators.required],
@@ -483,6 +495,53 @@ export class StudentCardRegistrationComponent implements OnInit {
     if (this.previewObjectUrl) {
       URL.revokeObjectURL(this.previewObjectUrl);
       this.previewObjectUrl = null;
+    }
+  }
+
+  onlyNumbers(event: KeyboardEvent) {
+    const allowedKeys = [
+      'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'
+    ];
+
+    if (allowedKeys.includes(event.key)) {
+      return;
+    }
+
+    if (!/^[0-9]$/.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  onPaste(event: ClipboardEvent) {
+    const pasted = event.clipboardData?.getData('text') || '';
+
+    if (!/^[0-9]+$/.test(pasted)) {
+      event.preventDefault();
+    }
+  }
+
+  onlyOneDigit(event: KeyboardEvent) {
+    const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
+
+    if (allowedKeys.includes(event.key)) return;
+
+    if (!/^[0-9]$/.test(event.key)) {
+      event.preventDefault();
+    }
+
+    const input = event.target as HTMLInputElement;
+
+    // impedir más de 1 dígito
+    if (input.value.length >= 1) {
+      event.preventDefault();
+    }
+  }
+
+  onPasteOneDigit(event: ClipboardEvent) {
+    const pasted = event.clipboardData?.getData('text') || '';
+
+    if (!/^[0-9]$/.test(pasted)) {
+      event.preventDefault();
     }
   }
 }
