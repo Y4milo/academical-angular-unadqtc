@@ -254,7 +254,9 @@ export class StudentCardRegistrationComponent implements OnInit {
   initForm() {
     this.registrationForm = this.fb.group({
       id_type: [null, Validators.required],
-      code: ['', [
+      code: [
+        '',
+        [
         Validators.required,
         Validators.maxLength(15),
         Validators.pattern(/^[0-9]+$/)
@@ -272,8 +274,19 @@ export class StudentCardRegistrationComponent implements OnInit {
           Validators.pattern(/^[0-9]$/)
         ]
       ],
-      email: ['', [Validators.required, Validators.email]],
-      cellphone: ['', Validators.required],
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)
+        ]
+      ],
+      cellphone: [
+        '', [
+          Validators.required,
+          Validators.maxLength(9),
+          Validators.pattern(/^[0-9]+$/)
+        ]],
       address: ['', Validators.required],
       campus: [null, Validators.required],
       gender: [null, Validators.required],

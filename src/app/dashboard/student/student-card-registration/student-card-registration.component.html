@@ -182,8 +182,13 @@
               type="email"
               pInputText
               formControlName="email"
+              inputmode="email"
+              autocomplete="email"
               aria-describedby="email-help"
-              [ngClass]="{ 'ng-invalid ng-dirty': form['email'].invalid && (form['email'].dirty || form['email'].touched) }"
+              [ngClass]="{
+                'ng-invalid ng-dirty':
+                form['email'].invalid && (form['email'].dirty || form['email'].touched)
+              }"
             />
             <small *ngIf="form['email'].invalid && (form['email'].dirty || form['email'].touched)" class="p-error" id="email-help">
               Ingresa un correo electrónico valido.
