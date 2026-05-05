@@ -33,6 +33,9 @@
               name="code_student"
               pInputText
               formControlName="code"
+              (keydown)="onlyNumbers($event)"
+              (paste)="onPaste($event)"
+              inputmode="numeric"
               aria-describedby="code_student-help"
               [ngClass]="{ 'ng-invalid ng-dirty': form['code'].invalid && (form['code'].dirty || form['code'].touched) }"
             />
@@ -86,9 +89,13 @@
             <input
               id="check_digit"
               name="check_digit"
-              type="number"
+              type="text"
               pInputText
               formControlName="check_digit"
+              maxlength="1"
+              (keydown)="onlyOneDigit($event)"
+              (paste)="onPasteOneDigit($event)"
+              inputmode="numeric"
               aria-describedby="check_digit-help"
               [ngClass]="{ 'ng-invalid ng-dirty': form['check_digit'].invalid && (form['check_digit'].dirty || form['check_digit'].touched) }"
             />
@@ -189,6 +196,9 @@
               id="cellphone"
               name="cellphone"
               pInputText
+              (keydown)="onlyNumbers($event)"
+              (paste)="onPaste($event)"
+              inputmode="numeric"
               formControlName="cellphone"
               aria-describedby="cellphone-help"
               [ngClass]="{ 'ng-invalid ng-dirty': form['cellphone'].invalid && (form['cellphone'].dirty || form['cellphone'].touched) }"
