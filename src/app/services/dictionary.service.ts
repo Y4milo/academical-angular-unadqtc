@@ -67,7 +67,7 @@ export class DictionaryService {
   logOutAdmin(): Observable<ApiData<Dictionary>> {
     return this.http.get<ApiData<Dictionary>>(`${this.apiURL}/logout-admin`);
   }
-  getStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
+  listStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
     return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-flags`);
   }
   getParticipantList() {
