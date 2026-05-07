@@ -209,12 +209,12 @@
               [ngClass]="{ 'ng-invalid ng-dirty': form['cellphone'].invalid && (form['cellphone'].dirty || form['cellphone'].touched) }"
             />
             <small *ngIf="form['cellphone'].invalid && (form['cellphone'].dirty || form['cellphone'].touched)" class="p-error" id="cellphone-help">
-              Este campo es obligatorio.
+              Este campo es obligatorio, (max. 9 caracteres).
             </small>
           </div>
 
           <div class="flex flex-column gap-2 mb-4">
-            <label for="address">Direccion</label>
+            <label for="address">Dirección</label>
             <input
               id="address"
               name="address"

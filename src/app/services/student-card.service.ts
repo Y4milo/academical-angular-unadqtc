@@ -74,27 +74,27 @@ export class StudentCardService {
 
 // 📋 LISTADOS
 
-  getPendingStudentCards(): Observable<ApiData<StudentCard[]>> {
+  listPendingStudentCards(): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/pending`
+      `${this.apiURL}/student-cards/academic/list/student/pending`
     );
   }
 
-  getUnmatchedStudentCards(): Observable<ApiData<StudentCard[]>> {
+  listUnmatchedStudentCards(): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/unmatched`
+      `${this.apiURL}/student-cards/academic/list/student/unmatched`
     );
   }
 
-  getValidatedStudentCards(): Observable<ApiData<StudentCard[]>> {
+  listValidatedStudentCards(): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/validated`
+      `${this.apiURL}/student-cards/academic/list/student/validated`
     );
   }
 
-  getFlaggedStudentCards(): Observable<ApiData<StudentCard[]>> {
+  listFlaggedStudentCards(): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/flagged`
+      `${this.apiURL}/student-cards/academic/list/student/flagged`
     );
   }
 

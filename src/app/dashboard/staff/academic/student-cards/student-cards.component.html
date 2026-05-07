@@ -9,27 +9,85 @@
         <p-table [value]="pendingStudents" class="p-datatable-sm" responsiveLayout="scroll">
           <ng-template pTemplate="header">
             <tr>
-              <th>CÓDIGO</th>
-              <th>NOMBRES Y APELLIDOS</th>
-              <th>SEDE</th>
+              <th>ALUMNO</th>
               <th>CELULAR</th>
-              <th>FOTO</th>
-              <th>DNI/PP/CE/CI</th>
+              <th>DNI</th>
               <th>OPCIONES</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-student>
             <tr>
-              <td>{{ student.code }}</td>
-              <td>{{ student.fullName }}</td>
-              <td>{{ student.campus }}</td>
-              <td>{{ student.cellphone }}</td>
+              <!-- ALUMNO -->
               <td>
-                <img [src]="storageURL + student.photo_path" alt="foto" width="50" height="60" />
+                <div class="flex gap-3 items-center">
+
+                  <!-- FOTO -->
+                  <img
+                    [src]="storageURL + student.photo?.path"
+                    alt="foto"
+                    width="60"
+                    height="75"
+                    class="border-round shadow-2"
+                  />
+
+                  <!-- DATOS -->
+                  <div class="flex flex-column">
+          <span class="font-bold text-lg">
+            {{ student.fullName }}
+          </span>
+
+                    <span class="text-sm text-600">
+            {{ student.code }}
+          </span>
+
+                    <span class="text-sm text-600">
+            {{ student.number }}
+          </span>
+
+                    <span class="text-sm text-500">
+            {{ student.campus }}
+          </span>
+                  </div>
+
+                </div>
               </td>
-              <td>{{ student.id_student }}</td>
-              <td class="justify-center">
-                <div class="flex justify-center flex-wrap gap-1 mb-6">
+
+              <!-- CELULAR -->
+              <td>
+                {{ student.cellphone }}
+              </td>
+
+              <!-- DNI -->
+              <td>
+                <div *ngIf="student.dni" class="flex justify-center">
+
+                  <!-- Si es imagen -->
+                  <img
+                    *ngIf="student.dni.mime_type?.includes('image')"
+                    [src]="storageURL + student.dni.path"
+                    width="50"
+                    height="60"
+                    class="border-round shadow-1 cursor-pointer"
+                    (click)="previewFile(student.dni)"
+                  />
+
+                  <!-- Si es PDF -->
+                  <div
+                    *ngIf="student.dni.mime_type?.includes('pdf')"
+                    class="flex flex-column align-items-center cursor-pointer"
+                    (click)="previewFile(student.dni)"
+                  >
+                    <i class="pi pi-file-pdf text-red-500 text-2xl"></i>
+                    <small>Ver</small>
+                  </div>
+
+                </div>
+              </td>
+
+              <!-- OPCIONES -->
+              <td>
+                <div class="flex justify-center gap-2">
+
                   <p-button
                     icon="pi pi-download"
                     [rounded]="true"
@@ -37,7 +95,6 @@
                     severity="secondary"
                     (onClick)="downloadStudentPhoto(student)"
                     pTooltip="Descargar foto"
-                    tooltipPosition="top"
                   ></p-button>
 
                   <p-button
@@ -47,7 +104,6 @@
                     severity="success"
                     (onClick)="validateCardStudent(student)"
                     pTooltip="Validar estudiante"
-                    tooltipPosition="top"
                   ></p-button>
 
                   <p-button
@@ -55,13 +111,13 @@
                     [rounded]="true"
                     [text]="true"
                     severity="warn"
-                    pTooltip="Observar carnet"
-                    tooltipPosition="top"
-                    [disabled]="selectedFlaggedCard?.id === student.id"
                     (onClick)="openObservationPanel($event, student)"
+                    pTooltip="Observar carnet"
                   ></p-button>
+
                 </div>
               </td>
+
             </tr>
           </ng-template>
         </p-table>

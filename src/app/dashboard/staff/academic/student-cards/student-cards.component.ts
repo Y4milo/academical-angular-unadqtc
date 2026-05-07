@@ -59,7 +59,7 @@ export class StudentCardsComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.dictionaryService.getStudentCardFlags().subscribe({
+    this.dictionaryService.listStudentCardFlags().subscribe({
       next: studentCardFlagsData => {
         if (studentCardFlagsData.status === STATUS.success) {
           const flaggedList = studentCardFlagsData.payload!.data;
@@ -79,7 +79,7 @@ export class StudentCardsComponent implements OnInit {
         console.error(e);
       }
     });
-    this.studentCardService.getPendingStudentCards().subscribe({
+    this.studentCardService.listPendingStudentCards().subscribe({
       next: pendingStudentCardsData => {
         if (pendingStudentCardsData.status === STATUS.success) {
           this.pendingStudents = pendingStudentCardsData.payload.data;
@@ -95,7 +95,7 @@ export class StudentCardsComponent implements OnInit {
         console.error(e);
       }
     });
-    this.studentCardService.getUnmatchedStudentCards().subscribe({
+    this.studentCardService.listUnmatchedStudentCards().subscribe({
       next: unmatchedStudentCardsData => {
         if (unmatchedStudentCardsData.status === STATUS.success) {
           this.unmatchedStudent = unmatchedStudentCardsData.payload.data;
@@ -111,7 +111,7 @@ export class StudentCardsComponent implements OnInit {
         console.error(e);
       }
     });
-    this.studentCardService.getValidatedStudentCards().subscribe({
+    this.studentCardService.listValidatedStudentCards().subscribe({
       next: validatedStudentCardsData => {
         if (validatedStudentCardsData.status === STATUS.success) {
           this.validatedStudents = validatedStudentCardsData.payload.data;
@@ -127,7 +127,7 @@ export class StudentCardsComponent implements OnInit {
         console.error(e);
       }
     });
-    this.studentCardService.getFlaggedStudentCards().subscribe({
+    this.studentCardService.listFlaggedStudentCards().subscribe({
       next: flaggedStudentCardsData => {
         if (flaggedStudentCardsData.status === STATUS.success) {
           this.flaggedStudents = flaggedStudentCardsData.payload.data;
@@ -469,5 +469,9 @@ export class StudentCardsComponent implements OnInit {
     this.selectedUploadCard = student;
     this.fileUploader.clear();
     this.overlayUploadPhoto.toggle(event);
+  }
+
+  previewFile(file: any) {
+    window.open(this.storageURL + file.path, '_blank');
   }
 }
