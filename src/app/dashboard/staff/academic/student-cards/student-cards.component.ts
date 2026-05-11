@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {StudentCard} from '../../../../models/student/student-card.model';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {TableModule} from 'primeng/table';
 import {StudentCardService} from '../../../../services/student-card.service';
 import {NotificationService} from '../../../../services/notification.service';
@@ -210,11 +210,16 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       cellphone: ['', [Validators.required, Validators.maxLength(9), Validators.pattern(/^[0-9]+$/)]],
       address: ['', Validators.required],
       campus: [null, Validators.required],
-    });
+    }, {validators: this.codeMustDifferFromDocumentValidator()});
   }
 
   get editForm() {
     return this.editStudentForm.controls;
+  }
+
+  hasEditCodeDocumentConflict(): boolean {
+    return this.editStudentForm.hasError('codeMatchesDocument')
+      && (this.editForm['code'].dirty || this.editForm['code'].touched);
   }
 
   private loadEditFormDictionaries(): void {
@@ -373,6 +378,10 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         control.markAsTouched();
         control.updateValueAndValidity();
       });
+      if (this.editStudentForm.hasError('codeMatchesDocument')) {
+        this.notificationService.warning('Advertencia', 'El código del alumno no puede ser igual al documento.');
+        return;
+      }
       this.notificationService.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
       return;
     }
@@ -436,6 +445,28 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     return student.campus?.label ?? 'Sin sede';
   }
 
+  hasMissingCampus(student: StudentCard): boolean {
+    return this.getCampusLabel(student).trim().toLowerCase() === 'sin sede';
+  }
+
+  isCodeSameAsDocument(student: StudentCard): boolean {
+    const code = student.code?.trim();
+    const documentNumber = (student.number || student.id_student)?.trim();
+
+    return !!code && !!documentNumber && code === documentNumber;
+  }
+
+  private codeMustDifferFromDocumentValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const code = control.get('code')?.value?.toString().trim();
+      const documentNumber = control.get('number')?.value?.toString().trim();
+
+      return code && documentNumber && code === documentNumber
+        ? {codeMatchesDocument: true}
+        : null;
+    };
+  }
+
   getFileStatusLabel(student: StudentCard, type: StudentFileType): string {
     return student[type]?.status?.label ?? 'Pendiente';
   }
@@ -475,13 +506,38 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   canValidateReview(): boolean {
-    return !!this.reviewStudent && this.suneduPhotoValidated && this.identityConfirmed && !this.isReviewSubmitting;
+    return !!this.reviewStudent
+      && !this.isCodeSameAsDocument(this.reviewStudent)
+      && !this.hasMissingCampus(this.reviewStudent)
+      && this.suneduPhotoValidated
+      && this.identityConfirmed
+      && !this.isReviewSubmitting;
   }
 
   confirmReviewValidation(): void {
     const student = this.reviewStudent;
 
-    if (!student || !this.canValidateReview()) {
+    if (!student) {
+      return;
+    }
+
+    if (this.isCodeSameAsDocument(student)) {
+      this.notificationService.warning(
+        'Datos no validos',
+        'El código del alumno no puede ser igual al documento.'
+      );
+      return;
+    }
+
+    if (this.hasMissingCampus(student)) {
+      this.notificationService.warning(
+        'Datos incompletos',
+        'El estudiante debe tener una sede asignada antes de validar.'
+      );
+      return;
+    }
+
+    if (!this.canValidateReview()) {
       this.notificationService.warning(
         'Validación incompleta',
         'Debe aprobar la foto SUNEDU y confirmar la identidad con el DNI.'

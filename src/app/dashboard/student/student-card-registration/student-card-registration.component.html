@@ -36,10 +36,17 @@
               (paste)="onPaste($event)"
               inputmode="numeric"
               aria-describedby="code_student-help"
-              [ngClass]="{ 'ng-invalid ng-dirty': form['code'].invalid && (form['code'].dirty || form['code'].touched) }"
+              [ngClass]="{
+                'ng-invalid ng-dirty':
+                  (form['code'].invalid && (form['code'].dirty || form['code'].touched))
+                  || hasCodeDocumentConflict()
+              }"
             />
             <small *ngIf="form['code'].invalid && (form['code'].dirty || form['code'].touched)" class="p-error" id="code_student-help">
               Este campo es obligatorio (max. 15 caracteres).
+            </small>
+            <small *ngIf="hasCodeDocumentConflict()" class="p-error">
+              El código del alumno no puede ser igual al DNI.
             </small>
           </div>
 
