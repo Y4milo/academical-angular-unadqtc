@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import {Select} from 'primeng/select';
 import { DictionaryService } from '../../../services/dictionary.service';
 import { StudentService } from '../../../services/student.service';
-import { Router} from '@angular/router';
 import { StudentCardService } from '../../../services/student-card.service';
 import {validatePhotoCardStudent} from '../../../helper/helper.util';
 import {Dictionary} from '../../../models/dictionary.model';
@@ -21,8 +20,10 @@ import {LoginService} from '../../../services/login.service';
 import {HttpResponse} from '@angular/common/http';
 import {StudentUser} from '../../../models/student-user.model';
 import {StudentBasicInfo} from '../../../models/student/student-basic-info.model';
-import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-import {forkJoin, switchMap} from 'rxjs';
+import {DomSanitizer} from '@angular/platform-browser';
+import {concatMap, finalize, forkJoin, of, switchMap} from 'rxjs';
+import {Router} from '@angular/router';
+import {PATHS} from '../../../core/constants/paths';
 
 
 @Component({
@@ -42,12 +43,13 @@ import {forkJoin, switchMap} from 'rxjs';
   templateUrl: 'student-card-registration.component.html',
   styleUrl: 'student-card-registration.component.css',
 })
-export class StudentCardRegistrationComponent implements OnInit {
+export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
 
   currentStep = 0;
   steps = [
     { label: 'Datos Personales' },
-    { label: 'Foto del Carné' }
+    { label: 'Foto y DNI' },
+    { label: 'Registro completo' }
   ];
 
   registrationForm!: FormGroup;
@@ -72,7 +74,9 @@ export class StudentCardRegistrationComponent implements OnInit {
 
   dniPdfUrl: any | null = null;
   dniImageUrl: string | null = null;
+  dniObjectUrl: string | null = null;
   selectedDniFile: File | null = null;
+  isSubmitting = false;
 
   /**
    * Constructor - se inyectan FormBuilder y MessageService para formularios y notificaciones
@@ -85,6 +89,7 @@ export class StudentCardRegistrationComponent implements OnInit {
     private studentCardService: StudentCardService,
     private loginService: LoginService,
     private sanitizer: DomSanitizer,
+    private router: Router,
   ) { }
 
   ngOnInit(): void {
@@ -93,6 +98,11 @@ export class StudentCardRegistrationComponent implements OnInit {
     this.initForm();
     this.initializeFlow()
 
+  }
+
+  ngOnDestroy(): void {
+    this.revokePreviewObjectUrl();
+    this.revokeDniObjectUrl();
   }
 
   initializeFlow() {
@@ -195,13 +205,16 @@ export class StudentCardRegistrationComponent implements OnInit {
 
       console.log('❌ No hay DNI, mostrando placeholder');
 
+      this.revokeDniObjectUrl();
       this.dniImageUrl = null;
       this.dniPdfUrl = null;
 
       return;
     }
 
+    this.revokeDniObjectUrl();
     const url = URL.createObjectURL(blob);
+    this.dniObjectUrl = url;
 
     if (blob.type === 'application/pdf') {
       this.dniPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -349,6 +362,7 @@ export class StudentCardRegistrationComponent implements OnInit {
     this.revokePreviewObjectUrl();
 
     this.selectedPhotoFile = file;
+    this.hasValidatedPhoto = true;
     this.previewObjectUrl = URL.createObjectURL(file);
     this.previewUrl = this.previewObjectUrl;
 
@@ -371,12 +385,15 @@ export class StudentCardRegistrationComponent implements OnInit {
         'El DNI no debe superar los 20MB.'
       );
 
+      this.selectedDniFile = null;
       return;
     }
 
+    this.revokeDniObjectUrl();
     this.selectedDniFile = file;
 
     const url = URL.createObjectURL(file);
+    this.dniObjectUrl = url;
 
     if (file.type === 'application/pdf') {
       this.dniPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -392,6 +409,10 @@ export class StudentCardRegistrationComponent implements OnInit {
    * También actualiza los datos del estudiante vía Student_cards.
    */
   submitForm(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
     // 1. VALIDAR FORMULARIO
     if (!this.registrationForm.valid) {
       Object.values(this.registrationForm.controls).forEach(control => {
@@ -421,8 +442,6 @@ export class StudentCardRegistrationComponent implements OnInit {
       return;
     }
 
-    console.log('Formulario válido, enviando...');
-
     // ✅ 1. EXTRAER SOLO DATOS (SIN ARCHIVOS)
     const formValues = this.registrationForm.value;
 
@@ -438,45 +457,11 @@ export class StudentCardRegistrationComponent implements OnInit {
     };
 
     // 🔁 Guardar datos del estudiante
-    this.studentService.updateBasicInfo(payload).subscribe({
-      next: (studentResponse) => {
-        if (studentResponse.status === STATUS.success){
-          this.studentPayloadResponse = true;
-          console.log(studentResponse);
-        }
-        this.notificationService.notifyApiData(studentResponse);
-      },
-      error: (e) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      }
-    });
-
     // 🔁 Guardar foto del estudiante
     const formDataPhoto = new FormData();
     if (this.selectedPhotoFile) {
       formDataPhoto.append('photo', this.selectedPhotoFile);
     }
-
-    this.studentCardService.uploadCardPhoto(formDataPhoto).subscribe({
-      next: (cardPhotoResponse) => {
-        if (cardPhotoResponse.status === STATUS.success) {
-          this.photoPayloadResponse = true
-          console.log(cardPhotoResponse);
-        }
-        this.notificationService.notifyApiData(cardPhotoResponse);
-      },
-      error: (e) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      }
-    });
 
     // 🔁 Guardar dni del estudiante
     const formDataDni = new FormData();
@@ -484,15 +469,43 @@ export class StudentCardRegistrationComponent implements OnInit {
     if (this.selectedDniFile) {
       formDataDni.append('dni', this.selectedDniFile);
     }
-    this.studentCardService.uploadDniPhoto(formDataDni).subscribe({
-      next: (dniPhotoResponse) => {
-        if (dniPhotoResponse.status === STATUS.success) {
-          this.dniPayloadResponse = true;
-          console.log(dniPhotoResponse);
-        }
-        this.notificationService.notifyApiData(dniPhotoResponse);
+    this.studentPayloadResponse = false;
+    this.photoPayloadResponse = false;
+    this.dniPayloadResponse = false;
+    this.isSubmitting = true;
+
+    this.studentService.updateBasicInfo(payload).pipe(
+      concatMap((studentResponse) => {
+        this.ensureApiSuccess(studentResponse);
+        this.studentPayloadResponse = true;
+        return this.studentCardService.uploadCardPhoto(formDataPhoto);
+      }),
+      concatMap((cardPhotoResponse) => {
+        this.ensureApiSuccess(cardPhotoResponse);
+        this.photoPayloadResponse = true;
+        return this.studentCardService.uploadDniPhoto(formDataDni);
+      }),
+      concatMap((dniPhotoResponse) => {
+        this.ensureApiSuccess(dniPhotoResponse);
+        this.dniPayloadResponse = true;
+        return of(dniPhotoResponse);
+      }),
+      finalize(() => {
+        this.isSubmitting = false;
+      })
+    ).subscribe({
+      next: () => {
+        this.currentStep = 2;
+        this.notificationService.success(
+          'Registro completo',
+          'Tus datos, foto y DNI fueron registrados correctamente.'
+        );
       },
       error: (e) => {
+        if (e?.message === 'api-flow-stopped') {
+          return;
+        }
+
         this.notificationService.error(
           NOTIFICATION_MESSAGE.error_connection.title,
           NOTIFICATION_MESSAGE.error_connection.message
@@ -500,6 +513,20 @@ export class StudentCardRegistrationComponent implements OnInit {
         console.error(e);
       }
     });
+  }
+
+  private ensureApiSuccess(response: any): void {
+    if (response.status === STATUS.success) {
+      return;
+    }
+
+    this.notificationService.notifyApiData(response);
+    throw new Error('api-flow-stopped');
+  }
+
+  logoutStudent(): void {
+    this.loginService.removeUser();
+    this.router.navigate([PATHS.login.student]);
   }
 
 
@@ -518,6 +545,13 @@ export class StudentCardRegistrationComponent implements OnInit {
     if (this.previewObjectUrl) {
       URL.revokeObjectURL(this.previewObjectUrl);
       this.previewObjectUrl = null;
+    }
+  }
+
+  private revokeDniObjectUrl(): void {
+    if (this.dniObjectUrl) {
+      URL.revokeObjectURL(this.dniObjectUrl);
+      this.dniObjectUrl = null;
     }
   }
 

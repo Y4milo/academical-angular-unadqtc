@@ -7,17 +7,20 @@ export const API_STUDENT_CARDS = {
 
       DOWNLOAD: {
         STUDENT: {
+          FILE_BY_TYPE: (studentCardId: number, type: StudentFileType) =>
+            `/student-cards/academic/download/student/${studentCardId}/file/${type}`,
           FILE:{
-            PHOTO: 'student-cards/academic/download/student/photo',
-            ZIP: 'student-cards/academic/download/student/zip',
-            PDF: 'student-cards/academic/download/student/pdf',
-            XLSX: 'student-cards/academic/download/student/xslx',
+            PHOTO: '/student-cards/academic/download/student/photo',
+            ZIP: '/student-cards/academic/download/student/zip',
+            PDF: '/student-cards/academic/download/student/pdf',
+            XLSX: '/student-cards/academic/download/student/xlsx',
           }
         }
       },
 
       UPDATE: {
         STUDENT: {
+          BASIC_INFO: '/student-cards/academic/update/student/basic-info',
           FILE: {
             PHOTO : '/student-cards/academic/update/student/file/photo'
           }
@@ -26,9 +29,10 @@ export const API_STUDENT_CARDS = {
 
       SET: {
         STUDENT: {
-          VALIDATE: {
-            FILE: (type: string) => `/student-cards/academic/update/student/file/${type}`
-          }
+          VALIDATE: '/student-cards/academic/set/student/validate',
+          PENDING: '/student-cards/academic/set/student/pending',
+          FLAGS: '/student-cards/academic/set/student/flags',
+          FILE_STATUS: '/student-cards/academic/set/student/file-status',
         }
       },
 

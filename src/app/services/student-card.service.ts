@@ -6,6 +6,7 @@ import {environment} from '../../environments/environment';
 import {Dictionary} from '../models/dictionary.model';
 import {StudentCard} from '../models/student/student-card.model';
 import {API_STUDENT_CARDS, StudentFileType} from '../core/constants/api/student_cards';
+import {StudentBasicInfo} from '../models/student/student-basic-info.model';
 
 @Injectable({
   providedIn: 'root'
@@ -40,7 +41,7 @@ export class StudentCardService {
   downloadFile(type: StudentFileType) {
 
     return this.http.get(
-      `${API_STUDENT_CARDS.STUDENT.DOWNLOAD.FILE(type)}?t=${Date.now()}`,
+      `${this.apiURL}${API_STUDENT_CARDS.STUDENT.DOWNLOAD.FILE(type)}?t=${Date.now()}`,
       {
         responseType: 'blob',
         observe: 'response'
@@ -60,8 +61,15 @@ export class StudentCardService {
   // 📸 Actualizar foto
   updateStudentPhoto(formData: FormData): Observable<ApiData<StudentCard>> {
     return this.http.post<ApiData<StudentCard>>(
-      `${this.apiURL}/student-cards/academic/set/update-photo`,
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.UPDATE.STUDENT.FILE.PHOTO}`,
       formData
+    );
+  }
+
+  updateAcademicStudentBasicInfo(studentData: StudentBasicInfo & { id: number }): Observable<ApiData<StudentCard>> {
+    return this.http.put<ApiData<StudentCard>>(
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.UPDATE.STUDENT.BASIC_INFO}`,
+      studentData
     );
   }
 
@@ -95,21 +103,33 @@ export class StudentCardService {
 
   validateStudentCard(data: FormData): Observable<ApiData<Dictionary>> {
     return this.http.post<ApiData<Dictionary>>(
-      `${this.apiURL}/student-cards/academic/set/validate-student`,
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.SET.STUDENT.VALIDATE}`,
       data
     );
   }
 
   pendingStudentCard(data: FormData): Observable<ApiData<Dictionary>> {
     return this.http.post<ApiData<Dictionary>>(
-      `${this.apiURL}/student-cards/academic/set/pending-student`,
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.SET.STUDENT.PENDING}`,
       data
     );
   }
 
   setFlaggedStudentCard(data: any): Observable<ApiData<Dictionary>> {
     return this.http.post<ApiData<Dictionary>>(
-      `${this.apiURL}/student-cards/academic/set/selected-flags`,
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.SET.STUDENT.FLAGS}`,
+      data
+    );
+  }
+
+  setStudentFileStatus(data: {
+    id: number;
+    type: StudentFileType;
+    status: 'approved' | 'rejected' | 'pending';
+    flags?: any[];
+  }): Observable<ApiData<any>> {
+    return this.http.post<ApiData<any>>(
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.SET.STUDENT.FILE_STATUS}`,
       data
     );
   }
@@ -118,19 +138,19 @@ export class StudentCardService {
 
   downloadStudentPhotosZip(): Observable<Blob> {
     return this.http.get(
-      `${this.apiURL}/student-cards/academic/download/zip`,
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.ZIP}`,
       { responseType: 'blob' }
     );
   }
 
   downloadStudentCardsExcel(): Observable<Blob> {
-    return this.http.get(`${this.apiURL}/student-cards/academic/download/xlsx`, {
+    return this.http.get(`${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.XLSX}`, {
       responseType: 'blob'
     });
   }
 
   downloadStudentCardsPdf(): Observable<Blob> {
-    return this.http.get(`${this.apiURL}/student-cards/academic/download/xlsx`, {
+    return this.http.get(`${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.PDF}`, {
       responseType: 'blob'
     });
   }
@@ -140,6 +160,16 @@ export class StudentCardService {
       `${this.apiURL}/student-cards/academic/download/photo`,
       formData,
       { responseType: 'blob' }
+    );
+  }
+
+  downloadAcademicStudentFile(studentCardId: number, type: StudentFileType): Observable<HttpResponse<Blob>> {
+    return this.http.get(
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE_BY_TYPE(studentCardId, type)}?t=${Date.now()}`,
+      {
+        responseType: 'blob',
+        observe: 'response'
+      }
     );
   }
 }
