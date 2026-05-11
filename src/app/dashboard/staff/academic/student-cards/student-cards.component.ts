@@ -19,6 +19,7 @@ import {FileUpload, FileUploadModule} from 'primeng/fileupload';
 import {ApiData} from '../../../../models/api/api-data.model';
 import {STATUS} from '../../../../core/constants/status';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-student-cards',
@@ -35,6 +36,7 @@ import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_mess
     OverlayPanelModule,
     PopoverModule,
     FileUploadModule,
+    NgIf,
   ],
   templateUrl: './student-cards.component.html',
   styleUrl: './student-cards.component.css'

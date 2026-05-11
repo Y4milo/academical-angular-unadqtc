@@ -83,7 +83,6 @@ export class StudentCardRegistrationComponent implements OnInit {
     private dictionaryService: DictionaryService,
     private studentService: StudentService,
     private studentCardService: StudentCardService,
-    private router: Router,
     private loginService: LoginService,
     private sanitizer: DomSanitizer,
   ) { }
@@ -359,13 +358,26 @@ export class StudentCardRegistrationComponent implements OnInit {
   onDniSelect(event: any) {
 
     const file: File = event.files[0];
+
     if (!file) return;
+
+    // ✅ MAX 20MB
+    const maxSize = 20 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+
+      this.notificationService.warning(
+        'Archivo demasiado grande',
+        'El DNI no debe superar los 20MB.'
+      );
+
+      return;
+    }
 
     this.selectedDniFile = file;
 
     const url = URL.createObjectURL(file);
 
-    // 🔥 IMPORTANTE: detectar tipo
     if (file.type === 'application/pdf') {
       this.dniPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
       this.dniImageUrl = null;
@@ -373,13 +385,11 @@ export class StudentCardRegistrationComponent implements OnInit {
       this.dniImageUrl = url;
       this.dniPdfUrl = null;
     }
-
-    console.log('DNI seleccionado:', file.type); // 👈 debug
   }
 
   /**
    * Envía el formulario si es válido y la foto está presente.
-   * También actualiza los datos del estudiante vía API.
+   * También actualiza los datos del estudiante vía Student_cards.
    */
   submitForm(): void {
     // 1. VALIDAR FORMULARIO

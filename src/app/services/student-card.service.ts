@@ -5,6 +5,7 @@ import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
 import {Dictionary} from '../models/dictionary.model';
 import {StudentCard} from '../models/student/student-card.model';
+import {API_STUDENT_CARDS, StudentFileType} from '../core/constants/api/student_cards';
 
 @Injectable({
   providedIn: 'root'
@@ -36,18 +37,10 @@ export class StudentCardService {
     );
   }
 
-  // downloadLastValidatedStudentPhoto() {
-  //   return this.http.get(
-  //     '/api/student-cards/student/download/file/last-validated-photo?t=' + Date.now(),
-  //     {
-  //       responseType: 'blob',
-  //       observe: 'response'
-  //     }
-  //   );
-  // }
-  downloadFile(type: 'photo' | 'dni') {
+  downloadFile(type: StudentFileType) {
+
     return this.http.get(
-      `/api/student-cards/student/download/file/${type}?t=${Date.now()}`,
+      `${API_STUDENT_CARDS.STUDENT.DOWNLOAD.FILE(type)}?t=${Date.now()}`,
       {
         responseType: 'blob',
         observe: 'response'
