@@ -45,3 +45,8 @@
   max-height: 440px;
   object-fit: contain;
 }
+
+.student-code-warning {
+  color: var(--p-yellow-600) !important;
+  font-weight: 700;
+}

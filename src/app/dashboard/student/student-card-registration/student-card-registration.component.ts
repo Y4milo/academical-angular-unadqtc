@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { StepsModule } from 'primeng/steps';
@@ -304,13 +304,18 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
       gender: [null, Validators.required],
       photo: [null],
       dni_photo: [null]
-    });
+    }, {validators: this.codeMustDifferFromDocumentValidator()});
 
     this.studentUser = this.loginService.getStudent();
   }
 
   get form() {
     return this.registrationForm.controls;
+  }
+
+  hasCodeDocumentConflict(): boolean {
+    return this.registrationForm.hasError('codeMatchesDocument')
+      && (this.form['code'].dirty || this.form['code'].touched);
   }
 
   /** Avanza al siguiente paso si es válido */
@@ -322,6 +327,10 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
         control.markAsTouched();
         control.updateValueAndValidity();
       });
+      if (this.registrationForm.hasError('codeMatchesDocument')) {
+        this.notificationService.warning('Advertencia', 'El código del alumno no puede ser igual al DNI.');
+        return;
+      }
       this.notificationService.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
     }
   }
@@ -419,6 +428,14 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
         control.markAsTouched();
         control.updateValueAndValidity();
       });
+
+      if (this.registrationForm.hasError('codeMatchesDocument')) {
+        this.notificationService.warning(
+          'Advertencia',
+          'El código del alumno no puede ser igual al DNI.'
+        );
+        return;
+      }
 
       this.notificationService.warning(
         'Advertencia',
@@ -600,5 +617,16 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     if (!/^[0-9]$/.test(pasted)) {
       event.preventDefault();
     }
+  }
+
+  private codeMustDifferFromDocumentValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const code = control.get('code')?.value?.toString().trim();
+      const documentNumber = control.get('number')?.value?.toString().trim();
+
+      return code && documentNumber && code === documentNumber
+        ? {codeMatchesDocument: true}
+        : null;
+    };
   }
 }

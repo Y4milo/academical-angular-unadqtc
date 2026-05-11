@@ -69,7 +69,12 @@
                       {{ student.fullName }}
                     </span>
 
-                    <span class="text-sm text-600">Código: {{ student.code }}</span>
+                    <span
+                      class="text-sm text-600"
+                      [class.student-code-warning]="isCodeSameAsDocument(student)"
+                    >
+                      Código: {{ student.code }}
+                    </span>
                     <span class="text-sm text-600">Documento: {{ student.number || student.id_student }}</span>
                     <span class="text-sm text-500">Sede: {{ getCampusLabel(student) }}</span>
 
@@ -440,7 +445,15 @@
           <div class="flex flex-wrap justify-content-between gap-3">
             <div>
               <div class="text-xl font-bold">{{ reviewStudent.fullName }}</div>
-              <div class="text-sm text-600">Código: {{ reviewStudent.code }}</div>
+              <div
+                class="text-sm text-600"
+                [class.student-code-warning]="isCodeSameAsDocument(reviewStudent)"
+              >
+                Código: {{ reviewStudent.code }}
+              </div>
+              @if (isCodeSameAsDocument(reviewStudent)) {
+                <small class="p-error">El código del alumno no puede ser igual al documento.</small>
+              }
               <div class="text-sm text-600">Documento: {{ reviewStudent.number || reviewStudent.id_student }}</div>
               <div class="text-sm text-600">Sede: {{ getCampusLabel(reviewStudent) }}</div>
               <div class="text-sm text-600">Celular: {{ reviewStudent.cellphone }}</div>
@@ -598,10 +611,17 @@
                 (keydown)="onlyNumbers($event)"
                 (paste)="onPaste($event)"
                 inputmode="numeric"
-                [ngClass]="{ 'ng-invalid ng-dirty': editForm['code'].invalid && (editForm['code'].dirty || editForm['code'].touched) }"
+                [ngClass]="{
+                  'ng-invalid ng-dirty':
+                    (editForm['code'].invalid && (editForm['code'].dirty || editForm['code'].touched))
+                    || hasEditCodeDocumentConflict()
+                }"
               />
               @if (editForm['code'].invalid && (editForm['code'].dirty || editForm['code'].touched)) {
                 <small class="p-error">Este campo es obligatorio (max. 15 caracteres).</small>
+              }
+              @if (hasEditCodeDocumentConflict()) {
+                <small class="p-error">El código del alumno no puede ser igual al documento.</small>
               }
             </div>
           </div>
