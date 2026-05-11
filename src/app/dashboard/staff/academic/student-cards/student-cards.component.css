@@ -46,7 +46,43 @@
   object-fit: contain;
 }
 
-.student-code-warning {
+.student-data-warning {
   color: var(--p-yellow-600) !important;
   font-weight: 700;
+}
+
+.review-decision-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.review-decision-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 9rem;
+  padding: 1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+}
+
+.review-decision-section-success {
+  border-color: color-mix(in srgb, var(--p-green-500) 42%, var(--surface-border));
+}
+
+.review-decision-section-warning {
+  border-color: color-mix(in srgb, var(--p-yellow-500) 42%, var(--surface-border));
+}
+
+.review-decision-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .review-decision-grid {
+    grid-template-columns: 1fr;
+  }
 }

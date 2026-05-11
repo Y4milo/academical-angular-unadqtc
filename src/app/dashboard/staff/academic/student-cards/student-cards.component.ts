@@ -445,6 +445,10 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     return student.campus?.label ?? 'Sin sede';
   }
 
+  hasMissingCampus(student: StudentCard): boolean {
+    return this.getCampusLabel(student).trim().toLowerCase() === 'sin sede';
+  }
+
   isCodeSameAsDocument(student: StudentCard): boolean {
     const code = student.code?.trim();
     const documentNumber = (student.number || student.id_student)?.trim();
@@ -504,6 +508,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   canValidateReview(): boolean {
     return !!this.reviewStudent
       && !this.isCodeSameAsDocument(this.reviewStudent)
+      && !this.hasMissingCampus(this.reviewStudent)
       && this.suneduPhotoValidated
       && this.identityConfirmed
       && !this.isReviewSubmitting;
@@ -520,6 +525,14 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       this.notificationService.warning(
         'Datos no validos',
         'El código del alumno no puede ser igual al documento.'
+      );
+      return;
+    }
+
+    if (this.hasMissingCampus(student)) {
+      this.notificationService.warning(
+        'Datos incompletos',
+        'El estudiante debe tener una sede asignada antes de validar.'
       );
       return;
     }

@@ -71,12 +71,17 @@
 
                     <span
                       class="text-sm text-600"
-                      [class.student-code-warning]="isCodeSameAsDocument(student)"
+                      [class.student-data-warning]="isCodeSameAsDocument(student)"
                     >
                       Código: {{ student.code }}
                     </span>
                     <span class="text-sm text-600">Documento: {{ student.number || student.id_student }}</span>
-                    <span class="text-sm text-500">Sede: {{ getCampusLabel(student) }}</span>
+                    <span
+                      class="text-sm text-500"
+                      [class.student-data-warning]="hasMissingCampus(student)"
+                    >
+                      Sede: {{ getCampusLabel(student) }}
+                    </span>
 
                   </div>
 
@@ -447,7 +452,7 @@
               <div class="text-xl font-bold">{{ reviewStudent.fullName }}</div>
               <div
                 class="text-sm text-600"
-                [class.student-code-warning]="isCodeSameAsDocument(reviewStudent)"
+                [class.student-data-warning]="isCodeSameAsDocument(reviewStudent)"
               >
                 Código: {{ reviewStudent.code }}
               </div>
@@ -455,7 +460,15 @@
                 <small class="p-error">El código del alumno no puede ser igual al documento.</small>
               }
               <div class="text-sm text-600">Documento: {{ reviewStudent.number || reviewStudent.id_student }}</div>
-              <div class="text-sm text-600">Sede: {{ getCampusLabel(reviewStudent) }}</div>
+              <div
+                class="text-sm text-600"
+                [class.student-data-warning]="hasMissingCampus(reviewStudent)"
+              >
+                Sede: {{ getCampusLabel(reviewStudent) }}
+              </div>
+              @if (hasMissingCampus(reviewStudent)) {
+                <small class="p-error">El estudiante no tiene sede asignada.</small>
+              }
               <div class="text-sm text-600">Celular: {{ reviewStudent.cellphone }}</div>
             </div>
 
@@ -510,11 +523,13 @@
                     style="width: 100%; height: 440px; border: 0"
                   ></iframe>
                 } @else if (reviewDniObjectUrl) {
-                  <img
+                  <p-image
                     [src]="reviewDniObjectUrl"
                     alt="DNI"
-                    style="max-width: 100%; max-height: 440px; object-fit: contain"
-                  />
+                    imageClass="review-document-image"
+                    [preview]="true"
+                    appendTo="body"
+                  ></p-image>
                 } @else {
                   <div class="p-5 text-600">No se pudo cargar el DNI.</div>
                 }
@@ -522,7 +537,9 @@
             </div>
           </div>
 
-          <div class="flex flex-column gap-3">
+          <div class="review-decision-grid">
+            <div class="review-decision-section review-decision-section-success">
+              <div class="flex flex-column gap-3">
             <div class="flex align-items-center gap-2">
               <p-checkbox
                 inputId="suneduPhotoValidated"
@@ -546,7 +563,19 @@
             </div>
           </div>
 
-          <div class="flex flex-column gap-2">
+              <div class="review-decision-action">
+                <p-button
+                  label="Validar estudiante"
+                  icon="pi pi-check"
+                  severity="success"
+                  [disabled]="!canValidateReview()"
+                  (onClick)="confirmReviewValidation()"
+                ></p-button>
+              </div>
+            </div>
+
+            <div class="review-decision-section review-decision-section-warning">
+              <div class="flex flex-column gap-2">
             <label class="font-semibold">Observaciones si no se confirma</label>
             <p-multiSelect
               [options]="statusStudentCardOptions"
@@ -560,31 +589,29 @@
             @if (showSelectError) {
               <small class="text-red-500">Debe seleccionar al menos una observación.</small>
             }
+              </div>
+
+              <div class="review-decision-action">
+                <p-button
+                  label="Observar estudiante"
+                  icon="pi pi-flag"
+                  severity="warn"
+                  [disabled]="isReviewSubmitting"
+                  (onClick)="confirmReviewObservation()"
+                ></p-button>
+              </div>
+            </div>
           </div>
         </div>
       }
 
       <ng-template pTemplate="footer">
-        <div class="flex justify-content-end gap-2">
+        <div class="flex justify-content-end">
           <p-button
             label="Cancelar"
             severity="secondary"
             [text]="true"
             (onClick)="closeReviewDialog()"
-          ></p-button>
-          <p-button
-            label="Observar estudiante"
-            icon="pi pi-flag"
-            severity="warn"
-            [disabled]="isReviewSubmitting"
-            (onClick)="confirmReviewObservation()"
-          ></p-button>
-          <p-button
-            label="Validar estudiante"
-            icon="pi pi-check"
-            severity="success"
-            [disabled]="!canValidateReview()"
-            (onClick)="confirmReviewValidation()"
           ></p-button>
         </div>
       </ng-template>
