@@ -6,12 +6,42 @@
           Pendientes de validar
           <p-badge [value]="pendingStudents.length" severity="info" />
         </ng-template>
-        <p-table [value]="pendingStudents" class="p-datatable-sm" responsiveLayout="scroll">
+        <p-toolbar styleClass="student-card-toolbar mb-3">
+          <ng-template pTemplate="start">
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-id-card text-primary"></i>
+              <span class="font-semibold">Revisión de identidad</span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="end">
+            <span class="student-card-search">
+              <i class="pi pi-search"></i>
+              <input
+                pInputText
+                type="text"
+                placeholder="Buscar estudiante"
+                (input)="onGlobalFilter(pendingTable, $event)"
+              />
+            </span>
+          </ng-template>
+        </p-toolbar>
+        <p-table
+          #pendingTable
+          [value]="pendingStudents"
+          class="p-datatable-sm student-card-table"
+          responsiveLayout="scroll"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 25, 50]"
+          [rowHover]="true"
+          [stripedRows]="true"
+          [globalFilterFields]="['fullName', 'code', 'number', 'cellphone']"
+        >
           <ng-template pTemplate="header">
             <tr>
               <th>ALUMNO</th>
+              <th>ESTADO ARCHIVOS</th>
               <th>CELULAR</th>
-              <th>DNI</th>
               <th>OPCIONES</th>
             </tr>
           </ng-template>
@@ -22,33 +52,44 @@
                 <div class="flex gap-3 items-center">
 
                   <!-- FOTO -->
-                  <img
-                    [src]="storageURL + student.photo?.path"
+                  <p-image
+                    [src]="getStudentPhotoUrl(student)"
                     alt="foto"
                     width="60"
                     height="75"
-                    class="border-round shadow-2"
-                  />
+                    imageClass="student-card-photo"
+                    [preview]="true"
+                    appendTo="body"
+                    (onImageError)="onStudentPhotoError(student)"
+                  ></p-image>
 
                   <!-- DATOS -->
-                  <div class="flex flex-column">
-          <span class="font-bold text-lg">
-            {{ student.fullName }}
-          </span>
+                  <div class="flex flex-column gap-1">
+                    <span class="font-bold text-lg">
+                      {{ student.fullName }}
+                    </span>
 
-                    <span class="text-sm text-600">
-            {{ student.code }}
-          </span>
+                    <span class="text-sm text-600">Código: {{ student.code }}</span>
+                    <span class="text-sm text-600">Documento: {{ student.number || student.id_student }}</span>
+                    <span class="text-sm text-500">Sede: {{ getCampusLabel(student) }}</span>
 
-                    <span class="text-sm text-600">
-            {{ student.number }}
-          </span>
-
-                    <span class="text-sm text-500">
-            {{ student.campus }}
-          </span>
                   </div>
 
+                </div>
+              </td>
+
+              <td>
+                <div class="flex flex-column align-items-start gap-2">
+                  <p-tag
+                    [value]="'Foto: ' + getFileStatusLabel(student, 'photo')"
+                    [severity]="getFileStatusSeverity(student, 'photo')"
+                    [icon]="getFileStatusIcon(student, 'photo')"
+                  ></p-tag>
+                  <p-tag
+                    [value]="'DNI: ' + getFileStatusLabel(student, 'dni')"
+                    [severity]="getFileStatusSeverity(student, 'dni')"
+                    [icon]="getFileStatusIcon(student, 'dni')"
+                  ></p-tag>
                 </div>
               </td>
 
@@ -57,62 +98,26 @@
                 {{ student.cellphone }}
               </td>
 
-              <!-- DNI -->
-              <td>
-                <div *ngIf="student.dni" class="flex justify-center">
-
-                  <!-- Si es imagen -->
-                  <img
-                    *ngIf="student.dni.mime_type?.includes('image')"
-                    [src]="storageURL + student.dni.path"
-                    width="50"
-                    height="60"
-                    class="border-round shadow-1 cursor-pointer"
-                    (click)="previewFile(student.dni)"
-                  />
-
-                  <!-- Si es PDF -->
-                  <div
-                    *ngIf="student.dni.mime_type?.includes('pdf')"
-                    class="flex flex-column align-items-center cursor-pointer"
-                    (click)="previewFile(student.dni)"
-                  >
-                    <i class="pi pi-file-pdf text-red-500 text-2xl"></i>
-                    <small>Ver</small>
-                  </div>
-
-                </div>
-              </td>
-
               <!-- OPCIONES -->
               <td>
-                <div class="flex justify-center gap-2">
+                <div class="flex justify-center align-items-center gap-2">
 
                   <p-button
-                    icon="pi pi-download"
+                    icon="pi pi-search"
                     [rounded]="true"
                     [text]="true"
-                    severity="secondary"
-                    (onClick)="downloadStudentPhoto(student)"
-                    pTooltip="Descargar foto"
+                    severity="info"
+                    (onClick)="openReviewDialog(student)"
+                    pTooltip="Comparar foto y DNI"
                   ></p-button>
 
                   <p-button
-                    icon="pi pi-check"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="success"
-                    (onClick)="validateCardStudent(student)"
-                    pTooltip="Validar estudiante"
-                  ></p-button>
-
-                  <p-button
-                    icon="pi pi-flag"
+                    icon="pi pi-pencil"
                     [rounded]="true"
                     [text]="true"
                     severity="warn"
-                    (onClick)="openObservationPanel($event, student)"
-                    pTooltip="Observar carnet"
+                    (onClick)="openEditStudentDialog(student)"
+                    pTooltip="Editar datos del estudiante"
                   ></p-button>
 
                 </div>
@@ -155,8 +160,38 @@
             (click)="downloadPhotosZip()"
           />
         </div>
+        <p-toolbar styleClass="student-card-toolbar mb-3">
+          <ng-template pTemplate="start">
+            <span class="student-card-search">
+              <i class="pi pi-search"></i>
+              <input
+                pInputText
+                type="text"
+                placeholder="Buscar validado"
+                (input)="onGlobalFilter(validatedTable, $event)"
+              />
+            </span>
+          </ng-template>
+          <ng-template pTemplate="end">
+            <div class="flex align-items-center gap-2 text-sm text-600">
+              <i class="pi pi-check-circle text-green-500"></i>
+              <span>Registros confirmados</span>
+            </div>
+          </ng-template>
+        </p-toolbar>
         <!-- Tabla para validados -->
-        <p-table [value]="validatedStudents" class="p-datatable-sm" responsiveLayout="scroll">
+        <p-table
+          #validatedTable
+          [value]="validatedStudents"
+          class="p-datatable-sm student-card-table"
+          responsiveLayout="scroll"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 25, 50]"
+          [rowHover]="true"
+          [stripedRows]="true"
+          [globalFilterFields]="['fullName', 'code', 'id_student', 'cellphone']"
+        >
           <ng-template pTemplate="header">
             <tr>
               <th>CÓDIGO</th>
@@ -172,10 +207,19 @@
             <tr>
               <td>{{ student.code }}</td>
               <td>{{ student.fullName }}</td>
-              <td>{{ student.campus }}</td>
+              <td>{{ getCampusLabel(student) }}</td>
               <td>{{ student.cellphone }}</td>
               <td>
-                <img [src]="storageURL + student.photo_path" alt="foto" width="60" height="70" />
+                <p-image
+                  [src]="getStudentPhotoUrl(student)"
+                  alt="foto"
+                  width="60"
+                  height="70"
+                  imageClass="student-card-photo"
+                  [preview]="true"
+                  appendTo="body"
+                  (onImageError)="onStudentPhotoError(student)"
+                ></p-image>
               </td>
               <td>{{ student.id_student }}</td>
               <td class="align-content-center">
@@ -211,7 +255,37 @@
           Observados
           <p-badge [value]="flaggedStudents.length" severity="warn" />
         </ng-template>
-        <p-table [value]="flaggedStudents" class="p-datatable-sm" responsiveLayout="scroll">
+        <p-toolbar styleClass="student-card-toolbar mb-3">
+          <ng-template pTemplate="start">
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-flag text-orange-400"></i>
+              <span class="font-semibold">Registros observados</span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="end">
+            <span class="student-card-search">
+              <i class="pi pi-search"></i>
+              <input
+                pInputText
+                type="text"
+                placeholder="Buscar observado"
+                (input)="onGlobalFilter(flaggedTable, $event)"
+              />
+            </span>
+          </ng-template>
+        </p-toolbar>
+        <p-table
+          #flaggedTable
+          [value]="flaggedStudents"
+          class="p-datatable-sm student-card-table"
+          responsiveLayout="scroll"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 25, 50]"
+          [rowHover]="true"
+          [stripedRows]="true"
+          [globalFilterFields]="['fullName', 'code', 'id_student', 'cellphone']"
+        >
           <ng-template pTemplate="header">
             <tr>
               <th>CÓDIGO</th>
@@ -228,21 +302,34 @@
             <tr>
               <td>{{ student.code }}</td>
               <td>{{ student.fullName }}</td>
-              <td>{{ student.campus }}</td>
+              <td>{{ getCampusLabel(student) }}</td>
               <td>{{ student.cellphone }}</td>
               <td>
-                <img [src]="storageURL + student.photo_path" alt="foto" width="60" height="70" />
+                <p-image
+                  [src]="getStudentPhotoUrl(student)"
+                  alt="foto"
+                  width="60"
+                  height="70"
+                  imageClass="student-card-photo"
+                  [preview]="true"
+                  appendTo="body"
+                  (onImageError)="onStudentPhotoError(student)"
+                ></p-image>
               </td>
               <td>{{ student.id_student }}</td>
               <td>
                 @if (student.list_flags.length > 0) {
-                  <ul>
+                  <div class="flex flex-wrap gap-1">
                     @for (flag of student.list_flags; track flag.code || flag.id) {
-                      <li class="text-xs text-orange-400">{{ flag.name || flag.label }}</li>
+                      <p-tag
+                        [value]="flag.name || flag.label"
+                        severity="warn"
+                        icon="pi pi-exclamation-triangle"
+                      ></p-tag>
                     }
-                  </ul>
+                  </div>
                 } @else {
-                  <span class="text-green-600 text-xs">Sin observaciones</span>
+                  <p-tag value="Sin observaciones" severity="success" icon="pi pi-check"></p-tag>
                 }
               </td>
               <td class="align-content-center">
@@ -288,7 +375,37 @@
           Sin registro
           <p-badge [value]="unmatchedStudent.length" severity="danger" />
         </ng-template>
-        <p-table [value]="unmatchedStudent" class="p-datatable-sm" responsiveLayout="scroll">
+        <p-toolbar styleClass="student-card-toolbar mb-3">
+          <ng-template pTemplate="start">
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-user-minus text-red-400"></i>
+              <span class="font-semibold">Pagos o alumnos sin registro</span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="end">
+            <span class="student-card-search">
+              <i class="pi pi-search"></i>
+              <input
+                pInputText
+                type="text"
+                placeholder="Buscar sin registro"
+                (input)="onGlobalFilter(unmatchedTable, $event)"
+              />
+            </span>
+          </ng-template>
+        </p-toolbar>
+        <p-table
+          #unmatchedTable
+          [value]="unmatchedStudent"
+          class="p-datatable-sm student-card-table"
+          responsiveLayout="scroll"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 25, 50]"
+          [rowHover]="true"
+          [stripedRows]="true"
+          [globalFilterFields]="['fullName', 'code', 'cellphone']"
+        >
           <ng-template pTemplate="header">
             <tr>
               <th>CÓDIGO</th>
@@ -301,13 +418,363 @@
             <tr>
               <td>{{ student.code }}</td>
               <td>{{ student.fullName }}</td>
-              <td>{{ student.campus }}</td>
+              <td>{{ getCampusLabel(student) }}</td>
               <td>{{ student.cellphone }}</td>
             </tr>
           </ng-template>
         </p-table>
       </p-tabPanel>
     </p-tabView>
+
+    <p-dialog
+      header="Revisión de identidad"
+      [(visible)]="reviewDialogVisible"
+      [modal]="true"
+      [style]="{ width: 'min(96vw, 1100px)' }"
+      [draggable]="false"
+      [resizable]="false"
+      (onHide)="closeReviewDialog()"
+    >
+      @if (reviewStudent) {
+        <div class="flex flex-column gap-4">
+          <div class="flex flex-wrap justify-content-between gap-3">
+            <div>
+              <div class="text-xl font-bold">{{ reviewStudent.fullName }}</div>
+              <div class="text-sm text-600">Código: {{ reviewStudent.code }}</div>
+              <div class="text-sm text-600">Documento: {{ reviewStudent.number || reviewStudent.id_student }}</div>
+              <div class="text-sm text-600">Sede: {{ getCampusLabel(reviewStudent) }}</div>
+              <div class="text-sm text-600">Celular: {{ reviewStudent.cellphone }}</div>
+            </div>
+
+            <div class="flex flex-wrap justify-content-end gap-2">
+              <p-button
+                label="Descargar foto"
+                icon="pi pi-download"
+                severity="secondary"
+                size="small"
+                [outlined]="true"
+                (onClick)="downloadReviewFile('photo')"
+              ></p-button>
+              <p-button
+                label="Descargar DNI"
+                icon="pi pi-download"
+                severity="secondary"
+                size="small"
+                [outlined]="true"
+                (onClick)="downloadReviewFile('dni')"
+              ></p-button>
+              <a
+                href="https://siucarne.sunedu.gob.pe/carne/validacion"
+                target="_blank"
+                rel="noopener"
+                class="p-button p-button-outlined p-button-sm"
+              >
+                Validar en SUNEDU
+              </a>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="col-12 md:col-6">
+              <h4 class="mt-0 mb-2">Foto del carné</h4>
+              <div class="border-1 surface-border border-round p-3 text-center">
+                <p-image
+                  [src]="getStudentPhotoUrl(reviewStudent)"
+                  alt="Foto del carné"
+                  imageClass="review-document-image"
+                  [preview]="true"
+                  appendTo="body"
+                ></p-image>
+              </div>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <h4 class="mt-0 mb-2">DNI / Documento</h4>
+              <div class="border-1 surface-border border-round p-3 text-center">
+                @if (reviewDniSafeUrl && reviewDniIsPdf) {
+                  <iframe
+                    [src]="reviewDniSafeUrl"
+                    style="width: 100%; height: 440px; border: 0"
+                  ></iframe>
+                } @else if (reviewDniObjectUrl) {
+                  <img
+                    [src]="reviewDniObjectUrl"
+                    alt="DNI"
+                    style="max-width: 100%; max-height: 440px; object-fit: contain"
+                  />
+                } @else {
+                  <div class="p-5 text-600">No se pudo cargar el DNI.</div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-column gap-3">
+            <div class="flex align-items-center gap-2">
+              <p-checkbox
+                inputId="suneduPhotoValidated"
+                [(ngModel)]="suneduPhotoValidated"
+                [binary]="true"
+              ></p-checkbox>
+              <label for="suneduPhotoValidated">
+                La foto fue validada en SUNEDU y cumple los requisitos.
+              </label>
+            </div>
+
+            <div class="flex align-items-center gap-2">
+              <p-checkbox
+                inputId="identityConfirmed"
+                [(ngModel)]="identityConfirmed"
+                [binary]="true"
+              ></p-checkbox>
+              <label for="identityConfirmed">
+                La identidad coincide entre la foto del carné y el DNI.
+              </label>
+            </div>
+          </div>
+
+          <div class="flex flex-column gap-2">
+            <label class="font-semibold">Observaciones si no se confirma</label>
+            <p-multiSelect
+              [options]="statusStudentCardOptions"
+              [(ngModel)]="selectedFlags"
+              optionLabel="label"
+              placeholder="Seleccione observaciones"
+              display="chip"
+              class="w-full"
+              (onChange)="onObservationSelectionChange()"
+            ></p-multiSelect>
+            @if (showSelectError) {
+              <small class="text-red-500">Debe seleccionar al menos una observación.</small>
+            }
+          </div>
+        </div>
+      }
+
+      <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2">
+          <p-button
+            label="Cancelar"
+            severity="secondary"
+            [text]="true"
+            (onClick)="closeReviewDialog()"
+          ></p-button>
+          <p-button
+            label="Observar estudiante"
+            icon="pi pi-flag"
+            severity="warn"
+            [disabled]="isReviewSubmitting"
+            (onClick)="confirmReviewObservation()"
+          ></p-button>
+          <p-button
+            label="Validar estudiante"
+            icon="pi pi-check"
+            severity="success"
+            [disabled]="!canValidateReview()"
+            (onClick)="confirmReviewValidation()"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog
+      header="Editar datos del estudiante"
+      [(visible)]="editDialogVisible"
+      [modal]="true"
+      [style]="{ width: 'min(96vw, 760px)' }"
+      [draggable]="false"
+      [resizable]="false"
+      (onHide)="closeEditStudentDialog()"
+    >
+      <form [formGroup]="editStudentForm" class="p-fluid">
+        <div class="grid">
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_code">Codigo del Alumno</label>
+              <input
+                id="edit_code"
+                pInputText
+                formControlName="code"
+                (keydown)="onlyNumbers($event)"
+                (paste)="onPaste($event)"
+                inputmode="numeric"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['code'].invalid && (editForm['code'].dirty || editForm['code'].touched) }"
+              />
+              @if (editForm['code'].invalid && (editForm['code'].dirty || editForm['code'].touched)) {
+                <small class="p-error">Este campo es obligatorio (max. 15 caracteres).</small>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_id_type">Tipo de Documento</label>
+              <p-select
+                id="edit_id_type"
+                [options]="idTypeOptions"
+                optionLabel="label"
+                optionValue="id"
+                formControlName="id_type"
+                placeholder="Seleccione el tipo de documento"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['id_type'].invalid && (editForm['id_type'].dirty || editForm['id_type'].touched) }"
+              ></p-select>
+              @if (editForm['id_type'].invalid && (editForm['id_type'].dirty || editForm['id_type'].touched)) {
+                <small class="p-error">Este campo es obligatorio.</small>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_number">Documento</label>
+              <input id="edit_number" pInputText formControlName="number" />
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_check_digit">Digito Verificador</label>
+              <input
+                id="edit_check_digit"
+                pInputText
+                formControlName="check_digit"
+                maxlength="1"
+                (keydown)="onlyOneDigit($event)"
+                (paste)="onPasteOneDigit($event)"
+                inputmode="numeric"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['check_digit'].invalid && (editForm['check_digit'].dirty || editForm['check_digit'].touched) }"
+              />
+              @if (editForm['check_digit'].invalid && (editForm['check_digit'].dirty || editForm['check_digit'].touched)) {
+                <small class="p-error">Este campo es obligatorio.</small>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 md:col-4">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_names">Nombres</label>
+              <input id="edit_names" pInputText formControlName="names" />
+            </div>
+          </div>
+
+          <div class="col-12 md:col-4">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_father_last_name">Apellido Paterno</label>
+              <input id="edit_father_last_name" pInputText formControlName="father_last_name" />
+            </div>
+          </div>
+
+          <div class="col-12 md:col-4">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_mother_last_name">Apellido Materno</label>
+              <input id="edit_mother_last_name" pInputText formControlName="mother_last_name" />
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_gender">Sexo</label>
+              <p-select
+                id="edit_gender"
+                [options]="genderOptions"
+                optionLabel="label"
+                optionValue="id"
+                formControlName="gender"
+                placeholder="Seleccione su genero"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['gender'].invalid && (editForm['gender'].dirty || editForm['gender'].touched) }"
+              ></p-select>
+              @if (editForm['gender'].invalid && (editForm['gender'].dirty || editForm['gender'].touched)) {
+                <small class="p-error">Este campo es obligatorio.</small>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_campus">Sede</label>
+              <p-select
+                id="edit_campus"
+                [options]="campusOptions"
+                optionLabel="label"
+                optionValue="id"
+                formControlName="campus"
+                placeholder="Seleccione una sede"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['campus'].invalid && (editForm['campus'].dirty || editForm['campus'].touched) }"
+              ></p-select>
+              @if (editForm['campus'].invalid && (editForm['campus'].dirty || editForm['campus'].touched)) {
+                <small class="p-error">Este campo es obligatorio.</small>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_email">Correo Electronico</label>
+              <input
+                id="edit_email"
+                pInputText
+                type="email"
+                formControlName="email"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['email'].invalid && (editForm['email'].dirty || editForm['email'].touched) }"
+              />
+              @if (editForm['email'].invalid && (editForm['email'].dirty || editForm['email'].touched)) {
+                <small class="p-error">Ingresa un correo electronico valido.</small>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_cellphone">Celular</label>
+              <input
+                id="edit_cellphone"
+                pInputText
+                formControlName="cellphone"
+                (keydown)="onlyNumbers($event)"
+                (paste)="onPaste($event)"
+                inputmode="numeric"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['cellphone'].invalid && (editForm['cellphone'].dirty || editForm['cellphone'].touched) }"
+              />
+              @if (editForm['cellphone'].invalid && (editForm['cellphone'].dirty || editForm['cellphone'].touched)) {
+                <small class="p-error">Este campo es obligatorio, max. 9 caracteres.</small>
+              }
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="flex flex-column gap-2 mb-3">
+              <label for="edit_address">Direccion</label>
+              <input
+                id="edit_address"
+                pInputText
+                formControlName="address"
+                [ngClass]="{ 'ng-invalid ng-dirty': editForm['address'].invalid && (editForm['address'].dirty || editForm['address'].touched) }"
+              />
+              @if (editForm['address'].invalid && (editForm['address'].dirty || editForm['address'].touched)) {
+                <small class="p-error">Este campo es obligatorio.</small>
+              }
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2">
+          <p-button
+            label="Cancelar"
+            severity="secondary"
+            [text]="true"
+            (onClick)="closeEditStudentDialog()"
+          ></p-button>
+          <p-button
+            label="Guardar cambios"
+            icon="pi pi-save"
+            [disabled]="isEditSubmitting"
+            (onClick)="saveEditStudent()"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-dialog>
 
     <p-overlayPanel #overlayObservations [showCloseIcon]="true" appendTo="body" (onHide)="clearObservationPanelState()">
       <div class="flex flex-column gap-3" style="width: 18rem">
