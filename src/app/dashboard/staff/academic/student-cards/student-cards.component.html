@@ -1163,6 +1163,8 @@
             </button>
             @if (manualRegistrationPhotoFile) {
               <small class="text-green-500">{{ manualRegistrationPhotoFile.name }}</small>
+            } @else if (manualRegistrationUsesPreviousPhoto) {
+              <small class="text-green-500">Se usara la foto validada de un semestre anterior.</small>
             }
           </div>
 
