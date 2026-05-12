@@ -153,6 +153,13 @@ export class StudentCardService {
 
 // 📦 DESCARGAS
 
+  storeManualRegistration(data: FormData): Observable<ApiData<StudentCard>> {
+    return this.http.post<ApiData<StudentCard>>(
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.SET.STUDENT.MANUAL_REGISTRATION}`,
+      data
+    );
+  }
+
   downloadStudentPhotosZip(): Observable<Blob> {
     return this.http.get(
       `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.ZIP}`,

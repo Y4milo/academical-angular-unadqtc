@@ -68,9 +68,9 @@
                     <span class="font-bold text-lg">
                       {{ student.fullName }}
                     </span>
-                    @if (isUnregisteredStudent(student)) {
+                    @if (isManualRegistration(student)) {
                       <span class="student-unregistered-mark">
-                        No ha registrado carnet
+                        Registro manual
                       </span>
                     }
                     <span
@@ -252,9 +252,9 @@
                     <span class="font-bold text-lg">
                       {{ student.fullName }}
                     </span>
-                    @if (isUnregisteredStudent(student)) {
+                    @if (isManualRegistration(student)) {
                       <span class="student-unregistered-mark">
-                        No ha registrado carnet
+                        Registro manual
                       </span>
                     }
 
@@ -402,9 +402,9 @@
                     <span class="font-bold text-lg">
                       {{ student.fullName }}
                     </span>
-                    @if (isUnregisteredStudent(student)) {
+                    @if (isManualRegistration(student)) {
                       <span class="student-unregistered-mark">
-                        No ha registrado carnet
+                        Registro manual
                       </span>
                     }
 
@@ -565,12 +565,6 @@
                     <span class="font-bold text-lg">
                       {{ student.fullName }}
                     </span>
-                    @if (isUnregisteredStudent(student)) {
-                      <span class="student-unregistered-mark">
-                        No ha registrado carnet
-                      </span>
-                    }
-
                     <span
                       class="student-meta-row text-sm"
                       [class.student-data-warning]="isCodeSameAsDocument(student)"
@@ -641,8 +635,8 @@
                     [rounded]="true"
                     [text]="true"
                     severity="warn"
-                    (onClick)="prepareUnmatchedStudentCard(student, 'edit')"
-                    pTooltip="Crear registro y editar datos"
+                    (onClick)="openManualRegistrationDialog(student)"
+                    pTooltip="Registrar manualmente"
                     tooltipPosition="top"
                   ></p-button>
                 </div>
@@ -941,7 +935,7 @@
     </p-dialog>
 
     <p-dialog
-      header="Editar datos del estudiante"
+      [header]="isManualRegistrationEdit ? 'Registro manual del estudiante' : 'Editar datos del estudiante'"
       [(visible)]="editDialogVisible"
       [modal]="true"
       [style]="{ width: 'min(96vw, 760px)' }"
@@ -950,8 +944,17 @@
       [resizable]="false"
       (onHide)="closeEditStudentDialog()"
     >
+      @if (isManualRegistrationEdit) {
+        <p-steps
+          [model]="manualRegistrationSteps"
+          [(activeIndex)]="manualRegistrationStep"
+          [readonly]="true"
+          styleClass="mb-4"
+        ></p-steps>
+      }
+
       <form [formGroup]="editStudentForm" class="p-fluid">
-        <div class="grid">
+        <div class="grid" [class.hidden]="isManualRegistrationEdit && manualRegistrationStep !== 0">
           <div class="col-12 md:col-6">
             <div class="flex flex-column gap-2 mb-3">
               <label for="edit_code">Codigo del Alumno</label>
@@ -1126,8 +1129,131 @@
               }
             </div>
           </div>
+
         </div>
       </form>
+
+      @if (isManualRegistrationEdit && manualRegistrationStep === 1) {
+        <div class="manual-registration-files">
+          <div class="manual-preview-panel">
+            <h4 class="mt-0 mb-2 review-section-title">Foto del carne</h4>
+            <div class="manual-preview-box">
+              <img
+                [src]="manualRegistrationPhotoPreviewUrl"
+                alt="Vista previa de la foto"
+                class="manual-preview-image"
+              />
+            </div>
+            <input
+              id="manual_photo"
+              type="file"
+              accept=".jpg,.jpeg,image/jpeg"
+              class="hidden-file-input"
+              #manualPhotoInput
+              (change)="onManualRegistrationFileSelect($event, 'photo')"
+            />
+            <button
+              type="button"
+              class="review-icon-button review-icon-button-upload"
+              (click)="manualPhotoInput.click()"
+              pTooltip="Seleccionar foto"
+              tooltipPosition="top"
+            >
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </button>
+            @if (manualRegistrationPhotoFile) {
+              <small class="text-green-500">{{ manualRegistrationPhotoFile.name }}</small>
+            }
+          </div>
+
+          <div class="manual-preview-panel">
+            <h4 class="mt-0 mb-2 review-section-title">DNI / Documento</h4>
+            <div class="manual-preview-box">
+              @if (manualRegistrationDniSafeUrl && manualRegistrationDniIsPdf) {
+                <iframe
+                  [src]="manualRegistrationDniSafeUrl"
+                  class="manual-preview-pdf"
+                ></iframe>
+              } @else if (manualRegistrationDniPreviewUrl) {
+                <img
+                  [src]="manualRegistrationDniPreviewUrl"
+                  alt="Vista previa del DNI"
+                  class="manual-preview-image"
+                />
+              } @else {
+                <img
+                  src="/img/dni-placeholder.png"
+                  alt="Vista previa del DNI"
+                  class="manual-preview-image manual-preview-placeholder"
+                />
+              }
+            </div>
+            <input
+              id="manual_dni"
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+              class="hidden-file-input"
+              #manualDniInput
+              (change)="onManualRegistrationFileSelect($event, 'dni')"
+            />
+            <button
+              type="button"
+              class="review-icon-button review-icon-button-upload"
+              (click)="manualDniInput.click()"
+              pTooltip="Seleccionar DNI"
+              tooltipPosition="top"
+            >
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </button>
+            @if (manualRegistrationDniFile) {
+              <small class="text-green-500">{{ manualRegistrationDniFile.name }}</small>
+            }
+          </div>
+
+          <div class="manual-registration-requirements">
+            <h4 class="mt-0 mb-2 review-section-title">Requisitos de la foto</h4>
+            <ul>
+              <li>Foto JPG de 240 px de ancho por 288 px de alto.</li>
+              <li>Peso entre 4KB y 50KB.</li>
+              <li>Rostro centrado, visible y fondo blanco o claro.</li>
+              <li>Sin gorros, lentes oscuros, mascarillas, sellos ni enmendaduras.</li>
+            </ul>
+            <a
+              href="https://siucarne.sunedu.gob.pe/carne/validacion"
+              target="_blank"
+              rel="noopener"
+              class="review-sunedu-button"
+            >
+              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <span>Validar foto SUNEDU</span>
+            </a>
+          </div>
+
+          <div class="manual-registration-checks">
+            <div class="flex align-items-center gap-2">
+              <p-checkbox
+                inputId="manualPhotoApproved"
+                [(ngModel)]="manualRegistrationPhotoApproved"
+                [binary]="true"
+              ></p-checkbox>
+              <label for="manualPhotoApproved">
+                La foto fue validada en SUNEDU y cumple los requisitos.
+              </label>
+            </div>
+
+            <div class="flex align-items-center gap-2">
+              <p-checkbox
+                inputId="manualIdentityConfirmed"
+                [(ngModel)]="manualRegistrationIdentityConfirmed"
+                [binary]="true"
+              ></p-checkbox>
+              <label for="manualIdentityConfirmed">
+                La identidad coincide entre la foto del carne y el DNI.
+              </label>
+            </div>
+          </div>
+        </div>
+      }
 
       <ng-template pTemplate="footer">
         <div class="flex justify-content-end gap-2">
@@ -1137,12 +1263,30 @@
             [text]="true"
             (onClick)="closeEditStudentDialog()"
           ></p-button>
+          @if (isManualRegistrationEdit && manualRegistrationStep === 1) {
+            <p-button
+              label="Volver"
+              icon="pi pi-arrow-left"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="previousManualRegistrationStep()"
+            ></p-button>
+          }
+          @if (isManualRegistrationEdit && manualRegistrationStep === 0) {
+            <p-button
+              label="Siguiente"
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              (onClick)="nextManualRegistrationStep()"
+            ></p-button>
+          } @else {
           <p-button
-            label="Guardar cambios"
+            [label]="isManualRegistrationEdit ? 'Registrar estudiante' : 'Guardar cambios'"
             icon="pi pi-save"
             [disabled]="isEditSubmitting"
             (onClick)="saveEditStudent()"
           ></p-button>
+          }
         </div>
       </ng-template>
     </p-dialog>
