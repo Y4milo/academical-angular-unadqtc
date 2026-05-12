@@ -58,6 +58,14 @@ export function validatePhotoCardStudent(file: File): Promise<{
 
     let invalid: { title: string; message: string }[] = [];
 
+    const isJpg = file.type === 'image/jpeg' || /\.(jpe?g)$/i.test(file.name);
+    if (!isJpg) {
+      invalid.push({
+        title: 'Formato invalido',
+        message: 'La imagen debe estar en formato JPG.'
+      });
+    }
+
     // ✅ VALIDAR TAMAÑO
     const maxSize = 50 * 1024; // 50KB
     const minSize = 4 * 1024;  // 4KB
@@ -89,6 +97,18 @@ export function validatePhotoCardStudent(file: File): Promise<{
 
         resolve({
           validated: invalid.length === 0,
+          invalid
+        });
+      };
+
+      img.onerror = () => {
+        invalid.push({
+          title: 'Imagen invalida',
+          message: 'No se pudo leer la imagen seleccionada.'
+        });
+
+        resolve({
+          validated: false,
           invalid
         });
       };

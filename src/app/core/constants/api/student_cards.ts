@@ -22,6 +22,8 @@ export const API_STUDENT_CARDS = {
         STUDENT: {
           BASIC_INFO: '/student-cards/academic/update/student/basic-info',
           FILE: {
+            BY_TYPE: (type: StudentFileType) =>
+              `/student-cards/academic/update/student/file/${type}`,
             PHOTO : '/student-cards/academic/update/student/file/photo'
           }
         }
@@ -29,6 +31,7 @@ export const API_STUDENT_CARDS = {
 
       SET: {
         STUDENT: {
+          ENSURE_PENDING: '/student-cards/academic/set/student/ensure-pending',
           VALIDATE: '/student-cards/academic/set/student/validate',
           PENDING: '/student-cards/academic/set/student/pending',
           FLAGS: '/student-cards/academic/set/student/flags',

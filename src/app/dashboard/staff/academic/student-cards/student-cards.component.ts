@@ -21,7 +21,6 @@ import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_mess
 import {DialogModule} from 'primeng/dialog';
 import {CheckboxModule} from 'primeng/checkbox';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-import {concatMap} from 'rxjs';
 import {HttpResponse} from '@angular/common/http';
 import {StudentFileType} from '../../../../core/constants/api/student_cards';
 import {InputTextModule} from 'primeng/inputtext';
@@ -30,6 +29,7 @@ import {CommonModule} from '@angular/common';
 import {TagModule} from 'primeng/tag';
 import {ImageModule} from 'primeng/image';
 import {ToolbarModule} from 'primeng/toolbar';
+import {validatePhotoCardStudent} from '../../../../helper/helper.util';
 
 @Component({
   selector: 'app-student-cards',
@@ -67,7 +67,10 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   fallbackPhotoUrl = 'img/card-img.png';
   photoPreviewUrls: Record<number, string> = {};
   statusStudentCardOptions: Dictionary[] = [];
+  statusStudentCardDniOptions: Dictionary[] = [];
   selectedFlags: Dictionary[] = [];
+  selectedPhotoFlags: Dictionary[] = [];
+  selectedDniFlags: Dictionary[] = [];
   selectedFlaggedCard?: StudentCard;
   showSelectError: boolean = false;
   previewUrl: string = 'img/card-img.png';
@@ -80,6 +83,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   suneduPhotoValidated = false;
   identityConfirmed = false;
   isReviewSubmitting = false;
+  uploadingReviewFileType?: StudentFileType;
   editDialogVisible = false;
   editStudent?: StudentCard;
   editStudentForm!: FormGroup;
@@ -106,10 +110,32 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           const flaggedList = studentCardFlagsData.payload!.data;
           this.statusStudentCardOptions = flaggedList.map((item: Dictionary) => ({
             id: item.id,
+            value: item.value,
             label: item.label,
           }));
         } else {
           this.notificationService.notifyApiData(studentCardFlagsData)
+        }
+      },
+      error: (e) => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
+      }
+    });
+    this.dictionaryService.listStudentCardDniFlags().subscribe({
+      next: studentCardDniFlagsData => {
+        if (studentCardDniFlagsData.status === STATUS.success) {
+          const flaggedList = studentCardDniFlagsData.payload!.data;
+          this.statusStudentCardDniOptions = flaggedList.map((item: Dictionary) => ({
+            id: item.id,
+            value: item.value,
+            label: item.label,
+          }));
+        } else {
+          this.notificationService.notifyApiData(studentCardDniFlagsData)
         }
       },
       error: (e) => {
@@ -256,7 +282,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   getStudentPhotoUrl(student: StudentCard): string {
-    return this.photoPreviewUrls[student.id] ?? this.fallbackPhotoUrl;
+    return this.photoPreviewUrls[student.id] ?? student.previous_photo_url ?? this.fallbackPhotoUrl;
   }
 
   onStudentPhotoError(student: StudentCard): void {
@@ -326,6 +352,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.reviewStudent = student;
     this.reviewDialogVisible = true;
     this.selectedFlags = [];
+    this.selectedPhotoFlags = [];
+    this.selectedDniFlags = [];
     this.showSelectError = false;
     this.suneduPhotoValidated = student.photo?.status?.value === 'approved';
     this.identityConfirmed = student.dni?.status?.value === 'approved';
@@ -336,6 +364,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.reviewDialogVisible = false;
     this.reviewStudent = undefined;
     this.selectedFlags = [];
+    this.selectedPhotoFlags = [];
+    this.selectedDniFlags = [];
     this.showSelectError = false;
     this.suneduPhotoValidated = false;
     this.identityConfirmed = false;
@@ -468,10 +498,18 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   getFileStatusLabel(student: StudentCard, type: StudentFileType): string {
+    if (!student[type]) {
+      return 'No existe archivo';
+    }
+
     return student[type]?.status?.label ?? 'Pendiente';
   }
 
   getFileStatusSeverity(student: StudentCard, type: StudentFileType): 'success' | 'warn' | 'danger' | 'secondary' {
+    if (!student[type]) {
+      return 'danger';
+    }
+
     switch (student[type]?.status?.value) {
       case 'approved':
         return 'success';
@@ -485,6 +523,10 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   getFileStatusIcon(student: StudentCard, type: StudentFileType): string {
+    if (!student[type]) {
+      return 'pi pi-lock';
+    }
+
     switch (student[type]?.status?.value) {
       case 'approved':
         return 'pi pi-check-circle';
@@ -497,21 +539,170 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     }
   }
 
+  getStudentFileFlags(student: StudentCard, type: StudentFileType): any[] {
+    if (type === 'photo') {
+      return student.photo_flags ?? student.photo?.flags ?? student.list_flags ?? [];
+    }
+
+    return student.dni_flags ?? student.dni?.flags ?? [];
+  }
+
+  isUnregisteredStudent(student: StudentCard): boolean {
+    return student.status?.value === 'unregistered' || !!student.created_from_unregistered_payment;
+  }
+
+  prepareUnmatchedStudentCard(student: StudentCard, action: 'review' | 'edit'): void {
+    this.studentCardService.ensurePendingStudentCard({
+      code: student.code,
+      number: student.number || student.id_student,
+    }).subscribe({
+      next: data => {
+        if (data.status === STATUS.success) {
+          const pendingStudent = data.payload.data;
+          this.unmatchedStudent = this.unmatchedStudent.filter(s =>
+            (s.number || s.id_student) !== (student.number || student.id_student)
+              && s.code !== student.code
+          );
+          this.pendingStudents = [
+            pendingStudent,
+            ...this.pendingStudents.filter(s => s.id !== pendingStudent.id)
+          ];
+          this.loadStudentPhotoPreview(pendingStudent);
+
+          if (action === 'review') {
+            this.openReviewDialog(pendingStudent);
+          } else {
+            this.openEditStudentDialog(pendingStudent);
+          }
+        }
+
+        this.notificationService.notifyApiData(data);
+      },
+      error: e => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
+      }
+    });
+  }
+
   onGlobalFilter(table: any, event: Event): void {
     table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
-  private getNamePart(fullName: string | undefined, index: number): string {
+  getNamePart(fullName: string | undefined, index: number): string {
     return fullName?.split(' ')?.[index] ?? '';
   }
 
   canValidateReview(): boolean {
     return !!this.reviewStudent
-      && !this.isCodeSameAsDocument(this.reviewStudent)
-      && !this.hasMissingCampus(this.reviewStudent)
-      && this.suneduPhotoValidated
-      && this.identityConfirmed
+      && !!this.reviewStudent.photo
+      && !!this.reviewStudent.dni
+      && this.isReviewFileApproved('photo')
+      && this.isReviewFileApproved('dni')
       && !this.isReviewSubmitting;
+  }
+
+  getReviewMissingStudentData(student: StudentCard): string[] {
+    const missingFields: string[] = [];
+    const documentNumber = student.number || student.id_student;
+
+    const requiredFields: Array<[string, unknown]> = [
+      ['Tipo de documento', student.id_type?.id],
+      ['Codigo', student.code],
+      ['Documento', documentNumber],
+      ['Nombres', student.names || this.getNamePart(student.fullName, 0)],
+      ['Apellido paterno', student.father_last_name || this.getNamePart(student.fullName, 1)],
+      ['Apellido materno', student.mother_last_name || this.getNamePart(student.fullName, 2)],
+      ['Digito verificador', student.check_digit],
+      ['Genero', student.gender?.id],
+      ['Correo', student.email],
+      ['Celular', student.cellphone],
+      ['Direccion', student.address],
+      ['Sede', student.campus?.id],
+    ];
+
+    requiredFields.forEach(([label, value]) => {
+      if (value === null || value === undefined || value.toString().trim() === '') {
+        missingFields.push(label);
+      }
+    });
+
+    if (student.code?.trim() && documentNumber?.trim() && student.code.trim() === documentNumber.trim()) {
+      missingFields.push('Codigo diferente al documento');
+    }
+
+    if (student.cellphone?.trim() && !/^[0-9]{9}$/.test(student.cellphone.trim())) {
+      missingFields.push('Celular de 9 digitos');
+    }
+
+    if (student.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(student.email.trim())) {
+      missingFields.push('Correo valido');
+    }
+
+    const checkDigit = student.check_digit?.toString().trim();
+    if (checkDigit && !/^[0-9]$/.test(checkDigit)) {
+      missingFields.push('Digito verificador de un digito');
+    }
+
+    return missingFields;
+  }
+
+  isReviewFileApproved(type: StudentFileType): boolean {
+    return this.reviewStudent?.[type]?.status?.value === 'approved';
+  }
+
+  onReviewFileApprovalChange(type: StudentFileType, checked: boolean): void {
+    const student = this.reviewStudent;
+    const file = student?.[type];
+
+    if (!student || !file) {
+      this.setReviewApprovalCheckbox(type, false);
+      this.notificationService.warning(
+        'Archivo requerido',
+        type === 'photo' ? 'Debe existir una foto antes de aprobarla.' : 'Debe existir un DNI antes de aprobarlo.'
+      );
+      return;
+    }
+
+    const previousStatus = file.status;
+
+    this.studentCardService.setStudentFileStatus({
+      id: student.id,
+      type,
+      status: checked ? 'approved' : 'pending'
+    }).subscribe({
+      next: data => {
+        if (data.status === STATUS.success) {
+          file.status = data.payload.data.status;
+          this.setReviewApprovalCheckbox(type, data.payload.data.status?.value === 'approved');
+        } else {
+          file.status = previousStatus;
+          this.setReviewApprovalCheckbox(type, previousStatus?.value === 'approved');
+        }
+        this.notificationService.notifyApiData(data);
+      },
+      error: e => {
+        file.status = previousStatus;
+        this.setReviewApprovalCheckbox(type, previousStatus?.value === 'approved');
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
+      }
+    });
+  }
+
+  private setReviewApprovalCheckbox(type: StudentFileType, checked: boolean): void {
+    if (type === 'photo') {
+      this.suneduPhotoValidated = checked;
+      return;
+    }
+
+    this.identityConfirmed = checked;
   }
 
   confirmReviewValidation(): void {
@@ -521,21 +712,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.isCodeSameAsDocument(student)) {
-      this.notificationService.warning(
-        'Datos no validos',
-        'El código del alumno no puede ser igual al documento.'
-      );
-      return;
-    }
-
-    if (this.hasMissingCampus(student)) {
-      this.notificationService.warning(
-        'Datos incompletos',
-        'El estudiante debe tener una sede asignada antes de validar.'
-      );
-      return;
-    }
 
     if (!this.canValidateReview()) {
       this.notificationService.warning(
@@ -545,36 +721,23 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const missingFields = this.getReviewMissingStudentData(student);
+    if (missingFields.length > 0) {
+      this.notificationService.warning(
+        'Datos incompletos',
+        `Complete o corrija estos campos: ${missingFields.join(', ')}.`
+      );
+      return;
+    }
+
     this.isReviewSubmitting = true;
 
-    this.studentCardService.setStudentFileStatus({
-      id: student.id,
-      type: 'photo',
-      status: 'approved'
-    }).pipe(
-      concatMap((photoStatusData) => {
-        this.ensureApiSuccess(photoStatusData);
-        return this.studentCardService.setStudentFileStatus({
-          id: student.id,
-          type: 'dni',
-          status: 'approved'
-        });
-      }),
-      concatMap((dniStatusData) => {
-        this.ensureApiSuccess(dniStatusData);
-        const payload = new FormData();
-        payload.append('id', student.id.toString());
-        return this.studentCardService.validateStudentCard(payload);
-      })
-    ).subscribe({
+    const payload = new FormData();
+    payload.append('id', student.id.toString());
+
+    this.studentCardService.validateStudentCard(payload).subscribe({
       next: (data) => {
         if (data.status === STATUS.success) {
-          if (student.photo) {
-            student.photo.status = {value: 'approved', label: 'Aprobado'};
-          }
-          if (student.dni) {
-            student.dni.status = {value: 'approved', label: 'Aprobado'};
-          }
           this.validatedStudents.push(student);
           this.pendingStudents = this.pendingStudents.filter(s => s.id !== student.id);
           this.closeReviewDialog();
@@ -606,21 +769,31 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.selectedFlags || this.selectedFlags.length === 0) {
+    if (!student.photo || !student.dni) {
+      this.notificationService.warning(
+        'Archivos requeridos',
+        'Debe existir la foto y el DNI antes de observar al estudiante.'
+      );
+      return;
+    }
+
+    if (!this.selectedPhotoFlags?.length && !this.selectedDniFlags?.length) {
       this.showSelectError = true;
       return;
     }
 
     this.isReviewSubmitting = true;
-    const selectedFlags = [...this.selectedFlags];
+    const selectedPhotoFlags = [...this.selectedPhotoFlags];
+    const selectedDniFlags = [...this.selectedDniFlags];
 
     this.studentCardService.setFlaggedStudentCard({
       id: student.id,
-      flags: selectedFlags
+      photo_flags: this.toStoredFlags(selectedPhotoFlags),
+      dni_flags: this.toStoredFlags(selectedDniFlags)
     }).subscribe({
       next: (data) => {
         if (data.status === STATUS.success) {
-          student.list_flags = selectedFlags;
+          student.list_flags = [...selectedPhotoFlags, ...selectedDniFlags];
           this.pendingStudents = this.pendingStudents.filter(s => s.id !== student.id);
           this.flaggedStudents.push(student);
           this.closeReviewDialog();
@@ -639,6 +812,13 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         this.isReviewSubmitting = false;
       }
     });
+  }
+
+  private toStoredFlags(flags: Dictionary[]): Array<{code: string; name: string}> {
+    return flags.map(flag => ({
+      code: (flag.value ?? flag.id ?? '').toString(),
+      name: flag.label ?? '',
+    }));
   }
 
   private ensureApiSuccess(data: ApiData<any>): void {
@@ -756,6 +936,111 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     }
 
     this.downloadStudentFile(this.reviewStudent, type);
+  }
+
+  isUploadingReviewFile(type: StudentFileType): boolean {
+    return this.uploadingReviewFileType === type;
+  }
+
+  async uploadReviewFile(event: Event, type: StudentFileType): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!this.reviewStudent || !file) {
+      return;
+    }
+
+    if (!(await this.isValidReviewFile(file, type))) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('id', this.reviewStudent.id.toString());
+    formData.append(type, file);
+    this.uploadingReviewFileType = type;
+
+    this.studentCardService.updateAcademicStudentFile(type, formData).subscribe({
+      next: data => {
+        if (data.status === STATUS.success) {
+          this.applyStudentFileUpdate(this.reviewStudent!, data.payload.data, type);
+        }
+        this.notificationService.notifyApiData(data);
+      },
+      error: e => {
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
+      },
+      complete: () => {
+        this.uploadingReviewFileType = undefined;
+      }
+    });
+  }
+
+  private async isValidReviewFile(file: File, type: StudentFileType): Promise<boolean> {
+    if (type === 'photo') {
+      const requirements = await validatePhotoCardStudent(file);
+
+      if (!requirements.validated) {
+        this.notificationService.warning(
+          'Foto invalida',
+          requirements.invalid.map(err => `• ${err.message}`).join('\n')
+        );
+        return false;
+      }
+
+      return true;
+    }
+
+    const isValidDni = ['image/jpeg', 'image/png', 'application/pdf'].includes(file.type)
+      || /\.(jpe?g|png|pdf)$/i.test(file.name);
+
+    if (!isValidDni) {
+      this.notificationService.warning('Formato inválido', 'El DNI debe estar en formato JPG, PNG o PDF.');
+      return false;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      this.notificationService.warning('Archivo muy grande', 'El DNI no debe superar los 20MB.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private applyStudentFileUpdate(student: StudentCard, updated: StudentCard, type: StudentFileType): void {
+    if (updated.photo_path) {
+      student.photo_path = updated.photo_path;
+    }
+
+    if (updated.photo_name) {
+      student.photo_name = updated.photo_name;
+    }
+
+    if (updated.status) {
+      student.status = updated.status;
+    }
+
+    if (updated[type]) {
+      const currentFile = student[type];
+      student[type] = {
+        ...updated[type],
+        status: updated[type]?.status ?? currentFile?.status ?? {value: 'pending', label: 'Pendiente'}
+      };
+    }
+
+    if (type === 'photo') {
+      this.suneduPhotoValidated = false;
+      this.revokeStudentPhotoPreview(student.id);
+      this.loadStudentPhotoPreview(student);
+      return;
+    }
+
+    this.identityConfirmed = false;
+    this.loadReviewDni(student);
   }
 
   downloadStudentPhoto(student: StudentCard): void {
@@ -947,7 +1232,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   onObservationSelectionChange(): void {
-    if (this.selectedFlags?.length) {
+    if (this.selectedFlags?.length || this.selectedPhotoFlags?.length || this.selectedDniFlags?.length) {
       this.showSelectError = false;
     }
   }
@@ -995,11 +1280,10 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   @ViewChild('overlayUploadPhoto') overlayUploadPhoto!: OverlayPanel;
   @ViewChild('fileUploader') fileUploader!: FileUpload;
 
-  onFileSelect(event: any): void {
+  async onFileSelect(event: any): Promise<void> {
     const selectedFileUpload = this.fileUploader.files[0];
 
-    if (selectedFileUpload &&
-      (selectedFileUpload.type === 'image/jpeg' || selectedFileUpload.name.toLowerCase().endsWith('.jpg'))) {
+    if (selectedFileUpload && await this.isValidReviewFile(selectedFileUpload, 'photo')) {
 
       const reader = new FileReader();
       reader.onload = () => {
@@ -1007,14 +1291,18 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       };
       reader.readAsDataURL(selectedFileUpload);
     } else {
-      // this.notificationService.warning('Formato de foto', 'Solo se permiten archivos .jpg o .jpeg');
+      this.fileUploader.clear();
+      this.previewUrl = 'img/card-img.png';
     }
   }
 
-  onConfirmUploadPhoto(): void {
+  async onConfirmUploadPhoto(): Promise<void> {
     const selectedFileUpload = this.fileUploader.files[0];
     if (!selectedFileUpload) {
       // this.notificationService.warning('Sin foto', 'Por favor, seleccione una foto antes de continuar.');
+      return;
+    }
+    if (!(await this.isValidReviewFile(selectedFileUpload, 'photo'))) {
       return;
     }
     const formData = new FormData();
@@ -1024,13 +1312,10 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       next: (studentCardData) => {
         if (studentCardData.status === STATUS.success) {
           const studentCard = studentCardData.payload.data;
-          const previous = studentCard.photo_path;
-          studentCard.photo_path = 'img/card-img.png';
-          studentCard.photo_path = previous;
-          this.validatedStudents.push(studentCard);
+          this.applyStudentFileUpdate(this.selectedUploadCard, studentCard, 'photo');
+          this.pendingStudents.push(this.selectedUploadCard);
           this.flaggedStudents = this.flaggedStudents.filter(s => s.id !== studentCard.id);
-          this.revokeStudentPhotoPreview(studentCard.id);
-          this.loadStudentPhotoPreview(studentCard);
+          this.overlayUploadPhoto.hide();
         }
         this.notificationService.notifyApiData(studentCardData);
       },

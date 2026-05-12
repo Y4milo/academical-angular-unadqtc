@@ -23,6 +23,7 @@ export interface StudentCardFile {
   name?: string;
   mime_type?: string;
   status?: StudentCardFileStatus;
+  flags?: StudentCardFlag[];
 }
 
 export interface StudentCard {
@@ -44,8 +45,14 @@ export interface StudentCard {
   semester: string;
   photo_path: string;
   photo_name: string;
+  previous_photo_url?: string;
+  previous_photo_path?: string;
+  previous_student_card_id?: number | null;
+  created_from_unregistered_payment?: boolean;
   photo?: StudentCardFile | null;
   dni?: StudentCardFile | null;
   list_flags: StudentCardFlag[];
-  status: { id: number; value: string };
+  photo_flags?: StudentCardFlag[];
+  dni_flags?: StudentCardFlag[];
+  status: { id?: number | null; value: string; label?: string };
 }

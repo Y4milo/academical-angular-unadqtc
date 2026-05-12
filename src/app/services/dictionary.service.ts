@@ -70,6 +70,9 @@ export class DictionaryService {
   listStudentCardFlags() :Observable<ApiData<Dictionary[]>>{
     return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-flags`);
   }
+  listStudentCardDniFlags() :Observable<ApiData<Dictionary[]>>{
+    return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/student-card-dni-flags`);
+  }
   getParticipantList() {
       return this.http.get<ApiData<Dictionary[]>>(`${environment.apiUrl}/get-participant-types`);
   }

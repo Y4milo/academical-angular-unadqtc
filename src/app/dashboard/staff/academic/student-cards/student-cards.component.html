@@ -39,10 +39,10 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>ALUMNO</th>
-              <th>ESTADO ARCHIVOS</th>
-              <th>CELULAR</th>
-              <th>OPCIONES</th>
+              <th class="student-table-header-label">ALUMNO</th>
+              <th class="student-table-header-label">ESTADO ARCHIVOS</th>
+              <th class="student-table-header-label">CELULAR</th>
+              <th class="student-table-header-label">OPCIONES</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-student>
@@ -68,19 +68,28 @@
                     <span class="font-bold text-lg">
                       {{ student.fullName }}
                     </span>
-
+                    @if (isUnregisteredStudent(student)) {
+                      <span class="student-unregistered-mark">
+                        No ha registrado carnet
+                      </span>
+                    }
                     <span
-                      class="text-sm text-600"
+                      class="student-meta-row text-sm"
                       [class.student-data-warning]="isCodeSameAsDocument(student)"
                     >
-                      Código: {{ student.code }}
+                      <span class="student-meta-label">Codigo</span>
+                      <span class="student-meta-value">{{ student.code }}</span>
                     </span>
-                    <span class="text-sm text-600">Documento: {{ student.number || student.id_student }}</span>
+                    <span class="student-meta-row text-sm">
+                      <span class="student-meta-label">Documento</span>
+                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
+                    </span>
                     <span
-                      class="text-sm text-500"
+                      class="student-meta-row text-sm"
                       [class.student-data-warning]="hasMissingCampus(student)"
                     >
-                      Sede: {{ getCampusLabel(student) }}
+                      <span class="student-meta-label">Sede</span>
+                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
                     </span>
 
                   </div>
@@ -89,17 +98,31 @@
               </td>
 
               <td>
-                <div class="flex flex-column align-items-start gap-2">
-                  <p-tag
-                    [value]="'Foto: ' + getFileStatusLabel(student, 'photo')"
-                    [severity]="getFileStatusSeverity(student, 'photo')"
-                    [icon]="getFileStatusIcon(student, 'photo')"
-                  ></p-tag>
-                  <p-tag
-                    [value]="'DNI: ' + getFileStatusLabel(student, 'dni')"
-                    [severity]="getFileStatusSeverity(student, 'dni')"
-                    [icon]="getFileStatusIcon(student, 'dni')"
-                  ></p-tag>
+                <div class="student-file-status-list">
+                  <div
+                    class="student-file-status-chip"
+                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'photo')"
+                  >
+                    <span class="student-file-status-label">Foto :</span>
+                    <i
+                      [class]="getFileStatusIcon(student, 'photo')"
+                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'photo')"
+                      [pTooltip]="getFileStatusLabel(student, 'photo')"
+                      tooltipPosition="top"
+                    ></i>
+                  </div>
+                  <div
+                    class="student-file-status-chip"
+                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'dni')"
+                  >
+                    <span class="student-file-status-label">DNI :</span>
+                    <i
+                      [class]="getFileStatusIcon(student, 'dni')"
+                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'dni')"
+                      [pTooltip]="getFileStatusLabel(student, 'dni')"
+                      tooltipPosition="top"
+                    ></i>
+                  </div>
                 </div>
               </td>
 
@@ -204,36 +227,91 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>CÓDIGO</th>
-              <th>NOMBRES Y APELLIDOS</th>
-              <th>SEDE</th>
-              <th>CELULAR</th>
-              <th>FOTO</th>
-              <th>DNI/PP/CE/CI</th>
-              <th>OPCIONES</th>
+              <th class="student-table-header-label">ALUMNO</th>
+              <th class="student-table-header-label">ESTADO ARCHIVOS</th>
+              <th class="student-table-header-label">CELULAR</th>
+              <th class="student-table-header-label">OPCIONES</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-student>
             <tr>
-              <td>{{ student.code }}</td>
-              <td>{{ student.fullName }}</td>
-              <td>{{ getCampusLabel(student) }}</td>
-              <td>{{ student.cellphone }}</td>
               <td>
-                <p-image
-                  [src]="getStudentPhotoUrl(student)"
-                  alt="foto"
-                  width="60"
-                  height="70"
-                  imageClass="student-card-photo"
-                  [preview]="true"
-                  appendTo="body"
-                  (onImageError)="onStudentPhotoError(student)"
-                ></p-image>
+                <div class="flex gap-3 items-center">
+                  <p-image
+                    [src]="getStudentPhotoUrl(student)"
+                    alt="foto"
+                    width="60"
+                    height="75"
+                    imageClass="student-card-photo"
+                    [preview]="true"
+                    appendTo="body"
+                    (onImageError)="onStudentPhotoError(student)"
+                  ></p-image>
+
+                  <div class="flex flex-column gap-1">
+                    <span class="font-bold text-lg">
+                      {{ student.fullName }}
+                    </span>
+                    @if (isUnregisteredStudent(student)) {
+                      <span class="student-unregistered-mark">
+                        No ha registrado carnet
+                      </span>
+                    }
+
+                    <span
+                      class="student-meta-row text-sm"
+                      [class.student-data-warning]="isCodeSameAsDocument(student)"
+                    >
+                      <span class="student-meta-label">Codigo</span>
+                      <span class="student-meta-value">{{ student.code }}</span>
+                    </span>
+                    <span class="student-meta-row text-sm">
+                      <span class="student-meta-label">Documento</span>
+                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
+                    </span>
+                    <span
+                      class="student-meta-row text-sm"
+                      [class.student-data-warning]="hasMissingCampus(student)"
+                    >
+                      <span class="student-meta-label">Sede</span>
+                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
+                    </span>
+                  </div>
+                </div>
               </td>
-              <td>{{ student.id_student }}</td>
+
+              <td>
+                <div class="student-file-status-list">
+                  <div
+                    class="student-file-status-chip"
+                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'photo')"
+                  >
+                    <span class="student-file-status-label">Foto :</span>
+                    <i
+                      [class]="getFileStatusIcon(student, 'photo')"
+                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'photo')"
+                      [pTooltip]="getFileStatusLabel(student, 'photo')"
+                      tooltipPosition="top"
+                    ></i>
+                  </div>
+                  <div
+                    class="student-file-status-chip"
+                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'dni')"
+                  >
+                    <span class="student-file-status-label">DNI :</span>
+                    <i
+                      [class]="getFileStatusIcon(student, 'dni')"
+                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'dni')"
+                      [pTooltip]="getFileStatusLabel(student, 'dni')"
+                      tooltipPosition="top"
+                    ></i>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ student.cellphone }}</td>
               <td class="align-content-center">
-                <div class="flex justify-center flex-wrap gap-1 mb-6">
+                <div class="validated-actions-column">
                   <p-button
                     icon="pi pi-download"
                     [rounded]="true"
@@ -298,39 +376,64 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>CÓDIGO</th>
-              <th>NOMBRES Y APELLIDOS</th>
-              <th>SEDE</th>
-              <th>CELULAR</th>
-              <th>FOTO</th>
-              <th>DNI/PP/CE/CI</th>
-              <th>OBSERVACIONES</th>
-              <th>OPCIONES</th>
+              <th class="student-table-header-label">ALUMNO</th>
+              <th class="student-table-header-label">OBSERVACIONES CARNET</th>
+              <th class="student-table-header-label">OBSERVACIONES DNI</th>
+              <th class="student-table-header-label">CELULAR</th>
+              <th class="student-table-header-label">OPCIONES</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-student>
             <tr>
-              <td>{{ student.code }}</td>
-              <td>{{ student.fullName }}</td>
-              <td>{{ getCampusLabel(student) }}</td>
-              <td>{{ student.cellphone }}</td>
               <td>
-                <p-image
-                  [src]="getStudentPhotoUrl(student)"
-                  alt="foto"
-                  width="60"
-                  height="70"
-                  imageClass="student-card-photo"
-                  [preview]="true"
-                  appendTo="body"
-                  (onImageError)="onStudentPhotoError(student)"
-                ></p-image>
+                <div class="flex gap-3 items-center">
+                  <p-image
+                    [src]="getStudentPhotoUrl(student)"
+                    alt="foto"
+                    width="60"
+                    height="75"
+                    imageClass="student-card-photo"
+                    [preview]="true"
+                    appendTo="body"
+                    (onImageError)="onStudentPhotoError(student)"
+                  ></p-image>
+
+                  <div class="flex flex-column gap-1">
+                    <span class="font-bold text-lg">
+                      {{ student.fullName }}
+                    </span>
+                    @if (isUnregisteredStudent(student)) {
+                      <span class="student-unregistered-mark">
+                        No ha registrado carnet
+                      </span>
+                    }
+
+                    <span
+                      class="student-meta-row text-sm"
+                      [class.student-data-warning]="isCodeSameAsDocument(student)"
+                    >
+                      <span class="student-meta-label">Codigo</span>
+                      <span class="student-meta-value">{{ student.code }}</span>
+                    </span>
+                    <span class="student-meta-row text-sm">
+                      <span class="student-meta-label">Documento</span>
+                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
+                    </span>
+                    <span
+                      class="student-meta-row text-sm"
+                      [class.student-data-warning]="hasMissingCampus(student)"
+                    >
+                      <span class="student-meta-label">Sede</span>
+                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
+                    </span>
+                  </div>
+                </div>
               </td>
-              <td>{{ student.id_student }}</td>
+
               <td>
-                @if (student.list_flags.length > 0) {
-                  <div class="flex flex-wrap gap-1">
-                    @for (flag of student.list_flags; track flag.code || flag.id) {
+                @if (getStudentFileFlags(student, 'photo').length > 0) {
+                  <div class="student-observation-list">
+                    @for (flag of getStudentFileFlags(student, 'photo'); track flag.code || flag.id || flag.name || flag.label) {
                       <p-tag
                         [value]="flag.name || flag.label"
                         severity="warn"
@@ -339,28 +442,47 @@
                     }
                   </div>
                 } @else {
-                  <p-tag value="Sin observaciones" severity="success" icon="pi pi-check"></p-tag>
+                  <span class="student-no-observations">Sin observaciones</span>
                 }
               </td>
-              <td class="align-content-center">
-                <div class="flex justify-center flex-wrap gap-1 mb-6">
+
+              <td>
+                @if (getStudentFileFlags(student, 'dni').length > 0) {
+                  <div class="student-observation-list">
+                    @for (flag of getStudentFileFlags(student, 'dni'); track flag.code || flag.id || flag.name || flag.label) {
+                      <p-tag
+                        [value]="flag.name || flag.label"
+                        severity="warn"
+                        icon="pi pi-exclamation-triangle"
+                      ></p-tag>
+                    }
+                  </div>
+                } @else {
+                  <span class="student-no-observations">Sin observaciones</span>
+                }
+              </td>
+
+              <td>{{ student.cellphone }}</td>
+
+              <td>
+                <div class="flex justify-center align-items-center gap-2">
                   <p-button
-                    icon="pi pi-upload"
+                    icon="pi pi-search"
                     [rounded]="true"
                     [text]="true"
-                    severity="success"
-                    pTooltip="Subir foto"
+                    severity="info"
+                    (onClick)="openReviewDialog(student)"
+                    pTooltip="Comparar foto y DNI"
                     tooltipPosition="top"
-                    (onClick)="showOverlay($event, student)"
                   ></p-button>
 
                   <p-button
-                    icon="pi pi-download"
+                    icon="pi pi-pencil"
                     [rounded]="true"
                     [text]="true"
-                    severity="secondary"
-                    (onClick)="downloadStudentPhoto(student)"
-                    pTooltip="Descargar foto"
+                    severity="warn"
+                    (onClick)="openEditStudentDialog(student)"
+                    pTooltip="Editar datos del estudiante"
                     tooltipPosition="top"
                   ></p-button>
 
@@ -418,18 +540,113 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>CÓDIGO</th>
-              <th>NOMBRES Y APELLIDOS</th>
-              <th>SEDE</th>
-              <th>CELULAR</th>
+              <th class="student-table-header-label">ALUMNO</th>
+              <th class="student-table-header-label">ESTADO ARCHIVOS</th>
+              <th class="student-table-header-label">CELULAR</th>
+              <th class="student-table-header-label">OPCIONES</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-student>
             <tr>
-              <td>{{ student.code }}</td>
-              <td>{{ student.fullName }}</td>
-              <td>{{ getCampusLabel(student) }}</td>
+              <td>
+                <div class="flex gap-3 items-center">
+                  <p-image
+                    [src]="getStudentPhotoUrl(student)"
+                    alt="foto"
+                    width="60"
+                    height="75"
+                    imageClass="student-card-photo"
+                    [preview]="true"
+                    appendTo="body"
+                    (onImageError)="onStudentPhotoError(student)"
+                  ></p-image>
+
+                  <div class="flex flex-column gap-1">
+                    <span class="font-bold text-lg">
+                      {{ student.fullName }}
+                    </span>
+                    @if (isUnregisteredStudent(student)) {
+                      <span class="student-unregistered-mark">
+                        No ha registrado carnet
+                      </span>
+                    }
+
+                    <span
+                      class="student-meta-row text-sm"
+                      [class.student-data-warning]="isCodeSameAsDocument(student)"
+                    >
+                      <span class="student-meta-label">Codigo</span>
+                      <span class="student-meta-value">{{ student.code }}</span>
+                    </span>
+                    <span class="student-meta-row text-sm">
+                      <span class="student-meta-label">Documento</span>
+                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
+                    </span>
+                    <span
+                      class="student-meta-row text-sm"
+                      [class.student-data-warning]="hasMissingCampus(student)"
+                    >
+                      <span class="student-meta-label">Sede</span>
+                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
+                    </span>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <div class="student-file-status-list">
+                  <div
+                    class="student-file-status-chip"
+                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'photo')"
+                  >
+                    <span class="student-file-status-label">Foto :</span>
+                    <i
+                      [class]="getFileStatusIcon(student, 'photo')"
+                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'photo')"
+                      [pTooltip]="getFileStatusLabel(student, 'photo')"
+                      tooltipPosition="top"
+                    ></i>
+                  </div>
+                  <div
+                    class="student-file-status-chip"
+                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'dni')"
+                  >
+                    <span class="student-file-status-label">DNI :</span>
+                    <i
+                      [class]="getFileStatusIcon(student, 'dni')"
+                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'dni')"
+                      [pTooltip]="getFileStatusLabel(student, 'dni')"
+                      tooltipPosition="top"
+                    ></i>
+                  </div>
+                </div>
+              </td>
+
               <td>{{ student.cellphone }}</td>
+
+              <td>
+                <div class="flex justify-center align-items-center gap-2">
+                  <p-button
+                    icon="pi pi-search"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="info"
+                    (onClick)="prepareUnmatchedStudentCard(student, 'review')"
+                    pTooltip="Crear registro y revisar"
+                    tooltipPosition="top"
+                  ></p-button>
+
+                  <p-button
+                    icon="pi pi-pencil"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="warn"
+                    (onClick)="prepareUnmatchedStudentCard(student, 'edit')"
+                    pTooltip="Crear registro y editar datos"
+                    tooltipPosition="top"
+                  ></p-button>
+                </div>
+              </td>
             </tr>
           </ng-template>
         </p-table>
@@ -437,10 +654,11 @@
     </p-tabView>
 
     <p-dialog
-      header="Revisión de identidad"
+      header="RevisiÃ³n de identidad"
       [(visible)]="reviewDialogVisible"
       [modal]="true"
       [style]="{ width: 'min(96vw, 1100px)' }"
+      styleClass="student-card-review-dialog"
       [draggable]="false"
       [resizable]="false"
       (onHide)="closeReviewDialog()"
@@ -448,65 +666,125 @@
       @if (reviewStudent) {
         <div class="flex flex-column gap-4">
           <div class="flex flex-wrap justify-content-between gap-3">
-            <div>
+            <div class="review-student-summary">
+              <div class="review-name-column">
+                <span class="review-name-chip">{{ reviewStudent.names || getNamePart(reviewStudent.fullName, 0) }}</span>
+                <span class="review-name-chip">{{ reviewStudent.father_last_name || getNamePart(reviewStudent.fullName, 1) }}</span>
+                <span class="review-name-chip">{{ reviewStudent.mother_last_name || getNamePart(reviewStudent.fullName, 2) }}</span>
+              </div>
+
+              <div class="review-info-column">
+                <div class="review-data-field">
+                  <span class="review-data-label">Codigo</span>
+                  <span
+                    class="review-data-value"
+                    [class.student-data-warning]="isCodeSameAsDocument(reviewStudent)"
+                  >
+                    {{ reviewStudent.code }}
+                  </span>
+                </div>
+                <div class="review-data-field">
+                  <span class="review-data-label">Documento</span>
+                  <span class="review-data-value">{{ reviewStudent.number || reviewStudent.id_student }}</span>
+                </div>
+                <div class="review-data-field">
+                  <span class="review-data-label">Sede</span>
+                  <span
+                    class="review-data-value"
+                    [class.review-data-value-danger]="hasMissingCampus(reviewStudent)"
+                  >
+                    {{ getCampusLabel(reviewStudent) }}
+                  </span>
+                </div>
+                <div class="review-data-field">
+                  <span class="review-data-label">Celular</span>
+                  <span class="review-data-value">{{ reviewStudent.cellphone }}</span>
+                </div>
+              </div>
+
               <div class="text-xl font-bold">{{ reviewStudent.fullName }}</div>
-              <div
-                class="text-sm text-600"
-                [class.student-data-warning]="isCodeSameAsDocument(reviewStudent)"
-              >
-                Código: {{ reviewStudent.code }}
+              <div class="review-data-field">
+                <span class="review-data-label">Código:</span>
+                <span
+                  class="review-data-value"
+                  [class.student-data-warning]="isCodeSameAsDocument(reviewStudent)"
+                >
+                  {{ reviewStudent.code }}
+                </span>
               </div>
               @if (isCodeSameAsDocument(reviewStudent)) {
                 <small class="p-error">El código del alumno no puede ser igual al documento.</small>
               }
-              <div class="text-sm text-600">Documento: {{ reviewStudent.number || reviewStudent.id_student }}</div>
-              <div
-                class="text-sm text-600"
-                [class.student-data-warning]="hasMissingCampus(reviewStudent)"
-              >
-                Sede: {{ getCampusLabel(reviewStudent) }}
+              <div class="review-data-field">
+                <span class="review-data-label">Documento:</span>
+                <span class="review-data-value">{{ reviewStudent.number || reviewStudent.id_student }}</span>
+              </div>
+              <div class="review-data-field">
+                <span class="review-data-label">Sede:</span>
+                <span
+                  class="review-data-value"
+                  [class.review-data-value-danger]="hasMissingCampus(reviewStudent)"
+                >
+                  {{ getCampusLabel(reviewStudent) }}
+                </span>
               </div>
               @if (hasMissingCampus(reviewStudent)) {
                 <small class="p-error">El estudiante no tiene sede asignada.</small>
               }
-              <div class="text-sm text-600">Celular: {{ reviewStudent.cellphone }}</div>
+              <div class="review-data-field">
+                <span class="review-data-label">Celular:</span>
+                <span class="review-data-value">{{ reviewStudent.cellphone }}</span>
+              </div>
             </div>
 
-            <div class="flex flex-wrap justify-content-end gap-2">
-              <p-button
-                label="Descargar foto"
-                icon="pi pi-download"
-                severity="secondary"
-                size="small"
-                [outlined]="true"
-                (onClick)="downloadReviewFile('photo')"
-              ></p-button>
-              <p-button
-                label="Descargar DNI"
-                icon="pi pi-download"
-                severity="secondary"
-                size="small"
-                [outlined]="true"
-                (onClick)="downloadReviewFile('dni')"
-              ></p-button>
-              <a
-                href="https://siucarne.sunedu.gob.pe/carne/validacion"
-                target="_blank"
-                rel="noopener"
-                class="p-button p-button-outlined p-button-sm"
-              >
-                Validar en SUNEDU
-              </a>
-            </div>
           </div>
 
           <div class="grid">
             <div class="col-12 md:col-6">
-              <h4 class="mt-0 mb-2">Foto del carné</h4>
+              <h4 class="mt-0 mb-2 review-section-title">Foto del carne</h4>
+              <div class="review-document-actions">
+                <button
+                  type="button"
+                  class="review-icon-button review-icon-button-download"
+                  (click)="downloadReviewFile('photo')"
+                  title="Descargar foto"
+                  pTooltip="Descargar foto"
+                  tooltipPosition="top"
+                >
+                  <i class="fa-solid fa-download"></i>
+                </button>
+                <input
+                  #reviewPhotoInput
+                  type="file"
+                  accept=".jpg,.jpeg,image/jpeg"
+                  class="hidden-file-input"
+                  (change)="uploadReviewFile($event, 'photo')"
+                />
+                <button
+                  type="button"
+                  class="review-icon-button review-icon-button-upload"
+                  [disabled]="isUploadingReviewFile('photo')"
+                  (click)="reviewPhotoInput.click()"
+                  title="Subir foto"
+                  pTooltip="Subir foto"
+                  tooltipPosition="top"
+                >
+                  <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                </button>
+                <a
+                  href="https://siucarne.sunedu.gob.pe/carne/validacion"
+                  target="_blank"
+                  rel="noopener"
+                  class="review-sunedu-button"
+                >
+                  <i class="fa-solid fa-cloud-arrow-down"></i>
+                  <span>Validar foto SUNEDU</span>
+                </a>
+              </div>
               <div class="border-1 surface-border border-round p-3 text-center">
                 <p-image
                   [src]="getStudentPhotoUrl(reviewStudent)"
-                  alt="Foto del carné"
+                  alt="Foto del carne"
                   imageClass="review-document-image"
                   [preview]="true"
                   appendTo="body"
@@ -515,7 +793,37 @@
             </div>
 
             <div class="col-12 md:col-6">
-              <h4 class="mt-0 mb-2">DNI / Documento</h4>
+              <h4 class="mt-0 mb-2 review-section-title">DNI / Documento</h4>
+              <div class="review-document-actions">
+                <button
+                  type="button"
+                  class="review-icon-button review-icon-button-download"
+                  (click)="downloadReviewFile('dni')"
+                  title="Descargar DNI"
+                  pTooltip="Descargar DNI"
+                  tooltipPosition="top"
+                >
+                  <i class="fa-solid fa-download"></i>
+                </button>
+                <input
+                  #reviewDniInput
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                  class="hidden-file-input"
+                  (change)="uploadReviewFile($event, 'dni')"
+                />
+                <button
+                  type="button"
+                  class="review-icon-button review-icon-button-upload"
+                  [disabled]="isUploadingReviewFile('dni')"
+                  (click)="reviewDniInput.click()"
+                  title="Subir DNI"
+                  pTooltip="Subir DNI"
+                  tooltipPosition="top"
+                >
+                  <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                </button>
+              </div>
               <div class="border-1 surface-border border-round p-3 text-center">
                 @if (reviewDniSafeUrl && reviewDniIsPdf) {
                   <iframe
@@ -531,7 +839,7 @@
                     appendTo="body"
                   ></p-image>
                 } @else {
-                  <div class="p-5 text-600">No se pudo cargar el DNI.</div>
+                  <div class="p-5 text-gray-500">No se pudo cargar el DNI.</div>
                 }
               </div>
             </div>
@@ -545,6 +853,8 @@
                 inputId="suneduPhotoValidated"
                 [(ngModel)]="suneduPhotoValidated"
                 [binary]="true"
+                [disabled]="!reviewStudent.photo || isReviewSubmitting"
+                (onChange)="onReviewFileApprovalChange('photo', $event.checked)"
               ></p-checkbox>
               <label for="suneduPhotoValidated">
                 La foto fue validada en SUNEDU y cumple los requisitos.
@@ -556,9 +866,11 @@
                 inputId="identityConfirmed"
                 [(ngModel)]="identityConfirmed"
                 [binary]="true"
+                [disabled]="!reviewStudent.dni || isReviewSubmitting"
+                (onChange)="onReviewFileApprovalChange('dni', $event.checked)"
               ></p-checkbox>
               <label for="identityConfirmed">
-                La identidad coincide entre la foto del carné y el DNI.
+                La identidad coincide entre la foto del carne y el DNI.
               </label>
             </div>
           </div>
@@ -577,11 +889,22 @@
             <div class="review-decision-section review-decision-section-warning">
               <div class="flex flex-column gap-2">
             <label class="font-semibold">Observaciones si no se confirma</label>
+            <small class="text-gray-500">Foto del carne</small>
             <p-multiSelect
               [options]="statusStudentCardOptions"
-              [(ngModel)]="selectedFlags"
+              [(ngModel)]="selectedPhotoFlags"
               optionLabel="label"
-              placeholder="Seleccione observaciones"
+              placeholder="Seleccione observaciones de foto"
+              display="chip"
+              class="w-full"
+              (onChange)="onObservationSelectionChange()"
+            ></p-multiSelect>
+            <small class="text-gray-500 mt-2">DNI / Documento</small>
+            <p-multiSelect
+              [options]="statusStudentCardDniOptions"
+              [(ngModel)]="selectedDniFlags"
+              optionLabel="label"
+              placeholder="Seleccione observaciones de DNI"
               display="chip"
               class="w-full"
               (onChange)="onObservationSelectionChange()"
@@ -622,6 +945,7 @@
       [(visible)]="editDialogVisible"
       [modal]="true"
       [style]="{ width: 'min(96vw, 760px)' }"
+      styleClass="student-edit-dialog"
       [draggable]="false"
       [resizable]="false"
       (onHide)="closeEditStudentDialog()"

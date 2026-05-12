@@ -66,6 +66,13 @@ export class StudentCardService {
     );
   }
 
+  updateAcademicStudentFile(type: StudentFileType, formData: FormData): Observable<ApiData<StudentCard>> {
+    return this.http.post<ApiData<StudentCard>>(
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.UPDATE.STUDENT.FILE.BY_TYPE(type)}`,
+      formData
+    );
+  }
+
   updateAcademicStudentBasicInfo(studentData: StudentBasicInfo & { id: number }): Observable<ApiData<StudentCard>> {
     return this.http.put<ApiData<StudentCard>>(
       `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.UPDATE.STUDENT.BASIC_INFO}`,
@@ -100,6 +107,16 @@ export class StudentCardService {
   }
 
 // 🔄 CAMBIO DE ESTADO
+
+  ensurePendingStudentCard(data: {
+    code?: string;
+    number?: string;
+  }): Observable<ApiData<StudentCard>> {
+    return this.http.post<ApiData<StudentCard>>(
+      `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.SET.STUDENT.ENSURE_PENDING}`,
+      data
+    );
+  }
 
   validateStudentCard(data: FormData): Observable<ApiData<Dictionary>> {
     return this.http.post<ApiData<Dictionary>>(

@@ -1,3 +1,7 @@
+:host .text-gray-500 {
+  color: #6b7280 !important;
+}
+
 :host ::ng-deep .student-card-toolbar {
   border: 1px solid var(--surface-border);
   background: color-mix(in srgb, var(--surface-card) 92%, transparent);
@@ -40,10 +44,333 @@
   transform: scale(1.04);
 }
 
+.student-file-status-list {
+  display: inline-grid;
+  gap: 0.45rem;
+}
+
+.student-file-status-chip {
+  display: inline-grid;
+  grid-template-columns: 2.7rem 1.25rem;
+  align-items: center;
+  gap: 0.4rem;
+  width: max-content;
+  padding: 0.22rem 0.38rem;
+  border-radius: 6px;
+}
+
+.student-file-status-label {
+  color: var(--text-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.student-file-status-chip i {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.student-file-status-chip-success {
+  background: color-mix(in srgb, var(--p-green-500) 20%, transparent);
+}
+
+.student-file-status-chip-warn {
+  background: color-mix(in srgb, var(--p-orange-400) 20%, transparent);
+}
+
+.student-file-status-chip-danger {
+  background: color-mix(in srgb, var(--p-red-500) 18%, transparent);
+}
+
+.student-file-status-chip-secondary {
+  background: color-mix(in srgb, var(--text-color-secondary) 16%, transparent);
+}
+
+.student-file-status-icon-success {
+  color: var(--p-green-500);
+}
+
+.student-file-status-chip-success .student-file-status-label {
+  color: var(--p-green-500);
+}
+
+.student-file-status-icon-warn {
+  color: var(--p-orange-400);
+}
+
+.student-file-status-chip-warn .student-file-status-label {
+  color: var(--p-orange-400);
+}
+
+.student-file-status-icon-danger {
+  color: var(--p-red-500);
+}
+
+.student-file-status-chip-danger .student-file-status-label {
+  color: var(--p-red-500);
+}
+
+.student-file-status-icon-secondary {
+  color: var(--text-color-secondary);
+}
+
+.student-file-status-chip-secondary .student-file-status-label {
+  color: var(--text-color-secondary);
+}
+
 :host ::ng-deep .review-document-image {
   max-width: 100%;
   max-height: 440px;
   object-fit: contain;
+}
+
+.review-document-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.review-icon-button,
+.review-sunedu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, opacity 0.16s ease;
+}
+
+.review-icon-button {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: transparent;
+}
+
+.review-icon-button i {
+  font-size: 1rem;
+}
+
+.review-icon-button:disabled,
+.review-sunedu-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.review-icon-button-download {
+  color: #0ea5e9;
+}
+
+.review-icon-button-download:hover {
+  color: #38bdf8;
+  background: color-mix(in srgb, #0ea5e9 12%, transparent);
+}
+
+.review-icon-button-upload {
+  color: #f97316;
+}
+
+.review-icon-button-upload:hover {
+  color: #fb923c;
+  background: color-mix(in srgb, #f97316 12%, transparent);
+}
+
+.review-sunedu-button {
+  margin-left: auto;
+  gap: 0.5rem;
+  min-height: 2.35rem;
+  padding: 0.55rem 0.85rem;
+  color: #4ade80;
+  background: transparent;
+  border-color: #22c55e;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.review-sunedu-button:hover {
+  color: #86efac;
+  border-color: #4ade80;
+  background: color-mix(in srgb, #22c55e 10%, transparent);
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.student-meta-label,
+.student-data-warning .student-meta-label {
+  color: var(--p-gray-400);
+  font-weight: 400;
+}
+
+.student-meta-row {
+  display: grid;
+  grid-template-columns: 5.7rem minmax(0, max-content);
+  align-items: center;
+  column-gap: 1.4rem;
+  position: relative;
+  color: var(--text-color);
+  line-height: 1.35;
+}
+
+.student-meta-row::after {
+  content: "";
+  position: absolute;
+  left: calc(5.7rem + 0.7rem);
+  top: -0.18rem;
+  bottom: -0.18rem;
+  width: 1px;
+  background: color-mix(in srgb, var(--p-gray-400) 70%, transparent);
+}
+
+.student-meta-label {
+  text-align: right;
+}
+
+.student-meta-value {
+  text-align: left;
+}
+
+.student-table-header-label {
+  color: var(--p-gray-400);
+}
+
+.validated-actions-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 5rem;
+}
+
+.student-observation-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-width: 18rem;
+}
+
+.student-no-observations {
+  color: var(--p-gray-500);
+  font-size: 0.85rem;
+}
+
+.student-unregistered-mark {
+  width: max-content;
+  max-width: 100%;
+  padding: 0.16rem 0.42rem;
+  border: 1px solid color-mix(in srgb, var(--p-red-400) 45%, transparent);
+  border-radius: 6px;
+  color: var(--p-red-300);
+  background: color-mix(in srgb, var(--p-red-500) 12%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .student-card-review-dialog .p-dialog-title,
+.review-section-title {
+  color: var(--p-gray-400);
+}
+
+:host ::ng-deep .student-edit-dialog label {
+  color: var(--p-gray-400);
+}
+
+:host ::ng-deep .student-edit-dialog .p-error {
+  color: var(--p-gray-500) !important;
+}
+
+.review-student-summary {
+  display: grid;
+  grid-template-columns: minmax(13rem, 1fr) minmax(18rem, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 8vw, 7rem);
+  width: 100%;
+}
+
+.review-student-summary > .text-xl,
+.review-student-summary > .review-data-field,
+.review-student-summary > small {
+  display: none;
+}
+
+.review-name-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.review-name-chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.25rem 0.45rem;
+  color: var(--text-color);
+  background: color-mix(in srgb, var(--surface-card) 78%, #000000);
+  font-size: clamp(1.30rem, 2.5vw, 1.8rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.review-info-column {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) minmax(8rem, max-content);
+  gap: 0.9rem 2.5rem;
+  align-items: center;
+  justify-content: start;
+  position: relative;
+}
+
+.review-info-column::after {
+  content: "";
+  position: absolute;
+  left: calc(7rem + 1.25rem);
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: color-mix(in srgb, var(--p-gray-400) 80%, transparent);
+}
+
+.review-data-field {
+  display: contents;
+}
+
+.review-data-label {
+  display: inline-block;
+  padding: 0;
+  color: var(--p-gray-400);
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.review-data-value {
+  display: inline-block;
+  min-width: 7.5rem;
+  padding: 0;
+  color: var(--text-color);
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.review-data-value-danger {
+  color: var(--p-red-500);
+  font-weight: 700;
 }
 
 .student-data-warning {
@@ -82,6 +409,19 @@
 }
 
 @media (max-width: 768px) {
+  .review-student-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .review-info-column {
+    grid-template-columns: minmax(6rem, max-content) minmax(0, 1fr);
+    padding-top: 0.5rem;
+  }
+
+  .review-info-column::after {
+    left: calc(6rem + 1.25rem);
+  }
+
   .review-decision-grid {
     grid-template-columns: 1fr;
   }
