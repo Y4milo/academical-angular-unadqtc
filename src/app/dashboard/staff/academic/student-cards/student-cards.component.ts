@@ -99,6 +99,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   manualRegistrationPhotoFile?: File;
   manualRegistrationDniFile?: File;
   manualRegistrationPhotoPreviewUrl = 'img/card-img.png';
+  manualRegistrationUsesPreviousPhoto = false;
   manualRegistrationDniPreviewUrl?: string;
   manualRegistrationDniSafeUrl?: SafeResourceUrl;
   manualRegistrationDniIsPdf = false;
@@ -417,6 +418,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.revokeManualRegistrationPreviews();
     this.manualRegistrationPhotoFile = undefined;
     this.manualRegistrationDniFile = undefined;
+    this.manualRegistrationPhotoPreviewUrl = student.previous_photo_url ?? 'img/card-img.png';
+    this.manualRegistrationUsesPreviousPhoto = !!student.previous_photo_url;
     this.manualRegistrationPhotoApproved = false;
     this.manualRegistrationIdentityConfirmed = false;
     this.editStudentForm.reset({
@@ -444,6 +447,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.revokeManualRegistrationPreviews();
     this.manualRegistrationPhotoFile = undefined;
     this.manualRegistrationDniFile = undefined;
+    this.manualRegistrationUsesPreviousPhoto = false;
     this.manualRegistrationPhotoApproved = false;
     this.manualRegistrationIdentityConfirmed = false;
     this.editStudentForm.reset();
@@ -646,6 +650,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     if (type === 'photo') {
       this.revokeManualRegistrationPhotoPreview();
       this.manualRegistrationPhotoFile = file;
+      this.manualRegistrationUsesPreviousPhoto = false;
       this.manualRegistrationPhotoPreviewUrl = URL.createObjectURL(file);
       return;
     }
@@ -667,7 +672,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   private revokeManualRegistrationPhotoPreview(): void {
-    if (this.manualRegistrationPhotoPreviewUrl && this.manualRegistrationPhotoPreviewUrl !== 'img/card-img.png') {
+    if (this.manualRegistrationPhotoPreviewUrl?.startsWith('blob:')) {
       URL.revokeObjectURL(this.manualRegistrationPhotoPreviewUrl);
     }
 
@@ -726,9 +731,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.manualRegistrationPhotoFile || !this.manualRegistrationDniFile) {
+    if ((!this.manualRegistrationPhotoFile && !this.manualRegistrationUsesPreviousPhoto) || !this.manualRegistrationDniFile) {
       this.isEditSubmitting = false;
-      this.notificationService.warning('Archivos requeridos', 'Debe subir la foto y el DNI antes de registrar.');
+      this.notificationService.warning('Archivos requeridos', 'Debe subir la foto o usar una foto validada anterior, y tambien subir el DNI.');
       return;
     }
 
@@ -742,7 +747,11 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     payload.append('cellphone', formValues.cellphone);
     payload.append('address', formValues.address);
     payload.append('campus', formValues.campus);
-    payload.append('photo', this.manualRegistrationPhotoFile);
+    if (this.manualRegistrationPhotoFile) {
+      payload.append('photo', this.manualRegistrationPhotoFile);
+    } else if (this.manualRegistrationUsesPreviousPhoto) {
+      payload.append('use_previous_photo', '1');
+    }
     payload.append('dni', this.manualRegistrationDniFile);
     payload.append('sunedu_photo_validated', this.manualRegistrationPhotoApproved ? '1' : '0');
     payload.append('identity_confirmed', this.manualRegistrationIdentityConfirmed ? '1' : '0');
