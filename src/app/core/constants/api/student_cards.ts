@@ -36,6 +36,7 @@ export const API_STUDENT_CARDS = {
           PENDING: '/student-cards/academic/set/student/pending',
           FLAGS: '/student-cards/academic/set/student/flags',
           FILE_STATUS: '/student-cards/academic/set/student/file-status',
+          MANUAL_REGISTRATION: '/student-cards/academic/set/student/manual-registration',
         }
       },
 

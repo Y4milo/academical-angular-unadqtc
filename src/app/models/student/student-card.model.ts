@@ -48,7 +48,7 @@ export interface StudentCard {
   previous_photo_url?: string;
   previous_photo_path?: string;
   previous_student_card_id?: number | null;
-  created_from_unregistered_payment?: boolean;
+  manual_registration?: boolean;
   photo?: StudentCardFile | null;
   dni?: StudentCardFile | null;
   list_flags: StudentCardFlag[];

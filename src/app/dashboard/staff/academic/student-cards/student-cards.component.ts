@@ -30,6 +30,7 @@ import {TagModule} from 'primeng/tag';
 import {ImageModule} from 'primeng/image';
 import {ToolbarModule} from 'primeng/toolbar';
 import {validatePhotoCardStudent} from '../../../../helper/helper.util';
+import {StepsModule} from 'primeng/steps';
 
 @Component({
   selector: 'app-student-cards',
@@ -55,6 +56,7 @@ import {validatePhotoCardStudent} from '../../../../helper/helper.util';
     TagModule,
     ImageModule,
     ToolbarModule,
+    StepsModule,
   ],
   templateUrl: './student-cards.component.html',
   styleUrl: './student-cards.component.css'
@@ -88,6 +90,20 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   editStudent?: StudentCard;
   editStudentForm!: FormGroup;
   isEditSubmitting = false;
+  isManualRegistrationEdit = false;
+  manualRegistrationStep = 0;
+  manualRegistrationSteps = [
+    {label: 'Datos'},
+    {label: 'Foto y DNI'},
+  ];
+  manualRegistrationPhotoFile?: File;
+  manualRegistrationDniFile?: File;
+  manualRegistrationPhotoPreviewUrl = 'img/card-img.png';
+  manualRegistrationDniPreviewUrl?: string;
+  manualRegistrationDniSafeUrl?: SafeResourceUrl;
+  manualRegistrationDniIsPdf = false;
+  manualRegistrationPhotoApproved = false;
+  manualRegistrationIdentityConfirmed = false;
   campusOptions: Dictionary[] = [];
   idTypeOptions: Dictionary[] = [];
   genderOptions: Dictionary[] = [];
@@ -219,6 +235,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     Object.values(this.photoPreviewUrls).forEach(url => URL.revokeObjectURL(url));
     this.photoPreviewUrls = {};
     this.revokeReviewDniUrl();
+    this.revokeManualRegistrationPreviews();
     this.clearObservationPanelTimer();
   }
 
@@ -373,8 +390,35 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   openEditStudentDialog(student: StudentCard): void {
+    this.isManualRegistrationEdit = false;
     this.editStudent = student;
     this.editDialogVisible = true;
+    this.editStudentForm.reset({
+      id_type: student.id_type?.id ?? null,
+      code: student.code ?? '',
+      number: student.number || student.id_student || '',
+      names: student.names || this.getNamePart(student.fullName, 0),
+      father_last_name: student.father_last_name || this.getNamePart(student.fullName, 1),
+      mother_last_name: student.mother_last_name || this.getNamePart(student.fullName, 2),
+      check_digit: student.check_digit ?? null,
+      gender: student.gender?.id ?? null,
+      email: student.email ?? '',
+      cellphone: student.cellphone ?? '',
+      address: student.address ?? '',
+      campus: student.campus?.id ?? null,
+    });
+  }
+
+  openManualRegistrationDialog(student: StudentCard): void {
+    this.isManualRegistrationEdit = true;
+    this.manualRegistrationStep = 0;
+    this.editStudent = student;
+    this.editDialogVisible = true;
+    this.revokeManualRegistrationPreviews();
+    this.manualRegistrationPhotoFile = undefined;
+    this.manualRegistrationDniFile = undefined;
+    this.manualRegistrationPhotoApproved = false;
+    this.manualRegistrationIdentityConfirmed = false;
     this.editStudentForm.reset({
       id_type: student.id_type?.id ?? null,
       code: student.code ?? '',
@@ -395,6 +439,13 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.editDialogVisible = false;
     this.editStudent = undefined;
     this.isEditSubmitting = false;
+    this.isManualRegistrationEdit = false;
+    this.manualRegistrationStep = 0;
+    this.revokeManualRegistrationPreviews();
+    this.manualRegistrationPhotoFile = undefined;
+    this.manualRegistrationDniFile = undefined;
+    this.manualRegistrationPhotoApproved = false;
+    this.manualRegistrationIdentityConfirmed = false;
     this.editStudentForm.reset();
   }
 
@@ -418,6 +469,11 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
     const formValues = this.editStudentForm.getRawValue();
     this.isEditSubmitting = true;
+
+    if (this.isManualRegistrationEdit) {
+      this.saveManualRegistration(formValues);
+      return;
+    }
 
     this.studentCardService.updateAcademicStudentBasicInfo({
       id: this.editStudent.id,
@@ -547,8 +603,85 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     return student.dni_flags ?? student.dni?.flags ?? [];
   }
 
-  isUnregisteredStudent(student: StudentCard): boolean {
-    return student.status?.value === 'unregistered' || !!student.created_from_unregistered_payment;
+  isManualRegistration(student: StudentCard): boolean {
+    return !!student.manual_registration;
+  }
+
+  nextManualRegistrationStep(): void {
+    if (this.editStudentForm.invalid) {
+      Object.values(this.editStudentForm.controls).forEach(control => {
+        control.markAsTouched();
+        control.updateValueAndValidity();
+      });
+
+      if (this.editStudentForm.hasError('codeMatchesDocument')) {
+        this.notificationService.warning('Advertencia', 'El codigo del alumno no puede ser igual al documento.');
+        return;
+      }
+
+      this.notificationService.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
+      return;
+    }
+
+    this.manualRegistrationStep = 1;
+  }
+
+  previousManualRegistrationStep(): void {
+    this.manualRegistrationStep = 0;
+  }
+
+  async onManualRegistrationFileSelect(event: Event, type: StudentFileType): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (!(await this.isValidReviewFile(file, type))) {
+      return;
+    }
+
+    if (type === 'photo') {
+      this.revokeManualRegistrationPhotoPreview();
+      this.manualRegistrationPhotoFile = file;
+      this.manualRegistrationPhotoPreviewUrl = URL.createObjectURL(file);
+      return;
+    }
+
+    this.revokeManualRegistrationDniPreview();
+    this.manualRegistrationDniFile = file;
+
+    const url = URL.createObjectURL(file);
+    this.manualRegistrationDniPreviewUrl = url;
+    this.manualRegistrationDniIsPdf = file.type === 'application/pdf';
+    this.manualRegistrationDniSafeUrl = this.manualRegistrationDniIsPdf
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(url)
+      : undefined;
+  }
+
+  private revokeManualRegistrationPreviews(): void {
+    this.revokeManualRegistrationPhotoPreview();
+    this.revokeManualRegistrationDniPreview();
+  }
+
+  private revokeManualRegistrationPhotoPreview(): void {
+    if (this.manualRegistrationPhotoPreviewUrl && this.manualRegistrationPhotoPreviewUrl !== 'img/card-img.png') {
+      URL.revokeObjectURL(this.manualRegistrationPhotoPreviewUrl);
+    }
+
+    this.manualRegistrationPhotoPreviewUrl = 'img/card-img.png';
+  }
+
+  private revokeManualRegistrationDniPreview(): void {
+    if (this.manualRegistrationDniPreviewUrl) {
+      URL.revokeObjectURL(this.manualRegistrationDniPreviewUrl);
+    }
+
+    this.manualRegistrationDniPreviewUrl = undefined;
+    this.manualRegistrationDniSafeUrl = undefined;
+    this.manualRegistrationDniIsPdf = false;
   }
 
   prepareUnmatchedStudentCard(student: StudentCard, action: 'review' | 'edit'): void {
@@ -584,6 +717,73 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           NOTIFICATION_MESSAGE.error_connection.message
         );
         console.error(e);
+      }
+    });
+  }
+
+  private saveManualRegistration(formValues: any): void {
+    if (!this.editStudent) {
+      return;
+    }
+
+    if (!this.manualRegistrationPhotoFile || !this.manualRegistrationDniFile) {
+      this.isEditSubmitting = false;
+      this.notificationService.warning('Archivos requeridos', 'Debe subir la foto y el DNI antes de registrar.');
+      return;
+    }
+
+    const payload = new FormData();
+    payload.append('number', formValues.number);
+    payload.append('code', formValues.code);
+    payload.append('id_type', formValues.id_type);
+    payload.append('check_digit', formValues.check_digit);
+    payload.append('gender', formValues.gender);
+    payload.append('email', formValues.email);
+    payload.append('cellphone', formValues.cellphone);
+    payload.append('address', formValues.address);
+    payload.append('campus', formValues.campus);
+    payload.append('photo', this.manualRegistrationPhotoFile);
+    payload.append('dni', this.manualRegistrationDniFile);
+    payload.append('sunedu_photo_validated', this.manualRegistrationPhotoApproved ? '1' : '0');
+    payload.append('identity_confirmed', this.manualRegistrationIdentityConfirmed ? '1' : '0');
+
+    this.studentCardService.storeManualRegistration(payload).subscribe({
+      next: data => {
+        if (data.status === STATUS.success) {
+          const registeredStudent = data.payload.data;
+          this.unmatchedStudent = this.unmatchedStudent.filter(s =>
+            (s.number || s.id_student) !== (this.editStudent!.number || this.editStudent!.id_student)
+              && s.code !== this.editStudent!.code
+          );
+
+          if (registeredStudent.status?.value === 'validated') {
+            this.validatedStudents = [
+              registeredStudent,
+              ...this.validatedStudents.filter(s => s.id !== registeredStudent.id)
+            ];
+          } else {
+            this.pendingStudents = [
+              registeredStudent,
+              ...this.pendingStudents.filter(s => s.id !== registeredStudent.id)
+            ];
+          }
+
+          this.loadStudentPhotoPreview(registeredStudent);
+          this.closeEditStudentDialog();
+        }
+
+        this.notificationService.notifyApiData(data);
+      },
+      error: e => {
+        this.isEditSubmitting = false;
+        this.notificationService.error(
+          NOTIFICATION_MESSAGE.error_connection.title,
+          NOTIFICATION_MESSAGE.error_connection.message
+        );
+        console.error(e);
+      },
+      complete: () => {
+        this.isEditSubmitting = false;
       }
     });
   }
