@@ -31,7 +31,6 @@ export const API_STUDENT_CARDS = {
 
       SET: {
         STUDENT: {
-          ENSURE_PENDING: '/student-cards/academic/set/student/ensure-pending',
           VALIDATE: '/student-cards/academic/set/student/validate',
           PENDING: '/student-cards/academic/set/student/pending',
           FLAGS: '/student-cards/academic/set/student/flags',

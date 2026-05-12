@@ -689,43 +689,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.manualRegistrationDniIsPdf = false;
   }
 
-  prepareUnmatchedStudentCard(student: StudentCard, action: 'review' | 'edit'): void {
-    this.studentCardService.ensurePendingStudentCard({
-      code: student.code,
-      number: student.number || student.id_student,
-    }).subscribe({
-      next: data => {
-        if (data.status === STATUS.success) {
-          const pendingStudent = data.payload.data;
-          this.unmatchedStudent = this.unmatchedStudent.filter(s =>
-            (s.number || s.id_student) !== (student.number || student.id_student)
-              && s.code !== student.code
-          );
-          this.pendingStudents = [
-            pendingStudent,
-            ...this.pendingStudents.filter(s => s.id !== pendingStudent.id)
-          ];
-          this.loadStudentPhotoPreview(pendingStudent);
-
-          if (action === 'review') {
-            this.openReviewDialog(pendingStudent);
-          } else {
-            this.openEditStudentDialog(pendingStudent);
-          }
-        }
-
-        this.notificationService.notifyApiData(data);
-      },
-      error: e => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      }
-    });
-  }
-
   private saveManualRegistration(formValues: any): void {
     if (!this.editStudent) {
       return;
@@ -1002,7 +965,15 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (data) => {
         if (data.status === STATUS.success) {
-          student.list_flags = [...selectedPhotoFlags, ...selectedDniFlags];
+          student.photo_flags = [...selectedPhotoFlags];
+          student.dni_flags = [...selectedDniFlags];
+          student.list_flags = [...selectedPhotoFlags];
+          if (student.photo) {
+            student.photo.flags = [...selectedPhotoFlags];
+          }
+          if (student.dni) {
+            student.dni.flags = [...selectedDniFlags];
+          }
           this.pendingStudents = this.pendingStudents.filter(s => s.id !== student.id);
           this.flaggedStudents.push(student);
           this.closeReviewDialog();
