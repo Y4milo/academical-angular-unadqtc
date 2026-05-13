@@ -1,8 +1,9 @@
-<p-steps [model]="steps" [(activeIndex)]="currentStep"></p-steps>
+<p-steps *ngIf="registrationOpen" [model]="steps" [(activeIndex)]="currentStep"></p-steps>
 
 <div class="flex justify-content-center min-h-screen">
   <div class="w-full" style="max-width: 800px;">
     <p-card class="p-3 shadow-2 border-round-lg">
+      <ng-container *ngIf="registrationOpen; else registrationClosed">
       <form
         [formGroup]="registrationForm"
         (ngSubmit)="submitForm()"
@@ -401,6 +402,29 @@
           ></button>
         </div>
       </form>
+      </ng-container>
+
+      <ng-template #registrationClosed>
+        <div class="text-center py-6">
+          <i class="pi pi-calendar-times text-orange-500" style="font-size: 4rem"></i>
+          <h3 class="text-2xl font-semibold text-primary mt-3 mb-2">
+            Registro fuera de fecha
+          </h3>
+          <p class="text-gray-700">
+            {{ registrationAvailabilityMessage }}
+          </p>
+          <div class="mt-5">
+            <button
+              pButton
+              type="button"
+              label="Cerrar sesión"
+              icon="pi pi-sign-out"
+              severity="secondary"
+              (click)="logoutStudent()"
+            ></button>
+          </div>
+        </div>
+      </ng-template>
     </p-card>
   </div>
 </div>

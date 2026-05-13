@@ -54,7 +54,7 @@ export class DictionaryService {
    * @returns Observable con un objeto tipo Dictionary
    */
   getCurrentSemester(): Observable<ApiData<Dictionary>> {
-    return this.http.get<ApiData<Dictionary>>(`${this.apiURL}/semesters/current`);
+    return this.http.get<ApiData<Dictionary>>(`${this.apiURL}/semester/current`);
   }
   /**
    * Obtiene el semestre actual desde la API.

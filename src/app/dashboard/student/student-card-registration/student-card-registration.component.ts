@@ -77,6 +77,8 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
   dniObjectUrl: string | null = null;
   selectedDniFile: File | null = null;
   isSubmitting = false;
+  registrationOpen = true;
+  registrationAvailabilityMessage = '';
 
   /**
    * Constructor - se inyectan FormBuilder y MessageService para formularios y notificaciones
@@ -107,7 +109,24 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
 
   initializeFlow() {
 
-    this.studentService.setPaymentSession().pipe(
+    this.dictionaryService.getCurrentSemester().pipe(
+      switchMap((semesterData) => {
+        if (semesterData.status !== STATUS.success) {
+          this.notificationService.notifyApiData(semesterData);
+          throw new Error('registration-closed');
+        }
+
+        const availability = semesterData.payload?.data?.student_card_registration;
+        this.registrationOpen = availability?.can_register ?? false;
+        this.registrationAvailabilityMessage = availability?.message ?? 'El registro de carnet universitario no esta disponible.';
+
+        if (!this.registrationOpen) {
+          this.notificationService.warning('Registro fuera de fecha', this.registrationAvailabilityMessage);
+          throw new Error('registration-closed');
+        }
+
+        return this.studentService.setPaymentSession();
+      }),
 
       // 🔥 1. GENDER
       switchMap(() => this.dictionaryService.getGenderList()),
@@ -186,6 +205,10 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
         this.handleDniResponse(dni);
       },
       error: (e) => {
+        if (e?.message === 'registration-closed') {
+          return;
+        }
+
         console.error(e);
         this.notificationService.error(
           NOTIFICATION_MESSAGE.error_connection.title,
