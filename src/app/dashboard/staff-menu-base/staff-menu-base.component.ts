@@ -4,6 +4,7 @@ import {RouterOutlet} from "@angular/router";
 import {MenuItem} from 'primeng/api';
 import {StaffUser} from '../../models/staff-user.model';
 import {LoginService} from '../../services/login.service';
+import {UsersService} from '../../services/users.service';
 
 @Component({
   selector: 'app-staff-menu-base',
@@ -19,11 +20,21 @@ export class StaffMenuBaseComponent implements OnInit{
     staffUser!: StaffUser;
 
     constructor(
-      private loginService: LoginService
+      private loginService: LoginService,
+      private usersService: UsersService
     ) { }
 
     ngOnInit(): void {
       this.staffUser = this.loginService.getUser();
+      this.items = [];
 
+      this.usersService.getStaffMenu().subscribe({
+        next: (response) => {
+          this.items = response.payload.data ?? [];
+        },
+        error: () => {
+          this.items = [];
+        }
+      });
     }
 }

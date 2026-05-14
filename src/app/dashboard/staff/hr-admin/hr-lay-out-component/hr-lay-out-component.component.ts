@@ -1,9 +1,9 @@
+import {Component, OnInit} from '@angular/core';
+import {FileIcon, LucideAngularModule} from 'lucide-angular';
 import {MenuItem, PrimeTemplate} from 'primeng/api';
 import {Menubar} from 'primeng/menubar';
-import {LucideAngularModule, FileIcon, Fingerprint, CalendarCheck} from 'lucide-angular';
 import {RouterLink, RouterOutlet} from '@angular/router';
-import {Component, OnInit} from '@angular/core';
-import {PATHS} from '../../../../core/constants/paths';
+import {UsersService} from '../../../../services/users.service';
 
 @Component({
   selector: 'app-hr-lay-out-component',
@@ -21,32 +21,20 @@ export class HrLayOutComponentComponent implements OnInit {
   items: MenuItem[] | undefined;
   readonly FileIcon = FileIcon;
 
+  constructor(
+    private usersService: UsersService
+  ) {}
+
   ngOnInit() {
-    this.items = [
-      {
-        label: 'Asistencias',
-        lucide: Fingerprint,
-        routerLink: PATHS.hr.staff.attendance.list.path
+    this.items = [];
+
+    this.usersService.getStaffMenu().subscribe({
+      next: (response) => {
+        this.items = response.payload.data ?? [];
       },
-      {
-        label: 'Reportes',
-        lucide: CalendarCheck,
-        routerLink: PATHS.hr.staff.attendance.reports.path
-      },
-      {
-        label: 'Mi cuenta',
-        lucide: Fingerprint,
-        items: [
-          {
-            label: 'Cambiar contraseña',
-            lucide: Fingerprint,
-          },
-          {
-            label: 'Cerrar Sesión',
-            lucide: Fingerprint,
-          },
-        ],
-      },
-    ]
+      error: () => {
+        this.items = [];
+      }
+    });
   }
 }

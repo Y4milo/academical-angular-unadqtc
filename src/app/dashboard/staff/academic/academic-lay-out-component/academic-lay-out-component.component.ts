@@ -1,9 +1,9 @@
 import {Component, OnInit} from '@angular/core';
-import {CalendarCheck, Fingerprint, House, LucideAngularModule} from "lucide-angular";
-import {Menubar} from "primeng/menubar";
-import {MenuItem, PrimeTemplate} from "primeng/api";
-import {RouterLink, RouterOutlet} from "@angular/router";
-import {PATHS} from '../../../../core/constants/paths';
+import {CalendarCheck, Fingerprint, House, LucideAngularModule} from 'lucide-angular';
+import {Menubar} from 'primeng/menubar';
+import {MenuItem} from 'primeng/api';
+import {RouterOutlet} from '@angular/router';
+import {UsersService} from '../../../../services/users.service';
 
 @Component({
   standalone: true,
@@ -22,45 +22,25 @@ export class AcademicLayOutComponentComponent implements OnInit {
     fingerprint: Fingerprint,
     calendar: CalendarCheck,
   };
+
+  constructor(
+    private usersService: UsersService
+  ) {}
+
   ngOnInit() {
-    this.items = [
-      {
-        label: 'Asistencias',
-        icon: 'fingerprint',
-        routerLink: PATHS.academic.home.path
+    this.items = [];
+
+    this.usersService.getStaffMenu().subscribe({
+      next: (response) => {
+        this.items = response.payload.data ?? [];
       },
-      {
-        label: 'Alumnos',
-        icon: 'fingerprint',
-        items: [
-          {
-            label: 'Carnet Universitario',
-            routerLink: PATHS.academic.student.card.panel.path
-          },
-          {
-            label: 'Ranking Académico',
-            routerLink: PATHS.academic.student.ranking.path
-          },
-        ]
-      },
-      {
-        label: 'Mi cuenta',
-        icon:'calendar',
-        items: [
-          {
-            label: 'Cambiar contraseña',
-            lucide: Fingerprint,
-          },
-          {
-            label: 'Cerrar Sesión',
-            lucide: Fingerprint,
-          },
-        ],
-      },
-    ]
+      error: () => {
+        this.items = [];
+      }
+    });
   }
 
   getLucideIcon(iconKey: string) {
-    return this.icons[iconKey as keyof typeof this.icons] || House;  // Fallback a House si no coincide
+    return this.icons[iconKey as keyof typeof this.icons] || House;
   }
 }

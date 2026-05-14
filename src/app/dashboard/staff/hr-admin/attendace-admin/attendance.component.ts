@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {AttendanceService} from '../../../../services/attendance.service';
+import {AttendanceService, StaffAttendancePerson} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {Attendance} from '../../../../models/attendance.model';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
@@ -8,10 +8,13 @@ import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
-import {NgClass, UpperCasePipe} from '@angular/common';
+import {CardModule} from 'primeng/card';
+import {DividerModule} from 'primeng/divider';
+import {NgClass, NgFor, NgIf} from '@angular/common';
 import {
   CircleAlertIcon,
   Fingerprint,
+  Hand,
   IdCard,
   LucideAngularModule,
   LucideIconNode,
@@ -22,6 +25,16 @@ import {STATUS} from '../../../../core/constants/status';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
 import {DatePicker} from 'primeng/datepicker';
 
+interface AttendanceLocationGroup {
+  campus: string;
+  attendances: Attendance[];
+}
+
+interface AttendanceDayGroup {
+  date: string;
+  locations: AttendanceLocationGroup[];
+}
+
 // @ts-ignore
 @Component({
   selector: 'app-attendace-admin',
@@ -30,11 +43,14 @@ import {DatePicker} from 'primeng/datepicker';
     TableModule,
     ProgressSpinnerModule,
     NgClass,
+    NgFor,
+    NgIf,
     FormsModule,
     CalendarModule,
+    CardModule,
+    DividerModule,
     ButtonModule,
     InputTextModule,
-    UpperCasePipe,
     LucideAngularModule,
     DatePicker,
   ],
@@ -45,8 +61,10 @@ export class AttendanceListComponent implements OnInit {
   user = 'Empleado';
   today = new Date();
   number = '';
+  consultedStaff: StaffAttendancePerson | null = null;
   dateRange: Date[] = [];
   attendances: Attendance[] = [];
+  attendanceDayGroups: AttendanceDayGroup[] = [];
   loading = false;
 
   showCalendar = false; // ✅ Flag para renderizar calendario después del ciclo inicial
@@ -68,16 +86,19 @@ export class AttendanceListComponent implements OnInit {
     }
 
     this.loading = true;
+    const selectedRange = this.getSelectedDateRange();
     const formData = new FormData();
     formData.append('number', this.number);
-    formData.append('start_date', startDate ?? this.formatDate(this.dateRange[0] ?? this.today));
-    formData.append('end_date', endDate ?? this.formatDate(this.dateRange[1] ?? this.today));
+    formData.append('start_date', startDate ?? selectedRange.startDate);
+    formData.append('end_date', endDate ?? selectedRange.endDate);
 
     this.attendanceService.listAttendancesByNumber(formData).subscribe({
       next: (res) => {
         this.loading = false;
         if (res.status === STATUS.success) {
-          this.attendances = res.payload.data;
+          this.consultedStaff = res.payload.data.staff;
+          this.attendances = res.payload.data.attendances;
+          this.attendanceDayGroups = this.groupAttendancesByDayAndCampus(this.attendances);
         } else {
           this.notificationService.notifyApiData(res);
         }
@@ -90,12 +111,30 @@ export class AttendanceListComponent implements OnInit {
   }
 
   formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private getSelectedDateRange(): { startDate: string; endDate: string } {
+    const start = this.dateRange[0] ?? this.today;
+    const end = this.dateRange[1] ?? start;
+
+    return {
+      startDate: this.formatDate(start),
+      endDate: this.formatDate(end),
+    };
   }
 
   getVerifyIcon(type: string): readonly LucideIconNode[]{
     switch (type?.toLowerCase()?.trim()) {
       case 'fingerprint': return Fingerprint;
+      case 'palm':
+      case 'hand':
+      case 'palma':
+      case 'mano': return Hand;
       case 'face': return ScanFace;
       case 'card': return IdCard;
       default: return CircleAlertIcon;
@@ -104,6 +143,10 @@ export class AttendanceListComponent implements OnInit {
   getVerifyName(type: string): string {
     switch (type?.toLowerCase()?.trim()) {
       case 'fingerprint': return 'HUELLA DIGITAL';
+      case 'palm':
+      case 'hand':
+      case 'palma':
+      case 'mano': return 'PALMA';
       case 'face': return 'ROSTRO';
       case 'card': return 'TARJETA';
       default: return 'DESCONOCIDO';
@@ -111,24 +154,84 @@ export class AttendanceListComponent implements OnInit {
   }
   getVerifyClass(type: string): string {
     switch (type?.toLowerCase()?.trim()) {
-      case 'fingerprint': return 'text-primary';
-      case 'face': return 'text-indigo-400';
-      case 'card': return 'text-secondary';
-      default: return 'text-indigo-400';
+      case 'fingerprint': return 'attendance-method-fingerprint';
+      case 'palm':
+      case 'hand':
+      case 'palma':
+      case 'mano': return 'attendance-method-palm';
+      case 'face': return 'attendance-method-face';
+      case 'card': return 'attendance-method-card';
+      default: return 'attendance-method-unknown';
     }
   }
 
   protected readonly MapPinCheck = MapPinCheck;
 
-  protected downloadAttendancesExcel(startDate?: string, endDate?: string) {
-    this.loading = true;
-    const formData = new FormData();
-    formData.append('contract_type', "5");
-    formData.append('start_date', startDate ?? this.formatDate(this.dateRange[0] ?? this.today));
-    formData.append('end_date', endDate ?? this.formatDate(this.dateRange[1] ?? this.today));
+  private groupAttendancesByDayAndCampus(attendances: Attendance[]): AttendanceDayGroup[] {
+    const dayMap = new Map<string, Attendance[]>();
 
-    this.attendanceService.downloadAttendancesExcel(formData).subscribe({
+    attendances.forEach((attendance) => {
+      const [date] = attendance.punch_time.split(' ');
+      const dayAttendances = dayMap.get(date) ?? [];
+      dayAttendances.push(attendance);
+      dayMap.set(date, dayAttendances);
+    });
+
+    return Array.from(dayMap.entries()).map(([date, dayAttendances]) => ({
+      date,
+      locations: this.buildOrderedLocationGroups(dayAttendances),
+    }));
+  }
+
+  private sortAttendancesByTime(attendances: Attendance[]): Attendance[] {
+    return [...attendances].sort((a, b) => a.punch_time.localeCompare(b.punch_time));
+  }
+
+  private buildOrderedLocationGroups(attendances: Attendance[]): AttendanceLocationGroup[] {
+    return this.sortAttendancesByTime(attendances).reduce<AttendanceLocationGroup[]>((groups, attendance) => {
+      const campus = this.normalizeCampusName(attendance.campus);
+      const lastGroup = groups[groups.length - 1];
+
+      if (lastGroup?.campus === campus) {
+        lastGroup.attendances.push(attendance);
+        return groups;
+      }
+
+      groups.push({
+        campus,
+        attendances: [attendance],
+      });
+
+      return groups;
+    }, []);
+  }
+
+  private normalizeCampusName(campus?: string): string {
+    const value = (campus ?? 'Sin sede').trim();
+
+    if (!value) {
+      return 'Sin sede';
+    }
+
+    return value.toUpperCase();
+  }
+
+  protected downloadAttendancesExcel(startDate?: string, endDate?: string) {
+    if (!this.number.trim()) {
+      this.notificationService.warning('Atencion','Debe ingresar el numero de empleado o DNI.');
+      return;
+    }
+
+    this.loading = true;
+    const selectedRange = this.getSelectedDateRange();
+    const formData = new FormData();
+    formData.append('number', this.number);
+    formData.append('start_date', startDate ?? selectedRange.startDate);
+    formData.append('end_date', endDate ?? selectedRange.endDate);
+
+    this.attendanceService.downloadAttendancesByNumberExcel(formData).subscribe({
       next: async (blob) => {
+        this.loading = false;
         try {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
           const parsed = JSON.parse(text);
@@ -141,12 +244,13 @@ export class AttendanceListComponent implements OnInit {
           const url = window.URL.createObjectURL(blob as Blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'asistencia_docentes.xlsx';
+          a.download = `asistencia_${this.number}.xlsx`;
           a.click();
           window.URL.revokeObjectURL(url);
         }
       },
       error: (e) => {
+        this.loading = false;
         this.notificationService.error(
           NOTIFICATION_MESSAGE.error_connection.title,
           NOTIFICATION_MESSAGE.error_connection.message

@@ -5,6 +5,7 @@ import {LoginStudentComponent} from './dashboard/student/login-student/login-stu
 import {LoginStaffComponent} from './dashboard/staff/login-staff/login-staff.component';
 import {StudentCardsComponent} from './dashboard/staff/academic/student-cards/student-cards.component';
 import {AuthGuardAcademic} from './guards/auth-guard-academic-service';
+import {AuthGuardAdmin} from './guards/auth-guard-admin-service';
 import {RegisterParticipantComponent} from './events/register-participant/register-participant.component';
 import {EventAttendanceCheckInComponent} from './events/event-attendance-check-in/event-attendance-check-in.component';
 import {
@@ -35,6 +36,7 @@ import {
 import {
   EventValidateCertificateComponent
 } from './events/event-validate-certificate/event-validate-certificate.component';
+import {StaffMenuBaseComponent} from './dashboard/staff-menu-base/staff-menu-base.component';
 
 export const routes: Routes = [
   {
@@ -49,6 +51,38 @@ export const routes: Routes = [
   {
     path: PATHS.login.staff,
     component: LoginStaffComponent
+  },
+  {
+    path: PATHS.admin.path,
+    canActivate: [AuthGuardAdmin],
+    component: StaffMenuBaseComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: PATHS.admin.home.path,
+        pathMatch: 'full'
+      },
+      {
+        path: PATHS.admin.home.path,
+        component: AttendanceUserComponent
+      },
+      {
+        path: PATHS.hr.staff.attendance.list.path,
+        component: AttendanceListComponent
+      },
+      {
+        path: PATHS.hr.staff.attendance.reports.path,
+        component: HrReportAttendanceComponentComponent
+      },
+      {
+        path: PATHS.academic.student.card.panel.path,
+        component: StudentCardsComponent
+      },
+      {
+        path: PATHS.academic.student.ranking.path,
+        component: StudentRankingComponent
+      },
+    ]
   },
   {
     path: PATHS.hr.path,

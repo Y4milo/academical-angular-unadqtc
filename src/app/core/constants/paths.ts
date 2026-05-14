@@ -4,6 +4,13 @@ export const PATHS = {
     staff:    `login-admin`,
     student:  `login-student`,
   },
+  admin: {
+    path: `admin`,
+    home: {
+      path:  `home`,
+      link:   `admin/home`,
+    },
+  },
   hr: {
     path: `hr`,
     home: {
