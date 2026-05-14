@@ -1,6 +1,7 @@
 import {PATHS} from './paths';
 
 export const home_link = {
+  admin:            PATHS.admin.home.link,
   administrative:   PATHS.administrative.home.link,
   professor:        PATHS.professor.home.link,
   student:          PATHS.student.home.link,

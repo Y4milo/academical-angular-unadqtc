@@ -7,6 +7,21 @@ import {EventAttendance} from '../models/event-attendance.model';
 import {Attendance} from '../models/attendance.model';
 import {Dictionary} from '../models/dictionary.model';
 
+export interface StaffAttendancePerson {
+  number: string;
+  full_name: string;
+  position?: string | null;
+  dependency?: string | null;
+  contract_type?: string | null;
+  role?: string | null;
+}
+
+export interface StaffAttendanceByNumberResponse {
+  staff: StaffAttendancePerson | null;
+  attendances: Attendance[];
+  count: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -19,12 +34,22 @@ export class AttendanceService {
   storeAttendance(formData: FormData): Observable<ApiData<EventAttendance>> {
     return this.http.post<ApiData<EventAttendance>>(`${this.apiURL}/event/attendance/store`, formData);
   }
-  listAttendancesByNumber(formData: FormData): Observable<ApiData<Attendance[]>> {
-    return this.http.post<ApiData<Attendance[]>>(`${this.apiURL}/staff-attendance/list-by-number`, formData);
+  listAttendancesByNumber(formData: FormData): Observable<ApiData<StaffAttendanceByNumberResponse>> {
+    return this.http.post<ApiData<StaffAttendanceByNumberResponse>>(`${this.apiURL}/staff-attendance/list-by-number`, formData);
+  }
+
+  myAttendances(formData: FormData): Observable<ApiData<Attendance[]>> {
+    return this.http.post<ApiData<Attendance[]>>(`${this.apiURL}/staff-attendance/my-attendances`, formData);
   }
 
   downloadAttendancesExcel(formData: FormData): Observable<Blob> {
     return this.http.post(`${this.apiURL}/staff-attendance/export-by-contract-type`, formData, {
+      responseType: 'blob'
+    });
+  }
+
+  downloadAttendancesByNumberExcel(formData: FormData): Observable<Blob> {
+    return this.http.post(`${this.apiURL}/staff-attendance/export-by-number`, formData, {
       responseType: 'blob'
     });
   }

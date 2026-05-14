@@ -3,5 +3,38 @@
 
 body {
   font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  margin: 0;
+  background: var(--surface-ground, var(--p-surface-50, #f8fafc));
+  color: var(--text-color, var(--p-text-color, #111827));
+}
+
+html {
+  min-height: 100%;
+  background: var(--surface-ground, var(--p-surface-50, #f8fafc));
+}
+
+body {
+  min-height: 100vh;
+}
+
+.surface-ground {
+  background: var(--surface-ground, var(--p-surface-50, #f8fafc)) !important;
+}
+
+.surface-card {
+  background: var(--surface-card, var(--p-content-background, var(--p-surface-0, #ffffff))) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body,
+  .surface-ground {
+    background: var(--surface-ground, var(--p-surface-950, #09090b)) !important;
+    color: var(--text-color, var(--p-text-color, #f9fafb));
+  }
+
+  .surface-card {
+    background: var(--surface-card, var(--p-content-background, var(--p-surface-900, #18181b))) !important;
+  }
 }
 
