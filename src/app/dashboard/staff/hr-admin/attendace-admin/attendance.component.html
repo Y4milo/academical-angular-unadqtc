@@ -84,34 +84,7 @@
   <p-progressSpinner></p-progressSpinner>
 </div>
 
-<div *ngIf="!loading && attendanceDayGroups.length === 0" class="text-center font-italic text-orange-500 py-5">
-  Aun no hay asistencias
-</div>
-
-<div
-  *ngIf="!loading && attendanceDayGroups.length > 0"
-  class="attendance-card-grid"
-  [ngClass]="{ 'single-card-grid': attendanceDayGroups.length === 1 }">
-  <p-card *ngFor="let dayGroup of attendanceDayGroups" header="{{ dayGroup.date }}" styleClass="attendance-prime-card">
-    <div class="attendance-location-stack">
-      <div *ngFor="let locationGroup of dayGroup.locations" class="attendance-location-row">
-        <div class="attendance-mark-list">
-          <div *ngFor="let item of locationGroup.attendances" class="attendance-mark-row">
-            <span class="attendance-hour">{{ item.punch_time.split(' ')[1] }}</span>
-            <span class="attendance-method" [ngClass]="getVerifyClass(item.verify_type)">
-              <i-lucide [img]="getVerifyIcon(item.verify_type)" size="22"></i-lucide>
-              <span>{{ getVerifyName(item.verify_type) }}</span>
-            </span>
-          </div>
-        </div>
-
-        <p-divider layout="vertical" styleClass="attendance-divider"></p-divider>
-
-        <div class="attendance-location-panel">
-          <i-lucide [img]="MapPinCheck" size="24" class="text-red-500"></i-lucide>
-          <span>{{ locationGroup.campus }}</span>
-        </div>
-      </div>
-    </div>
-  </p-card>
-</div>
+<app-staff-attendance-cards
+  *ngIf="!loading"
+  [attendances]="attendances">
+</app-staff-attendance-cards>

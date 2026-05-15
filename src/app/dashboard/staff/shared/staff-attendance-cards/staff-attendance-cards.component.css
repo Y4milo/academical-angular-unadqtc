@@ -1,0 +1,278 @@
+.attendance-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr));
+  gap: 1.1rem;
+  align-items: stretch;
+}
+
+.attendance-card-grid.single-card-grid {
+  grid-template-columns: minmax(0, min(560px, 100%));
+  justify-content: center;
+}
+
+:host {
+  --attendance-card-bg: var(--surface-card, var(--p-content-background, var(--p-surface-0, #ffffff)));
+  --attendance-card-border: var(--surface-border, var(--p-content-border-color, #e5e7eb));
+  --attendance-card-shadow: var(--p-card-shadow, var(--shadow-2, 0 10px 24px rgba(15, 23, 42, 0.08)));
+
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --attendance-card-bg: var(--surface-card, var(--p-content-background, var(--p-surface-900, #18181b)));
+    --attendance-card-border: var(--surface-border, var(--p-content-border-color, var(--p-surface-700, #3f3f46)));
+  }
+}
+
+:host ::ng-deep .attendance-prime-card {
+  --p-card-background: var(--attendance-card-bg);
+  --p-card-color: var(--text-color);
+  --p-card-shadow: var(--attendance-card-shadow);
+
+  height: 100%;
+  border: 1px solid var(--attendance-card-border);
+  background: var(--attendance-card-bg) !important;
+  color: var(--text-color);
+  box-shadow: var(--attendance-card-shadow);
+  border-radius: 0.7rem;
+  overflow: hidden;
+}
+
+:host ::ng-deep .attendance-prime-card.p-card,
+:host ::ng-deep .attendance-prime-card .p-card,
+:host ::ng-deep .attendance-prime-card .p-card-header,
+:host ::ng-deep .attendance-prime-card .p-card-footer {
+  background: var(--attendance-card-bg) !important;
+}
+
+:host ::ng-deep .attendance-prime-card .p-card-body {
+  height: 100%;
+  background: var(--attendance-card-bg) !important;
+  color: var(--text-color);
+  padding: 1rem;
+}
+
+:host ::ng-deep .attendance-prime-card .p-card-content {
+  padding: 0;
+}
+
+:host ::ng-deep .attendance-prime-card .p-card-title {
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.attendance-location-stack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.attendance-location-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(120px, 0.75fr);
+  align-items: stretch;
+  column-gap: 1rem;
+  min-height: 6rem;
+}
+
+.attendance-location-row + .attendance-location-row {
+  border-top: 1px solid var(--surface-border);
+  padding-top: 0.85rem;
+}
+
+.attendance-mark-list {
+  display: grid;
+  gap: 0.4rem;
+  align-content: center;
+  min-width: 0;
+}
+
+.attendance-mark-row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.55rem;
+  min-height: 1.75rem;
+  min-width: 0;
+}
+
+.attendance-hour {
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  color: var(--text-color);
+}
+
+.attendance-method {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.68rem;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--text-color-secondary);
+}
+
+.attendance-method i {
+  flex: 0 0 auto;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.attendance-method-fingerprint,
+.attendance-method-palm {
+  color: var(--p-green-500, #22c55e);
+}
+
+.attendance-method-face {
+  color: var(--p-indigo-500, #6366f1);
+}
+
+.attendance-method-card {
+  color: var(--p-blue-500, #3b82f6);
+}
+
+.attendance-method-unknown {
+  color: var(--text-color-secondary);
+}
+
+.attendance-method span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:host ::ng-deep .attendance-divider.p-divider.p-divider-vertical {
+  align-self: stretch;
+  min-height: 100%;
+  margin: 0;
+}
+
+.attendance-location-panel {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+  min-height: 4rem;
+  font-size: 0.72rem;
+  font-weight: 400;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--text-color);
+}
+
+.attendance-location-panel i {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.attendance-location-panel span {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+}
+
+@media (max-width: 980px) {
+  .attendance-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-location-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(120px, 0.75fr);
+    column-gap: 0.75rem;
+  }
+
+  :host ::ng-deep .attendance-divider.p-divider.p-divider-vertical {
+    display: flex;
+  }
+
+  .attendance-location-panel {
+    min-height: 4rem;
+  }
+}
+
+@media (max-width: 560px) {
+  :host ::ng-deep .attendance-prime-card .p-card-body {
+    padding: 0.85rem;
+  }
+
+  :host ::ng-deep .attendance-prime-card .p-card-title {
+    margin-bottom: 0.6rem;
+  }
+
+  .attendance-location-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(96px, 0.72fr);
+    column-gap: 0.55rem;
+    min-height: 0;
+  }
+
+  :host ::ng-deep .attendance-divider.p-divider.p-divider-vertical {
+    display: flex;
+  }
+
+  .attendance-mark-list {
+    gap: 0.25rem;
+  }
+
+  .attendance-mark-row {
+    grid-template-columns: 68px minmax(0, 1fr);
+    column-gap: 0.4rem;
+  }
+
+  .attendance-method {
+    gap: 0.25rem;
+    font-size: 0.62rem;
+  }
+
+  .attendance-location-panel {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 4rem;
+    font-size: 0.66rem;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .attendance-location-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(82px, 0.68fr);
+    column-gap: 0.35rem;
+  }
+
+  .attendance-mark-row {
+    grid-template-columns: 62px 28px;
+    column-gap: 0.45rem;
+    justify-content: center;
+  }
+
+  .attendance-method {
+    justify-content: center;
+  }
+
+  .attendance-method,
+  .attendance-location-panel {
+    font-size: 0.58rem;
+  }
+
+  .attendance-method span {
+    display: none;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1280px) {
+  .attendance-location-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(120px, 0.75fr);
+    column-gap: 0.9rem;
+  }
+}

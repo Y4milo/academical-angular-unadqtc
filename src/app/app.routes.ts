@@ -91,7 +91,7 @@ export const routes: Routes = [
     children: [
       {
         path: PATHS.hr.home.path,
-        component: HrHomeComponent
+        component: AttendanceUserComponent
       },
       {
         path: PATHS.hr.staff.attendance.list.path,

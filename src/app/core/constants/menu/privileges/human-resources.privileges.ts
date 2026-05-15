@@ -5,7 +5,7 @@ const humanResourcesPrivileges = [
     label: 'Consultas RH',
     items: [
       {
-        label: 'Asistencias',
+        label: 'Asistencias del personal',
         routerLink: PATHS.hr.staff.attendance.list.path
       },
       {

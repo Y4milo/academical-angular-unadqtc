@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--surface-ground, var(--p-surface-50, #f8fafc));
+  color: var(--text-color, var(--p-text-color, #111827));
+}
+
+:host ::ng-deep .p-menubar,
+:host ::ng-deep .p-submenu-list {
+  background: var(--surface-card, var(--p-content-background, var(--p-surface-0, #ffffff)));
+  color: var(--text-color, var(--p-text-color, #111827));
+}
+
+:host ::ng-deep .p-menubar {
+  border-color: var(--surface-border, var(--p-content-border-color, #e5e7eb));
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    background: var(--surface-ground, var(--p-surface-950, #09090b));
+    color: var(--text-color, var(--p-text-color, #f9fafb));
+  }
+
+  :host ::ng-deep .p-menubar,
+  :host ::ng-deep .p-submenu-list {
+    background: var(--surface-card, var(--p-content-background, var(--p-surface-900, #18181b)));
+    color: var(--text-color, var(--p-text-color, #f9fafb));
+  }
+
+  :host ::ng-deep .p-menubar {
+    border-color: var(--surface-border, var(--p-content-border-color, var(--p-surface-700, #3f3f46)));
+  }
+}

@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ButtonDirective} from 'primeng/button';
 import {Card} from 'primeng/card';
-import {LucideAngularModule} from 'lucide-angular';
 import {TableModule} from 'primeng/table';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
@@ -19,7 +18,6 @@ import {Select} from 'primeng/select';
   imports: [
     ButtonDirective,
     Card,
-    LucideAngularModule,
     TableModule,
     FormsModule,
     InputText,
