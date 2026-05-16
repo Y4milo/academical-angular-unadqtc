@@ -1,4 +1,4 @@
-import {PATHS} from './paths';
+import {PATHS} from './app-paths.constants';
 
 export const home_link = {
   admin:            PATHS.admin.home.link,

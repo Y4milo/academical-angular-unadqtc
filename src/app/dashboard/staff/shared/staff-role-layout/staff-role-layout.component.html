@@ -1,0 +1,27 @@
+<div class="flex justify-content-center min-h-screen">
+  <div class="p-shadow-4 w-full md:w-9 lg:w-10 xl:w-10 mt-5">
+    <p-menubar [model]="items">
+      <ng-template #item let-item let-root="root">
+        <a class="p-menubar-item-link" [routerLink]="item.routerLink">
+          @if (item.icon) {
+            <app-lucide-icon [name]="item.icon" class="p-menubar-item-icon menu-lucide-icon" [size]="18"></app-lucide-icon>
+          }
+          <span class="p-menubar-item-label">{{ item.label }}</span>
+          @if (item.items) {
+            <app-lucide-icon
+              [name]="root ? 'chevron-down' : 'chevron-right'"
+              class="p-menubar-submenu-icon menu-lucide-icon"
+              [size]="16"
+            ></app-lucide-icon>
+          }
+        </a>
+      </ng-template>
+    </p-menubar>
+
+    <div class="mt-4">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
+
+<app-staff-change-password-dialog [(visible)]="showChangePasswordDialog"></app-staff-change-password-dialog>

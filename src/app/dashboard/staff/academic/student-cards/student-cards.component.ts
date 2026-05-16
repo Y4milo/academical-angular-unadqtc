@@ -16,13 +16,13 @@ import {Dictionary} from '../../../../models/dictionary.model';
 import {PopoverModule} from 'primeng/popover';
 import {FileUpload, FileUploadModule} from 'primeng/fileupload';
 import {ApiData} from '../../../../models/api/api-data.model';
-import {STATUS} from '../../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {STATUS} from '../../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {DialogModule} from 'primeng/dialog';
 import {CheckboxModule} from 'primeng/checkbox';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 import {HttpResponse} from '@angular/common/http';
-import {StudentFileType} from '../../../../core/constants/api/student_cards';
+import {StudentFileType} from '../../../../core/constants/api/student-card-api.constants';
 import {InputTextModule} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {CommonModule} from '@angular/common';
@@ -31,6 +31,7 @@ import {ImageModule} from 'primeng/image';
 import {ToolbarModule} from 'primeng/toolbar';
 import {validatePhotoCardStudent} from '../../../../helper/helper.util';
 import {StepsModule} from 'primeng/steps';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 @Component({
   selector: 'app-student-cards',
@@ -57,6 +58,7 @@ import {StepsModule} from 'primeng/steps';
     ImageModule,
     ToolbarModule,
     StepsModule,
+    AppLucideIconComponent,
   ],
   templateUrl: './student-cards.component.html',
   styleUrl: './student-cards.component.css'

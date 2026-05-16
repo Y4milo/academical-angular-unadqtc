@@ -1,11 +1,8 @@
 import { Routes } from '@angular/router';
 import { StudentCardRegistrationComponent } from './dashboard/student/student-card-registration/student-card-registration.component';
-import {AuthGuardStudent} from './guards/auth-guard-student.service';
 import {LoginStudentComponent} from './dashboard/student/login-student/login-student.component';
 import {LoginStaffComponent} from './dashboard/staff/login-staff/login-staff.component';
 import {StudentCardsComponent} from './dashboard/staff/academic/student-cards/student-cards.component';
-import {AuthGuardAcademic} from './guards/auth-guard-academic-service';
-import {AuthGuardAdmin} from './guards/auth-guard-admin-service';
 import {RegisterParticipantComponent} from './events/register-participant/register-participant.component';
 import {EventAttendanceCheckInComponent} from './events/event-attendance-check-in/event-attendance-check-in.component';
 import {
@@ -13,20 +10,18 @@ import {
 } from './events/event-questions-with-check-out/event-questions-with-check-out.component';
 import {AttendanceListComponent} from './dashboard/staff/hr-admin/attendace-admin/attendance.component';
 import {AttendanceUserComponent} from './dashboard/staff/staff-user/attendance-user/attendance-user.component';
-import {AuthGuardStaff} from './guards/auth-guard-staff-service';
-import {HrHomeComponent} from './dashboard/staff/hr-admin/hr-home/hr-home.component';
 import {
   HrLayOutComponentComponent
 } from './dashboard/staff/hr-admin/hr-lay-out-component/hr-lay-out-component.component';
 import {
   HrReportAttendanceComponentComponent
 } from './dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component';
-import {PATHS} from './core/constants/paths';
+import {PATHS} from './core/constants/app-paths.constants';
+import {ROLE} from './core/constants/app-roles.constants';
 import {
   AcademicLayOutComponentComponent
 } from './dashboard/staff/academic/academic-lay-out-component/academic-lay-out-component.component';
 import {StudentRankingComponent} from './dashboard/staff/academic/student-ranking/student-ranking.component';
-import {AuthGuardHr} from './guards/auth-guard-hr-service';
 import {
   StaffUserLayOutComponentComponent
 } from './dashboard/staff/staff-user/staff-user-lay-out-component/staff-user-lay-out-component.component';
@@ -37,6 +32,8 @@ import {
   EventValidateCertificateComponent
 } from './events/event-validate-certificate/event-validate-certificate.component';
 import {StaffMenuBaseComponent} from './dashboard/staff-menu-base/staff-menu-base.component';
+import {AuthRoleGuard} from './guards/auth-role.guard';
+import {AuthStudentGuard} from './guards/auth-student.guard';
 
 export const routes: Routes = [
   {
@@ -54,7 +51,8 @@ export const routes: Routes = [
   },
   {
     path: PATHS.admin.path,
-    canActivate: [AuthGuardAdmin],
+    canActivate: [AuthRoleGuard],
+    data: {roles: [ROLE.admin]},
     component: StaffMenuBaseComponent,
     children: [
       {
@@ -86,12 +84,13 @@ export const routes: Routes = [
   },
   {
     path: PATHS.hr.path,
-    canActivate: [AuthGuardHr],
+    canActivate: [AuthRoleGuard],
+    data: {roles: [ROLE.hr]},
     component: HrLayOutComponentComponent,
     children: [
       {
         path: PATHS.hr.home.path,
-        component: HrHomeComponent
+        component: AttendanceUserComponent
       },
       {
         path: PATHS.hr.staff.attendance.list.path,
@@ -106,7 +105,8 @@ export const routes: Routes = [
   {
     path: PATHS.staff.path,
     component: StaffUserLayOutComponentComponent,
-    canActivate: [AuthGuardStaff],
+    canActivate: [AuthRoleGuard],
+    data: {roles: [ROLE.professor, ROLE.administrative]},
     children: [
       {
         path: PATHS.staff.home.path,
@@ -117,12 +117,13 @@ export const routes: Routes = [
   {
     path: PATHS.student.card.registration,
     component: StudentCardRegistrationComponent,
-    canActivate: [AuthGuardStudent]
+    canActivate: [AuthStudentGuard]
   },
   {
     path: PATHS.academic.path,
     component: AcademicLayOutComponentComponent,
-    canActivate: [AuthGuardAcademic],
+    canActivate: [AuthRoleGuard],
+    data: {roles: [ROLE.academic]},
     children: [
       {
         path: PATHS.academic.home.path,

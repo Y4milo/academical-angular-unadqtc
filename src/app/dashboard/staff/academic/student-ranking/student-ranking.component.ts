@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ButtonDirective} from 'primeng/button';
 import {Card} from 'primeng/card';
-import {LucideAngularModule} from 'lucide-angular';
 import {TableModule} from 'primeng/table';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
@@ -10,8 +9,8 @@ import {StudentService} from '../../../../services/student.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {DictionaryService} from '../../../../services/dictionary.service';
 import {Dictionary} from '../../../../models/dictionary.model';
-import {STATUS} from '../../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {STATUS} from '../../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {Select} from 'primeng/select';
 
 @Component({
@@ -19,7 +18,6 @@ import {Select} from 'primeng/select';
   imports: [
     ButtonDirective,
     Card,
-    LucideAngularModule,
     TableModule,
     FormsModule,
     InputText,

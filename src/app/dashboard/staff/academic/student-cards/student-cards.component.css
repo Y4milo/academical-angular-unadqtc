@@ -153,8 +153,9 @@
   background: transparent;
 }
 
-.review-icon-button i {
-  font-size: 1rem;
+.review-icon-button app-lucide-icon,
+.review-sunedu-button app-lucide-icon {
+  flex: 0 0 auto;
 }
 
 .review-icon-button:disabled,

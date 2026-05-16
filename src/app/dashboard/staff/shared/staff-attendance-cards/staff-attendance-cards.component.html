@@ -1,0 +1,31 @@
+<div *ngIf="attendanceDayGroups.length === 0" class="text-center font-italic text-orange-500 py-5">
+  {{ emptyMessage }}
+</div>
+
+<div
+  *ngIf="attendanceDayGroups.length > 0"
+  class="attendance-card-grid"
+  [ngClass]="{ 'single-card-grid': attendanceDayGroups.length === 1 }">
+  <p-card *ngFor="let dayGroup of attendanceDayGroups" header="{{ dayGroup.date }}" styleClass="attendance-prime-card">
+    <div class="attendance-location-stack">
+      <div *ngFor="let locationGroup of dayGroup.locations" class="attendance-location-row">
+        <div class="attendance-mark-list">
+          <div *ngFor="let item of locationGroup.attendances" class="attendance-mark-row">
+            <span class="attendance-hour">{{ item.punch_time.split(' ')[1] }}</span>
+            <span class="attendance-method" [ngClass]="getVerifyClass(item.verify_type)">
+              <app-lucide-icon [name]="getVerifyIconName(item.verify_type)" [size]="16"></app-lucide-icon>
+              <span>{{ getVerifyName(item.verify_type) }}</span>
+            </span>
+          </div>
+        </div>
+
+        <p-divider layout="vertical" styleClass="attendance-divider"></p-divider>
+
+        <div class="attendance-location-panel">
+          <app-lucide-icon name="map-pin" class="text-red-500" [size]="18"></app-lucide-icon>
+          <span>{{ locationGroup.campus }}</span>
+        </div>
+      </div>
+    </div>
+  </p-card>
+</div>

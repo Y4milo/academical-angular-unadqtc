@@ -8,32 +8,11 @@ import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
-import {CardModule} from 'primeng/card';
-import {DividerModule} from 'primeng/divider';
-import {NgClass, NgFor, NgIf} from '@angular/common';
-import {
-  CircleAlertIcon,
-  Fingerprint,
-  Hand,
-  IdCard,
-  LucideAngularModule,
-  LucideIconNode,
-  MapPinCheck,
-  ScanFace
-} from 'lucide-angular';
-import {STATUS} from '../../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {NgIf} from '@angular/common';
+import {STATUS} from '../../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {DatePicker} from 'primeng/datepicker';
-
-interface AttendanceLocationGroup {
-  campus: string;
-  attendances: Attendance[];
-}
-
-interface AttendanceDayGroup {
-  date: string;
-  locations: AttendanceLocationGroup[];
-}
+import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards/staff-attendance-cards.component';
 
 // @ts-ignore
 @Component({
@@ -42,17 +21,13 @@ interface AttendanceDayGroup {
     ReactiveFormsModule,
     TableModule,
     ProgressSpinnerModule,
-    NgClass,
-    NgFor,
     NgIf,
     FormsModule,
     CalendarModule,
-    CardModule,
-    DividerModule,
     ButtonModule,
     InputTextModule,
-    LucideAngularModule,
     DatePicker,
+    StaffAttendanceCardsComponent,
   ],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
@@ -64,7 +39,6 @@ export class AttendanceListComponent implements OnInit {
   consultedStaff: StaffAttendancePerson | null = null;
   dateRange: Date[] = [];
   attendances: Attendance[] = [];
-  attendanceDayGroups: AttendanceDayGroup[] = [];
   loading = false;
 
   showCalendar = false; // ✅ Flag para renderizar calendario después del ciclo inicial
@@ -98,7 +72,6 @@ export class AttendanceListComponent implements OnInit {
         if (res.status === STATUS.success) {
           this.consultedStaff = res.payload.data.staff;
           this.attendances = res.payload.data.attendances;
-          this.attendanceDayGroups = this.groupAttendancesByDayAndCampus(this.attendances);
         } else {
           this.notificationService.notifyApiData(res);
         }
@@ -126,94 +99,6 @@ export class AttendanceListComponent implements OnInit {
       startDate: this.formatDate(start),
       endDate: this.formatDate(end),
     };
-  }
-
-  getVerifyIcon(type: string): readonly LucideIconNode[]{
-    switch (type?.toLowerCase()?.trim()) {
-      case 'fingerprint': return Fingerprint;
-      case 'palm':
-      case 'hand':
-      case 'palma':
-      case 'mano': return Hand;
-      case 'face': return ScanFace;
-      case 'card': return IdCard;
-      default: return CircleAlertIcon;
-    }
-  }
-  getVerifyName(type: string): string {
-    switch (type?.toLowerCase()?.trim()) {
-      case 'fingerprint': return 'HUELLA DIGITAL';
-      case 'palm':
-      case 'hand':
-      case 'palma':
-      case 'mano': return 'PALMA';
-      case 'face': return 'ROSTRO';
-      case 'card': return 'TARJETA';
-      default: return 'DESCONOCIDO';
-    }
-  }
-  getVerifyClass(type: string): string {
-    switch (type?.toLowerCase()?.trim()) {
-      case 'fingerprint': return 'attendance-method-fingerprint';
-      case 'palm':
-      case 'hand':
-      case 'palma':
-      case 'mano': return 'attendance-method-palm';
-      case 'face': return 'attendance-method-face';
-      case 'card': return 'attendance-method-card';
-      default: return 'attendance-method-unknown';
-    }
-  }
-
-  protected readonly MapPinCheck = MapPinCheck;
-
-  private groupAttendancesByDayAndCampus(attendances: Attendance[]): AttendanceDayGroup[] {
-    const dayMap = new Map<string, Attendance[]>();
-
-    attendances.forEach((attendance) => {
-      const [date] = attendance.punch_time.split(' ');
-      const dayAttendances = dayMap.get(date) ?? [];
-      dayAttendances.push(attendance);
-      dayMap.set(date, dayAttendances);
-    });
-
-    return Array.from(dayMap.entries()).map(([date, dayAttendances]) => ({
-      date,
-      locations: this.buildOrderedLocationGroups(dayAttendances),
-    }));
-  }
-
-  private sortAttendancesByTime(attendances: Attendance[]): Attendance[] {
-    return [...attendances].sort((a, b) => a.punch_time.localeCompare(b.punch_time));
-  }
-
-  private buildOrderedLocationGroups(attendances: Attendance[]): AttendanceLocationGroup[] {
-    return this.sortAttendancesByTime(attendances).reduce<AttendanceLocationGroup[]>((groups, attendance) => {
-      const campus = this.normalizeCampusName(attendance.campus);
-      const lastGroup = groups[groups.length - 1];
-
-      if (lastGroup?.campus === campus) {
-        lastGroup.attendances.push(attendance);
-        return groups;
-      }
-
-      groups.push({
-        campus,
-        attendances: [attendance],
-      });
-
-      return groups;
-    }, []);
-  }
-
-  private normalizeCampusName(campus?: string): string {
-    const value = (campus ?? 'Sin sede').trim();
-
-    if (!value) {
-      return 'Sin sede';
-    }
-
-    return value.toUpperCase();
   }
 
   protected downloadAttendancesExcel(startDate?: string, endDate?: string) {

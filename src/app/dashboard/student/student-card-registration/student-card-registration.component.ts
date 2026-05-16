@@ -14,8 +14,8 @@ import { StudentService } from '../../../services/student.service';
 import { StudentCardService } from '../../../services/student-card.service';
 import {validatePhotoCardStudent} from '../../../helper/helper.util';
 import {Dictionary} from '../../../models/dictionary.model';
-import {STATUS} from '../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../core/constants/notification_message';
+import {STATUS} from '../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constants';
 import {LoginService} from '../../../services/login.service';
 import {HttpResponse} from '@angular/common/http';
 import {StudentUser} from '../../../models/student-user.model';
@@ -23,7 +23,7 @@ import {StudentBasicInfo} from '../../../models/student/student-basic-info.model
 import {DomSanitizer} from '@angular/platform-browser';
 import {concatMap, finalize, forkJoin, of, switchMap} from 'rxjs';
 import {Router} from '@angular/router';
-import {PATHS} from '../../../core/constants/paths';
+import {PATHS} from '../../../core/constants/app-paths.constants';
 
 
 @Component({
@@ -95,8 +95,14 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    const studentUser = this.loginService.getStudent();
 
-    this.studentUser = this.loginService.getStudent();
+    if (!studentUser) {
+      this.router.navigate([PATHS.login.student]);
+      return;
+    }
+
+    this.studentUser = studentUser;
     this.initForm();
     this.initializeFlow()
 
@@ -329,7 +335,6 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
       dni_photo: [null]
     }, {validators: this.codeMustDifferFromDocumentValidator()});
 
-    this.studentUser = this.loginService.getStudent();
   }
 
   get form() {

@@ -2,11 +2,11 @@ import {Component} from '@angular/core';
 import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {Router} from '@angular/router';
-import {NOTIFICATION_MESSAGE} from '../../../core/constants/notification_message';
-import {STATUS} from '../../../core/constants/status';
+import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constants';
+import {STATUS} from '../../../core/constants/api-status.constants';
 import {LoginService} from '../../../services/login.service';
-import {home_link, HomeKey} from '../../../core/constants/home_link';
-import {PATHS} from '../../../core/constants/paths';
+import {home_link, HomeKey} from '../../../core/constants/home-routes.constants';
+import {PATHS} from '../../../core/constants/app-paths.constants';
 import {StudentService} from '../../../services/student.service';
 
 @Component({

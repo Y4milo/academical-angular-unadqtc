@@ -12,6 +12,7 @@ import {NgClass} from '@angular/common';
 import {DataView} from 'primeng/dataview';
 import {Dictionary} from '../../models/dictionary.model';
 import {TooltipModule} from 'primeng/tooltip';
+import {AppLucideIconComponent} from '../../core/components/lucide-icon/lucide-icon.component';
 
 @Component({
   selector: 'app-event-download-certificate',
@@ -24,6 +25,7 @@ import {TooltipModule} from 'primeng/tooltip';
     DataView,
     TooltipModule,
     Tag,
+    AppLucideIconComponent,
   ],
   templateUrl: './event-download-certificate.component.html',
   styleUrl: './event-download-certificate.component.css'

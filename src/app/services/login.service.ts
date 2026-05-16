@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import {StaffUser} from '../models/staff-user.model';
-import {PATHS} from '../core/constants/paths';
-import {ROLE} from '../core/constants/role';
 import {ApiData} from '../models/api/api-data.model';
 import {StudentUser} from '../models/student-user.model';
 
@@ -12,42 +10,14 @@ export class LoginService {
 
   constructor() { }
 
-  getResultLogin(
-    user: StaffUser | null,
-    allowedRoles: string[]
-  ): {
-    canActivate: boolean,
-    link: string
-  } {
-
-    if (!user) {
-      return {
-        canActivate: false,
-        link: `${location.origin}/${PATHS.login.staff}`
-      };
-    }
-
-    if (allowedRoles.includes(user.role.value!)) {
-      return { canActivate: true, link: '' };
-    }
-
-    // Redirección por rol
-    const link = user.role.value === ROLE.student
-      ? `${location.origin}/${PATHS.login.student}`
-      : `${location.origin}/${PATHS.login.staff}`;
-
-    return { canActivate: false, link };
-  }
-
-
   setUser(apiData:  ApiData<StaffUser>): StaffUser {
     const user = apiData.payload.data as StaffUser;
     sessionStorage.setItem('user', JSON.stringify(user));
     return user;
   }
 
-  getUser(): StaffUser {
-    return JSON.parse(sessionStorage.getItem('user')!) as StaffUser;
+  getUser(): StaffUser | null {
+    return this.getSessionUser<StaffUser>();
   }
 
   removeUser(): void {
@@ -60,8 +30,8 @@ export class LoginService {
     return user;
   }
 
-  getStudent(): StudentUser {
-    return JSON.parse(sessionStorage.getItem('user')!) as StudentUser;
+  getStudent(): StudentUser | null {
+    return this.getSessionUser<StudentUser>();
   }
 
   isStudentLoggedIn(): boolean {
@@ -72,5 +42,20 @@ export class LoginService {
     return !!(
       user.role?.value
     );
+  }
+
+  private getSessionUser<T>(): T | null {
+    const rawUser = sessionStorage.getItem('user');
+
+    if (!rawUser) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawUser) as T;
+    } catch {
+      this.removeUser();
+      return null;
+    }
   }
 }
