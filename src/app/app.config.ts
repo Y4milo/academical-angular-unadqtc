@@ -7,12 +7,14 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {MessageService} from 'primeng/api';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {credentialsInterceptor} from './interceptors/credentials.interceptor';
+import {sessionExpiredInterceptor} from './interceptors/session-expired.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(
       withInterceptors([
         credentialsInterceptor,
+        sessionExpiredInterceptor,
       ])
     ),
     provideZoneChangeDetection({ eventCoalescing: true }),
