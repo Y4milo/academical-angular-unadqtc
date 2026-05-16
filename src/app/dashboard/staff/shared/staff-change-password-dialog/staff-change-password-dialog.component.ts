@@ -6,7 +6,7 @@ import {Dialog} from 'primeng/dialog';
 import {Password} from 'primeng/password';
 import {UsersService} from '../../../../services/users.service';
 import {NotificationService} from '../../../../services/notification.service';
-import {STATUS} from '../../../../core/constants/status';
+import {STATUS} from '../../../../core/constants/api-status.constants';
 
 @Component({
   selector: 'app-staff-change-password-dialog',

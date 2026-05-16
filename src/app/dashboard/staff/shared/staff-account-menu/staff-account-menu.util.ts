@@ -6,16 +6,16 @@ export function buildStaffAccountMenu(
 ): MenuItem {
   return {
     label: 'Mi cuenta',
-    icon: 'fa-solid fa-fingerprint',
+    icon: 'fingerprint',
     items: [
       {
         label: 'Cambiar contraseña',
-        icon: 'fa-solid fa-lock',
+        icon: 'lock',
         command: openChangePasswordDialog,
       },
       {
         label: 'Cerrar Sesión',
-        icon: 'fa-solid fa-right-from-bracket',
+        icon: 'log-out',
         command: logout,
       },
     ],
@@ -32,7 +32,7 @@ export function prependStaffAccountMenu(items: MenuItem[], accountMenu: MenuItem
 export function buildStaffAttendanceMenu(routerLink: string): MenuItem {
   return {
     label: 'Mis asistencias',
-    icon: 'fa-solid fa-calendar-check',
+    icon: 'calendar-check',
     routerLink,
   };
 }

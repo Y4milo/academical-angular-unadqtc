@@ -5,7 +5,7 @@ import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
 import {Dictionary} from '../models/dictionary.model';
 import {StudentCard} from '../models/student/student-card.model';
-import {API_STUDENT_CARDS, StudentFileType} from '../core/constants/api/student_cards';
+import {API_STUDENT_CARDS, StudentFileType} from '../core/constants/api/student-card-api.constants';
 import {StudentBasicInfo} from '../models/student/student-basic-info.model';
 
 @Injectable({

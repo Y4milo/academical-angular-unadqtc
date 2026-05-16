@@ -10,8 +10,8 @@ import {AttendanceService} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {StaffUser} from '../../../../models/staff-user.model';
 import {DatePicker} from 'primeng/datepicker';
-import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
-import {STATUS} from '../../../../core/constants/status';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
+import {STATUS} from '../../../../core/constants/api-status.constants';
 import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards/staff-attendance-cards.component';
 
 @Component({

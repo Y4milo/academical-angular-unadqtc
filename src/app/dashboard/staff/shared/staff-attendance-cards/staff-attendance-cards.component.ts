@@ -3,6 +3,7 @@ import {NgClass, NgFor, NgIf} from '@angular/common';
 import {CardModule} from 'primeng/card';
 import {DividerModule} from 'primeng/divider';
 import {Attendance} from '../../../../models/attendance.model';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 interface AttendanceLocationGroup {
   campus: string;
@@ -22,6 +23,7 @@ interface AttendanceDayGroup {
     NgClass,
     NgFor,
     NgIf,
+    AppLucideIconComponent,
   ],
   templateUrl: './staff-attendance-cards.component.html',
   styleUrl: './staff-attendance-cards.component.css'
@@ -35,16 +37,16 @@ export class StaffAttendanceCardsComponent {
     this.attendanceDayGroups = this.groupAttendancesByDayAndCampus(value ?? []);
   }
 
-  getVerifyIconClass(type: string): string {
+  getVerifyIconName(type: string): string {
     switch (type?.toLowerCase()?.trim()) {
-      case 'fingerprint': return 'fa-solid fa-fingerprint';
+      case 'fingerprint': return 'fingerprint';
       case 'palm':
       case 'hand':
       case 'palma':
-      case 'mano': return 'fa-solid fa-hand';
-      case 'face': return 'fa-solid fa-face-smile';
-      case 'card': return 'fa-solid fa-id-card';
-      default: return 'fa-solid fa-circle-exclamation';
+      case 'mano': return 'hand';
+      case 'face': return 'scan-face';
+      case 'card': return 'id-card';
+      default: return 'circle-alert';
     }
   }
 

@@ -119,9 +119,8 @@
   color: var(--text-color-secondary);
 }
 
-.attendance-method i {
+.attendance-method app-lucide-icon {
   flex: 0 0 auto;
-  font-size: 1.15rem;
   line-height: 1;
 }
 
@@ -170,8 +169,8 @@
   color: var(--text-color);
 }
 
-.attendance-location-panel i {
-  font-size: 1.35rem;
+.attendance-location-panel app-lucide-icon {
+  flex: 0 0 auto;
   line-height: 1;
 }
 

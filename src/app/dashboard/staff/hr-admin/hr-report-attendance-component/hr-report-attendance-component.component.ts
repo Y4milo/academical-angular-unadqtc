@@ -5,8 +5,8 @@ import {NotificationService} from '../../../../services/notification.service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ButtonDirective} from 'primeng/button';
 import {AttendanceService} from '../../../../services/attendance.service';
-import {STATUS} from '../../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {STATUS} from '../../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {Select} from 'primeng/select';
 
 @Component({

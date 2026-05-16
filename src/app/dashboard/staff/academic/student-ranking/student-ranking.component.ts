@@ -9,8 +9,8 @@ import {StudentService} from '../../../../services/student.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {DictionaryService} from '../../../../services/dictionary.service';
 import {Dictionary} from '../../../../models/dictionary.model';
-import {STATUS} from '../../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {STATUS} from '../../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {Select} from 'primeng/select';
 
 @Component({

@@ -13,7 +13,7 @@
           <div *ngFor="let item of locationGroup.attendances" class="attendance-mark-row">
             <span class="attendance-hour">{{ item.punch_time.split(' ')[1] }}</span>
             <span class="attendance-method" [ngClass]="getVerifyClass(item.verify_type)">
-              <i [class]="getVerifyIconClass(item.verify_type)" aria-hidden="true"></i>
+              <app-lucide-icon [name]="getVerifyIconName(item.verify_type)" [size]="16"></app-lucide-icon>
               <span>{{ getVerifyName(item.verify_type) }}</span>
             </span>
           </div>
@@ -22,7 +22,7 @@
         <p-divider layout="vertical" styleClass="attendance-divider"></p-divider>
 
         <div class="attendance-location-panel">
-          <i class="fa-solid fa-location-dot text-red-500" aria-hidden="true"></i>
+          <app-lucide-icon name="map-pin" class="text-red-500" [size]="18"></app-lucide-icon>
           <span>{{ locationGroup.campus }}</span>
         </div>
       </div>

@@ -15,6 +15,11 @@
   border-color: var(--surface-border, var(--p-content-border-color, #e5e7eb));
 }
 
+.menu-lucide-icon {
+  flex: 0 0 auto;
+  vertical-align: middle;
+}
+
 @media (prefers-color-scheme: dark) {
   :host {
     background: var(--surface-ground, var(--p-surface-950, #09090b));

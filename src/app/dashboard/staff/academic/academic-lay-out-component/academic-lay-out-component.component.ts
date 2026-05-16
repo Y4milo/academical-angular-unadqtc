@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {PATHS} from '../../../../core/constants/paths';
+import {PATHS} from '../../../../core/constants/app-paths.constants';
 import {StaffRoleLayoutComponent} from '../../shared/staff-role-layout/staff-role-layout.component';
 
 @Component({

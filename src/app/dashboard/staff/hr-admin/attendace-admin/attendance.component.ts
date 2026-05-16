@@ -9,8 +9,8 @@ import {ButtonModule} from 'primeng/button';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {NgIf} from '@angular/common';
-import {STATUS} from '../../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../../core/constants/notification_message';
+import {STATUS} from '../../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {DatePicker} from 'primeng/datepicker';
 import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards/staff-attendance-cards.component';
 

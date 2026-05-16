@@ -1,12 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Router, RouterLink, RouterOutlet} from '@angular/router';
-import {MenuItem, PrimeTemplate} from 'primeng/api';
+import {MenuItem} from 'primeng/api';
 import {Menubar} from 'primeng/menubar';
-import {PATHS} from '../../../../core/constants/paths';
-import {getFontAwesomeMenuIcon} from '../../../../core/utils/font-awesome-menu-icon.util';
+import {PATHS} from '../../../../core/constants/app-paths.constants';
 import {LoginService} from '../../../../services/login.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {UsersService} from '../../../../services/users.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 import {
   buildStaffAccountMenu,
   buildStaffAttendanceMenu,
@@ -20,9 +20,9 @@ import {
   selector: 'app-staff-role-layout',
   imports: [
     Menubar,
-    PrimeTemplate,
     RouterLink,
     RouterOutlet,
+    AppLucideIconComponent,
     StaffChangePasswordDialogComponent,
   ],
   templateUrl: './staff-role-layout.component.html',
@@ -65,10 +65,6 @@ export class StaffRoleLayoutComponent implements OnInit {
       event.preventDefault();
       item.command({ originalEvent: event, item });
     }
-  }
-
-  getMenuIconClass(icon?: string): string {
-    return getFontAwesomeMenuIcon(icon);
   }
 
   openChangePasswordDialog(): void {

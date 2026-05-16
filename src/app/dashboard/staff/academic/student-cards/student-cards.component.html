@@ -735,7 +735,7 @@
                   pTooltip="Descargar foto"
                   tooltipPosition="top"
                 >
-                  <i class="fa-solid fa-download"></i>
+                  <app-lucide-icon name="download" [size]="16"></app-lucide-icon>
                 </button>
                 <input
                   #reviewPhotoInput
@@ -753,7 +753,7 @@
                   pTooltip="Subir foto"
                   tooltipPosition="top"
                 >
-                  <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                  <app-lucide-icon name="upload" [size]="16"></app-lucide-icon>
                 </button>
                 <a
                   href="https://siucarne.sunedu.gob.pe/carne/validacion"
@@ -761,7 +761,7 @@
                   rel="noopener"
                   class="review-sunedu-button"
                 >
-                  <i class="fa-solid fa-cloud-arrow-down"></i>
+                  <app-lucide-icon name="cloud-download" [size]="16"></app-lucide-icon>
                   <span>Validar foto SUNEDU</span>
                 </a>
               </div>
@@ -787,7 +787,7 @@
                   pTooltip="Descargar DNI"
                   tooltipPosition="top"
                 >
-                  <i class="fa-solid fa-download"></i>
+                  <app-lucide-icon name="download" [size]="16"></app-lucide-icon>
                 </button>
                 <input
                   #reviewDniInput
@@ -805,7 +805,7 @@
                   pTooltip="Subir DNI"
                   tooltipPosition="top"
                 >
-                  <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                  <app-lucide-icon name="upload" [size]="16"></app-lucide-icon>
                 </button>
               </div>
               <div class="border-1 surface-border border-round p-3 text-center">
@@ -1149,7 +1149,7 @@
               pTooltip="Seleccionar foto"
               tooltipPosition="top"
             >
-              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+              <app-lucide-icon name="upload" [size]="16"></app-lucide-icon>
             </button>
             @if (manualRegistrationPhotoFile) {
               <small class="text-green-500">{{ manualRegistrationPhotoFile.name }}</small>
@@ -1195,7 +1195,7 @@
               pTooltip="Seleccionar DNI"
               tooltipPosition="top"
             >
-              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+              <app-lucide-icon name="upload" [size]="16"></app-lucide-icon>
             </button>
             @if (manualRegistrationDniFile) {
               <small class="text-green-500">{{ manualRegistrationDniFile.name }}</small>
@@ -1216,7 +1216,7 @@
               rel="noopener"
               class="review-sunedu-button"
             >
-              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <app-lucide-icon name="cloud-download" [size]="16"></app-lucide-icon>
               <span>Validar foto SUNEDU</span>
             </a>
           </div>

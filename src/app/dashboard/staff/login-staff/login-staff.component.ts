@@ -4,10 +4,10 @@ import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {UsersService} from '../../../services/users.service';
 import {LoginService} from '../../../services/login.service';
-import {PATHS} from '../../../core/constants/paths';
-import {home_link, HomeKey} from '../../../core/constants/home_link';
-import {STATUS} from '../../../core/constants/status';
-import {NOTIFICATION_MESSAGE} from '../../../core/constants/notification_message';
+import {PATHS} from '../../../core/constants/app-paths.constants';
+import {home_link, HomeKey} from '../../../core/constants/home-routes.constants';
+import {STATUS} from '../../../core/constants/api-status.constants';
+import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constants';
 
 
 @Component({
