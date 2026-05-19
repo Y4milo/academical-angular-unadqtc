@@ -49,73 +49,52 @@ export function decodeApiData<T>(
   }
 }
 
-export function validatePhotoCardStudent(file: File): Promise<{
+export async function validatePhotoCardStudent(file: File): Promise<{
   validated: boolean;
   invalid: { title: string; message: string }[];
 }> {
 
-  return new Promise((resolve) => {
+  const invalid: { title: string; message: string }[] = [];
 
-    let invalid: { title: string; message: string }[] = [];
+  const isJpg = file.type === 'image/jpeg' || /\.(jpe?g)$/i.test(file.name);
+  if (!isJpg) {
+    invalid.push({
+      title: 'Formato invalido',
+      message: 'La imagen debe estar en formato JPG.'
+    });
+  }
 
-    const isJpg = file.type === 'image/jpeg' || /\.(jpe?g)$/i.test(file.name);
-    if (!isJpg) {
+  const maxSize = 50 * 1024;
+  const minSize = 4 * 1024;
+
+  if (file.size > maxSize || file.size < minSize) {
+    invalid.push({
+      title: 'Tamano invalido',
+      message: 'La imagen debe pesar entre 4KB y 50KB.'
+    });
+  }
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const width = bitmap.width;
+    const height = bitmap.height;
+    bitmap.close();
+
+    if (width !== 240 || height !== 288) {
       invalid.push({
-        title: 'Formato invalido',
-        message: 'La imagen debe estar en formato JPG.'
+        title: 'Dimensiones incorrectas',
+        message: `La imagen debe medir 240x288 px. Actual: ${width}x${height}.`
       });
     }
+  } catch {
+    invalid.push({
+      title: 'Imagen invalida',
+      message: 'No se pudo leer la imagen seleccionada.'
+    });
+  }
 
-    // ✅ VALIDAR TAMAÑO
-    const maxSize = 50 * 1024; // 50KB
-    const minSize = 4 * 1024;  // 4KB
-
-    if (file.size > maxSize || file.size < minSize) {
-      invalid.push({
-        title: 'Tamaño inválido',
-        message: 'La imagen debe pesar entre 4KB y 50KB.'
-      });
-    }
-
-    // ✅ VALIDAR DIMENSIONES (ASYNC)
-    const reader = new FileReader();
-
-    reader.onload = (e: any) => {
-      const img = new Image();
-      img.src = e.target.result;
-
-      img.onload = () => {
-        const width = img.width;
-        const height = img.height;
-
-        if (width !== 240 || height !== 288) {
-          invalid.push({
-            title: 'Dimensiones incorrectas',
-            message: `La imagen debe medir 240x288 px. Actual: ${width}x${height}.`
-          });
-        }
-
-        resolve({
-          validated: invalid.length === 0,
-          invalid
-        });
-      };
-
-      img.onerror = () => {
-        invalid.push({
-          title: 'Imagen invalida',
-          message: 'No se pudo leer la imagen seleccionada.'
-        });
-
-        resolve({
-          validated: false,
-          invalid
-        });
-      };
-    };
-
-    reader.readAsDataURL(file);
-  });
+  return {
+    validated: invalid.length === 0,
+    invalid
+  };
 }
-
-
