@@ -120,7 +120,8 @@
 }
 
 :host ::ng-deep .review-document-image {
-  max-width: 100%;
+  width: min(240px, 100%);
+  aspect-ratio: 240 / 288;
   max-height: 440px;
   object-fit: contain;
 }
