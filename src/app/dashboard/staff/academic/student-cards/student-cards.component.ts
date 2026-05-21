@@ -247,9 +247,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       id_type: [null, Validators.required],
       code: ['', [Validators.required, Validators.maxLength(15), Validators.pattern(/^[0-9]+$/)]],
       number: [{value: '', disabled: true}],
-      names: [{value: '', disabled: true}],
-      father_last_name: [{value: '', disabled: true}],
-      mother_last_name: [{value: '', disabled: true}],
+      names: ['', [Validators.required, Validators.maxLength(100)]],
+      father_last_name: ['', [Validators.required, Validators.maxLength(100)]],
+      mother_last_name: ['', [Validators.required, Validators.maxLength(100)]],
       check_digit: [null, [Validators.required, Validators.min(0), Validators.max(9), Validators.pattern(/^[0-9]$/)]],
       gender: [null, Validators.required],
       email: ['', [Validators.required, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)]],
@@ -485,6 +485,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       id: this.editStudent.id,
       id_type: formValues.id_type,
       code: formValues.code,
+      names: formValues.names,
+      father_last_name: formValues.father_last_name,
+      mother_last_name: formValues.mother_last_name,
       check_digit: formValues.check_digit,
       email: formValues.email,
       cellphone: formValues.cellphone,
@@ -518,6 +521,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     student.number = updated.number;
     student.id_student = updated.number || student.id_student;
     student.fullName = updated.fullName || student.fullName;
+    student.names = updated.names ?? student.names;
+    student.father_last_name = updated.father_last_name ?? student.father_last_name;
+    student.mother_last_name = updated.mother_last_name ?? student.mother_last_name;
     student.campus = updated.campus;
     student.cellphone = updated.cellphone;
     student.email = updated.email;
@@ -705,6 +711,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     const payload = new FormData();
     payload.append('number', formValues.number);
     payload.append('code', formValues.code);
+    payload.append('names', formValues.names);
+    payload.append('father_last_name', formValues.father_last_name);
+    payload.append('mother_last_name', formValues.mother_last_name);
     payload.append('id_type', formValues.id_type);
     payload.append('check_digit', formValues.check_digit);
     payload.append('gender', formValues.gender);
