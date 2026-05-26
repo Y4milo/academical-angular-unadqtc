@@ -1394,7 +1394,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.isTxtFile(file)) {
-      this.notificationService.warning('Archivo invalido', 'Seleccione un archivo TXT con codigos de estudiantes.');
+      this.notificationService.warning('Archivo invalido', 'Seleccione un archivo TXT con codigos o DNI de estudiantes.');
       return;
     }
 
