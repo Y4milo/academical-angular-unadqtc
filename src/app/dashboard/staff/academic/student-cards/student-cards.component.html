@@ -192,23 +192,6 @@
             severity="success"
             (click)="downloadPhotosZip()"
           />
-          <input
-            #approvedAverageTxtInput
-            type="file"
-            accept=".txt,text/plain"
-            class="hidden-file-input"
-            (change)="onApprovedAverageTxtSelected($event)"
-          />
-          <p-button
-            class="mx-2"
-            label="Promedio Codigo/DNI"
-            icon="pi pi-file-excel"
-            variant="outlined"
-            severity="success"
-            [loading]="isApprovedAverageDownloading"
-            [disabled]="isApprovedAverageDownloading"
-            (onClick)="approvedAverageTxtInput.click()"
-          />
         </div>
         <p-toolbar styleClass="student-card-toolbar mb-3">
           <ng-template pTemplate="start">

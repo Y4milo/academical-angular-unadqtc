@@ -107,7 +107,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   manualRegistrationDniIsPdf = false;
   manualRegistrationPhotoApproved = false;
   manualRegistrationIdentityConfirmed = false;
-  isApprovedAverageDownloading = false;
   campusOptions: Dictionary[] = [];
   idTypeOptions: Dictionary[] = [];
   genderOptions: Dictionary[] = [];
@@ -1382,68 +1381,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         console.error(e);
       }
     });
-  }
-
-  onApprovedAverageTxtSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-
-    if (!file) {
-      return;
-    }
-
-    if (!this.isTxtFile(file)) {
-      this.notificationService.warning('Archivo invalido', 'Seleccione un archivo TXT con codigos o DNI de estudiantes.');
-      return;
-    }
-
-    this.isApprovedAverageDownloading = true;
-    this.studentCardService.downloadApprovedAverageTxt(file).subscribe({
-      next: async (response) => {
-        const blob = response.body;
-
-        if (!blob) {
-          this.notificationService.warning('Sin archivo', 'No se recibio el Excel procesado.');
-          return;
-        }
-
-        if (blob.type.includes('json') || blob.type.includes('text')) {
-          await this.notifyBlobApiWarning(blob);
-          return;
-        }
-
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = this.getDownloadFileName(response, 'promedio_notas_aprobadas.xls');
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: (e) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      },
-      complete: () => {
-        this.isApprovedAverageDownloading = false;
-      }
-    });
-  }
-
-  private isTxtFile(file: File): boolean {
-    return file.type === 'text/plain' || /\.txt$/i.test(file.name);
-  }
-
-  private async notifyBlobApiWarning(blob: Blob): Promise<void> {
-    try {
-      const parsed = JSON.parse(await blob.text()) as ApiData<any>;
-      this.notificationService.notifyApiData(parsed);
-    } catch {
-      this.notificationService.warning('Respuesta invalida', 'El servicio no devolvio un archivo Excel valido.');
-    }
   }
 
   @ViewChild('overlayObservations') overlayObservations!: OverlayPanel;

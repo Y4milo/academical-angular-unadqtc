@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {HttpClient, HttpHeaders, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpResponse} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
@@ -167,26 +167,6 @@ export class StudentCardService {
     return this.http.get(`${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.PDF}`, {
       responseType: 'blob'
     });
-  }
-
-  downloadApprovedAverageTxt(file: File): Observable<HttpResponse<Blob>> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const headers = new HttpHeaders({
-      'x-api-key': 'API_KEY_9f2b8c1e6d7a44c0b3f1e0ad78c9f2e1_!XK$72mPq9#LdA4'
-    });
-
-    return this.http.post(
-      'https://bellasartescusco.edu.pe/ccomputo/administrador/api/averages/exportApprovedAverage.php',
-      formData,
-      {
-        headers,
-        responseType: 'blob',
-        observe: 'response',
-        withCredentials: true
-      }
-    );
   }
 
   downloadStudentCardPhoto(formData: FormData): Observable<Blob> {
