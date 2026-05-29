@@ -52,6 +52,17 @@
   white-space: nowrap;
 }
 
+.approved-average-column-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+:host ::ng-deep .approved-average-column-filter .p-column-filter-menu-button {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
 .approved-average-identifier {
   font-weight: 800;
 }
