@@ -89,6 +89,10 @@ export const PATHS = {
       ranking: {
         path:  `student/ranking`,
         link:   `academic/student/ranking`,
+      },
+      approvedAverage: {
+        path:  `student/approved-average`,
+        link:   `academic/student/approved-average`,
       }
     },
   },

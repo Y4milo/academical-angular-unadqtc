@@ -103,9 +103,45 @@ export class StaffRoleLayoutComponent implements OnInit {
 
   private withSharedMenu(items: MenuItem[]): MenuItem[] {
     return prependStaffCommonMenu(
-      items,
+      this.withApprovedAverageMenu(items),
       this.buildAccountMenu(),
       buildStaffAttendanceMenu(this.attendanceRouterLink),
     );
+  }
+
+  private withApprovedAverageMenu(items: MenuItem[]): MenuItem[] {
+    const approvedAverageItem: MenuItem = {
+      label: 'Promedio de Aprobados',
+      icon: 'file-spreadsheet',
+      routerLink: PATHS.academic.student.approvedAverage.path,
+    };
+    let added = false;
+
+    const mappedItems = items.map(item => {
+      const normalizedLabel = item.label?.trim().toLowerCase() ?? '';
+      const isAcademicMenu = normalizedLabel.includes('academic') || normalizedLabel.includes('academica') || normalizedLabel.includes('académica');
+
+      if (!isAcademicMenu) {
+        return item;
+      }
+
+      const children = item.items ?? [];
+      const alreadyExists = children.some(child => child.routerLink === approvedAverageItem.routerLink);
+      added = true;
+
+      return {
+        ...item,
+        items: alreadyExists ? children : [...children, approvedAverageItem],
+      };
+    });
+
+    if (added) {
+      return mappedItems;
+    }
+
+    return [
+      ...mappedItems,
+      approvedAverageItem,
+    ];
   }
 }

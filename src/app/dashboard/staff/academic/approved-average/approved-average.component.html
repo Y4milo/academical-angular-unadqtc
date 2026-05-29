@@ -1,0 +1,149 @@
+<div class="approved-average-page">
+  <p-card header="Promedio de Notas Aprobadas" class="p-shadow-4">
+    <p-toolbar styleClass="approved-average-toolbar mb-3">
+      <ng-template pTemplate="start">
+        <div class="approved-average-controls">
+          <p-select
+            [options]="campusOptions"
+            [(ngModel)]="selectedCampus"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Sede"
+            class="approved-average-campus"
+            (onChange)="preview && generatePreview()"
+          ></p-select>
+
+          <input
+            #txtInput
+            type="file"
+            accept=".txt,text/plain"
+            class="hidden-file-input"
+            (change)="onFileSelected($event)"
+          />
+
+          <p-button
+            label="Seleccionar TXT"
+            icon="pi pi-upload"
+            severity="success"
+            variant="outlined"
+            (onClick)="txtInput.click()"
+          ></p-button>
+
+          @if (selectedFile) {
+            <span class="approved-average-file-name">{{ selectedFile.name }}</span>
+          }
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="end">
+        <div class="approved-average-actions">
+          <p-button
+            label="Vista previa"
+            icon="pi pi-search"
+            severity="secondary"
+            variant="outlined"
+            [disabled]="!selectedFile || isPreviewLoading"
+            [loading]="isPreviewLoading"
+            (onClick)="generatePreview()"
+          ></p-button>
+          <p-button
+            label="Descargar Excel"
+            icon="pi pi-file-excel"
+            severity="success"
+            [disabled]="!selectedFile || !preview || isDownloading"
+            [loading]="isDownloading"
+            (onClick)="downloadExcel()"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    @if (preview) {
+      <div class="approved-average-summary">
+        <div class="approved-average-summary-item">
+          <span>Incluidos</span>
+          <p-badge [value]="includedCount" severity="success"></p-badge>
+        </div>
+        <div class="approved-average-summary-item">
+          <span>Varias sedes</span>
+          <p-badge [value]="multiCampusCount" severity="info"></p-badge>
+        </div>
+        <div class="approved-average-summary-item">
+          <span>Observados</span>
+          <p-badge [value]="observedCount" severity="danger"></p-badge>
+        </div>
+      </div>
+    }
+
+    <p-table
+      [value]="rows"
+      class="p-datatable-sm approved-average-table"
+      responsiveLayout="scroll"
+      [paginator]="true"
+      [rows]="15"
+      [rowsPerPageOptions]="[15, 30, 50]"
+      [rowHover]="true"
+      [stripedRows]="true"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>IDENTIFICADOR</th>
+          <th>ALUMNO</th>
+          <th>SEDE</th>
+          <th>CARRERA</th>
+          <th>ESPECIALIDAD</th>
+          <th>CREDITOS</th>
+          <th>PROMEDIO</th>
+          <th>ESTADO</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>
+            <span class="approved-average-identifier">{{ row.identifier }}</span>
+          </td>
+          <td>
+            <div class="approved-average-student">
+              <strong>{{ row.name || 'Sin datos' }}</strong>
+              <span>Codigo: {{ row.code || '-' }}</span>
+              <span>DNI: {{ row.dni || '-' }}</span>
+            </div>
+          </td>
+          <td>{{ row.campus || '-' }}</td>
+          <td>{{ row.career || '-' }}</td>
+          <td>{{ row.specialty || '-' }}</td>
+          <td>{{ row.credits || '-' }}</td>
+          <td>
+            @if (row.average !== '') {
+              <strong>{{ row.average | number:'1.2-2' }}</strong>
+            } @else {
+              <span>-</span>
+            }
+          </td>
+          <td>
+            <div class="approved-average-status">
+              <p-tag
+                [value]="getStatusLabel(row.status)"
+                [severity]="getStatusSeverity(row)"
+              ></p-tag>
+              @if (row.observation) {
+                <small>{{ row.observation }}</small>
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8">
+            <div class="approved-average-empty">
+              Seleccione un TXT para generar la vista previa.
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

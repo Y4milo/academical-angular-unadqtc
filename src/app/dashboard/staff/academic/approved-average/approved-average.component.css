@@ -1,0 +1,90 @@
+.approved-average-page {
+  width: 100%;
+}
+
+:host ::ng-deep .approved-average-toolbar {
+  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--surface-card) 92%, transparent);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.approved-average-controls,
+.approved-average-actions,
+.approved-average-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.approved-average-campus {
+  width: min(70vw, 14rem);
+}
+
+.approved-average-file-name {
+  max-width: min(54vw, 24rem);
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.approved-average-summary {
+  margin: 0.25rem 0 1rem;
+}
+
+.approved-average-summary-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-color-secondary);
+  font-weight: 700;
+}
+
+:host ::ng-deep .approved-average-table .p-datatable-thead > tr > th {
+  color: var(--p-gray-400);
+  white-space: nowrap;
+}
+
+.approved-average-identifier {
+  font-weight: 800;
+}
+
+.approved-average-student,
+.approved-average-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.approved-average-student span,
+.approved-average-status small {
+  color: var(--text-color-secondary);
+  font-size: 0.82rem;
+}
+
+.approved-average-empty {
+  padding: 1rem;
+  color: var(--text-color-secondary);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .approved-average-controls,
+  .approved-average-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .approved-average-campus,
+  .approved-average-controls p-button,
+  .approved-average-actions p-button {
+    width: 100%;
+  }
+}

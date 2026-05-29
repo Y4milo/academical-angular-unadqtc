@@ -22,6 +22,7 @@ import {
   AcademicLayOutComponentComponent
 } from './dashboard/staff/academic/academic-lay-out-component/academic-lay-out-component.component';
 import {StudentRankingComponent} from './dashboard/staff/academic/student-ranking/student-ranking.component';
+import {ApprovedAverageComponent} from './dashboard/staff/academic/approved-average/approved-average.component';
 import {
   StaffUserLayOutComponentComponent
 } from './dashboard/staff/staff-user/staff-user-lay-out-component/staff-user-lay-out-component.component';
@@ -80,6 +81,10 @@ export const routes: Routes = [
         path: PATHS.academic.student.ranking.path,
         component: StudentRankingComponent
       },
+      {
+        path: PATHS.academic.student.approvedAverage.path,
+        component: ApprovedAverageComponent
+      },
     ]
   },
   {
@@ -136,6 +141,10 @@ export const routes: Routes = [
       {
         path: PATHS.academic.student.ranking.path,
         component: StudentRankingComponent
+      },
+      {
+        path: PATHS.academic.student.approvedAverage.path,
+        component: ApprovedAverageComponent
       },
     ]
   },
