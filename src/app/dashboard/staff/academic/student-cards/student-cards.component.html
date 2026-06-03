@@ -170,28 +170,46 @@
           <!-- Botón centrado -->
           <p-button
             class="mx-2"
-            label="Descargar Lista PDF"
-            icon="pi pi-cloud-download"
+            [disabled]="downloadActionInProgress"
             variant="outlined"
             severity="success"
             (click)="downloadStudentCardsPDF()"
-          />
+          >
+            <app-lucide-icon
+              [name]="activeDownloadAction === 'pdf' ? 'loader-circle' : 'cloud-download'"
+              [size]="16"
+              [class.student-download-action-spin]="activeDownloadAction === 'pdf'"
+            ></app-lucide-icon>
+            <span>Descargar Lista PDF</span>
+          </p-button>
           <p-button
             class="mx-2"
-            label="Descargar Lista Excel"
-            icon="pi pi-cloud-download"
+            [disabled]="downloadActionInProgress"
             variant="outlined"
             severity="success"
             (click)="downloadStudentCardsExcel()"
-          />
+          >
+            <app-lucide-icon
+              [name]="activeDownloadAction === 'excel' ? 'loader-circle' : 'cloud-download'"
+              [size]="16"
+              [class.student-download-action-spin]="activeDownloadAction === 'excel'"
+            ></app-lucide-icon>
+            <span>Descargar Lista Excel</span>
+          </p-button>
           <p-button
             class="mx-2"
-            label="Descargar Fotos"
-            icon="pi pi-cloud-download"
+            [disabled]="downloadActionInProgress"
             variant="outlined"
             severity="success"
             (click)="downloadPhotosZip()"
-          />
+          >
+            <app-lucide-icon
+              [name]="activeDownloadAction === 'photos' ? 'loader-circle' : 'cloud-download'"
+              [size]="16"
+              [class.student-download-action-spin]="activeDownloadAction === 'photos'"
+            ></app-lucide-icon>
+            <span>Descargar Fotos</span>
+          </p-button>
         </div>
         <p-toolbar styleClass="student-card-toolbar mb-3">
           <ng-template pTemplate="start">
