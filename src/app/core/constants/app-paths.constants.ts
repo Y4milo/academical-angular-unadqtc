@@ -10,6 +10,12 @@ export const PATHS = {
       path:  `home`,
       link:   `admin/home`,
     },
+    events: {
+      certificates: {
+        path: `events/certificates`,
+        link: `admin/events/certificates`,
+      },
+    },
   },
   hr: {
     path: `hr`,
