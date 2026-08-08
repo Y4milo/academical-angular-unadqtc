@@ -84,17 +84,58 @@
       [rowsPerPageOptions]="[15, 30, 50]"
       [rowHover]="true"
       [stripedRows]="true"
+      [globalFilterFields]="['identifier', 'name', 'code', 'dni', 'campus', 'career', 'specialty', 'status']"
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>IDENTIFICADOR</th>
-          <th>ALUMNO</th>
-          <th>SEDE</th>
-          <th>CARRERA</th>
-          <th>ESPECIALIDAD</th>
-          <th>CREDITOS</th>
-          <th>PROMEDIO</th>
-          <th>ESTADO</th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>IDENTIFICADOR</span>
+              <p-columnFilter type="text" field="identifier" display="menu" matchMode="contains"></p-columnFilter>
+            </div>
+          </th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>ALUMNO</span>
+              <p-columnFilter type="text" field="name" display="menu" matchMode="contains"></p-columnFilter>
+            </div>
+          </th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>SEDE</span>
+              <p-columnFilter type="text" field="campus" display="menu" matchMode="contains"></p-columnFilter>
+            </div>
+          </th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>CARRERA</span>
+              <p-columnFilter type="text" field="career" display="menu" matchMode="contains"></p-columnFilter>
+            </div>
+          </th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>ESPECIALIDAD</span>
+              <p-columnFilter type="text" field="specialty" display="menu" matchMode="contains"></p-columnFilter>
+            </div>
+          </th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>CREDITOS</span>
+              <p-columnFilter type="numeric" field="credits" display="menu"></p-columnFilter>
+            </div>
+          </th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>PROMEDIO</span>
+              <p-columnFilter type="numeric" field="average" display="menu"></p-columnFilter>
+            </div>
+          </th>
+          <th>
+            <div class="approved-average-column-filter">
+              <span>ESTADO</span>
+              <p-columnFilter type="text" field="status" display="menu" matchMode="contains"></p-columnFilter>
+            </div>
+          </th>
         </tr>
       </ng-template>
 

@@ -118,21 +118,33 @@ export class StaffRoleLayoutComponent implements OnInit {
     let added = false;
 
     const mappedItems = items.map(item => {
-      const normalizedLabel = item.label?.trim().toLowerCase() ?? '';
-      const isAcademicMenu = normalizedLabel.includes('academic') || normalizedLabel.includes('academica') || normalizedLabel.includes('académica');
+      const normalizedLabel = this.normalizeMenuLabel(item.label);
+      const isAcademicMenu = normalizedLabel.includes('academic') || normalizedLabel.includes('academica');
+      const isStudentsMenu = normalizedLabel.includes('alumnos');
 
-      if (!isAcademicMenu) {
-        return item;
+      if (isStudentsMenu) {
+        added = true;
+        return this.appendApprovedAverageToStudents(item, approvedAverageItem);
       }
 
-      const children = item.items ?? [];
-      const alreadyExists = children.some(child => child.routerLink === approvedAverageItem.routerLink);
-      added = true;
+      if (isAcademicMenu) {
+        const children = item.items ?? [];
+        const mappedChildren = children.map(child => {
+          if (this.normalizeMenuLabel(child.label).includes('alumnos')) {
+            added = true;
+            return this.appendApprovedAverageToStudents(child, approvedAverageItem);
+          }
 
-      return {
-        ...item,
-        items: alreadyExists ? children : [...children, approvedAverageItem],
-      };
+          return child;
+        });
+
+        return {
+          ...item,
+          items: mappedChildren,
+        };
+      }
+
+      return item;
     });
 
     if (added) {
@@ -143,5 +155,23 @@ export class StaffRoleLayoutComponent implements OnInit {
       ...mappedItems,
       approvedAverageItem,
     ];
+  }
+
+  private appendApprovedAverageToStudents(item: MenuItem, approvedAverageItem: MenuItem): MenuItem {
+    const children = item.items ?? [];
+    const alreadyExists = children.some(child => child.routerLink === approvedAverageItem.routerLink);
+
+    return {
+      ...item,
+      items: alreadyExists ? children : [...children, approvedAverageItem],
+    };
+  }
+
+  private normalizeMenuLabel(label: string | undefined): string {
+    return (label ?? '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
   }
 }

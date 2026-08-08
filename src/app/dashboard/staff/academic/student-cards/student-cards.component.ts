@@ -32,6 +32,7 @@ import {ToolbarModule} from 'primeng/toolbar';
 import {validatePhotoCardStudent} from '../../../../helper/helper.util';
 import {StepsModule} from 'primeng/steps';
 import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {finalize} from 'rxjs';
 
 @Component({
   selector: 'app-student-cards',
@@ -93,6 +94,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   editStudentForm!: FormGroup;
   isEditSubmitting = false;
   isManualRegistrationEdit = false;
+  downloadActionInProgress = false;
+  activeDownloadAction?: 'pdf' | 'excel' | 'photos';
   manualRegistrationStep = 0;
   manualRegistrationSteps = [
     {label: 'Datos'},
@@ -1292,8 +1295,29 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     return asciiMatch?.[1] ?? null;
   }
 
+  private startDownloadAction(action: 'pdf' | 'excel' | 'photos'): boolean {
+    if (this.downloadActionInProgress) {
+      return false;
+    }
+
+    this.downloadActionInProgress = true;
+    this.activeDownloadAction = action;
+    return true;
+  }
+
+  private finishDownloadAction() {
+    this.downloadActionInProgress = false;
+    this.activeDownloadAction = undefined;
+  }
+
   downloadStudentCardsPDF() {
-    this.studentCardService.downloadStudentCardsPdf().subscribe({
+    if (!this.startDownloadAction('pdf')) {
+      return;
+    }
+
+    this.studentCardService.downloadStudentCardsPdf().pipe(
+      finalize(() => this.finishDownloadAction())
+    ).subscribe({
       next: async (blob) => {
         try {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
@@ -1324,7 +1348,13 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   downloadStudentCardsExcel() {
-    this.studentCardService.downloadStudentCardsExcel().subscribe({
+    if (!this.startDownloadAction('excel')) {
+      return;
+    }
+
+    this.studentCardService.downloadStudentCardsExcel().pipe(
+      finalize(() => this.finishDownloadAction())
+    ).subscribe({
       next: async (blob) => {
         try {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
@@ -1354,7 +1384,13 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   downloadPhotosZip() {
-    this.studentCardService.downloadStudentPhotosZip().subscribe({
+    if (!this.startDownloadAction('photos')) {
+      return;
+    }
+
+    this.studentCardService.downloadStudentPhotosZip().pipe(
+      finalize(() => this.finishDownloadAction())
+    ).subscribe({
       next: async (blob) => {
         try {
           const text = await (blob as Blob).text(); // 👈 le decimos a TS que es Blob
