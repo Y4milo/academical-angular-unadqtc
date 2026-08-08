@@ -1,0 +1,153 @@
+<div class="event-certificates">
+  <p-toolbar styleClass="event-certificates-toolbar">
+    <ng-template #start>
+      <div>
+        <span class="eyebrow">Eventos</span>
+        <h2>Certificados</h2>
+      </div>
+    </ng-template>
+    <ng-template #end>
+      <button
+        pButton
+        type="button"
+        icon="pi pi-refresh"
+        label="Actualizar"
+        [disabled]="loading || downloading"
+        (click)="loadSummary()">
+      </button>
+    </ng-template>
+  </p-toolbar>
+
+  <div *ngIf="summary" class="summary-grid">
+    <p-card styleClass="event-prime-card event-detail-card">
+      <ng-template #title>{{ summary.event.title }}</ng-template>
+      <ng-template #subtitle>{{ summary.event.slug }}</ng-template>
+
+      <div class="tag-row">
+        <p-tag [value]="summary.event.mode || 'Sin modalidad'" severity="info"></p-tag>
+        <p-tag [value]="summary.event.dates.length + ' fechas'" severity="secondary"></p-tag>
+        <p-tag [value]="summary.event.certificate_criteria" severity="success"></p-tag>
+      </div>
+
+      <div class="dates">
+        <span *ngFor="let date of summary.event.dates">
+          {{ date.date_time | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+      </div>
+    </p-card>
+
+    <p-card styleClass="event-prime-card stats-card">
+      <div class="stats">
+        <div>
+          <strong>{{ summary.totals.participants }}</strong>
+          <span>Registrados</span>
+        </div>
+        <div>
+          <strong>{{ summary.totals.eligible }}</strong>
+          <span>Con certificado</span>
+        </div>
+        <div>
+          <strong>{{ summary.totals.not_eligible }}</strong>
+          <span>No cumplen</span>
+        </div>
+        <div>
+          <strong>{{ summary.totals.required_attendances }}</strong>
+          <span>Asistencias min.</span>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <p-card styleClass="event-prime-card actions-card">
+    <div class="actions">
+      <label class="percentage-option">
+        <p-checkbox
+          [(ngModel)]="requireEventPercentage"
+          [binary]="true"
+          (onChange)="loadSummary()">
+        </p-checkbox>
+        <span>Exigir porcentaje del evento</span>
+      </label>
+
+      <div class="action-buttons">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-eye"
+          severity="secondary"
+          [label]="previewing ? 'Generando prueba' : 'Vista previa'"
+          [disabled]="!summary || loading || downloading || previewing || summary.totals.eligible === 0"
+          (click)="previewCertificate()">
+        </button>
+
+        <button
+          pButton
+          type="button"
+          icon="pi pi-download"
+          [label]="downloading ? 'Generando ZIP' : 'Descargar ZIP'"
+          [disabled]="!summary || loading || downloading || previewing || summary.totals.eligible === 0"
+          (click)="downloadZip()">
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="zipMessage" class="zip-status">
+      <div class="zip-status-header">
+        <span>{{ zipMessage }}</span>
+        <strong *ngIf="zipJob?.total">{{ zipProgress }}%</strong>
+      </div>
+      <p-progressbar
+        *ngIf="zipJob?.total"
+        [value]="zipProgress"
+        [showValue]="false">
+      </p-progressbar>
+    </div>
+  </p-card>
+
+  <div *ngIf="loading" class="state">Cargando datos del evento...</div>
+
+  <p-card *ngIf="summary && !loading" styleClass="event-prime-card">
+    <ng-template #title>Participantes que recibiran certificado</ng-template>
+    <ng-template #subtitle>{{ summary.eligible_participants.length }} registros encontrados</ng-template>
+
+    <p-table
+      [value]="summary.eligible_participants"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [tableStyle]="{ 'min-width': '760px' }"
+      styleClass="p-datatable-sm p-datatable-striped"
+      responsiveLayout="scroll">
+      <ng-template #header>
+        <tr>
+          <th>Participante</th>
+          <th>Documento</th>
+          <th>Tipo</th>
+          <th>Correo</th>
+          <th class="text-right">Asistencias</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-participant>
+        <tr>
+          <td>
+            <div class="participant-name">{{ displayName(participant) }}</div>
+          </td>
+          <td>{{ participant.number }}</td>
+          <td>{{ participant.participant_type || 'Sin tipo' }}</td>
+          <td>{{ participant.email || 'Sin correo' }}</td>
+          <td class="text-right">
+            <p-tag
+              [value]="participant.attendances + ' asistencia(s)'"
+              severity="success">
+            </p-tag>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5">No hay participantes aptos para certificado.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
