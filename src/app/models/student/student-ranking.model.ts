@@ -11,6 +11,4 @@ export interface StudentRaking {
   ranking_type: string;
   is_inside_ranking: boolean;
   limit: number;
-  database: string;
-  campus: string;
 }

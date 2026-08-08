@@ -49,7 +49,7 @@ export class StudentService {
     return this.http.post<ApiData<StudentRaking>>(
       `https://bellasartescusco.edu.pe/ccomputo/administrador/api/students/studentRanking.php`,
       studentData,
-      { headers, withCredentials: true });
+      { headers });
   }
 
   getExcelStudentRanking(): Observable<ApiData<Dictionary>> {
