@@ -35,9 +35,6 @@ import {
 import {StaffMenuBaseComponent} from './dashboard/staff-menu-base/staff-menu-base.component';
 import {AuthRoleGuard} from './guards/auth-role.guard';
 import {AuthStudentGuard} from './guards/auth-student.guard';
-import {
-  EventCertificatesAdminComponent
-} from './dashboard/staff/events/event-certificates-admin/event-certificates-admin.component';
 
 export const routes: Routes = [
   {
@@ -87,10 +84,6 @@ export const routes: Routes = [
       {
         path: PATHS.academic.student.approvedAverage.path,
         component: ApprovedAverageComponent
-      },
-      {
-        path: PATHS.admin.events.certificates.path,
-        component: EventCertificatesAdminComponent
       },
     ]
   },
