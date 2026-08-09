@@ -38,12 +38,6 @@ import {AuthStudentGuard} from './guards/auth-student.guard';
 import {
   EventCertificatesAdminComponent
 } from './dashboard/staff/events/event-certificates-admin/event-certificates-admin.component';
-import {
-  BnIncidentsComponent
-} from './dashboard/staff/accounting/bn-incidents/bn-incidents.component';
-import {
-  AccountingLayOutComponentComponent
-} from './dashboard/staff/accounting/accounting-lay-out-component/accounting-lay-out-component.component';
 
 export const routes: Routes = [
   {
@@ -98,10 +92,6 @@ export const routes: Routes = [
         path: PATHS.admin.events.certificates.path,
         component: EventCertificatesAdminComponent
       },
-      {
-        path: PATHS.admin.accounting.bank.incidents.path,
-        component: BnIncidentsComponent
-      },
     ]
   },
   {
@@ -133,23 +123,6 @@ export const routes: Routes = [
       {
         path: PATHS.staff.home.path,
         component: AttendanceUserComponent
-      },
-    ]
-  },
-  {
-    path: PATHS.accounting.path,
-    component: AccountingLayOutComponentComponent,
-    canActivate: [AuthRoleGuard],
-    data: {roles: [ROLE.accounting, ROLE.admin]},
-    children: [
-      {
-        path: '',
-        redirectTo: PATHS.accounting.home.path,
-        pathMatch: 'full'
-      },
-      {
-        path: PATHS.accounting.bank.incidents.path,
-        component: BnIncidentsComponent
       },
     ]
   },

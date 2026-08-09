@@ -105,7 +105,7 @@ export class StaffRoleLayoutComponent implements OnInit {
     return prependStaffCommonMenu(
       this.withApprovedAverageMenu(items),
       this.buildAccountMenu(),
-      this.attendanceRouterLink ? buildStaffAttendanceMenu(this.attendanceRouterLink) : undefined,
+      buildStaffAttendanceMenu(this.attendanceRouterLink),
     );
   }
 
@@ -147,7 +147,14 @@ export class StaffRoleLayoutComponent implements OnInit {
       return item;
     });
 
-    return mappedItems;
+    if (added) {
+      return mappedItems;
+    }
+
+    return [
+      ...mappedItems,
+      approvedAverageItem,
+    ];
   }
 
   private appendApprovedAverageToStudents(item: MenuItem, approvedAverageItem: MenuItem): MenuItem {

@@ -16,14 +16,6 @@ export const PATHS = {
         link: `admin/events/certificates`,
       },
     },
-    accounting: {
-      bank: {
-        incidents: {
-          path: `accounting/bank/incidents`,
-          link: `admin/accounting/bank/incidents`,
-        },
-      },
-    },
   },
   hr: {
     path: `hr`,
@@ -81,16 +73,10 @@ export const PATHS = {
   },
   accounting: {
     path: `accounting`,
-    bank: {
-      incidents: {
-        path:  `bank/incidents`,
-        link:   `accounting/bank/incidents`,
-      },
-    },
     payments: `accounting/student/payments`,
     home: {
-      path:  `bank/incidents`,
-      link:   `accounting/bank/incidents`,
+      path:  `home`,
+      link:   `accounting/student/payments`,
     },
   },
   academic: {
