@@ -1,0 +1,186 @@
+<div class="bn-incidents">
+  <div class="page-heading">
+    <div>
+      <h2>Incidencias Banco Nacion</h2>
+      <p>Seguimiento de transferencias y respuestas registradas en el flujo BN.</p>
+    </div>
+    <p-tag value="Solo lectura" severity="info"></p-tag>
+  </div>
+
+  <div class="summary-grid" *ngIf="summary && !summaryLoading">
+    <p-card styleClass="summary-card">
+      <span>Total operaciones</span>
+      <strong>{{ summary.total }}</strong>
+    </p-card>
+    <p-card styleClass="summary-card success">
+      <span>Exitosas</span>
+      <strong>{{ summary.success }}</strong>
+    </p-card>
+    <p-card styleClass="summary-card danger">
+      <span>Incidencias</span>
+      <strong>{{ summary.errors }}</strong>
+    </p-card>
+    <p-card styleClass="summary-card">
+      <span>Ultima operacion</span>
+      <strong>{{ summary.latest_transaction?.display_date || 'Sin registros' }}</strong>
+    </p-card>
+  </div>
+
+  <div *ngIf="summaryLoading" class="loading-block">
+    <p-progressSpinner></p-progressSpinner>
+  </div>
+
+  <p-card styleClass="filter-card">
+    <div class="filter-grid">
+      <div class="field">
+        <label>Rango de fechas</label>
+        <p-datePicker
+          [(ngModel)]="dateRange"
+          selectionMode="range"
+          dateFormat="dd/mm/yy"
+          showIcon
+          [maxDate]="today"
+          placeholder="Seleccionar rango">
+        </p-datePicker>
+      </div>
+
+      <div class="field">
+        <label>Operacion</label>
+        <p-select
+          [(ngModel)]="operation"
+          [options]="operationOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body">
+        </p-select>
+      </div>
+
+      <div class="field">
+        <label>Estado</label>
+        <p-select
+          [(ngModel)]="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body">
+        </p-select>
+      </div>
+
+      <div class="field">
+        <label>Archivo</label>
+        <p-select
+          [(ngModel)]="fileType"
+          [options]="fileTypeOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body">
+        </p-select>
+      </div>
+
+      <div class="field search-field">
+        <label>Busqueda</label>
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="search"
+          placeholder="Mensaje, archivo o ruta" />
+      </div>
+
+      <div class="filter-actions">
+        <button pButton type="button" icon="pi pi-search" label="Buscar" (click)="loadData(1)"></button>
+        <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" severity="secondary" (click)="clearFilters()"></button>
+      </div>
+    </div>
+  </p-card>
+
+  <div *ngIf="summary?.latest_incident" class="latest-incident">
+    <span>Ultima incidencia</span>
+    <strong>{{ summary?.latest_incident?.display_date }}</strong>
+    <p>{{ summary?.latest_incident?.message }}</p>
+  </div>
+
+  <p-card styleClass="table-card">
+    <p-table
+      [value]="list.items"
+      [loading]="loading"
+      [paginator]="true"
+      [rows]="perPage"
+      [totalRecords]="list.pagination.total"
+      [lazy]="true"
+      [first]="(list.pagination.current_page - 1) * perPage"
+      [rowsPerPageOptions]="[10, 20, 50, 100]"
+      dataKey="id"
+      responsiveLayout="scroll"
+      (onPage)="onPageChange($event)">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Fecha</th>
+          <th>Operacion</th>
+          <th>Archivo</th>
+          <th>Estado</th>
+          <th>Mensaje</th>
+          <th>Usuario</th>
+          <th>Ruta</th>
+          <th>Extra</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>
+            <div class="date-cell">
+              <strong>{{ row.display_date || '-' }}</strong>
+              <span>{{ getSecondaryDate(row) }}</span>
+            </div>
+          </td>
+          <td>
+            <span>{{ row.operation.label || row.operation.value || '-' }}</span>
+          </td>
+          <td>
+            <div class="file-cell">
+              <p-tag
+                [value]="getFileType(row)"
+                [severity]="getFileSeverity(row.file_type)">
+              </p-tag>
+              <span>{{ row.file_name || 'Sin archivo' }}</span>
+            </div>
+          </td>
+          <td>
+            <p-tag
+              [value]="row.status.label || row.status.value || 'Sin estado'"
+              [severity]="getSeverity(row.status.value)">
+            </p-tag>
+          </td>
+          <td class="message-cell">{{ row.message || '-' }}</td>
+          <td>
+            <div class="user-cell">
+              <strong>{{ row.user.full_name || 'Sistema' }}</strong>
+              <span>{{ row.user.number || '' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="download-cell">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-download"
+                [label]="downloadingId === row.id ? 'Descargando' : 'Descargar'"
+                size="small"
+                [disabled]="!row.has_local_file || downloadingId === row.id"
+                (click)="downloadFile(row)">
+              </button>
+              <span>{{ row.file_path ? getFileBasename(row.file_path) : 'Sin archivo local' }}</span>
+            </div>
+          </td>
+          <td class="extra-cell">{{ getExtraData(row) || '-' }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="empty-message">No hay registros para los filtros seleccionados.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
