@@ -37,12 +37,12 @@ export function buildStaffAttendanceMenu(routerLink: string): MenuItem {
   };
 }
 
-export function prependStaffCommonMenu(items: MenuItem[], accountMenu: MenuItem, attendanceMenu: MenuItem): MenuItem[] {
+export function prependStaffCommonMenu(items: MenuItem[], accountMenu: MenuItem, attendanceMenu?: MenuItem): MenuItem[] {
   const reservedLabels = new Set(['mi cuenta', 'mis asistencias']);
+  const sharedItems = attendanceMenu ? [accountMenu, attendanceMenu] : [accountMenu];
 
   return [
-    accountMenu,
-    attendanceMenu,
+    ...sharedItems,
     ...items.filter((item) => !reservedLabels.has(item.label?.trim().toLowerCase() ?? '')),
   ];
 }
