@@ -33,7 +33,7 @@
   <p-card styleClass="filter-card">
     <div class="filter-grid">
       <div class="field">
-        <label>Rango de fechas</label>
+        <label>Fecha de operacion</label>
         <p-datePicker
           [(ngModel)]="dateRange"
           selectionMode="range"
@@ -83,7 +83,7 @@
           pInputText
           type="text"
           [(ngModel)]="search"
-          placeholder="Mensaje, archivo o ruta" />
+          placeholder="Buscar por mensaje, archivo o ruta" />
       </div>
 
       <div class="filter-actions">
@@ -100,8 +100,13 @@
   </div>
 
   <p-card styleClass="table-card">
+    <div class="history-caption">
+      <strong>Historial de operaciones</strong>
+      <span>Agrupado por fecha de operacion registrada en Lima. Mas recientes primero.</span>
+    </div>
+
     <p-table
-      [value]="list.items"
+      [value]="displayTransactions()"
       [loading]="loading"
       [paginator]="true"
       [rows]="perPage"
@@ -109,49 +114,81 @@
       [lazy]="true"
       [first]="(list.pagination.current_page - 1) * perPage"
       [rowsPerPageOptions]="[10, 20, 50, 100]"
+      rowGroupMode="subheader"
+      groupRowsBy="day_key"
       dataKey="id"
       responsiveLayout="scroll"
       (onPage)="onPageChange($event)">
       <ng-template pTemplate="header">
         <tr>
-          <th>Fecha</th>
-          <th>Operacion</th>
-          <th>Archivo</th>
-          <th>Estado</th>
-          <th>Mensaje</th>
+          <th style="width: 8rem">Hora</th>
+          <th>Operacion y archivo</th>
+          <th style="width: 13rem">Fechas</th>
+          <th>Estado y mensaje</th>
           <th>Usuario</th>
-          <th>Ruta</th>
-          <th>Extra</th>
+          <th style="width: 14rem">Archivo local</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="groupheader" let-row>
+        <tr pRowGroupHeader>
+          <td colspan="6">
+            <div class="day-group">
+              <strong>Operaciones del {{ row.day_label }}</strong>
+              <span>{{ getDayCountLabel(row) }}</span>
+            </div>
+          </td>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-row>
         <tr>
           <td>
-            <div class="date-cell">
-              <strong>{{ row.display_date || '-' }}</strong>
+            <div class="time-cell">
+              <strong>{{ getTimeLabel(row) }}</strong>
               <span>{{ getSecondaryDate(row) }}</span>
             </div>
           </td>
           <td>
-            <span>{{ row.operation.label || row.operation.value || '-' }}</span>
-          </td>
-          <td>
-            <div class="file-cell">
-              <p-tag
-                [value]="getFileType(row)"
-                [severity]="getFileSeverity(row.file_type)">
-              </p-tag>
-              <span>{{ row.file_name || 'Sin archivo' }}</span>
+            <div class="operation-file-cell">
+              <strong>{{ row.operation.label || row.operation.value || '-' }}</strong>
+              <div class="operation-file-details">
+                <div>
+                  <span>Archivo</span>
+                  <p-tag
+                    [value]="getFileType(row)"
+                    [severity]="getFileSeverity(row.file_type)">
+                  </p-tag>
+                </div>
+                <div>
+                  <span>Nombre</span>
+                  <strong>{{ row.file_name || 'Sin archivo' }}</strong>
+                </div>
+              </div>
+              <small *ngIf="getExtraData(row)">Extra: {{ getExtraData(row) }}</small>
             </div>
           </td>
           <td>
-            <p-tag
-              [value]="row.status.label || row.status.value || 'Sin estado'"
-              [severity]="getSeverity(row.status.value)">
-            </p-tag>
+            <div class="dates-cell">
+              <div>
+                <span>Operacion</span>
+                <strong>{{ getOperationDateLabel(row) }}</strong>
+              </div>
+              <div>
+                <span>Solicitada</span>
+                <strong>{{ getRequestedDateLabel(row) }}</strong>
+              </div>
+            </div>
           </td>
-          <td class="message-cell">{{ row.message || '-' }}</td>
+          <td>
+            <div class="status-message-cell">
+              <p-tag
+                [value]="row.status.label || row.status.value || 'Sin estado'"
+                [severity]="getSeverity(row.status.value)">
+              </p-tag>
+              <span>{{ row.message || '-' }}</span>
+            </div>
+          </td>
           <td>
             <div class="user-cell">
               <strong>{{ row.user.full_name || 'Sistema' }}</strong>
@@ -172,13 +209,12 @@
               <span>{{ row.file_path ? getFileBasename(row.file_path) : 'Sin archivo local' }}</span>
             </div>
           </td>
-          <td class="extra-cell">{{ getExtraData(row) || '-' }}</td>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="8" class="empty-message">No hay registros para los filtros seleccionados.</td>
+          <td colspan="6" class="empty-message">No hay registros para los filtros seleccionados.</td>
         </tr>
       </ng-template>
     </p-table>

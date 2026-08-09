@@ -24,6 +24,11 @@ interface SelectOption {
   value: string;
 }
 
+type AccountingBnTransactionView = AccountingBnTransaction & {
+  day_key: string;
+  day_label: string;
+};
+
 @Component({
   selector: 'app-bn-incidents',
   imports: [
@@ -148,6 +153,14 @@ export class BnIncidentsComponent implements OnInit {
     this.loadData(nextPage);
   }
 
+  displayTransactions(): AccountingBnTransactionView[] {
+    return this.list.items.map((item) => ({
+      ...item,
+      day_key: this.getDayKey(item),
+      day_label: this.getDayLabel(item),
+    }));
+  }
+
   getSeverity(status: string | null | undefined): 'success' | 'danger' | 'secondary' {
     if (status === 'success') {
       return 'success';
@@ -218,14 +231,77 @@ export class BnIncidentsComponent implements OnInit {
 
   getSecondaryDate(transaction: AccountingBnTransaction): string {
     if (transaction.request_date && !transaction.request_date.endsWith('00:00:00')) {
-      return `Solicitado: ${transaction.request_date}`;
+      return `Fecha solicitada: ${transaction.request_date}`;
     }
 
     if (transaction.created_at_lima) {
-      return `Registrado Lima: ${transaction.created_at_lima}`;
+      return `Registrado: ${transaction.created_at_lima}`;
     }
 
-    return 'Sin fecha solicitada';
+    return 'Sin fecha registrada';
+  }
+
+  isFirstRowOfDay(transaction: AccountingBnTransaction, rowIndex: number): boolean {
+    if (rowIndex === 0) {
+      return true;
+    }
+
+    const previous = this.list.items[rowIndex - 1];
+
+    return this.getDayKey(transaction) !== this.getDayKey(previous);
+  }
+
+  getDayLabel(transaction: AccountingBnTransaction): string {
+    const date = this.getTransactionDate(transaction);
+
+    if (!date) {
+      return 'Sin fecha';
+    }
+
+    return new Intl.DateTimeFormat('es-PE', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  getDayCount(transaction: AccountingBnTransaction): number {
+    const dayKey = this.getDayKey(transaction);
+
+    return this.list.items.filter((item) => this.getDayKey(item) === dayKey).length;
+  }
+
+  getDayCountLabel(transaction: AccountingBnTransaction): string {
+    const count = this.getDayCount(transaction);
+
+    return count === 1 ? '1 registro' : `${count} registros`;
+  }
+
+  getTimeLabel(transaction: AccountingBnTransaction): string {
+    const date = this.getTransactionDate(transaction);
+
+    if (!date) {
+      return '--:--';
+    }
+
+    return new Intl.DateTimeFormat('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(date);
+  }
+
+  getOperationDateLabel(transaction: AccountingBnTransaction): string {
+    const date = this.getTransactionDate(transaction);
+
+    return date ? this.formatDisplayDateTime(date) : 'No registrada';
+  }
+
+  getRequestedDateLabel(transaction: AccountingBnTransaction): string {
+    const date = this.parseDate(transaction.request_date);
+
+    return date ? this.formatDisplayDate(date) : 'No registrada';
   }
 
   private buildFilters(): AccountingBnFilter {
@@ -263,6 +339,56 @@ export class BnIncidentsComponent implements OnInit {
 
   private normalizeFileType(fileType: string | null | undefined): string {
     return (fileType ?? '').trim().toUpperCase();
+  }
+
+  private getDayKey(transaction: AccountingBnTransaction): string {
+    const date = this.getTransactionDate(transaction);
+
+    if (!date) {
+      return 'sin-fecha';
+    }
+
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private getTransactionDate(transaction: AccountingBnTransaction): Date | null {
+    const rawDate = transaction.created_at_lima || transaction.created_at || transaction.display_date;
+
+    return this.parseDate(rawDate);
+  }
+
+  private parseDate(rawDate: string | null | undefined): Date | null {
+    if (!rawDate) {
+      return null;
+    }
+
+    const normalized = rawDate.replace(' ', 'T');
+    const date = new Date(normalized);
+
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private formatDisplayDate(date: Date): string {
+    return new Intl.DateTimeFormat('es-PE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  private formatDisplayDateTime(date: Date): string {
+    return new Intl.DateTimeFormat('es-PE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(date);
   }
 
   private getDownloadName(transaction: AccountingBnTransaction): string {
