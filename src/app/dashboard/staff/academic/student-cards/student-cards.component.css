@@ -48,6 +48,12 @@
   opacity: 0.55;
 }
 
+:host ::ng-deep .semester-read-only .semester-read-only-allowed,
+:host ::ng-deep .semester-read-only .semester-read-only-allowed .p-button {
+  pointer-events: auto;
+  opacity: 1;
+}
+
 @media (max-width: 700px) {
   .semester-context {
     align-items: stretch;
