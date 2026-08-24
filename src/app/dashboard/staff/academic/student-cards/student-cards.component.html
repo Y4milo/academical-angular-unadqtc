@@ -202,8 +202,8 @@
         <div class="w-full mb-3 text-center">
           <!-- Botón centrado -->
           <p-button
-            class="mx-2"
-            [disabled]="downloadActionInProgress"
+            class="mx-2 semester-read-only-allowed"
+            [disabled]="downloadActionInProgress || !selectedSemesterId"
             variant="outlined"
             severity="success"
             (click)="downloadStudentCardsPDF()"
@@ -216,8 +216,8 @@
             <span>Descargar Lista PDF</span>
           </p-button>
           <p-button
-            class="mx-2"
-            [disabled]="downloadActionInProgress"
+            class="mx-2 semester-read-only-allowed"
+            [disabled]="downloadActionInProgress || !selectedSemesterId"
             variant="outlined"
             severity="success"
             (click)="downloadStudentCardsExcel()"
@@ -230,8 +230,8 @@
             <span>Descargar Lista Excel</span>
           </p-button>
           <p-button
-            class="mx-2"
-            [disabled]="downloadActionInProgress"
+            class="mx-2 semester-read-only-allowed"
+            [disabled]="downloadActionInProgress || !selectedSemesterId"
             variant="outlined"
             severity="success"
             (click)="downloadPhotosZip()"

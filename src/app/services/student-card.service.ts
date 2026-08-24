@@ -158,21 +158,23 @@ export class StudentCardService {
     );
   }
 
-  downloadStudentPhotosZip(): Observable<Blob> {
+  downloadStudentPhotosZip(semesterId: number): Observable<Blob> {
     return this.http.get(
       `${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.ZIP}`,
-      { responseType: 'blob' }
+      {params: new HttpParams().set('semester_id', semesterId), responseType: 'blob'}
     );
   }
 
-  downloadStudentCardsExcel(): Observable<Blob> {
+  downloadStudentCardsExcel(semesterId: number): Observable<Blob> {
     return this.http.get(`${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.XLSX}`, {
+      params: new HttpParams().set('semester_id', semesterId),
       responseType: 'blob'
     });
   }
 
-  downloadStudentCardsPdf(): Observable<Blob> {
+  downloadStudentCardsPdf(semesterId: number): Observable<Blob> {
     return this.http.get(`${this.apiURL}${API_STUDENT_CARDS.ACADEMIC.DOWNLOAD.STUDENT.FILE.PDF}`, {
+      params: new HttpParams().set('semester_id', semesterId),
       responseType: 'blob'
     });
   }

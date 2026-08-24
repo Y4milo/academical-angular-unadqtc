@@ -1362,7 +1362,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.studentCardService.downloadStudentCardsPdf().pipe(
+    this.studentCardService.downloadStudentCardsPdf(this.selectedSemesterId!).pipe(
       finalize(() => this.finishDownloadAction())
     ).subscribe({
       next: async (blob) => {
@@ -1399,7 +1399,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.studentCardService.downloadStudentCardsExcel().pipe(
+    this.studentCardService.downloadStudentCardsExcel(this.selectedSemesterId!).pipe(
       finalize(() => this.finishDownloadAction())
     ).subscribe({
       next: async (blob) => {
@@ -1435,7 +1435,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.studentCardService.downloadStudentPhotosZip().pipe(
+    this.studentCardService.downloadStudentPhotosZip(this.selectedSemesterId!).pipe(
       finalize(() => this.finishDownloadAction())
     ).subscribe({
       next: async (blob) => {
