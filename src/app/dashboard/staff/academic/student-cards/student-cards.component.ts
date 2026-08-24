@@ -113,6 +113,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   campusOptions: Dictionary[] = [];
   idTypeOptions: Dictionary[] = [];
   genderOptions: Dictionary[] = [];
+  semesterOptions: Dictionary[] = [];
+  selectedSemesterId?: number;
+  isLoadingSemesters = false;
   private loadingPhotoIds = new Set<number>();
   private observationsMultiSelectTimer?: ReturnType<typeof setTimeout>;
   constructor(
@@ -126,6 +129,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initEditStudentForm();
     this.loadEditFormDictionaries();
+    this.loadSemesters();
     this.dictionaryService.listStudentCardFlags().subscribe({
       next: studentCardFlagsData => {
         if (studentCardFlagsData.status === STATUS.success) {
@@ -168,72 +172,115 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         console.error(e);
       }
     });
-    this.studentCardService.listPendingStudentCards().subscribe({
-      next: pendingStudentCardsData => {
-        if (pendingStudentCardsData.status === STATUS.success) {
-          this.pendingStudents = pendingStudentCardsData.payload.data;
+  }
+
+  get selectedSemester(): Dictionary | undefined {
+    return this.semesterOptions.find(semester => semester.id === this.selectedSemesterId);
+  }
+
+  get isHistoricalSemester(): boolean {
+    return !!this.selectedSemester && !this.selectedSemester.is_current;
+  }
+
+  loadSemesters(): void {
+    this.isLoadingSemesters = true;
+    this.dictionaryService.getSemesters()
+      .pipe(finalize(() => this.isLoadingSemesters = false))
+      .subscribe({
+        next: response => {
+          if (response.status !== STATUS.success) {
+            this.notificationService.notifyApiData(response);
+            return;
+          }
+
+          this.semesterOptions = response.payload.data ?? [];
+          if (!this.semesterOptions.length) {
+            this.notificationService.warning(
+              'No existen semestres',
+              'Debe registrar un semestre antes de consultar la gestión de carnés.'
+            );
+            return;
+          }
+
+          const storedId = Number(sessionStorage.getItem('student-cards-semester-id'));
+          const storedSemester = this.semesterOptions.find(item => item.id === storedId);
+          const currentSemester = this.semesterOptions.find(item => item.is_current);
+          this.selectedSemesterId = (currentSemester ?? storedSemester ?? this.semesterOptions[0]).id;
+          sessionStorage.setItem('student-cards-semester-id', String(this.selectedSemesterId));
+
+          if (!currentSemester) {
+            this.notificationService.warning(
+              'No existe un semestre vigente',
+              `Se mostrará ${this.selectedSemester?.label ?? 'el semestre más reciente'} en modo de consulta.`
+            );
+          }
+
+          this.loadSemesterLists();
+        },
+        error: error => this.notificationService.notifyApiData(error),
+      });
+  }
+
+  onSemesterChange(): void {
+    if (!this.selectedSemesterId) {
+      return;
+    }
+
+    sessionStorage.setItem('student-cards-semester-id', String(this.selectedSemesterId));
+    this.loadSemesterLists();
+
+    if (this.isHistoricalSemester) {
+      this.notificationService.info(
+        'Modo de consulta',
+        'El semestre seleccionado no está vigente. Las modificaciones permanecen deshabilitadas.'
+      );
+    }
+  }
+
+  private loadSemesterLists(): void {
+    const semesterId = this.selectedSemesterId;
+    if (!semesterId) {
+      return;
+    }
+
+    this.pendingStudents = [];
+    this.unmatchedStudent = [];
+    this.validatedStudents = [];
+    this.flaggedStudents = [];
+
+    this.studentCardService.listPendingStudentCards(semesterId).subscribe({
+      next: response => {
+        if (response.status === STATUS.success) {
+          this.pendingStudents = response.payload.data;
           this.loadStudentPhotoPreviews(this.pendingStudents);
-        } else {
-          this.notificationService.notifyApiData(pendingStudentCardsData);
-        }
+        } else this.notificationService.notifyApiData(response);
       },
-      error: (e) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      }
+      error: error => this.notificationService.notifyApiData(error),
     });
-    this.studentCardService.listUnmatchedStudentCards().subscribe({
-      next: unmatchedStudentCardsData => {
-        if (unmatchedStudentCardsData.status === STATUS.success) {
-          this.unmatchedStudent = unmatchedStudentCardsData.payload.data;
-        } else {
-          this.notificationService.notifyApiData(unmatchedStudentCardsData);
-        }
+    this.studentCardService.listUnmatchedStudentCards(semesterId).subscribe({
+      next: response => {
+        if (response.status === STATUS.success) this.unmatchedStudent = response.payload.data;
+        else this.notificationService.notifyApiData(response);
       },
-      error: (e) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      }
+      error: error => this.notificationService.notifyApiData(error),
     });
-    this.studentCardService.listValidatedStudentCards().subscribe({
-      next: validatedStudentCardsData => {
-        if (validatedStudentCardsData.status === STATUS.success) {
-          this.validatedStudents = validatedStudentCardsData.payload.data;
+    this.studentCardService.listValidatedStudentCards(semesterId).subscribe({
+      next: response => {
+        if (response.status === STATUS.success) {
+          this.validatedStudents = response.payload.data;
           this.loadStudentPhotoPreviews(this.validatedStudents);
-        } else {
-          this.notificationService.notifyApiData(validatedStudentCardsData);
-        }
+        } else this.notificationService.notifyApiData(response);
       },
-      error: (e) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      }
+      error: error => this.notificationService.notifyApiData(error),
     });
-    this.studentCardService.listFlaggedStudentCards().subscribe({
-      next: flaggedStudentCardsData => {
-        if (flaggedStudentCardsData.status === STATUS.success) {
-          this.flaggedStudents = flaggedStudentCardsData.payload.data;
+    this.studentCardService.listFlaggedStudentCards(semesterId).subscribe({
+      next: response => {
+        if (response.status === STATUS.success) {
+          this.flaggedStudents = response.payload.data;
           this.loadStudentPhotoPreviews(this.flaggedStudents);
-        } else {
-          this.notificationService.notifyApiData(flaggedStudentCardsData);
-        }
+        } else this.notificationService.notifyApiData(response);
       },
-      error: (e) => {
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
-      }
+      error: error => this.notificationService.notifyApiData(error),
     });
   }
 

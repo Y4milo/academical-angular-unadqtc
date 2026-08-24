@@ -29,9 +29,10 @@
             "styles": [
               "src/styles.css"
             ],
-
-
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "jwt-encode"
+            ]
           },
           "configurations": {
             "production": {
@@ -45,7 +46,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
+                  "maximumWarning": "2.5mb",
                   "maximumError": "5mb"
                 }
               ]
@@ -61,7 +62,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
+                  "maximumWarning": "2.5mb",
                   "maximumError": "5mb"
                 }
               ]

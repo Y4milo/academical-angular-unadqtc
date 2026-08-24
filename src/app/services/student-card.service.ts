@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {HttpClient, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {environment} from '../../environments/environment';
@@ -82,27 +82,35 @@ export class StudentCardService {
 
 // 📋 LISTADOS
 
-  listPendingStudentCards(): Observable<ApiData<StudentCard[]>> {
+  private semesterParams(semesterId?: number): {params?: HttpParams} {
+    return semesterId ? {params: new HttpParams().set('semester_id', semesterId)} : {};
+  }
+
+  listPendingStudentCards(semesterId?: number): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/student/pending`
+      `${this.apiURL}/student-cards/academic/list/student/pending`,
+      this.semesterParams(semesterId)
     );
   }
 
-  listUnmatchedStudentCards(): Observable<ApiData<StudentCard[]>> {
+  listUnmatchedStudentCards(semesterId?: number): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/student/unmatched`
+      `${this.apiURL}/student-cards/academic/list/student/unmatched`,
+      this.semesterParams(semesterId)
     );
   }
 
-  listValidatedStudentCards(): Observable<ApiData<StudentCard[]>> {
+  listValidatedStudentCards(semesterId?: number): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/student/validated`
+      `${this.apiURL}/student-cards/academic/list/student/validated`,
+      this.semesterParams(semesterId)
     );
   }
 
-  listFlaggedStudentCards(): Observable<ApiData<StudentCard[]>> {
+  listFlaggedStudentCards(semesterId?: number): Observable<ApiData<StudentCard[]>> {
     return this.http.get<ApiData<StudentCard[]>>(
-      `${this.apiURL}/student-cards/academic/list/student/flagged`
+      `${this.apiURL}/student-cards/academic/list/student/flagged`,
+      this.semesterParams(semesterId)
     );
   }
 
