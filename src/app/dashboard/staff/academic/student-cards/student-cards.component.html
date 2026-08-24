@@ -1,6 +1,39 @@
 <div class="p-container mt-4">
   <p-card header="Gestión de Fotos de Carné" class="p-shadow-4">
-    <p-tabView>
+    <div class="semester-context">
+      <div class="semester-selector">
+        <label for="student-card-semester">Semestre</label>
+        <p-select
+          inputId="student-card-semester"
+          [options]="semesterOptions"
+          [(ngModel)]="selectedSemesterId"
+          optionLabel="label"
+          optionValue="id"
+          placeholder="Seleccione un semestre"
+          [loading]="isLoadingSemesters"
+          [disabled]="isLoadingSemesters || !semesterOptions.length"
+          (onChange)="onSemesterChange()"
+        >
+          <ng-template pTemplate="item" let-semester>
+            <div class="semester-option">
+              <span>{{ semester.label }}</span>
+              @if (semester.is_current) {
+                <p-tag value="Vigente" severity="success" />
+              }
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+      @if (selectedSemester?.is_current) {
+        <p-tag value="Semestre vigente" severity="success" />
+      } @else if (selectedSemester) {
+        <div class="semester-warning" role="status">
+          <i class="pi pi-info-circle"></i>
+          <span>Está consultando {{ selectedSemester.label }}. Las modificaciones solo se permiten en el semestre vigente.</span>
+        </div>
+      }
+    </div>
+    <p-tabView [class.semester-read-only]="isHistoricalSemester">
       <p-tabPanel>
         <ng-template pTemplate="header">
           Pendientes de validar
