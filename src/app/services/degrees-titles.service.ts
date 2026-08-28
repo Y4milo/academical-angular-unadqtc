@@ -85,6 +85,26 @@ export interface DegreeCatalogReference {
   metadata?: Record<string, unknown> | null;
 }
 
+export interface DegreeAcademicDenomination extends DegreeCatalogReference {
+  degree_type_id: number;
+  degree_type_code: string;
+  specialty_required: boolean;
+}
+
+export interface DegreeAcademicProgram extends DegreeCatalogReference {
+  specialty: string | null;
+}
+
+export interface DegreeAcademicCareer extends DegreeCatalogReference {
+  requires_specialty: boolean;
+  programs: DegreeAcademicProgram[];
+  denominations: DegreeAcademicDenomination[];
+}
+
+export interface DegreeAcademicFaculty extends DegreeCatalogReference {
+  careers: DegreeAcademicCareer[];
+}
+
 export interface DegreeRecord {
   id: number;
   degree_call_id: number;
@@ -96,6 +116,10 @@ export interface DegreeRecord {
   document_type_label: string | null;
   document_number: string;
   gender: 'M' | 'F' | null;
+  faculty_id: number | null;
+  professional_career_id: number | null;
+  degree_program_id: number | null;
+  degree_denomination_id: number | null;
   full_name: string;
   faculty: string | null;
   major: string | null;
@@ -153,10 +177,10 @@ export interface DegreeRecordPayload {
   degree_type_id: number;
   gender: 'M' | 'F' | null;
   diploma_issue_type_id: number | null;
-  degree_denomination: string;
-  faculty: string | null;
-  major: string | null;
-  specialty: string | null;
+  faculty_id: number;
+  professional_career_id: number;
+  degree_program_id: number | null;
+  degree_denomination_id: number;
   resolution_number: string | null;
   resolution_date: string | null;
   diploma_number: string | null;
@@ -213,6 +237,7 @@ export class DegreesTitlesService {
   getRecordCatalogs(): Observable<{data: {
     degree_types: DegreeCatalogOption[];
     diploma_issue_types: DegreeCatalogOption[];
+    academic_tree: DegreeAcademicFaculty[];
     open_calls: DegreeCatalogOption[];
     sunedu_schema: {
       version: string;
