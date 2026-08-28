@@ -29,7 +29,11 @@ code { white-space: nowrap; font-size: .78rem; }
 .student-results { display: block; margin-top: .5rem; }
 .student-option { display: flex; flex-direction: column; }
 .student-option span { color: var(--text-color-secondary); font-size: .85rem; margin-top: .2rem; }
+.student-option span i { margin-right: .35rem; }
 .selected-student { display: flex; align-items: center; gap: .7rem; padding: .8rem; border-radius: 7px; background: var(--green-50); color: var(--green-900); }
+.selected-student-content { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.selected-student-content > span { display: flex; align-items: center; gap: .4rem; font-size: .82rem; overflow-wrap: anywhere; }
+.selected-student-content i { width: 1rem; flex: 0 0 1rem; text-align: center; }
 .sunedu-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .5rem; padding-top: 1rem; border-top: 1px solid var(--surface-border); }
 .sunedu-heading div { display: flex; flex-direction: column; gap: .25rem; }
 .sunedu-heading span, .form-grid label small { color: var(--text-color-secondary); font-size: .78rem; font-weight: 400; }

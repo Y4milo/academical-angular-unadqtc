@@ -102,12 +102,19 @@
                  [listStyle]="{'max-height': '190px'}" (onChange)="chooseStudent($event.value)">
         <ng-template pTemplate="item" let-student>
           <div class="student-option"><strong>{{ student.full_name }}</strong>
-            <span>Código {{ student.code }} · DNI {{ student.document_number }}</span></div>
+            <span>Código {{ student.code }} · {{ student.document_type }} {{ student.document_number }}</span>
+            <span *ngIf="student.institutional_email"><i class="pi pi-envelope"></i> {{ student.institutional_email }}</span></div>
         </ng-template>
       </p-listbox>
       <div class="selected-student" *ngIf="selectedStudent">
-        <i class="pi pi-check-circle"></i><span><strong>{{ selectedStudent.full_name }}</strong><br>
-        Código {{ selectedStudent.code }} · {{ selectedStudent.document_type }} {{ selectedStudent.document_number }}</span>
+        <i class="pi pi-check-circle"></i>
+        <span class="selected-student-content"><strong>{{ selectedStudent.full_name }}</strong>
+          <span>Código {{ selectedStudent.code }} · {{ selectedStudent.document_type }} {{ selectedStudent.document_number }}</span>
+          <span><i class="pi pi-envelope"></i>{{ selectedStudent.institutional_email || 'Correo institucional no registrado' }}</span>
+          <span *ngIf="selectedStudent.faculty || selectedStudent.career">
+            <i class="pi pi-graduation-cap"></i>{{ selectedStudent.faculty?.label || 'Facultad pendiente' }} · {{ selectedStudent.career?.label || 'Carrera pendiente' }}
+          </span>
+        </span>
       </div>
     </div>
     <div *ngIf="editing" class="selected-student full">

@@ -67,7 +67,22 @@ export interface DegreeStudent {
   mother_last_name: string | null;
   full_name: string;
   gender: string | null;
+  personal_email: string | null;
+  institutional_email: string | null;
+  institutional_email_status: string | null;
   major: string | null;
+  faculty: DegreeCatalogReference | null;
+  career: DegreeCatalogReference | null;
+  program: DegreeCatalogReference | null;
+  specialty: string | null;
+  academic_data_complete: boolean;
+}
+
+export interface DegreeCatalogReference {
+  id: number;
+  code: string;
+  label: string;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface DegreeRecord {

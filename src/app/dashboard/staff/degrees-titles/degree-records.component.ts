@@ -211,7 +211,9 @@ export class DegreeRecordsComponent implements OnInit {
   chooseStudent(student: DegreeStudent): void {
     this.selectedStudent = student;
     this.form.student_id = student.id;
-    this.form.major = student.major ?? '';
+    this.form.faculty = student.faculty?.label ?? '';
+    this.form.major = student.career?.label ?? student.major ?? '';
+    this.form.specialty = student.specialty ?? student.program?.label ?? '';
     const gender = (student.gender ?? '').toLowerCase();
     this.form.gender = gender.startsWith('f') || gender.includes('mujer') ? 'F' : gender ? 'M' : null;
     this.students = [];
