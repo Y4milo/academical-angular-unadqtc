@@ -7,6 +7,7 @@ export const home_link = {
   student:          PATHS.student.home.link,
   accounting:       PATHS.accounting.home.link,
   academic:         PATHS.academic.home.link,
+  degrees_titles:   PATHS.degreesTitles.home.link,
   hr:               PATHS.hr.home.link,
 }as const;
 

@@ -1,0 +1,219 @@
+<section class="records-page">
+  <p-confirmDialog></p-confirmDialog>
+  <div class="page-heading">
+    <div>
+      <h1>Padrón de aptos</h1>
+      <p>Registro de estudiantes aptos por convocatoria de grados y títulos.</p>
+      <p-tag *ngIf="mailTestMode" value="MODO DE PRUEBA · correos redirigidos" severity="warn"
+             [pTooltip]="'Destinatario de prueba: ' + mailTestRecipient"></p-tag>
+    </div>
+    <button pButton type="button" icon="pi pi-plus" label="Agregar estudiante" (click)="openCreate()"></button>
+  </div>
+
+  <div class="filters">
+    <p-select [(ngModel)]="selectedCallId" [options]="calls" optionLabel="name" optionValue="id"
+              placeholder="Todas las convocatorias" [showClear]="true" (onChange)="loadRecords(1)"></p-select>
+    <input pInputText [(ngModel)]="search" (keyup.enter)="loadRecords(1)" placeholder="Código, DNI, nombres o código de barras">
+    <button pButton type="button" icon="pi pi-search" label="Buscar" severity="secondary" (click)="loadRecords(1)"></button>
+    <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" [text]="true" (click)="clearFilters()"></button>
+  </div>
+
+  <p-table [value]="records" [loading]="loading" [paginator]="true" [rows]="perPage"
+           [totalRecords]="total" [lazy]="true" (onPage)="onPageChange($event)"
+           [rowsPerPageOptions]="[15, 30, 50]" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Estudiante</th><th>Documento</th><th>Grado / título</th><th>Convocatoria</th>
+        <th>Código</th><th>Estado</th><th class="actions">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-record>
+      <tr>
+        <td><strong>{{ record.full_name }}</strong><small>{{ record.student_code }}</small></td>
+        <td>{{ record.document_number }}</td>
+        <td>{{ record.degree_type?.label }}<small>{{ record.degree_denomination }}</small></td>
+        <td>{{ record.call?.name }}</td>
+        <td><code>{{ record.barcode }}</code></td>
+        <td>
+          <div class="record-status-stack">
+            <p-tag [value]="record.status?.label" [severity]="record.status?.value === 'annulled' ? 'danger' : 'success'"></p-tag>
+            <div class="ethnicity-status">
+            <ng-container *ngIf="record.ethnicity_form?.submitted_at">
+              <p-tag value="Variables étnicas recibidas" icon="pi pi-check-circle" severity="success"></p-tag>
+              <small class="status-activity">
+                <i class="pi pi-calendar" aria-hidden="true"></i>
+                <span>Formulario recibido</span><b aria-hidden="true">·</b>
+                <time>{{ record.ethnicity_form.submitted_at | date:'dd/MM/yyyy HH:mm' }}</time>
+              </small>
+            </ng-container>
+            <p-tag *ngIf="record.ethnicity_form?.generated && !record.ethnicity_form?.submitted_at"
+                   value="Formulario étnico pendiente" icon="pi pi-clock" severity="warn"></p-tag>
+            </div>
+            <small class="status-activity" *ngIf="record.ethnicity_form?.email_sent_at">
+              <i class="pi pi-envelope" aria-hidden="true"></i>
+              <span>{{ record.ethnicity_form.email_test_mode ? 'Correo de prueba enviado' : 'Correo enviado' }}</span>
+              <b aria-hidden="true">·</b>
+              <time>{{ record.ethnicity_form.email_sent_at | date:'dd/MM/yyyy HH:mm' }}</time>
+            </small>
+            <small class="institutional-email" *ngIf="record.institutional_identity?.institutional_email">
+              <i class="pi pi-at" aria-hidden="true"></i>
+              <span>{{ record.institutional_identity.institutional_email }}</span>
+            </small>
+          </div>
+        </td>
+        <td class="actions">
+          <button pButton type="button" icon="pi pi-pencil" [text]="true" pTooltip="Editar"
+                  [disabled]="!canModify(record)" (click)="openEdit(record)"></button>
+          <button pButton type="button" icon="pi pi-link" severity="info" [text]="true"
+                  [loading]="generatingLinkId === record.id"
+                  [pTooltip]="record.ethnicity_form?.submitted_at ? 'Generar un nuevo enlace' : 'Formulario de variables étnicas'"
+                  [disabled]="record.status?.value === 'annulled'" (click)="generateEthnicityLink(record)"></button>
+          <button pButton type="button" icon="pi pi-id-card" severity="secondary" [text]="true"
+                  [loading]="checkingIdentityId === record.id" pTooltip="Verificar correo institucional"
+                  [disabled]="record.status?.value === 'annulled'" (click)="checkInstitutionalIdentity(record)"></button>
+          <button pButton type="button" icon="pi pi-envelope" severity="success" [text]="true"
+                  [loading]="sendingEmailId === record.id" pTooltip="Enviar formulario al correo institucional"
+                  [disabled]="record.status?.value === 'annulled' || !record.institutional_identity?.institutional_email"
+                  (click)="sendEthnicityEmail(record)"></button>
+          <button pButton type="button" icon="pi pi-ban" severity="danger" [text]="true" pTooltip="Anular"
+                  [disabled]="!canModify(record)" (click)="annul(record)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage"><tr><td colspan="7" class="empty">No se encontraron registros.</td></tr></ng-template>
+  </p-table>
+</section>
+
+<p-dialog [(visible)]="dialogVisible" [modal]="true" [style]="{width: 'min(900px, 96vw)'}"
+          [header]="editing ? 'Editar registro del padrón' : 'Agregar estudiante apto'">
+  <div class="form-grid">
+    <label *ngIf="!editing" class="full">Convocatoria abierta
+      <p-select [(ngModel)]="form.degree_call_id" [options]="calls" optionLabel="name" optionValue="id"
+                placeholder="Seleccione una convocatoria" appendTo="body"></p-select>
+    </label>
+
+    <div *ngIf="!editing" class="student-picker full">
+      <label>Buscar estudiante por código, DNI o nombres</label>
+      <div class="search-row">
+        <input pInputText [(ngModel)]="studentSearch" (keyup.enter)="findStudents()" placeholder="Ejemplo: 20191234 o apellido">
+        <button pButton type="button" label="Buscar" icon="pi pi-search" [loading]="searchingStudents" (click)="findStudents()"></button>
+      </div>
+      <p-listbox *ngIf="students.length" class="student-results" [options]="students" optionLabel="full_name"
+                 [listStyle]="{'max-height': '190px'}" (onChange)="chooseStudent($event.value)">
+        <ng-template pTemplate="item" let-student>
+          <div class="student-option"><strong>{{ student.full_name }}</strong>
+            <span>Código {{ student.code }} · DNI {{ student.document_number }}</span></div>
+        </ng-template>
+      </p-listbox>
+      <div class="selected-student" *ngIf="selectedStudent">
+        <i class="pi pi-check-circle"></i><span><strong>{{ selectedStudent.full_name }}</strong><br>
+        Código {{ selectedStudent.code }} · {{ selectedStudent.document_type }} {{ selectedStudent.document_number }}</span>
+      </div>
+    </div>
+    <div *ngIf="editing" class="selected-student full">
+      <i class="pi pi-user"></i><span><strong>{{ editing.full_name }}</strong><br>
+      Código {{ editing.student_code }} · Documento {{ editing.document_number }}</span>
+    </div>
+
+    <label>Tipo de grado o título
+      <p-select [(ngModel)]="form.degree_type_id" [options]="degreeTypes" optionLabel="label" optionValue="id"
+                placeholder="Seleccione" appendTo="body"></p-select>
+    </label>
+    <label>Sexo del estudiante
+      <p-select [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value"
+                placeholder="Seleccione" appendTo="body"></p-select>
+    </label>
+    <label>Emisión del diploma
+      <p-select [(ngModel)]="form.diploma_issue_type_id" [options]="issueTypes" optionLabel="label" optionValue="id"
+                placeholder="Seleccione" [showClear]="true" appendTo="body"></p-select>
+    </label>
+    <label class="full">Denominación del grado o título
+      <input pInputText [(ngModel)]="form.degree_denomination" placeholder="Ejemplo: Bachiller en Ingeniería de Sistemas">
+    </label>
+    <label>Facultad<input pInputText [(ngModel)]="form.faculty"></label>
+    <label>Carrera profesional<input pInputText [(ngModel)]="form.major"></label>
+    <label class="full">Especialidad<input pInputText [(ngModel)]="form.specialty"></label>
+    <label>Número de resolución<input pInputText [(ngModel)]="form.resolution_number"></label>
+    <label>Fecha de resolución<p-datepicker [(ngModel)]="form.resolution_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+    <label>Número de diploma<input pInputText [(ngModel)]="form.diploma_number"></label>
+    <label>Fecha de diploma<p-datepicker [(ngModel)]="form.diploma_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+    <label>Libro<input pInputText [(ngModel)]="form.registry_book"></label>
+    <label>Folio<input pInputText [(ngModel)]="form.registry_folio"></label>
+    <label>Número de registro<input pInputText [(ngModel)]="form.registry_number"></label>
+
+    <div class="sunedu-heading full">
+      <div><strong>Variables del padrón SUNEDU</strong><span>Versión {{ suneduSchemaVersion }} · estructura de 67 campos</span></div>
+      <p-tag value="Formato oficial" severity="info"></p-tag>
+    </div>
+
+    <p-fieldset *ngFor="let group of suneduGroups" class="full" [legend]="group.legend" [toggleable]="true" [collapsed]="true">
+      <div class="form-grid sunedu-grid">
+        <label *ngFor="let field of group.fields">
+          {{ field.label }} <small>{{ field.key }}</small>
+          <input *ngIf="field.type === 'text'" pInputText [(ngModel)]="form.sunedu_data[field.key]">
+          <p-inputnumber *ngIf="field.type === 'number'" [(ngModel)]="form.sunedu_data[field.key]"
+                         [useGrouping]="false" [min]="0"></p-inputnumber>
+          <p-datepicker *ngIf="field.type === 'date'" [(ngModel)]="form.sunedu_data[field.key]"
+                        dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+          <p-select *ngIf="field.type === 'select'" [(ngModel)]="form.sunedu_data[field.key]"
+                    [options]="field.options" optionLabel="label" optionValue="value"
+                    placeholder="Seleccione" [showClear]="true" appendTo="body"></p-select>
+        </label>
+      </div>
+    </p-fieldset>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" (click)="dialogVisible = false"></button>
+    <button pButton type="button" label="Guardar" icon="pi pi-save" [loading]="saving" (click)="save()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="identityDialogVisible" [modal]="true" header="Verificación de identidad institucional"
+          [style]="{width: 'min(760px, 96vw)'}">
+  <div *ngIf="identityLookup" class="identity-comparison">
+    <div class="identity-status">
+      <p-tag [value]="identityLabel(identityLookup.comparison?.status ?? identityLookup.status)"
+             [severity]="identitySeverity(identityLookup.comparison?.status ?? identityLookup.status)"></p-tag>
+      <span *ngIf="identityLookup.comparison">Coincidencia {{ identityLookup.comparison.score }}%</span>
+    </div>
+
+    <p-message *ngIf="identityLookup.status === 'not_found'" severity="warn"
+               text="No se encontró una cuenta con el código académico en Microsoft 365."></p-message>
+
+    <div *ngIf="identityLookup.microsoft" class="comparison-grid">
+      <section><h3>Academical</h3><strong>{{ identityLookup.academical?.full_name }}</strong>
+        <span>Código: {{ identityLookup.academical?.code }}</span>
+        <span>Correo personal: {{ identityLookup.academical?.personal_email || 'No registrado' }}</span></section>
+      <section><h3>Microsoft 365</h3><strong>{{ identityLookup.microsoft.displayName }}</strong>
+        <span>Nombre: {{ identityLookup.microsoft.givenName || 'No registrado' }}</span>
+        <span>Apellidos: {{ identityLookup.microsoft.surname || 'No registrado' }}</span>
+        <span>Usuario: {{ identityLookup.microsoft.userPrincipalName }}</span>
+        <span>Estado: {{ identityLookup.microsoft.accountEnabled ? 'Permitido' : 'Bloqueado' }}</span></section>
+    </div>
+
+    <div *ngIf="identityLookup.comparison" class="checks">
+      <span><i [class]="identityLookup.comparison.checks.code ? 'pi pi-check-circle ok' : 'pi pi-times-circle bad'"></i>Código académico</span>
+      <span><i [class]="identityLookup.comparison.checks.at_least_one_name ? 'pi pi-check-circle ok' : 'pi pi-times-circle bad'"></i>Al menos un nombre</span>
+      <span><i [class]="identityLookup.comparison.checks.father_last_name ? 'pi pi-check-circle ok' : 'pi pi-times-circle bad'"></i>Primer apellido</span>
+      <span><i [class]="identityLookup.comparison.checks.mother_last_name ? 'pi pi-check-circle ok' : 'pi pi-info-circle warn'"></i>Segundo apellido</span>
+    </div>
+    <p-message *ngFor="let difference of identityLookup.comparison?.differences" severity="warn" [text]="difference"></p-message>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cerrar" severity="secondary" [text]="true" (click)="identityDialogVisible = false"></button>
+    <button *ngIf="identityLookup?.comparison?.status === 'probable'" pButton type="button" label="Confirmar vinculación"
+            icon="pi pi-check" [loading]="confirmingIdentity" (click)="confirmInstitutionalIdentity()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="linkDialogVisible" [modal]="true" header="Formulario para el estudiante"
+          [style]="{width: 'min(650px, 96vw)'}">
+  <div class="link-dialog">
+    <p>Copie este enlace y envíelo al estudiante. Por seguridad vence en 30 días y admite un solo envío.</p>
+    <div class="search-row">
+      <input pInputText [value]="generatedLink" readonly aria-label="Enlace del formulario">
+      <button pButton type="button" icon="pi pi-copy" label="Copiar" (click)="copyGeneratedLink()"></button>
+    </div>
+    <small *ngIf="generatedLinkExpiresAt">Vence: {{ generatedLinkExpiresAt | date:'dd/MM/yyyy, HH:mm' }}</small>
+  </div>
+</p-dialog>

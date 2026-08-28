@@ -24,6 +24,39 @@ export const PATHS = {
         },
       },
     },
+    degreesTitles: {
+      calls: {
+        path: `degrees-titles/calls`,
+        link: `admin/degrees-titles/calls`,
+      },
+      records: {
+        path: `degrees-titles/records`,
+        link: `admin/degrees-titles/records`,
+      },
+      exports: {
+        path: `degrees-titles/exports`,
+        link: `admin/degrees-titles/exports`,
+      },
+    },
+  },
+  degreesTitles: {
+    path: `degrees-titles`,
+    home: {
+      path: `calls`,
+      link: `degrees-titles/calls`,
+    },
+    calls: {
+      path: `calls`,
+      link: `degrees-titles/calls`,
+    },
+    records: {
+      path: `records`,
+      link: `degrees-titles/records`,
+    },
+    exports: {
+      path: `exports`,
+      link: `degrees-titles/exports`,
+    },
   },
   hr: {
     path: `hr`,
