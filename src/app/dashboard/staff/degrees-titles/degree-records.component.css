@@ -28,6 +28,8 @@ code { white-space: nowrap; font-size: .78rem; }
 .input-with-icon { position: relative; display: block; }
 .input-with-icon > i { position: absolute; left: .85rem; top: 50%; z-index: 1; transform: translateY(-50%); color: var(--text-color-secondary); }
 .input-with-icon > input { padding-left: 2.45rem; background: var(--surface-ground); color: var(--text-color-secondary); }
+.identity-inline { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; padding-top: .15rem; }
+:host ::ng-deep .identity-inline .p-tag { white-space: normal; text-align: left; }
 .full { grid-column: 1 / -1; }
 .search-row { display: grid; grid-template-columns: 1fr auto; gap: .6rem; }
 .student-results { display: block; margin-top: .5rem; }

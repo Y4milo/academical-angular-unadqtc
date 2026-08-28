@@ -70,6 +70,8 @@ export interface DegreeStudent {
   personal_email: string | null;
   institutional_email: string | null;
   institutional_email_status: string | null;
+  institutional_email_source: 'student' | 'legacy_email' | 'generated_candidate' | 'test';
+  institutional_email_verified: boolean;
   major: string | null;
   faculty: DegreeCatalogReference | null;
   career: DegreeCatalogReference | null;
@@ -149,10 +151,14 @@ export interface DegreeRecord {
 }
 
 export interface InstitutionalIdentityLookup {
-  status?: 'not_found';
+  status?: 'verified' | 'confirmed' | 'probable' | 'review_required' | 'not_match' | 'not_found' | 'pending' | 'test' | 'invalid_domain';
+  institutional_email?: string | null;
+  institutional_email_source?: string;
   comparison?: {
     status: 'confirmed' | 'probable' | 'review_required' | 'not_match'; score: number;
-    checks: {code: boolean; at_least_one_name: boolean; father_last_name: boolean; mother_last_name: boolean};
+    verified_100: boolean;
+    checks: {code: boolean; at_least_one_name: boolean; father_last_name: boolean; mother_last_name: boolean;
+      email_address?: boolean; account_enabled?: boolean};
     differences: string[];
   };
   academical?: {code: string; full_name: string; personal_email: string | null};
@@ -254,6 +260,10 @@ export class DegreesTitlesService {
     return this.http.get<{data: DegreeStudent[]}>(`${this.apiURL}/students/search`, {
       params: new HttpParams().set('search', search),
     });
+  }
+
+  checkStudentInstitutionalIdentity(id: number): Observable<ApiData<any>> {
+    return this.http.get<ApiData<any>>(`${this.apiURL}/students/${id}/institutional-identity`);
   }
 
   listRecords(filters: {call_id?: number | null; search?: string; status?: string; page?: number; per_page?: number}): Observable<{

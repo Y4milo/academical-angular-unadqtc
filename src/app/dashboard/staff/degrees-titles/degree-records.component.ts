@@ -95,6 +95,8 @@ export class DegreeRecordsComponent implements OnInit {
   total = 0;
   loading = false;
   searchingStudents = false;
+  studentIdentityChecking = false;
+  studentIdentityResult: InstitutionalIdentityLookup | null = null;
   saving = false;
   dialogVisible = false;
   editing: DegreeRecord | null = null;
@@ -174,6 +176,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.selectedStudent = null;
     this.students = [];
     this.studentSearch = '';
+    this.studentIdentityResult = null;
     this.form = this.emptyForm();
     this.form.degree_call_id = this.selectedCallId ?? this.calls[0].id;
     this.form.diploma_issue_type_id = this.issueTypes[0]?.id ?? null;
@@ -184,6 +187,7 @@ export class DegreeRecordsComponent implements OnInit {
     if (record.call?.status?.value !== 'open' || record.status?.value === 'annulled') return;
     this.editing = record;
     this.selectedStudent = null;
+    this.studentIdentityResult = null;
     this.form = {
       degree_call_id: record.degree_call_id,
       student_id: record.student_id,
@@ -228,6 +232,9 @@ export class DegreeRecordsComponent implements OnInit {
     this.students = [];
     this.applyDefaultProgram();
     this.syncDenomination();
+    if (!student.institutional_email_verified && student.institutional_email_status !== 'test') {
+      this.verifySelectedStudent();
+    }
   }
 
   get careers(): DegreeAcademicCareer[] {
@@ -251,9 +258,37 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   get selectedInstitutionalEmail(): string {
-    return this.selectedStudent?.institutional_email
+    return this.studentIdentityResult?.institutional_email
+      ?? this.selectedStudent?.institutional_email
       ?? this.editing?.institutional_identity?.institutional_email
       ?? 'Correo institucional no registrado';
+  }
+
+  get currentStudentIdentityStatus(): string {
+    return this.studentIdentityResult?.status
+      ?? this.selectedStudent?.institutional_email_status
+      ?? this.editing?.institutional_identity?.status
+      ?? 'pending';
+  }
+
+  verifySelectedStudent(): void {
+    if (!this.selectedStudent || this.selectedStudent.institutional_email_status === 'test') return;
+    this.studentIdentityChecking = true;
+    this.service.checkStudentInstitutionalIdentity(this.selectedStudent.id).subscribe({
+      next: response => {
+        this.studentIdentityChecking = false;
+        if (response.status !== STATUS.success) return this.notifications.notifyApiData(response);
+        const data = response.payload.data as InstitutionalIdentityLookup;
+        this.studentIdentityResult = data;
+        this.selectedStudent!.institutional_email = data.institutional_email ?? this.selectedStudent!.institutional_email;
+        this.selectedStudent!.institutional_email_status = data.status ?? this.selectedStudent!.institutional_email_status;
+        this.selectedStudent!.institutional_email_verified = data.status === 'verified';
+      },
+      error: error => {
+        this.studentIdentityChecking = false;
+        this.notifications.notifyApiData(error);
+      },
+    });
   }
 
   onFacultyChange(): void {
@@ -399,13 +434,15 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   identitySeverity(status?: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    return status === 'confirmed' ? 'success' : status === 'probable' ? 'info' :
-      status === 'review_required' ? 'warn' : status === 'not_match' ? 'danger' : 'secondary';
+    return ['verified', 'confirmed'].includes(status ?? '') ? 'success' : status === 'probable' ? 'info' :
+      ['review_required', 'pending'].includes(status ?? '') ? 'warn' :
+        ['not_match', 'not_found', 'invalid_domain'].includes(status ?? '') ? 'danger' : 'secondary';
   }
 
   identityLabel(status?: string): string {
-    return ({confirmed: 'Coincidencia confirmada', probable: 'Coincidencia probable', review_required: 'Revisión requerida',
-      not_match: 'No corresponde', not_found: 'Cuenta no encontrada'} as Record<string, string>)[status ?? ''] ?? 'Sin verificar';
+    return ({verified: 'Verificado 100% con Microsoft 365', confirmed: 'Coincidencia confirmada', probable: 'Coincidencia probable',
+      review_required: 'Requiere revisión', not_match: 'No corresponde', not_found: 'Cuenta no encontrada',
+      pending: 'Pendiente de verificación', test: 'Correo de prueba', invalid_domain: 'Dominio no institucional'} as Record<string, string>)[status ?? ''] ?? 'Sin verificar';
   }
 
   sendEthnicityEmail(record: DegreeRecord): void {

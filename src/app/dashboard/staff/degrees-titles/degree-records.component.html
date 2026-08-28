@@ -130,6 +130,16 @@
       <span class="input-with-icon"><i class="pi pi-envelope"></i>
         <input pInputText [value]="selectedInstitutionalEmail" readonly>
       </span>
+      <span class="identity-inline">
+        <p-tag [value]="identityLabel(currentStudentIdentityStatus)"
+               [severity]="identitySeverity(currentStudentIdentityStatus)"></p-tag>
+        <button *ngIf="selectedStudent && currentStudentIdentityStatus !== 'test'" pButton type="button"
+                [label]="currentStudentIdentityStatus === 'verified' ? 'Volver a verificar' : 'Verificar con Microsoft 365'"
+                icon="pi pi-verified" severity="secondary" [outlined]="true" size="small"
+                [loading]="studentIdentityChecking" (click)="verifySelectedStudent()"></button>
+      </span>
+      <p-message *ngIf="studentIdentityResult?.comparison && currentStudentIdentityStatus !== 'verified'"
+                 severity="warn" text="La cuenta existe, pero los datos no alcanzan una coincidencia del 100%."></p-message>
     </label>
     <label><span>Facultad</span><small>FAC_NOM</small>
       <p-select [(ngModel)]="form.faculty_id" [options]="academicTree" optionLabel="label" optionValue="id"
@@ -196,8 +206,8 @@
           [style]="{width: 'min(760px, 96vw)'}">
   <div *ngIf="identityLookup" class="identity-comparison">
     <div class="identity-status">
-      <p-tag [value]="identityLabel(identityLookup.comparison?.status ?? identityLookup.status)"
-             [severity]="identitySeverity(identityLookup.comparison?.status ?? identityLookup.status)"></p-tag>
+      <p-tag [value]="identityLabel(identityLookup.status ?? identityLookup.comparison?.status)"
+             [severity]="identitySeverity(identityLookup.status ?? identityLookup.comparison?.status)"></p-tag>
       <span *ngIf="identityLookup.comparison">Coincidencia {{ identityLookup.comparison.score }}%</span>
     </div>
 
