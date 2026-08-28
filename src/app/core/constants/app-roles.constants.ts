@@ -5,5 +5,6 @@ export const ROLE = {
   professor: 'professor',
   accounting: 'accounting',
   academic: 'academic',
+  degrees_titles: 'degrees_titles',
   hr: 'hr',
 }

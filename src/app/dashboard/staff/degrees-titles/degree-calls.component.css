@@ -1,0 +1,102 @@
+:host {
+  display: block;
+}
+
+.degree-calls {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-heading {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.page-heading h2 {
+  margin: 0;
+}
+
+.page-heading p {
+  color: var(--p-text-muted-color);
+  margin: .35rem 0 0;
+}
+
+.filter-grid {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(16rem, 1fr) minmax(12rem, 18rem) auto;
+}
+
+.field {
+  display: grid;
+  gap: .4rem;
+}
+
+.field label {
+  font-weight: 600;
+}
+
+.field small,
+.call-name small,
+.resolution span,
+.no-actions {
+  color: var(--p-text-muted-color);
+}
+
+.field input,
+.field p-select,
+.field p-datePicker {
+  width: 100%;
+}
+
+.filter-actions,
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.call-name,
+.resolution {
+  display: grid;
+  gap: .25rem;
+}
+
+.empty-message {
+  color: var(--p-text-muted-color);
+  padding: 2rem;
+  text-align: center;
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  padding-top: .5rem;
+}
+
+.required {
+  color: var(--p-red-500);
+}
+
+:host ::ng-deep .filter-card .p-card-body,
+:host ::ng-deep .table-card .p-card-body {
+  padding: 1rem;
+}
+
+:host ::ng-deep .table-card .p-card-content {
+  padding: 0;
+}
+
+@media (max-width: 850px) {
+  .page-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

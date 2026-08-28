@@ -1,0 +1,72 @@
+<main class="ethnicity-page">
+  <header class="institutional-header">
+    <div class="brand">
+      <img src="/img/logo-unadqtc-rojo.png" alt="Escudo de la Universidad Nacional de Arte Diego Quispe Tito del Cusco">
+      <div class="brand-copy">
+        <strong>Universidad Nacional de Arte</strong>
+        <span>Diego Quispe Tito del Cusco</span>
+        <small>Oficina de Grados y Títulos</small>
+      </div>
+    </div>
+    <button pButton type="button" [icon]="themeMode === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"
+            class="theme-toggle" [rounded]="true" [outlined]="true" severity="secondary"
+            [attr.aria-label]="themeMode === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
+            [pTooltip]="themeMode === 'dark' ? 'Tema claro' : 'Tema oscuro'" (click)="toggleTheme()"></button>
+  </header>
+  <div class="loading" *ngIf="loading"><p-progressSpinner ariaLabel="Cargando formulario"></p-progressSpinner></div>
+  <p-message *ngIf="error && !data" severity="error" [text]="error"></p-message>
+
+  <p-card *ngIf="data && !completed" styleClass="institutional-card">
+    <div class="form-title"><span class="eyebrow">FORMULARIO OFICIAL</span><h1>Ficha de variables étnicas y lingüísticas</h1>
+      <p class="intro">Complete esta información personal conforme al formato solicitado por SUNEDU.</p></div>
+    <section class="identity">
+      <div class="identity-icon"><i class="pi pi-user"></i></div><div><small>ESTUDIANTE</small><strong>{{ data.student.full_name }}</strong>
+        <span>Código {{ data.student.student_code }} · Documento {{ data.student.document }}</span>
+        <span>{{ data.degree.denomination }} · {{ data.degree.call }}</span></div>
+    </section>
+    <div class="privacy-note"><i class="pi pi-shield"></i><span>Esta declaración es confidencial. Sus datos serán utilizados exclusivamente para el registro de su grado o título ante SUNEDU.</span></div>
+
+    <section #ethnicQuestion class="question" [class.question-invalid]="invalidField === 'ethnic' || invalidField === 'ethnic-detail'">
+      <div class="question-number">01</div><label>Por sus costumbres o antepasados, ¿usted se siente parte de? <b>*</b></label>
+      <div class="radio-list">
+        <label *ngFor="let option of data.catalogs.ethnic_options">
+          <p-radioButton name="ethnic" [value]="option.code" [(ngModel)]="form.VAR_ETNICA" (onClick)="ethnicChanged()"></p-radioButton>
+          <span>{{ option.label }}</span>
+        </label>
+      </div>
+      <label *ngIf="form.VAR_ETNICA === 'a'" class="conditional">Seleccione el pueblo indígena u originario <b>*</b>
+        <p-select [(ngModel)]="form.DET_ETNICO" [options]="data.catalogs.peoples" optionLabel="label" optionValue="code"
+                  [filter]="true" filterBy="label,code" placeholder="Buscar por nombre" appendTo="body">
+          <ng-template pTemplate="item" let-item><span class="catalog-code">{{ item.code }}</span> {{ item.label }}</ng-template>
+        </p-select>
+      </label>
+    </section>
+
+    <section #languageQuestion class="question" [class.question-invalid]="invalidField === 'language' || invalidField === 'language-detail'">
+      <div class="question-number">02</div><label>¿Habla alguna lengua indígena u originaria? <b>*</b></label>
+      <div class="radio-list">
+        <label *ngFor="let option of data.catalogs.language_options">
+          <p-radioButton name="language" [value]="option.code" [(ngModel)]="form.LENGUA_IND" (onClick)="languageChanged()"></p-radioButton>
+          <span>{{ option.label }}</span>
+        </label>
+      </div>
+      <label *ngIf="form.LENGUA_IND === 'a'" class="conditional">Seleccione la lengua indígena u originaria <b>*</b>
+        <p-select [(ngModel)]="form.DET_LENGUA" [options]="data.catalogs.languages" optionLabel="label" optionValue="code"
+                  [filter]="true" filterBy="label,code" placeholder="Buscar por nombre" appendTo="body">
+          <ng-template pTemplate="item" let-item><span class="catalog-code">{{ item.code }}</span> {{ item.label }}</ng-template>
+        </p-select>
+      </label>
+    </section>
+
+    <label #declarationQuestion class="declaration" [class.declaration-invalid]="invalidField === 'declaration'"><p-checkbox [(ngModel)]="form.declaration" [binary]="true"></p-checkbox>
+      <span>Declaro que la información proporcionada es verdadera y corresponde a mi autoidentificación. *</span></label>
+    <div #formMessage class="form-message" *ngIf="error"><p-message severity="error" [text]="error"></p-message></div>
+    <button pButton type="button" class="submit-button" label="Enviar declaración" icon="pi pi-send" [loading]="saving" (click)="submit()"></button>
+    <p class="required-note">* Campos obligatorios</p>
+  </p-card>
+
+  <p-card *ngIf="data && completed" header="Información registrada">
+    <div class="success"><i class="pi pi-check-circle"></i><p>Gracias. Sus variables étnicas y lingüísticas fueron registradas correctamente.</p><small>Ya puede cerrar esta página.</small></div>
+  </p-card>
+  <footer class="page-footer">Universidad Nacional Diego Quispe Tito · Oficina de Grados y Títulos</footer>
+</main>

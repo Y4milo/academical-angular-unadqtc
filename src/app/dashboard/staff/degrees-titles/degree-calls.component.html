@@ -1,0 +1,188 @@
+<div class="degree-calls">
+  <div class="page-heading">
+    <div>
+      <h2>Convocatorias de Grados y Títulos</h2>
+      <p>Administre los grupos de aptos asociados a una resolución.</p>
+    </div>
+    <button pButton type="button" icon="pi pi-plus" label="Nueva convocatoria" (click)="openCreate()"></button>
+  </div>
+
+  <p-card styleClass="filter-card">
+    <div class="filter-grid">
+      <div class="field search-field">
+        <label for="degree-call-search">Búsqueda</label>
+        <input
+          id="degree-call-search"
+          pInputText
+          type="text"
+          [(ngModel)]="search"
+          placeholder="Nombre o número de resolución"
+          (keyup.enter)="loadCalls(1)" />
+      </div>
+      <div class="field">
+        <label for="degree-call-status">Estado</label>
+        <p-select
+          inputId="degree-call-status"
+          [(ngModel)]="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body">
+        </p-select>
+      </div>
+      <div class="filter-actions">
+        <button pButton type="button" icon="pi pi-search" label="Buscar" (click)="loadCalls(1)"></button>
+        <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" severity="secondary" (click)="clearFilters()"></button>
+      </div>
+    </div>
+  </p-card>
+
+  <p-card styleClass="table-card">
+    <p-table
+      [value]="calls"
+      [loading]="loading"
+      [paginator]="true"
+      [rows]="perPage"
+      [totalRecords]="total"
+      [lazy]="true"
+      [first]="(page - 1) * perPage"
+      [rowsPerPageOptions]="[10, 15, 25, 50]"
+      dataKey="id"
+      responsiveLayout="scroll"
+      (onPage)="onPageChange($event)">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Convocatoria</th>
+          <th>Resolución</th>
+          <th style="width: 9rem">Estado</th>
+          <th style="width: 7rem">Aptos</th>
+          <th style="width: 8rem">Exportaciones</th>
+          <th style="width: 20rem">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-call>
+        <tr>
+          <td>
+            <div class="call-name">
+              <strong>{{ call.name }}</strong>
+              <small>Creado por {{ call.created_by || 'usuario no disponible' }}</small>
+            </div>
+          </td>
+          <td>
+            <div class="resolution">
+              <strong>{{ call.resolution_number || 'Pendiente' }}</strong>
+              <span>{{ call.resolution_date ? (call.resolution_date | date:'dd/MM/yyyy') : 'Sin fecha' }}</span>
+            </div>
+          </td>
+          <td>
+            <p-tag [value]="call.status.label" [severity]="statusSeverity(call.status.value)"></p-tag>
+          </td>
+          <td><strong>{{ call.records_count }}</strong></td>
+          <td>{{ call.exports_count }}</td>
+          <td>
+            <div class="row-actions">
+              <button
+                *ngIf="canEdit(call)"
+                pButton
+                type="button"
+                icon="pi pi-pencil"
+                label="Editar"
+                size="small"
+                severity="secondary"
+                [disabled]="actionId === call.id"
+                (click)="openEdit(call)">
+              </button>
+              <button
+                *ngIf="canOpen(call)"
+                pButton
+                type="button"
+                icon="pi pi-folder-open"
+                [label]="call.status.value === 'draft' ? 'Abrir' : 'Reabrir'"
+                size="small"
+                [disabled]="actionId === call.id"
+                (click)="openCall(call)">
+              </button>
+              <button
+                *ngIf="canClose(call)"
+                pButton
+                type="button"
+                icon="pi pi-lock"
+                label="Cerrar"
+                size="small"
+                severity="warn"
+                [disabled]="actionId === call.id"
+                (click)="closeCall(call)">
+              </button>
+              <button
+                *ngIf="canAnnul(call)"
+                pButton
+                type="button"
+                icon="pi pi-ban"
+                label="Anular"
+                size="small"
+                severity="danger"
+                [outlined]="true"
+                [disabled]="actionId === call.id"
+                (click)="annulCall(call)">
+              </button>
+              <span *ngIf="!canEdit(call) && !canOpen(call) && !canClose(call) && !canAnnul(call)" class="no-actions">
+                Solo consulta
+              </span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="empty-message">No se encontraron convocatorias.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-dialog
+  [(visible)]="formVisible"
+  [modal]="true"
+  [closable]="!saving"
+  [dismissableMask]="!saving"
+  [style]="{width: 'min(92vw, 560px)'}"
+  [header]="editingCall ? 'Editar convocatoria' : 'Nueva convocatoria'">
+  <div class="form-grid">
+    <div class="field full-width">
+      <label for="call-name">Nombre <span class="required">*</span></label>
+      <input id="call-name" pInputText type="text" maxlength="150" [(ngModel)]="form.name" />
+    </div>
+    <div class="field full-width">
+      <label for="resolution-number">Número de resolución</label>
+      <input id="resolution-number" pInputText type="text" maxlength="150" [(ngModel)]="form.resolution_number" />
+      <small>Será obligatorio antes de abrir la convocatoria.</small>
+    </div>
+    <div class="field full-width">
+      <label for="resolution-date">Fecha de resolución</label>
+      <p-datePicker
+        inputId="resolution-date"
+        [(ngModel)]="form.resolution_date"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        [showButtonBar]="true"
+        appendTo="body"
+        placeholder="Seleccionar fecha">
+      </p-datePicker>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" severity="secondary" [disabled]="saving" (click)="formVisible = false"></button>
+    <button
+      pButton
+      type="button"
+      icon="pi pi-save"
+      [label]="saving ? 'Guardando...' : 'Guardar'"
+      [disabled]="saving"
+      (click)="save()">
+    </button>
+  </ng-template>
+</p-dialog>

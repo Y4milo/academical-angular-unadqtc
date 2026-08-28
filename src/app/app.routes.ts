@@ -44,8 +44,20 @@ import {
 import {
   AccountingLayOutComponentComponent
 } from './dashboard/staff/accounting/accounting-lay-out-component/accounting-lay-out-component.component';
+import {
+  DegreesTitlesLayoutComponent
+} from './dashboard/staff/degrees-titles/degrees-titles-layout.component';
+import {
+  DegreesTitlesPageComponent
+} from './dashboard/staff/degrees-titles/degrees-titles-page.component';
+import {
+  DegreeCallsComponent
+} from './dashboard/staff/degrees-titles/degree-calls.component';
+import {DegreeRecordsComponent} from './dashboard/staff/degrees-titles/degree-records.component';
+import {PublicEthnicityFormComponent} from './degrees-titles/public-ethnicity-form.component';
 
 export const routes: Routes = [
+  {path: 'grados-titulos/variables-etnicas/:token', component: PublicEthnicityFormComponent},
   {
     path: '',
     redirectTo: PATHS.login.staff,
@@ -102,7 +114,46 @@ export const routes: Routes = [
         path: PATHS.admin.accounting.bank.incidents.path,
         component: BnIncidentsComponent
       },
+      {
+        path: PATHS.admin.degreesTitles.calls.path,
+        component: DegreeCallsComponent,
+      },
+      {
+        path: PATHS.admin.degreesTitles.records.path,
+        component: DegreeRecordsComponent,
+      },
+      {
+        path: PATHS.admin.degreesTitles.exports.path,
+        component: DegreesTitlesPageComponent,
+        data: {title: 'Exportaciones SUNEDU'},
+      },
     ]
+  },
+  {
+    path: PATHS.degreesTitles.path,
+    canActivate: [AuthRoleGuard],
+    data: {roles: [ROLE.degrees_titles]},
+    component: DegreesTitlesLayoutComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: PATHS.degreesTitles.home.path,
+        pathMatch: 'full',
+      },
+      {
+        path: PATHS.degreesTitles.calls.path,
+        component: DegreeCallsComponent,
+      },
+      {
+        path: PATHS.degreesTitles.records.path,
+        component: DegreeRecordsComponent,
+      },
+      {
+        path: PATHS.degreesTitles.exports.path,
+        component: DegreesTitlesPageComponent,
+        data: {title: 'Exportaciones SUNEDU'},
+      },
+    ],
   },
   {
     path: PATHS.hr.path,
