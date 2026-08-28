@@ -22,7 +22,7 @@ td small { display: block; color: var(--text-color-secondary); margin-top: .2rem
 code { white-space: nowrap; font-size: .78rem; }
 .actions { text-align: center; white-space: nowrap; }
 .empty { padding: 2rem; text-align: center; color: var(--text-color-secondary); }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: .5rem; }
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; padding-top: .5rem; }
 .form-grid label { display: flex; flex-direction: column; gap: .4rem; font-weight: 600; }
 .form-grid label > small { color: var(--text-color-secondary); font-size: .68rem; font-weight: 700; letter-spacing: .04em; line-height: 1; }
 .input-with-icon { position: relative; display: block; }
