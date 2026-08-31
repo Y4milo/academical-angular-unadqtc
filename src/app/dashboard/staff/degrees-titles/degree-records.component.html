@@ -59,6 +59,14 @@
               <i class="pi pi-at" aria-hidden="true"></i>
               <span>{{ record.institutional_identity.institutional_email }}</span>
             </small>
+            <p-tag *ngIf="isInstitutionalEmailVerified(record)" value="Correo verificado con Microsoft 365"
+                   icon="pi pi-verified" severity="success"></p-tag>
+            <p-tag *ngIf="record.institutional_identity?.status && !isInstitutionalEmailVerified(record)
+                          && record.institutional_identity.status !== 'test'"
+                   [value]="identityLabel(record.institutional_identity.status)"
+                   [severity]="identitySeverity(record.institutional_identity.status)"></p-tag>
+            <p-tag *ngIf="record.institutional_identity?.status === 'test'" value="Correo de prueba"
+                   icon="pi pi-info-circle" severity="secondary"></p-tag>
           </div>
         </td>
         <td class="actions">
@@ -68,12 +76,12 @@
                   [loading]="generatingLinkId === record.id"
                   [pTooltip]="record.ethnicity_form?.submitted_at ? 'Generar un nuevo enlace' : 'Formulario de variables étnicas'"
                   [disabled]="record.status?.value === 'annulled'" (click)="generateEthnicityLink(record)"></button>
-          <button pButton type="button" icon="pi pi-id-card" severity="secondary" [text]="true"
-                  [loading]="checkingIdentityId === record.id" pTooltip="Verificar correo institucional"
-                  [disabled]="record.status?.value === 'annulled'" (click)="checkInstitutionalIdentity(record)"></button>
+          <button *ngIf="canVerifyInstitutionalEmail(record)" pButton type="button" icon="pi pi-id-card"
+                  severity="secondary" [text]="true" [loading]="checkingIdentityId === record.id"
+                  [pTooltip]="institutionalEmailActionLabel(record)" (click)="checkInstitutionalIdentity(record)"></button>
           <button pButton type="button" icon="pi pi-envelope" severity="success" [text]="true"
                   [loading]="sendingEmailId === record.id" pTooltip="Enviar formulario al correo institucional"
-                  [disabled]="record.status?.value === 'annulled' || !record.institutional_identity?.institutional_email"
+                  [disabled]="record.status?.value === 'annulled' || !isInstitutionalEmailVerified(record)"
                   (click)="sendEthnicityEmail(record)"></button>
           <button pButton type="button" icon="pi pi-ban" severity="danger" [text]="true" pTooltip="Anular"
                   [disabled]="!canModify(record)" (click)="annul(record)"></button>
@@ -133,10 +141,11 @@
       <span class="identity-inline">
         <p-tag [value]="identityLabel(currentStudentIdentityStatus)"
                [severity]="identitySeverity(currentStudentIdentityStatus)"></p-tag>
-        <button *ngIf="selectedStudent && currentStudentIdentityStatus !== 'test'" pButton type="button"
-                [label]="currentStudentIdentityStatus === 'verified' ? 'Volver a verificar' : 'Verificar con Microsoft 365'"
+        <button *ngIf="canVerifyCurrentInstitutionalEmail" pButton type="button"
+                [label]="currentInstitutionalEmailActionLabel"
                 icon="pi pi-verified" severity="secondary" [outlined]="true" size="small"
-                [loading]="studentIdentityChecking" (click)="verifySelectedStudent()"></button>
+                [loading]="studentIdentityChecking || (!!editing && checkingIdentityId === editing.id)"
+                (click)="verifyCurrentInstitutionalEmail()"></button>
       </span>
       <p-message *ngIf="studentIdentityResult?.comparison && currentStudentIdentityStatus !== 'verified'"
                  severity="warn" text="La cuenta existe, pero los datos no alcanzan una coincidencia del 100%."></p-message>

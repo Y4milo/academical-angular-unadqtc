@@ -232,7 +232,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.students = [];
     this.applyDefaultProgram();
     this.syncDenomination();
-    if (!student.institutional_email_verified && student.institutional_email_status !== 'test') {
+    if (!['verified', 'confirmed', 'test'].includes(student.institutional_email_status ?? 'pending')) {
       this.verifySelectedStudent();
     }
   }
@@ -271,6 +271,15 @@ export class DegreeRecordsComponent implements OnInit {
       ?? 'pending';
   }
 
+  get canVerifyCurrentInstitutionalEmail(): boolean {
+    if (this.selectedStudent) return this.canVerifyInstitutionalStatus(this.currentStudentIdentityStatus);
+    return this.editing ? this.canVerifyInstitutionalEmail(this.editing) : false;
+  }
+
+  get currentInstitutionalEmailActionLabel(): string {
+    return this.institutionalEmailActionForStatus(this.currentStudentIdentityStatus);
+  }
+
   verifySelectedStudent(): void {
     if (!this.selectedStudent || this.selectedStudent.institutional_email_status === 'test') return;
     this.studentIdentityChecking = true;
@@ -289,6 +298,14 @@ export class DegreeRecordsComponent implements OnInit {
         this.notifications.notifyApiData(error);
       },
     });
+  }
+
+  verifyCurrentInstitutionalEmail(): void {
+    if (this.selectedStudent) {
+      this.verifySelectedStudent();
+      return;
+    }
+    if (this.editing) this.checkInstitutionalIdentity(this.editing);
   }
 
   onFacultyChange(): void {
@@ -380,6 +397,19 @@ export class DegreeRecordsComponent implements OnInit {
     return record.call?.status?.value === 'open' && record.status?.value !== 'annulled';
   }
 
+  canVerifyInstitutionalEmail(record: DegreeRecord): boolean {
+    return record.status?.value !== 'annulled'
+      && this.canVerifyInstitutionalStatus(record.institutional_identity?.status);
+  }
+
+  isInstitutionalEmailVerified(record: DegreeRecord): boolean {
+    return ['verified', 'confirmed'].includes(record.institutional_identity?.status ?? '');
+  }
+
+  institutionalEmailActionLabel(record: DegreeRecord): string {
+    return this.institutionalEmailActionForStatus(record.institutional_identity?.status);
+  }
+
   generateEthnicityLink(record: DegreeRecord): void {
     this.generatingLinkId = record.id;
     this.service.createEthnicityLink(record.id).subscribe({
@@ -441,8 +471,24 @@ export class DegreeRecordsComponent implements OnInit {
 
   identityLabel(status?: string): string {
     return ({verified: 'Verificado 100% con Microsoft 365', confirmed: 'Coincidencia confirmada', probable: 'Coincidencia probable',
-      review_required: 'Requiere revisión', not_match: 'No corresponde', not_found: 'Cuenta no encontrada',
+      review_required: 'Requiere revisión', not_match: 'No corresponde', not_found: 'Cuenta institucional no encontrada',
       pending: 'Pendiente de verificación', test: 'Correo de prueba', invalid_domain: 'Dominio no institucional'} as Record<string, string>)[status ?? ''] ?? 'Sin verificar';
+  }
+
+  private canVerifyInstitutionalStatus(status?: string | null): boolean {
+    return ['pending', 'not_found', 'probable', 'review_required', 'not_match', 'invalid_domain']
+      .includes(status ?? 'pending');
+  }
+
+  private institutionalEmailActionForStatus(status?: string | null): string {
+    return ({
+      pending: 'Verificar correo institucional',
+      not_found: 'Volver a buscar en Microsoft 365',
+      probable: 'Revisar identidad institucional',
+      review_required: 'Revisar identidad institucional',
+      not_match: 'Revisar correo institucional',
+      invalid_domain: 'Corregir correo institucional',
+    } as Record<string, string>)[status ?? 'pending'] ?? 'Verificar correo institucional';
   }
 
   sendEthnicityEmail(record: DegreeRecord): void {
