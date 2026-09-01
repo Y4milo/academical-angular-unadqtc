@@ -49,6 +49,7 @@ export interface DegreeCatalogOption {
   name?: string;
   resolution_number?: string | null;
   resolution_date?: string | null;
+  records_count?: number;
 }
 
 export interface DegreeStudent {

@@ -12,7 +12,20 @@
 
   <div class="filters">
     <p-select [(ngModel)]="selectedCallId" [options]="filterCalls" optionLabel="name" optionValue="id"
-              placeholder="Todas las convocatorias" [showClear]="true" (onChange)="loadRecords(1)"></p-select>
+              placeholder="Todas las convocatorias" [showClear]="true" (onChange)="loadRecords(1)">
+      <ng-template pTemplate="selectedItem" let-call>
+        <span class="call-option" *ngIf="call">
+          <span>{{ call.name }}</span>
+          <p-tag [value]="(call.records_count || 0) + ' aptos'" severity="secondary"></p-tag>
+        </span>
+      </ng-template>
+      <ng-template pTemplate="item" let-call>
+        <span class="call-option">
+          <span>{{ call.name }}</span>
+          <p-tag [value]="(call.records_count || 0) + ' aptos'" severity="secondary"></p-tag>
+        </span>
+      </ng-template>
+    </p-select>
     <input pInputText [(ngModel)]="search" (keyup.enter)="loadRecords(1)" placeholder="Código, DNI, nombres o código de barras">
     <button pButton type="button" icon="pi pi-search" label="Buscar" severity="secondary" (click)="loadRecords(1)"></button>
     <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" [text]="true" (click)="clearFilters()"></button>

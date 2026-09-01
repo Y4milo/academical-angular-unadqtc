@@ -2,6 +2,7 @@
 .records-page { background: var(--surface-card); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
 .bulk-actions, .bulk-summary { align-items: center; display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0; }
 .bulk-progress { display: grid; gap: 1rem; }
+.call-option { align-items: center; display: flex; gap: .75rem; justify-content: space-between; width: 100%; }
 .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
 h1 { margin: 0 0 .3rem; font-size: 1.55rem; }
 p { margin: 0; color: var(--text-color-secondary); }
