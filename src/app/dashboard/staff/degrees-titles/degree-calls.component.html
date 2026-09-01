@@ -89,7 +89,7 @@
                 pButton
                 type="button"
                 icon="pi pi-pencil"
-                label="Editar"
+                [label]="['closed', 'exported'].includes(call.status.value) ? 'Completar resolución' : 'Editar'"
                 size="small"
                 severity="secondary"
                 [disabled]="actionId === call.id"
@@ -151,28 +151,38 @@
   [closable]="!saving"
   [dismissableMask]="!saving"
   [style]="{width: 'min(92vw, 560px)'}"
-  [header]="editingCall ? 'Editar convocatoria' : 'Nueva convocatoria'">
+  [header]="isResolutionOnlyEdit() ? 'Completar resolución' : (editingCall ? 'Editar convocatoria' : 'Nueva convocatoria')">
   <div class="form-grid">
-    <div class="field full-width">
+    <p class="required-legend"><span class="required">*</span> Campos obligatorios</p>
+    <div class="field full-width" [class.field-error]="formAttempted && !form.name.trim()">
       <label for="call-name">Nombre <span class="required">*</span></label>
-      <input id="call-name" pInputText type="text" maxlength="150" [(ngModel)]="form.name" />
+      <input id="call-name" pInputText type="text" maxlength="150" [(ngModel)]="form.name"
+             [disabled]="isResolutionOnlyEdit()" aria-required="true" />
+      <small *ngIf="isResolutionOnlyEdit()">El nombre permanece bloqueado para conservar el historial de la convocatoria.</small>
+      <small *ngIf="formAttempted && !form.name.trim()" class="validation-message">Ingrese el nombre de la convocatoria.</small>
     </div>
-    <div class="field full-width">
-      <label for="resolution-number">Número de resolución</label>
-      <input id="resolution-number" pInputText type="text" maxlength="150" [(ngModel)]="form.resolution_number" />
+    <div class="field full-width"
+         [class.field-error]="formAttempted && isResolutionOnlyEdit() && !form.resolution_number.trim()">
+      <label for="resolution-number">Número de resolución <span *ngIf="isResolutionOnlyEdit()" class="required">*</span></label>
+      <input id="resolution-number" pInputText type="text" maxlength="150" [(ngModel)]="form.resolution_number"
+             [attr.aria-required]="isResolutionOnlyEdit()" />
       <small>Será obligatorio antes de abrir la convocatoria.</small>
+      <small *ngIf="formAttempted && isResolutionOnlyEdit() && !form.resolution_number.trim()" class="validation-message">Ingrese el número de resolución.</small>
     </div>
-    <div class="field full-width">
-      <label for="resolution-date">Fecha de resolución</label>
+    <div class="field full-width"
+         [class.field-error]="formAttempted && isResolutionOnlyEdit() && !form.resolution_date">
+      <label for="resolution-date">Fecha de resolución <span *ngIf="isResolutionOnlyEdit()" class="required">*</span></label>
       <p-datePicker
         inputId="resolution-date"
         [(ngModel)]="form.resolution_date"
         dateFormat="dd/mm/yy"
         [showIcon]="true"
         [showButtonBar]="true"
+        [attr.aria-required]="isResolutionOnlyEdit()"
         appendTo="body"
         placeholder="Seleccionar fecha">
       </p-datePicker>
+      <small *ngIf="formAttempted && isResolutionOnlyEdit() && !form.resolution_date" class="validation-message">Seleccione la fecha de resolución.</small>
     </div>
   </div>
 

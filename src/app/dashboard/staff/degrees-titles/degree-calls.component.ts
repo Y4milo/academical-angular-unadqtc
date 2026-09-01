@@ -65,6 +65,7 @@ export class DegreeCallsComponent implements OnInit {
   saving = false;
   actionId: number | null = null;
   formVisible = false;
+  formAttempted = false;
   editingCall: DegreeCall | null = null;
   form = this.emptyForm();
   mailTestMode = false;
@@ -124,6 +125,7 @@ export class DegreeCallsComponent implements OnInit {
 
   openCreate(): void {
     this.editingCall = null;
+    this.formAttempted = false;
     this.form = this.emptyForm();
     this.formVisible = true;
   }
@@ -134,6 +136,7 @@ export class DegreeCallsComponent implements OnInit {
     }
 
     this.editingCall = call;
+    this.formAttempted = false;
     this.form = {
       name: call.name,
       resolution_number: call.resolution_number ?? '',
@@ -143,9 +146,18 @@ export class DegreeCallsComponent implements OnInit {
   }
 
   save(): void {
+    this.formAttempted = true;
     const name = this.form.name.trim();
     if (!name) {
       this.notificationService.warning('Datos incompletos', 'El nombre de la convocatoria es obligatorio.');
+      return;
+    }
+
+    if (this.isResolutionOnlyEdit() && (!this.form.resolution_number.trim() || !this.form.resolution_date)) {
+      this.notificationService.warning(
+        'Datos incompletos',
+        'El nombre, el número y la fecha de resolución son obligatorios para completar la convocatoria.',
+      );
       return;
     }
 
@@ -164,6 +176,7 @@ export class DegreeCallsComponent implements OnInit {
         this.saving = false;
         if (response.status === STATUS.success) {
           this.formVisible = false;
+          this.formAttempted = false;
           this.notificationService.success(
             this.editingCall ? 'Convocatoria actualizada' : 'Convocatoria creada',
             response.payload.message,
@@ -181,6 +194,15 @@ export class DegreeCallsComponent implements OnInit {
   }
 
   openCall(call: DegreeCall): void {
+    if (!call.name?.trim() || !call.resolution_number?.trim() || !call.resolution_date) {
+      this.openEdit(call);
+      this.notificationService.warning(
+        'Complete la convocatoria',
+        'Registre el nombre, el número y la fecha de resolución antes de abrir o reabrir.',
+      );
+      return;
+    }
+
     const verb = call.status.value === 'draft' ? 'abrir' : 'reabrir';
     if (!confirm(`¿Desea ${verb} la convocatoria “${call.name}”?`)) {
       return;
@@ -203,7 +225,12 @@ export class DegreeCallsComponent implements OnInit {
   }
 
   canEdit(call: DegreeCall): boolean {
-    return ['draft', 'open'].includes(call.status.value);
+    return ['draft', 'open'].includes(call.status.value)
+      || (this.isAdmin && ['closed', 'exported'].includes(call.status.value));
+  }
+
+  isResolutionOnlyEdit(): boolean {
+    return !!this.editingCall && ['closed', 'exported'].includes(this.editingCall.status.value);
   }
 
   canOpen(call: DegreeCall): boolean {
