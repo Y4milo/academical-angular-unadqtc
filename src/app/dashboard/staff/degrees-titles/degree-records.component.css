@@ -22,14 +22,24 @@ td small { display: block; color: var(--text-color-secondary); margin-top: .2rem
 code { white-space: nowrap; font-size: .78rem; }
 .actions { text-align: center; white-space: nowrap; }
 .empty { padding: 2rem; text-align: center; color: var(--text-color-secondary); }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: .5rem; }
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; padding-top: .5rem; }
 .form-grid label { display: flex; flex-direction: column; gap: .4rem; font-weight: 600; }
+.form-grid label > small { color: var(--text-color-secondary); font-size: .68rem; font-weight: 700; letter-spacing: .04em; line-height: 1; }
+.input-with-icon { position: relative; display: block; }
+.input-with-icon > i { position: absolute; left: .85rem; top: 50%; z-index: 1; transform: translateY(-50%); color: var(--text-color-secondary); }
+.input-with-icon > input { padding-left: 2.45rem; background: var(--surface-ground); color: var(--text-color-secondary); }
+.identity-inline { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; padding-top: .15rem; }
+:host ::ng-deep .identity-inline .p-tag { white-space: normal; text-align: left; }
 .full { grid-column: 1 / -1; }
 .search-row { display: grid; grid-template-columns: 1fr auto; gap: .6rem; }
 .student-results { display: block; margin-top: .5rem; }
 .student-option { display: flex; flex-direction: column; }
 .student-option span { color: var(--text-color-secondary); font-size: .85rem; margin-top: .2rem; }
+.student-option span i { margin-right: .35rem; }
 .selected-student { display: flex; align-items: center; gap: .7rem; padding: .8rem; border-radius: 7px; background: var(--green-50); color: var(--green-900); }
+.selected-student-content { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.selected-student-content > span { display: flex; align-items: center; gap: .4rem; font-size: .82rem; overflow-wrap: anywhere; }
+.selected-student-content i { width: 1rem; flex: 0 0 1rem; text-align: center; }
 .sunedu-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .5rem; padding-top: 1rem; border-top: 1px solid var(--surface-border); }
 .sunedu-heading div { display: flex; flex-direction: column; gap: .25rem; }
 .sunedu-heading span, .form-grid label small { color: var(--text-color-secondary); font-size: .78rem; font-weight: 400; }

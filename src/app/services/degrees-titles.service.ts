@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {ApiData} from '../models/api/api-data.model';
@@ -67,7 +67,44 @@ export interface DegreeStudent {
   mother_last_name: string | null;
   full_name: string;
   gender: string | null;
+  personal_email: string | null;
+  institutional_email: string | null;
+  institutional_email_status: string | null;
+  institutional_email_source: 'student' | 'legacy_email' | 'generated_candidate' | 'test';
+  institutional_email_verified: boolean;
   major: string | null;
+  faculty: DegreeCatalogReference | null;
+  career: DegreeCatalogReference | null;
+  program: DegreeCatalogReference | null;
+  specialty: string | null;
+  academic_data_complete: boolean;
+}
+
+export interface DegreeCatalogReference {
+  id: number;
+  code: string;
+  label: string;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface DegreeAcademicDenomination extends DegreeCatalogReference {
+  degree_type_id: number;
+  degree_type_code: string;
+  specialty_required: boolean;
+}
+
+export interface DegreeAcademicProgram extends DegreeCatalogReference {
+  specialty: string | null;
+}
+
+export interface DegreeAcademicCareer extends DegreeCatalogReference {
+  requires_specialty: boolean;
+  programs: DegreeAcademicProgram[];
+  denominations: DegreeAcademicDenomination[];
+}
+
+export interface DegreeAcademicFaculty extends DegreeCatalogReference {
+  careers: DegreeAcademicCareer[];
 }
 
 export interface DegreeRecord {
@@ -81,6 +118,10 @@ export interface DegreeRecord {
   document_type_label: string | null;
   document_number: string;
   gender: 'M' | 'F' | null;
+  faculty_id: number | null;
+  professional_career_id: number | null;
+  degree_program_id: number | null;
+  degree_denomination_id: number | null;
   full_name: string;
   faculty: string | null;
   major: string | null;
@@ -110,10 +151,14 @@ export interface DegreeRecord {
 }
 
 export interface InstitutionalIdentityLookup {
-  status?: 'not_found';
+  status?: 'verified' | 'confirmed' | 'probable' | 'review_required' | 'not_match' | 'not_found' | 'pending' | 'test' | 'invalid_domain';
+  institutional_email?: string | null;
+  institutional_email_source?: string;
   comparison?: {
     status: 'confirmed' | 'probable' | 'review_required' | 'not_match'; score: number;
-    checks: {code: boolean; at_least_one_name: boolean; father_last_name: boolean; mother_last_name: boolean};
+    verified_100: boolean;
+    checks: {code: boolean; at_least_one_name: boolean; father_last_name: boolean; mother_last_name: boolean;
+      email_address?: boolean; account_enabled?: boolean};
     differences: string[];
   };
   academical?: {code: string; full_name: string; personal_email: string | null};
@@ -130,6 +175,7 @@ export interface PublicEthnicityForm {
   catalogs: {ethnic_options: EthnicityOption[]; language_options: EthnicityOption[]; peoples: EthnicityOption[]; languages: EthnicityOption[]};
   submitted: boolean;
   expires_at: string;
+  test_mode: boolean;
 }
 
 export interface DegreeRecordPayload {
@@ -138,10 +184,10 @@ export interface DegreeRecordPayload {
   degree_type_id: number;
   gender: 'M' | 'F' | null;
   diploma_issue_type_id: number | null;
-  degree_denomination: string;
-  faculty: string | null;
-  major: string | null;
-  specialty: string | null;
+  faculty_id: number;
+  professional_career_id: number;
+  degree_program_id: number | null;
+  degree_denomination_id: number;
   resolution_number: string | null;
   resolution_date: string | null;
   diploma_number: string | null;
@@ -198,6 +244,7 @@ export class DegreesTitlesService {
   getRecordCatalogs(): Observable<{data: {
     degree_types: DegreeCatalogOption[];
     diploma_issue_types: DegreeCatalogOption[];
+    academic_tree: DegreeAcademicFaculty[];
     open_calls: DegreeCatalogOption[];
     sunedu_schema: {
       version: string;
@@ -214,6 +261,10 @@ export class DegreesTitlesService {
     return this.http.get<{data: DegreeStudent[]}>(`${this.apiURL}/students/search`, {
       params: new HttpParams().set('search', search),
     });
+  }
+
+  checkStudentInstitutionalIdentity(id: number): Observable<ApiData<any>> {
+    return this.http.get<ApiData<any>>(`${this.apiURL}/students/${id}/institutional-identity`);
   }
 
   listRecords(filters: {call_id?: number | null; search?: string; status?: string; page?: number; per_page?: number}): Observable<{
@@ -237,6 +288,13 @@ export class DegreesTitlesService {
 
   annulRecord(id: number): Observable<ApiData<{message: string; data: DegreeRecord}>> {
     return this.http.delete<ApiData<{message: string; data: DegreeRecord}>>(`${this.apiURL}/records/${id}`);
+  }
+
+  downloadDegreeRecordPdf(id: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiURL}/records/${id}/pdf`, {
+      observe: 'response',
+      responseType: 'blob',
+    });
   }
 
   createEthnicityLink(id: number): Observable<ApiData<{url: string; expires_at: string}>> {

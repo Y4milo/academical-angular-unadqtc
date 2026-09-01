@@ -18,6 +18,10 @@ import {MessageModule} from 'primeng/message';
 import {STATUS} from '../../../core/constants/api-status.constants';
 import {
   DegreeCatalogOption,
+  DegreeAcademicCareer,
+  DegreeAcademicDenomination,
+  DegreeAcademicFaculty,
+  DegreeAcademicProgram,
   DegreeRecord,
   DegreeRecordPayload,
   DegreeStudent,
@@ -25,13 +29,14 @@ import {
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
+import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
 
 @Component({
   selector: 'app-degree-records',
   standalone: true,
   imports: [
     FormsModule, DatePipe, NgFor, NgIf, ButtonModule, DialogModule, TableModule, TagModule, TooltipModule,
-    InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule,
+    InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule, TestModeBannerComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './degree-records.component.html',
@@ -77,6 +82,7 @@ export class DegreeRecordsComponent implements OnInit {
   calls: DegreeCatalogOption[] = [];
   degreeTypes: DegreeCatalogOption[] = [];
   issueTypes: DegreeCatalogOption[] = [];
+  academicTree: DegreeAcademicFaculty[] = [];
   suneduSchemaVersion = '';
   mailTestMode = false;
   mailTestRecipient: string | null = null;
@@ -90,6 +96,8 @@ export class DegreeRecordsComponent implements OnInit {
   total = 0;
   loading = false;
   searchingStudents = false;
+  studentIdentityChecking = false;
+  studentIdentityResult: InstitutionalIdentityLookup | null = null;
   saving = false;
   dialogVisible = false;
   editing: DegreeRecord | null = null;
@@ -103,6 +111,7 @@ export class DegreeRecordsComponent implements OnInit {
   checkingIdentityId: number | null = null;
   confirmingIdentity = false;
   sendingEmailId: number | null = null;
+  downloadingPdfId: number | null = null;
   form = this.emptyForm();
 
   constructor(
@@ -123,6 +132,7 @@ export class DegreeRecordsComponent implements OnInit {
         this.degreeTypes = (response.data.degree_types ?? [])
           .filter(type => ['bachelor', 'professional_title'].includes(type.value ?? ''));
         this.issueTypes = response.data.diploma_issue_types ?? [];
+        this.academicTree = response.data.academic_tree ?? [];
         this.suneduSchemaVersion = response.data.sunedu_schema?.version ?? '';
         this.mailTestMode = response.data.mail_delivery?.test_mode ?? false;
         this.mailTestRecipient = response.data.mail_delivery?.test_recipient ?? null;
@@ -168,6 +178,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.selectedStudent = null;
     this.students = [];
     this.studentSearch = '';
+    this.studentIdentityResult = null;
     this.form = this.emptyForm();
     this.form.degree_call_id = this.selectedCallId ?? this.calls[0].id;
     this.form.diploma_issue_type_id = this.issueTypes[0]?.id ?? null;
@@ -178,14 +189,17 @@ export class DegreeRecordsComponent implements OnInit {
     if (record.call?.status?.value !== 'open' || record.status?.value === 'annulled') return;
     this.editing = record;
     this.selectedStudent = null;
+    this.studentIdentityResult = null;
     this.form = {
       degree_call_id: record.degree_call_id,
       student_id: record.student_id,
       degree_type_id: record.degree_type.id,
       gender: record.gender === 'F' ? 'F' : record.gender === 'M' ? 'M' : null,
       diploma_issue_type_id: record.diploma_issue_type?.id ?? null,
-      degree_denomination: record.degree_denomination ?? '',
-      faculty: record.faculty ?? '', major: record.major ?? '', specialty: record.specialty ?? '',
+      faculty_id: record.faculty_id ?? this.findFacultyId(record.faculty),
+      professional_career_id: record.professional_career_id ?? this.findCareerId(record.major),
+      degree_program_id: record.degree_program_id ?? this.findProgramId(record.specialty),
+      degree_denomination_id: record.degree_denomination_id ?? this.findDenominationId(record.degree_denomination),
       resolution_number: record.resolution_number ?? '', resolution_date: this.parseDate(record.resolution_date),
       diploma_number: record.diploma_number ?? '', diploma_date: this.parseDate(record.diploma_date),
       registry_book: record.registry_book ?? '', registry_folio: record.registry_folio ?? '',
@@ -211,10 +225,117 @@ export class DegreeRecordsComponent implements OnInit {
   chooseStudent(student: DegreeStudent): void {
     this.selectedStudent = student;
     this.form.student_id = student.id;
-    this.form.major = student.major ?? '';
+    this.form.faculty_id = student.faculty?.id ?? null;
+    this.form.professional_career_id = student.career?.id ?? null;
+    this.form.degree_program_id = student.program?.id ?? null;
+    this.form.degree_denomination_id = null;
     const gender = (student.gender ?? '').toLowerCase();
     this.form.gender = gender.startsWith('f') || gender.includes('mujer') ? 'F' : gender ? 'M' : null;
     this.students = [];
+    this.applyDefaultProgram();
+    this.syncDenomination();
+    if (!['verified', 'confirmed', 'test'].includes(student.institutional_email_status ?? 'pending')) {
+      this.verifySelectedStudent();
+    }
+  }
+
+  get careers(): DegreeAcademicCareer[] {
+    return this.academicTree.find(faculty => faculty.id === this.form.faculty_id)?.careers ?? [];
+  }
+
+  get selectedCareer(): DegreeAcademicCareer | null {
+    return this.careers.find(career => career.id === this.form.professional_career_id) ?? null;
+  }
+
+  get specialtyPrograms(): DegreeAcademicProgram[] {
+    return (this.selectedCareer?.programs ?? []).filter(program => !!program.specialty);
+  }
+
+  get requiresSpecialty(): boolean {
+    return this.selectedCareer?.requires_specialty ?? false;
+  }
+
+  get selectedDenomination(): DegreeAcademicDenomination | null {
+    return this.selectedCareer?.denominations.find(option => option.id === this.form.degree_denomination_id) ?? null;
+  }
+
+  get selectedInstitutionalEmail(): string {
+    return this.studentIdentityResult?.institutional_email
+      ?? this.selectedStudent?.institutional_email
+      ?? this.editing?.institutional_identity?.institutional_email
+      ?? 'Correo institucional no registrado';
+  }
+
+  get currentStudentIdentityStatus(): string {
+    return this.studentIdentityResult?.status
+      ?? this.selectedStudent?.institutional_email_status
+      ?? this.editing?.institutional_identity?.status
+      ?? 'pending';
+  }
+
+  get canVerifyCurrentInstitutionalEmail(): boolean {
+    if (this.selectedStudent) return this.canVerifyInstitutionalStatus(this.currentStudentIdentityStatus);
+    return this.editing ? this.canVerifyInstitutionalEmail(this.editing) : false;
+  }
+
+  get currentInstitutionalEmailActionLabel(): string {
+    return this.institutionalEmailActionForStatus(this.currentStudentIdentityStatus);
+  }
+
+  verifySelectedStudent(): void {
+    if (!this.selectedStudent || this.selectedStudent.institutional_email_status === 'test') return;
+    this.studentIdentityChecking = true;
+    this.service.checkStudentInstitutionalIdentity(this.selectedStudent.id).subscribe({
+      next: response => {
+        this.studentIdentityChecking = false;
+        if (response.status !== STATUS.success) return this.notifications.notifyApiData(response);
+        const data = response.payload.data as InstitutionalIdentityLookup;
+        this.studentIdentityResult = data;
+        this.selectedStudent!.institutional_email = data.institutional_email ?? this.selectedStudent!.institutional_email;
+        this.selectedStudent!.institutional_email_status = data.status ?? this.selectedStudent!.institutional_email_status;
+        this.selectedStudent!.institutional_email_verified = data.status === 'verified';
+      },
+      error: error => {
+        this.studentIdentityChecking = false;
+        this.notifications.notifyApiData(error);
+      },
+    });
+  }
+
+  verifyCurrentInstitutionalEmail(): void {
+    if (this.selectedStudent) {
+      this.verifySelectedStudent();
+      return;
+    }
+    if (this.editing) this.checkInstitutionalIdentity(this.editing);
+  }
+
+  onFacultyChange(): void {
+    this.form.professional_career_id = null;
+    this.form.degree_program_id = null;
+    this.form.degree_denomination_id = null;
+  }
+
+  onCareerChange(): void {
+    this.form.degree_program_id = null;
+    this.form.degree_denomination_id = null;
+    this.applyDefaultProgram();
+    this.syncDenomination();
+  }
+
+  onDegreeTypeChange(): void {
+    this.syncDenomination();
+  }
+
+  private applyDefaultProgram(): void {
+    if (!this.requiresSpecialty) {
+      this.form.degree_program_id = this.selectedCareer?.programs[0]?.id ?? null;
+    }
+  }
+
+  private syncDenomination(): void {
+    this.form.degree_denomination_id = this.selectedCareer?.denominations
+      .find(option => option.degree_type_id === this.form.degree_type_id)?.id ?? null;
   }
 
   save(): void {
@@ -222,8 +343,9 @@ export class DegreeRecordsComponent implements OnInit {
       this.notifications.warning('Datos incompletos', 'Seleccione la convocatoria y el estudiante.');
       return;
     }
-    if (!this.form.degree_type_id || !this.form.degree_denomination.trim()) {
-      this.notifications.warning('Datos incompletos', 'Seleccione el grado o título e ingrese su denominación.');
+    if (!this.form.degree_type_id || !this.form.faculty_id || !this.form.professional_career_id
+      || !this.form.degree_denomination_id || (this.requiresSpecialty && !this.form.degree_program_id)) {
+      this.notifications.warning('Datos académicos incompletos', 'Seleccione una combinación válida de facultad, carrera, grado y especialidad.');
       return;
     }
     const payload: DegreeRecordPayload = {
@@ -275,6 +397,49 @@ export class DegreeRecordsComponent implements OnInit {
 
   canModify(record: DegreeRecord): boolean {
     return record.call?.status?.value === 'open' && record.status?.value !== 'annulled';
+  }
+
+  downloadPdf(record: DegreeRecord): void {
+    if (record.status?.value === 'annulled' || this.downloadingPdfId !== null) return;
+
+    this.downloadingPdfId = record.id;
+    this.service.downloadDegreeRecordPdf(record.id).subscribe({
+      next: response => {
+        this.downloadingPdfId = null;
+        const blob = response.body;
+        if (!blob) {
+          this.notifications.error('PDF no disponible', 'El servidor no devolvió el diploma solicitado.');
+          return;
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = this.pdfFilename(response.headers.get('Content-Disposition'), record);
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.URL.revokeObjectURL(url);
+      },
+      error: async error => {
+        this.downloadingPdfId = null;
+        const message = await this.pdfErrorMessage(error?.error);
+        this.notifications.error('No se pudo generar el diploma', message);
+      },
+    });
+  }
+
+  canVerifyInstitutionalEmail(record: DegreeRecord): boolean {
+    return record.status?.value !== 'annulled'
+      && this.canVerifyInstitutionalStatus(record.institutional_identity?.status);
+  }
+
+  isInstitutionalEmailVerified(record: DegreeRecord): boolean {
+    return ['verified', 'confirmed'].includes(record.institutional_identity?.status ?? '');
+  }
+
+  institutionalEmailActionLabel(record: DegreeRecord): string {
+    return this.institutionalEmailActionForStatus(record.institutional_identity?.status);
   }
 
   generateEthnicityLink(record: DegreeRecord): void {
@@ -331,13 +496,31 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   identitySeverity(status?: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    return status === 'confirmed' ? 'success' : status === 'probable' ? 'info' :
-      status === 'review_required' ? 'warn' : status === 'not_match' ? 'danger' : 'secondary';
+    return ['verified', 'confirmed'].includes(status ?? '') ? 'success' : status === 'probable' ? 'info' :
+      ['review_required', 'pending'].includes(status ?? '') ? 'warn' :
+        ['not_match', 'not_found', 'invalid_domain'].includes(status ?? '') ? 'danger' : 'secondary';
   }
 
   identityLabel(status?: string): string {
-    return ({confirmed: 'Coincidencia confirmada', probable: 'Coincidencia probable', review_required: 'Revisión requerida',
-      not_match: 'No corresponde', not_found: 'Cuenta no encontrada'} as Record<string, string>)[status ?? ''] ?? 'Sin verificar';
+    return ({verified: 'Verificado 100% con Microsoft 365', confirmed: 'Coincidencia confirmada', probable: 'Coincidencia probable',
+      review_required: 'Requiere revisión', not_match: 'No corresponde', not_found: 'Cuenta institucional no encontrada',
+      pending: 'Pendiente de verificación', test: 'Correo de prueba', invalid_domain: 'Dominio no institucional'} as Record<string, string>)[status ?? ''] ?? 'Sin verificar';
+  }
+
+  private canVerifyInstitutionalStatus(status?: string | null): boolean {
+    return ['pending', 'not_found', 'probable', 'review_required', 'not_match', 'invalid_domain']
+      .includes(status ?? 'pending');
+  }
+
+  private institutionalEmailActionForStatus(status?: string | null): string {
+    return ({
+      pending: 'Verificar correo institucional',
+      not_found: 'Volver a buscar en Microsoft 365',
+      probable: 'Revisar identidad institucional',
+      review_required: 'Revisar identidad institucional',
+      not_match: 'Revisar correo institucional',
+      invalid_domain: 'Corregir correo institucional',
+    } as Record<string, string>)[status ?? 'pending'] ?? 'Verificar correo institucional';
   }
 
   sendEthnicityEmail(record: DegreeRecord): void {
@@ -360,7 +543,8 @@ export class DegreeRecordsComponent implements OnInit {
     return {
       degree_call_id: null, student_id: null, degree_type_id: null, diploma_issue_type_id: null,
       gender: null,
-      degree_denomination: '', faculty: '', major: '', specialty: '', resolution_number: '',
+      faculty_id: null, professional_career_id: null, degree_program_id: null, degree_denomination_id: null,
+      resolution_number: '',
       resolution_date: null, diploma_number: '', diploma_date: null, registry_book: '',
       registry_folio: '', registry_number: '',
       sunedu_data: {},
@@ -405,4 +589,44 @@ export class DegreeRecordsComponent implements OnInit {
   private numberField(key: string, label: string): any { return {key, label, type: 'number'}; }
   private selectField(key: string, label: string, options: any[]): any { return {key, label, type: 'select', options}; }
   private yesNoOptions(): any[] { return [{label: 'Sí', value: 'SI'}, {label: 'No', value: 'NO'}]; }
+
+  private findFacultyId(label: string | null): number | null {
+    return this.academicTree.find(option => option.label === label)?.id ?? null;
+  }
+
+  private pdfFilename(contentDisposition: string | null, record: DegreeRecord): string {
+    const encoded = contentDisposition?.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+    const plain = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
+    if (encoded) return decodeURIComponent(encoded);
+    if (plain) return plain;
+
+    const type = record.degree_type?.value === 'bachelor' ? 'B' : 'T';
+    return `D804_${record.document_number}_${type}.pdf`;
+  }
+
+  private async pdfErrorMessage(body: unknown): Promise<string> {
+    try {
+      const payload = body instanceof Blob ? JSON.parse(await body.text()) : body as any;
+      return payload?.errors?.degree_record?.[0]
+        ?? payload?.message
+        ?? payload?.payload?.message
+        ?? 'Revise que el registro tenga completos los datos obligatorios del diploma.';
+    } catch {
+      return 'Revise que el registro tenga completos los datos obligatorios del diploma.';
+    }
+  }
+
+  private findCareerId(label: string | null): number | null {
+    return this.academicTree.flatMap(option => option.careers).find(option => option.label === label)?.id ?? null;
+  }
+
+  private findProgramId(specialty: string | null): number | null {
+    return this.academicTree.flatMap(option => option.careers).flatMap(option => option.programs)
+      .find(option => option.specialty === specialty)?.id ?? null;
+  }
+
+  private findDenominationId(label: string | null): number | null {
+    return this.academicTree.flatMap(option => option.careers).flatMap(option => option.denominations)
+      .find(option => option.label === label)?.id ?? null;
+  }
 }

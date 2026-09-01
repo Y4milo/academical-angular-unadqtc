@@ -7,6 +7,8 @@
     <button pButton type="button" icon="pi pi-plus" label="Nueva convocatoria" (click)="openCreate()"></button>
   </div>
 
+  <app-test-mode-banner *ngIf="mailTestMode" area="Grados y Títulos" [recipient]="mailTestRecipient"></app-test-mode-banner>
+
   <p-card styleClass="filter-card">
     <div class="filter-grid">
       <div class="field search-field">

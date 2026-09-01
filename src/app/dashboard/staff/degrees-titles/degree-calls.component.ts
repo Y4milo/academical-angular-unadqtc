@@ -19,6 +19,7 @@ import {
 } from '../../../services/degrees-titles.service';
 import {LoginService} from '../../../services/login.service';
 import {NotificationService} from '../../../services/notification.service';
+import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
 
 interface SelectOption {
   label: string;
@@ -39,6 +40,7 @@ interface SelectOption {
     Select,
     TableModule,
     TagModule,
+    TestModeBannerComponent,
   ],
   templateUrl: './degree-calls.component.html',
   styleUrl: './degree-calls.component.css',
@@ -65,6 +67,8 @@ export class DegreeCallsComponent implements OnInit {
   formVisible = false;
   editingCall: DegreeCall | null = null;
   form = this.emptyForm();
+  mailTestMode = false;
+  mailTestRecipient: string | null = null;
 
   constructor(
     private degreesTitlesService: DegreesTitlesService,
@@ -73,6 +77,10 @@ export class DegreeCallsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.degreesTitlesService.getRecordCatalogs().subscribe({next: response => {
+      this.mailTestMode = response.data.mail_delivery.test_mode;
+      this.mailTestRecipient = response.data.mail_delivery.test_recipient;
+    }});
     this.loadCalls();
   }
 

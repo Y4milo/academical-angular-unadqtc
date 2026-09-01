@@ -13,6 +13,7 @@
             [attr.aria-label]="themeMode === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
             [pTooltip]="themeMode === 'dark' ? 'Tema claro' : 'Tema oscuro'" (click)="toggleTheme()"></button>
   </header>
+  <app-test-mode-banner *ngIf="data?.test_mode" area="el formulario de Grados y Títulos" [publicView]="true"></app-test-mode-banner>
   <div class="loading" *ngIf="loading"><p-progressSpinner ariaLabel="Cargando formulario"></p-progressSpinner></div>
   <p-message *ngIf="error && !data" severity="error" [text]="error"></p-message>
 
