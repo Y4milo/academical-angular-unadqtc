@@ -166,14 +166,16 @@
   [header]="isResolutionOnlyEdit() ? 'Completar resolución' : (editingCall ? 'Editar convocatoria' : 'Nueva convocatoria')">
   <div class="form-grid">
     <p class="required-legend"><span class="required">*</span> Campos obligatorios</p>
-    <div class="call-status-summary">
-      <span>Estado</span>
-      <p-tag
-        [value]="editingCall?.status?.label || 'Borrador'"
-        [severity]="editingCall ? statusSeverity(editingCall.status.value) : 'secondary'">
-      </p-tag>
-      <small>El estado cambia mediante las acciones de la convocatoria.</small>
-    </div>
+    <p-message severity="secondary" styleClass="call-status-message">
+      <div class="call-status-content">
+        <span>Estado</span>
+        <p-tag
+          [value]="editingCall?.status?.label || 'Borrador'"
+          [severity]="editingCall ? statusSeverity(editingCall.status.value) : 'secondary'">
+        </p-tag>
+        <small>El estado cambia mediante las acciones de la convocatoria.</small>
+      </div>
+    </p-message>
     <div class="field full-width" [class.field-error]="formAttempted && !form.name.trim()">
       <label for="call-name">Nombre <span class="required">*</span></label>
       <input id="call-name" pInputText type="text" maxlength="150" [(ngModel)]="form.name"

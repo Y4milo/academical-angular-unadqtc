@@ -7,6 +7,7 @@ import {CardModule} from 'primeng/card';
 import {DatePicker} from 'primeng/datepicker';
 import {DialogModule} from 'primeng/dialog';
 import {InputTextModule} from 'primeng/inputtext';
+import {MessageModule} from 'primeng/message';
 import {Select} from 'primeng/select';
 import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
@@ -38,6 +39,7 @@ interface SelectOption {
     DialogModule,
     FormsModule,
     InputTextModule,
+    MessageModule,
     NgIf,
     Select,
     TableModule,

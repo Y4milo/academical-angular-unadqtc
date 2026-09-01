@@ -81,23 +81,20 @@
   color: var(--p-red-500);
 }
 
-.call-status-summary {
+.call-status-content {
   align-items: center;
-  background: var(--p-surface-50);
-  border: 1px solid var(--p-surface-200);
-  border-radius: .5rem;
   display: grid;
   gap: .5rem;
   grid-template-columns: auto auto 1fr;
-  padding: .75rem;
+  width: 100%;
 }
 
-.call-status-summary > span {
+.call-status-content > span {
   font-weight: 600;
 }
 
-.call-status-summary small {
-  color: var(--p-text-muted-color);
+:host ::ng-deep .call-status-message .p-message-content {
+  width: 100%;
 }
 
 .required-legend {
@@ -138,7 +135,7 @@
     grid-template-columns: 1fr;
   }
 
-  .call-status-summary {
+  .call-status-content {
     grid-template-columns: 1fr;
   }
 }
