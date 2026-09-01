@@ -291,6 +291,19 @@ export class DegreeCallsComponent implements OnInit {
     return map[status];
   }
 
+  formStatusMessageSeverity(): 'success' | 'info' | 'warn' | 'error' | 'secondary' {
+    if (!this.editingCall) return 'secondary';
+
+    const map: Record<DegreeCallStatusValue, 'success' | 'info' | 'warn' | 'error' | 'secondary'> = {
+      draft: 'secondary',
+      open: 'success',
+      closed: 'warn',
+      exported: 'info',
+      annulled: 'error',
+    };
+    return map[this.editingCall.status.value];
+  }
+
   private runAction(call: DegreeCall, action: () => ReturnType<DegreesTitlesService['openCall']>): void {
     this.actionId = call.id;
     action().subscribe({
