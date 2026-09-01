@@ -184,7 +184,7 @@ export interface DegreeBulkProcess {
   failed: number;
   progress: number;
   download_available: boolean;
-  results: {record_id: number; student_name: string; status: 'completed' | 'failed'; message?: string}[];
+  results: {record_id: number; student_name?: string; status: 'completed' | 'failed'; message?: string}[];
 }
 
 export interface DegreeRecordPayload {

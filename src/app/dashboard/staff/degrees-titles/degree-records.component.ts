@@ -309,6 +309,13 @@ export class DegreeRecordsComponent implements OnInit {
     return this.bulkProcess?.results.filter(result => result.status === 'failed') ?? [];
   }
 
+  bulkStudentName(result: {record_id: number; student_name?: string}): string {
+    return result.student_name
+      || this.selectedRecords.find(record => record.id === result.record_id)?.full_name
+      || this.records.find(record => record.id === result.record_id)?.full_name
+      || 'Estudiante no disponible';
+  }
+
   get careers(): DegreeAcademicCareer[] {
     return this.academicTree.find(faculty => faculty.id === this.form.faculty_id)?.careers ?? [];
   }

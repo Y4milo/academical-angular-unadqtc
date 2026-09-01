@@ -137,7 +137,7 @@
     <p-fieldset [legend]="'Completados (' + completedBulkResults.length + ')'" [toggleable]="true">
       <p-table [value]="completedBulkResults" [scrollable]="true" scrollHeight="220px">
         <ng-template pTemplate="body" let-result>
-          <tr><td><i class="pi pi-check-circle bulk-success"></i></td><td>{{ result.student_name }}</td><td>#{{ result.record_id }}</td></tr>
+          <tr><td><i class="pi pi-check-circle bulk-success"></i></td><td>{{ bulkStudentName(result) }}</td><td>#{{ result.record_id }}</td></tr>
         </ng-template>
         <ng-template pTemplate="emptymessage"><tr><td colspan="3">Todavía no hay registros completados.</td></tr></ng-template>
       </p-table>
@@ -146,7 +146,7 @@
                 [collapsed]="failedBulkResults.length === 0">
       <p-table [value]="failedBulkResults" [scrollable]="true" scrollHeight="220px">
         <ng-template pTemplate="body" let-result>
-          <tr><td><i class="pi pi-times-circle bulk-error"></i></td><td><strong>{{ result.student_name }}</strong><small>{{ result.message }}</small></td><td>#{{ result.record_id }}</td></tr>
+          <tr><td><i class="pi pi-times-circle bulk-error"></i></td><td><strong>{{ bulkStudentName(result) }}</strong><small>{{ result.message }}</small></td><td>#{{ result.record_id }}</td></tr>
         </ng-template>
         <ng-template pTemplate="emptymessage"><tr><td colspan="3">No se registraron errores.</td></tr></ng-template>
       </p-table>
