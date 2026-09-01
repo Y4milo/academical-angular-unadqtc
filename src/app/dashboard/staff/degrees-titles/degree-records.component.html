@@ -134,9 +134,23 @@
       <p-tag [value]="'Completados: ' + bulkProcess.completed" severity="success"></p-tag>
       <p-tag [value]="'Con errores: ' + bulkProcess.failed" [severity]="bulkProcess.failed ? 'danger' : 'secondary'"></p-tag>
     </div>
-    <p-message *ngFor="let result of bulkProcess.results" [severity]="result.status === 'failed' ? 'error' : 'success'" [closable]="false">
-      Registro {{ result.record_id }}: {{ result.message || 'Completado' }}
-    </p-message>
+    <p-fieldset [legend]="'Completados (' + completedBulkResults.length + ')'" [toggleable]="true">
+      <p-table [value]="completedBulkResults" [scrollable]="true" scrollHeight="220px">
+        <ng-template pTemplate="body" let-result>
+          <tr><td><i class="pi pi-check-circle bulk-success"></i></td><td>{{ result.student_name }}</td><td>#{{ result.record_id }}</td></tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="3">Todavía no hay registros completados.</td></tr></ng-template>
+      </p-table>
+    </p-fieldset>
+    <p-fieldset [legend]="'Con errores (' + failedBulkResults.length + ')'" [toggleable]="true"
+                [collapsed]="failedBulkResults.length === 0">
+      <p-table [value]="failedBulkResults" [scrollable]="true" scrollHeight="220px">
+        <ng-template pTemplate="body" let-result>
+          <tr><td><i class="pi pi-times-circle bulk-error"></i></td><td><strong>{{ result.student_name }}</strong><small>{{ result.message }}</small></td><td>#{{ result.record_id }}</td></tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="3">No se registraron errores.</td></tr></ng-template>
+      </p-table>
+    </p-fieldset>
   </div>
   <ng-template pTemplate="footer">
     <button *ngIf="bulkProcess?.download_available" pButton type="button" icon="pi pi-download"

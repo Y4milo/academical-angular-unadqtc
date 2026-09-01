@@ -301,6 +301,14 @@ export class DegreeRecordsComponent implements OnInit {
     });
   }
 
+  get completedBulkResults() {
+    return this.bulkProcess?.results.filter(result => result.status === 'completed') ?? [];
+  }
+
+  get failedBulkResults() {
+    return this.bulkProcess?.results.filter(result => result.status === 'failed') ?? [];
+  }
+
   get careers(): DegreeAcademicCareer[] {
     return this.academicTree.find(faculty => faculty.id === this.form.faculty_id)?.careers ?? [];
   }
