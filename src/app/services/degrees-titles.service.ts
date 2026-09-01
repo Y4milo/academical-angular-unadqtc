@@ -245,6 +245,7 @@ export class DegreesTitlesService {
     degree_types: DegreeCatalogOption[];
     diploma_issue_types: DegreeCatalogOption[];
     academic_tree: DegreeAcademicFaculty[];
+    all_calls: DegreeCatalogOption[];
     open_calls: DegreeCatalogOption[];
     sunedu_schema: {
       version: string;
