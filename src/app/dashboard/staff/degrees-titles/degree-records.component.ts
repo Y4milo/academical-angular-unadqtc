@@ -370,7 +370,7 @@ export class DegreeRecordsComponent implements OnInit {
         if (response.status === STATUS.success) {
           this.dialogVisible = false;
           this.notifications.success('Padrón actualizado', response.payload.message);
-          this.loadRecords(this.page);
+          this.loadRecords(this.editing ? this.page : 1);
           return;
         }
         this.notifications.notifyApiData(response);

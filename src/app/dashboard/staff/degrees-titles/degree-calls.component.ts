@@ -67,6 +67,7 @@ export class DegreeCallsComponent implements OnInit {
   formVisible = false;
   formAttempted = false;
   editingCall: DegreeCall | null = null;
+  reopenAfterSave = false;
   form = this.emptyForm();
   mailTestMode = false;
   mailTestRecipient: string | null = null;
@@ -125,17 +126,19 @@ export class DegreeCallsComponent implements OnInit {
 
   openCreate(): void {
     this.editingCall = null;
+    this.reopenAfterSave = false;
     this.formAttempted = false;
     this.form = this.emptyForm();
     this.formVisible = true;
   }
 
-  openEdit(call: DegreeCall): void {
+  openEdit(call: DegreeCall, reopenAfterSave = false): void {
     if (!this.canEdit(call)) {
       return;
     }
 
     this.editingCall = call;
+    this.reopenAfterSave = reopenAfterSave;
     this.formAttempted = false;
     this.form = {
       name: call.name,
@@ -175,8 +178,16 @@ export class DegreeCallsComponent implements OnInit {
       next: response => {
         this.saving = false;
         if (response.status === STATUS.success) {
+          const callToReopen = this.reopenAfterSave ? response.payload.data : null;
           this.formVisible = false;
           this.formAttempted = false;
+          this.reopenAfterSave = false;
+
+          if (callToReopen) {
+            this.runAction(callToReopen, () => this.degreesTitlesService.openCall(callToReopen.id));
+            return;
+          }
+
           this.notificationService.success(
             this.editingCall ? 'Convocatoria actualizada' : 'Convocatoria creada',
             response.payload.message,
@@ -195,7 +206,7 @@ export class DegreeCallsComponent implements OnInit {
 
   openCall(call: DegreeCall): void {
     if (!call.name?.trim() || !call.resolution_number?.trim() || !call.resolution_date) {
-      this.openEdit(call);
+      this.openEdit(call, true);
       this.notificationService.warning(
         'Complete la convocatoria',
         'Registre el nombre, el número y la fecha de resolución antes de abrir o reabrir.',

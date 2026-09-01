@@ -42,11 +42,6 @@ export interface DegreeCallListResponse {
   };
 }
 
-export interface DegreeCallMutationPayload {
-  message: string;
-  data: DegreeCall;
-}
-
 export interface DegreeCatalogOption {
   id: number;
   value?: string;
@@ -221,24 +216,24 @@ export class DegreesTitlesService {
     return this.http.get<DegreeCallListResponse>(`${this.apiURL}/calls`, {params});
   }
 
-  createCall(payload: DegreeCallPayload): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.post<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls`, payload);
+  createCall(payload: DegreeCallPayload): Observable<ApiData<DegreeCall>> {
+    return this.http.post<ApiData<DegreeCall>>(`${this.apiURL}/calls`, payload);
   }
 
-  updateCall(id: number, payload: DegreeCallPayload): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.put<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}`, payload);
+  updateCall(id: number, payload: DegreeCallPayload): Observable<ApiData<DegreeCall>> {
+    return this.http.put<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}`, payload);
   }
 
-  openCall(id: number): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.patch<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}/open`, {});
+  openCall(id: number): Observable<ApiData<DegreeCall>> {
+    return this.http.patch<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}/open`, {});
   }
 
-  closeCall(id: number): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.patch<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}/close`, {});
+  closeCall(id: number): Observable<ApiData<DegreeCall>> {
+    return this.http.patch<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}/close`, {});
   }
 
-  annulCall(id: number): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.delete<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}`);
+  annulCall(id: number): Observable<ApiData<DegreeCall>> {
+    return this.http.delete<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}`);
   }
 
   getRecordCatalogs(): Observable<{data: {
