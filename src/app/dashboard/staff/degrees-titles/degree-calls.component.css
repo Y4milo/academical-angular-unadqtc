@@ -81,6 +81,25 @@
   color: var(--p-red-500);
 }
 
+.required-legend {
+  color: var(--p-text-muted-color);
+  font-size: .82rem;
+  margin: 0;
+}
+
+.validation-message {
+  color: var(--p-red-500) !important;
+  font-weight: 600;
+}
+
+.field-error input {
+  border-color: var(--p-red-500);
+}
+
+:host ::ng-deep .field-error .p-datepicker-input {
+  border-color: var(--p-red-500);
+}
+
 :host ::ng-deep .filter-card .p-card-body,
 :host ::ng-deep .table-card .p-card-body {
   padding: 1rem;
