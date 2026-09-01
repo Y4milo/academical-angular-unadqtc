@@ -18,17 +18,30 @@
     <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" [text]="true" (click)="clearFilters()"></button>
   </div>
 
+  <div class="bulk-actions" *ngIf="selectedRecords.length">
+    <span><strong>{{ selectedRecords.length }}</strong> registros seleccionados</span>
+    <button pButton type="button" icon="pi pi-file-pdf" label="Generar PDFs" severity="danger"
+            [loading]="bulkStarting" (click)="startBulkProcess('pdf')"></button>
+    <button pButton type="button" icon="pi pi-envelope" label="Enviar formularios" severity="success"
+            [loading]="bulkStarting" (click)="startBulkProcess('ethnicity-email')"></button>
+    <button pButton type="button" icon="pi pi-times" label="Limpiar selección" severity="secondary"
+            [text]="true" (click)="selectedRecords = []"></button>
+  </div>
+
   <p-table [value]="records" [loading]="loading" [paginator]="true" [rows]="perPage"
            [totalRecords]="total" [lazy]="true" (onPage)="onPageChange($event)"
+           [(selection)]="selectedRecords" dataKey="id"
            [rowsPerPageOptions]="[15, 30, 50]" responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
+        <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
         <th>Estudiante</th><th>Documento</th><th>Grado / título</th><th>Convocatoria</th>
         <th>Código</th><th>Estado</th><th class="actions">Acciones</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-record>
       <tr>
+        <td><p-tableCheckbox [value]="record"></p-tableCheckbox></td>
         <td><strong>{{ record.full_name }}</strong><small>{{ record.student_code }}</small></td>
         <td>{{ record.document_number }}</td>
         <td>{{ record.degree_type?.label }}<small>{{ record.degree_denomination }}</small></td>
@@ -92,9 +105,33 @@
         </td>
       </tr>
     </ng-template>
-    <ng-template pTemplate="emptymessage"><tr><td colspan="7" class="empty">No se encontraron registros.</td></tr></ng-template>
+    <ng-template pTemplate="emptymessage"><tr><td colspan="8" class="empty">No se encontraron registros.</td></tr></ng-template>
   </p-table>
 </section>
+
+<p-dialog [(visible)]="bulkDialogVisible" [modal]="true" [closable]="bulkProcess?.status === 'completed'"
+          [style]="{width: 'min(620px, 94vw)'}" header="Progreso del proceso masivo">
+  <div class="bulk-progress" *ngIf="bulkProcess">
+    <p-message [severity]="bulkProcess.failed ? 'warn' : (bulkProcess.status === 'completed' ? 'success' : 'info')" [closable]="false">
+      {{ bulkProcess.status === 'completed' ? 'Proceso finalizado' : 'Procesando registros seleccionados' }}
+    </p-message>
+    <p-progressBar [value]="bulkProcess.progress"></p-progressBar>
+    <div class="bulk-summary">
+      <p-tag [value]="'Procesados: ' + bulkProcess.processed + '/' + bulkProcess.total" severity="info"></p-tag>
+      <p-tag [value]="'Completados: ' + bulkProcess.completed" severity="success"></p-tag>
+      <p-tag [value]="'Con errores: ' + bulkProcess.failed" [severity]="bulkProcess.failed ? 'danger' : 'secondary'"></p-tag>
+    </div>
+    <p-message *ngFor="let result of bulkProcess.results" [severity]="result.status === 'failed' ? 'error' : 'success'" [closable]="false">
+      Registro {{ result.record_id }}: {{ result.message || 'Completado' }}
+    </p-message>
+  </div>
+  <ng-template pTemplate="footer">
+    <button *ngIf="bulkProcess?.download_available" pButton type="button" icon="pi pi-download"
+            label="Descargar ZIP" (click)="downloadBulkPdf()"></button>
+    <button pButton type="button" label="Cerrar" severity="secondary"
+            [disabled]="bulkProcess?.status !== 'completed'" (click)="bulkDialogVisible = false"></button>
+  </ng-template>
+</p-dialog>
 
 <p-dialog [(visible)]="dialogVisible" [modal]="true" [style]="{width: 'min(1180px, 98vw)'}"
           [header]="editing ? 'Editar registro del padrón' : 'Agregar estudiante apto'">

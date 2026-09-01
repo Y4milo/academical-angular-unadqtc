@@ -173,6 +173,19 @@ export interface PublicEthnicityForm {
   test_mode: boolean;
 }
 
+export interface DegreeBulkProcess {
+  key: string;
+  action: 'pdf' | 'ethnicity-email';
+  status: 'queued' | 'processing' | 'completed';
+  total: number;
+  processed: number;
+  completed: number;
+  failed: number;
+  progress: number;
+  download_available: boolean;
+  results: {record_id: number; status: 'completed' | 'failed'; message?: string}[];
+}
+
 export interface DegreeRecordPayload {
   degree_call_id?: number;
   student_id?: number;
@@ -284,6 +297,18 @@ export class DegreesTitlesService {
 
   annulRecord(id: number): Observable<ApiData<{message: string; data: DegreeRecord}>> {
     return this.http.delete<ApiData<{message: string; data: DegreeRecord}>>(`${this.apiURL}/records/${id}`);
+  }
+
+  startBulkProcess(action: 'pdf' | 'ethnicity-email', recordIds: number[]): Observable<ApiData<DegreeBulkProcess>> {
+    return this.http.post<ApiData<DegreeBulkProcess>>(`${this.apiURL}/records/bulk/${action}`, {record_ids: recordIds});
+  }
+
+  getBulkProcess(key: string): Observable<ApiData<DegreeBulkProcess>> {
+    return this.http.get<ApiData<DegreeBulkProcess>>(`${this.apiURL}/records/bulk/status/${key}`);
+  }
+
+  downloadBulkPdf(key: string): Observable<Blob> {
+    return this.http.get(`${this.apiURL}/records/bulk/download/${key}`, {responseType: 'blob'});
   }
 
   downloadDegreeRecordPdf(id: number): Observable<HttpResponse<Blob>> {

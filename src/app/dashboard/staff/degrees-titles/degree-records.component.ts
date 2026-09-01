@@ -16,6 +16,7 @@ import {ConfirmationService} from 'primeng/api';
 import {InputNumberModule} from 'primeng/inputnumber';
 import {FieldsetModule} from 'primeng/fieldset';
 import {MessageModule} from 'primeng/message';
+import {ProgressBarModule} from 'primeng/progressbar';
 import {STATUS} from '../../../core/constants/api-status.constants';
 import {
   DegreeCatalogOption,
@@ -26,6 +27,7 @@ import {
   DegreeRecord,
   DegreeRecordPayload,
   DegreeStudent,
+  DegreeBulkProcess,
   InstitutionalIdentityLookup,
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
@@ -37,7 +39,7 @@ import {TestModeBannerComponent} from '../../../core/components/test-mode-banner
   standalone: true,
   imports: [
     FormsModule, DatePipe, NgFor, NgIf, ButtonModule, DialogModule, TableModule, TagModule, TooltipModule,
-    InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule, TestModeBannerComponent,
+    InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule, ProgressBarModule, TestModeBannerComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './degree-records.component.html',
@@ -80,6 +82,10 @@ export class DegreeRecordsComponent implements OnInit {
     ]},
   ];
   records: DegreeRecord[] = [];
+  selectedRecords: DegreeRecord[] = [];
+  bulkProcess: DegreeBulkProcess | null = null;
+  bulkDialogVisible = false;
+  bulkStarting = false;
   calls: DegreeCatalogOption[] = [];
   filterCalls: DegreeCatalogOption[] = [];
   degreeTypes: DegreeCatalogOption[] = [];
@@ -248,6 +254,51 @@ export class DegreeRecordsComponent implements OnInit {
     if (!['verified', 'confirmed', 'test'].includes(student.institutional_email_status ?? 'pending')) {
       this.verifySelectedStudent();
     }
+  }
+
+  startBulkProcess(action: 'pdf' | 'ethnicity-email'): void {
+    const limit = action === 'pdf' ? 100 : 50;
+    if (!this.selectedRecords.length || this.selectedRecords.length > limit) {
+      this.notifications.warning('Selección inválida', `Seleccione entre 1 y ${limit} registros.`);
+      return;
+    }
+    this.bulkStarting = true;
+    this.service.startBulkProcess(action, this.selectedRecords.map(record => record.id)).subscribe({
+      next: response => {
+        this.bulkStarting = false;
+        this.bulkProcess = response.payload.data;
+        this.bulkDialogVisible = true;
+        this.pollBulkProcess();
+      },
+      error: error => { this.bulkStarting = false; this.notifications.notifyApiData(error); },
+    });
+  }
+
+  private pollBulkProcess(): void {
+    if (!this.bulkProcess || this.bulkProcess.status === 'completed') return;
+    window.setTimeout(() => this.service.getBulkProcess(this.bulkProcess!.key).subscribe({
+      next: response => {
+        this.bulkProcess = response.payload.data;
+        if (this.bulkProcess.status === 'completed') {
+          this.loadRecords(this.page);
+          return;
+        }
+        this.pollBulkProcess();
+      },
+      error: error => this.notifications.notifyApiData(error),
+    }), 1500);
+  }
+
+  downloadBulkPdf(): void {
+    if (!this.bulkProcess?.download_available) return;
+    this.service.downloadBulkPdf(this.bulkProcess.key).subscribe(blob => {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `diplomas-${this.bulkProcess!.key}.zip`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
   get careers(): DegreeAcademicCareer[] {
