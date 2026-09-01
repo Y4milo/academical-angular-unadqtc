@@ -1,4 +1,5 @@
 import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {DatePipe, NgFor, NgIf} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
@@ -119,6 +120,7 @@ export class DegreeRecordsComponent implements OnInit {
     private service: DegreesTitlesService,
     private notifications: NotificationService,
     private confirmationService: ConfirmationService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -130,7 +132,10 @@ export class DegreeRecordsComponent implements OnInit {
       next: response => {
         this.calls = response.data.open_calls ?? [];
         this.filterCalls = response.data.all_calls ?? this.calls;
-        this.selectedCallId = this.calls[0]?.id ?? null;
+        const requestedCallId = Number(this.route.snapshot.queryParamMap.get('call_id'));
+        this.selectedCallId = requestedCallId > 0 && this.filterCalls.some(call => call.id === requestedCallId)
+          ? requestedCallId
+          : this.calls[0]?.id ?? null;
         this.degreeTypes = (response.data.degree_types ?? [])
           .filter(type => ['bachelor', 'professional_title'].includes(type.value ?? ''));
         this.issueTypes = response.data.diploma_issue_types ?? [];

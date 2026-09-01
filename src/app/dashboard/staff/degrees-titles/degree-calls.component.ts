@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {DatePipe, NgIf} from '@angular/common';
+import {Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
@@ -20,6 +21,7 @@ import {
 import {LoginService} from '../../../services/login.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
+import {PATHS} from '../../../core/constants/app-paths.constants';
 
 interface SelectOption {
   label: string;
@@ -76,6 +78,7 @@ export class DegreeCallsComponent implements OnInit {
     private degreesTitlesService: DegreesTitlesService,
     private loginService: LoginService,
     private notificationService: NotificationService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -255,6 +258,24 @@ export class DegreeCallsComponent implements OnInit {
   canAnnul(call: DegreeCall): boolean {
     return ['draft', 'open'].includes(call.status.value)
       || (this.isAdmin && ['closed', 'exported'].includes(call.status.value));
+  }
+
+  canViewRecords(call: DegreeCall): boolean {
+    return call.status.value !== 'draft'
+      && (call.status.value !== 'annulled' || call.records_count > 0);
+  }
+
+  recordsActionLabel(call: DegreeCall): string {
+    return call.status.value === 'open' ? 'Gestionar padrón' : 'Ver padrón';
+  }
+
+  goToRecords(call: DegreeCall): void {
+    if (!this.canViewRecords(call)) return;
+
+    const route = this.isAdmin
+      ? PATHS.admin.degreesTitles.records.link
+      : PATHS.degreesTitles.records.link;
+    this.router.navigate([route], {queryParams: {call_id: call.id}});
   }
 
   statusSeverity(status: DegreeCallStatusValue): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {

@@ -81,6 +81,25 @@
   color: var(--p-red-500);
 }
 
+.call-status-summary {
+  align-items: center;
+  background: var(--p-surface-50);
+  border: 1px solid var(--p-surface-200);
+  border-radius: .5rem;
+  display: grid;
+  gap: .5rem;
+  grid-template-columns: auto auto 1fr;
+  padding: .75rem;
+}
+
+.call-status-summary > span {
+  font-weight: 600;
+}
+
+.call-status-summary small {
+  color: var(--p-text-muted-color);
+}
+
 .required-legend {
   color: var(--p-text-muted-color);
   font-size: .82rem;
@@ -116,6 +135,10 @@
   }
 
   .filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .call-status-summary {
     grid-template-columns: 1fr;
   }
 }
