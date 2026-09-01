@@ -4,11 +4,11 @@
     <div>
       <h1>Padrón de aptos</h1>
       <p>Registro de estudiantes aptos por convocatoria de grados y títulos.</p>
-      <p-tag *ngIf="mailTestMode" value="MODO DE PRUEBA · correos redirigidos" severity="warn"
-             [pTooltip]="'Destinatario de prueba: ' + mailTestRecipient"></p-tag>
     </div>
     <button pButton type="button" icon="pi pi-plus" label="Agregar estudiante" (click)="openCreate()"></button>
   </div>
+
+  <app-test-mode-banner *ngIf="mailTestMode" area="Grados y Títulos" [recipient]="mailTestRecipient"></app-test-mode-banner>
 
   <div class="filters">
     <p-select [(ngModel)]="selectedCallId" [options]="calls" optionLabel="name" optionValue="id"
@@ -72,6 +72,10 @@
         <td class="actions">
           <button pButton type="button" icon="pi pi-pencil" [text]="true" pTooltip="Editar"
                   [disabled]="!canModify(record)" (click)="openEdit(record)"></button>
+          <button pButton type="button" icon="pi pi-file-pdf" severity="danger" [text]="true"
+                  pTooltip="Descargar diploma PDF" [loading]="downloadingPdfId === record.id"
+                  [disabled]="record.status?.value === 'annulled' || (downloadingPdfId !== null && downloadingPdfId !== record.id)"
+                  (click)="downloadPdf(record)"></button>
           <button pButton type="button" icon="pi pi-link" severity="info" [text]="true"
                   [loading]="generatingLinkId === record.id"
                   [pTooltip]="record.ethnicity_form?.submitted_at ? 'Generar un nuevo enlace' : 'Formulario de variables étnicas'"

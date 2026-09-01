@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {ApiData} from '../models/api/api-data.model';
@@ -175,6 +175,7 @@ export interface PublicEthnicityForm {
   catalogs: {ethnic_options: EthnicityOption[]; language_options: EthnicityOption[]; peoples: EthnicityOption[]; languages: EthnicityOption[]};
   submitted: boolean;
   expires_at: string;
+  test_mode: boolean;
 }
 
 export interface DegreeRecordPayload {
@@ -287,6 +288,13 @@ export class DegreesTitlesService {
 
   annulRecord(id: number): Observable<ApiData<{message: string; data: DegreeRecord}>> {
     return this.http.delete<ApiData<{message: string; data: DegreeRecord}>>(`${this.apiURL}/records/${id}`);
+  }
+
+  downloadDegreeRecordPdf(id: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiURL}/records/${id}/pdf`, {
+      observe: 'response',
+      responseType: 'blob',
+    });
   }
 
   createEthnicityLink(id: number): Observable<ApiData<{url: string; expires_at: string}>> {

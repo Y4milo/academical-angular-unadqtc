@@ -29,13 +29,14 @@ import {
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
+import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
 
 @Component({
   selector: 'app-degree-records',
   standalone: true,
   imports: [
     FormsModule, DatePipe, NgFor, NgIf, ButtonModule, DialogModule, TableModule, TagModule, TooltipModule,
-    InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule,
+    InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule, TestModeBannerComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './degree-records.component.html',
@@ -110,6 +111,7 @@ export class DegreeRecordsComponent implements OnInit {
   checkingIdentityId: number | null = null;
   confirmingIdentity = false;
   sendingEmailId: number | null = null;
+  downloadingPdfId: number | null = null;
   form = this.emptyForm();
 
   constructor(
@@ -397,6 +399,36 @@ export class DegreeRecordsComponent implements OnInit {
     return record.call?.status?.value === 'open' && record.status?.value !== 'annulled';
   }
 
+  downloadPdf(record: DegreeRecord): void {
+    if (record.status?.value === 'annulled' || this.downloadingPdfId !== null) return;
+
+    this.downloadingPdfId = record.id;
+    this.service.downloadDegreeRecordPdf(record.id).subscribe({
+      next: response => {
+        this.downloadingPdfId = null;
+        const blob = response.body;
+        if (!blob) {
+          this.notifications.error('PDF no disponible', 'El servidor no devolvió el diploma solicitado.');
+          return;
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = this.pdfFilename(response.headers.get('Content-Disposition'), record);
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.URL.revokeObjectURL(url);
+      },
+      error: async error => {
+        this.downloadingPdfId = null;
+        const message = await this.pdfErrorMessage(error?.error);
+        this.notifications.error('No se pudo generar el diploma', message);
+      },
+    });
+  }
+
   canVerifyInstitutionalEmail(record: DegreeRecord): boolean {
     return record.status?.value !== 'annulled'
       && this.canVerifyInstitutionalStatus(record.institutional_identity?.status);
@@ -560,6 +592,28 @@ export class DegreeRecordsComponent implements OnInit {
 
   private findFacultyId(label: string | null): number | null {
     return this.academicTree.find(option => option.label === label)?.id ?? null;
+  }
+
+  private pdfFilename(contentDisposition: string | null, record: DegreeRecord): string {
+    const encoded = contentDisposition?.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+    const plain = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
+    if (encoded) return decodeURIComponent(encoded);
+    if (plain) return plain;
+
+    const type = record.degree_type?.value === 'bachelor' ? 'B' : 'T';
+    return `D804_${record.document_number}_${type}.pdf`;
+  }
+
+  private async pdfErrorMessage(body: unknown): Promise<string> {
+    try {
+      const payload = body instanceof Blob ? JSON.parse(await body.text()) : body as any;
+      return payload?.errors?.degree_record?.[0]
+        ?? payload?.message
+        ?? payload?.payload?.message
+        ?? 'Revise que el registro tenga completos los datos obligatorios del diploma.';
+    } catch {
+      return 'Revise que el registro tenga completos los datos obligatorios del diploma.';
+    }
   }
 
   private findCareerId(label: string | null): number | null {
