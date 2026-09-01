@@ -80,6 +80,7 @@ export class DegreeRecordsComponent implements OnInit {
   ];
   records: DegreeRecord[] = [];
   calls: DegreeCatalogOption[] = [];
+  filterCalls: DegreeCatalogOption[] = [];
   degreeTypes: DegreeCatalogOption[] = [];
   issueTypes: DegreeCatalogOption[] = [];
   academicTree: DegreeAcademicFaculty[] = [];
@@ -122,13 +123,14 @@ export class DegreeRecordsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogs();
-    this.loadRecords();
   }
 
   loadCatalogs(): void {
     this.service.getRecordCatalogs().subscribe({
       next: response => {
         this.calls = response.data.open_calls ?? [];
+        this.filterCalls = response.data.all_calls ?? this.calls;
+        this.selectedCallId = this.calls[0]?.id ?? null;
         this.degreeTypes = (response.data.degree_types ?? [])
           .filter(type => ['bachelor', 'professional_title'].includes(type.value ?? ''));
         this.issueTypes = response.data.diploma_issue_types ?? [];
@@ -136,8 +138,12 @@ export class DegreeRecordsComponent implements OnInit {
         this.suneduSchemaVersion = response.data.sunedu_schema?.version ?? '';
         this.mailTestMode = response.data.mail_delivery?.test_mode ?? false;
         this.mailTestRecipient = response.data.mail_delivery?.test_recipient ?? null;
+        this.loadRecords(1);
       },
-      error: error => this.notifications.notifyApiData(error),
+      error: error => {
+        this.notifications.notifyApiData(error);
+        this.loadRecords(1);
+      },
     });
   }
 
