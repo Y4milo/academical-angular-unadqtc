@@ -166,14 +166,18 @@
   [header]="isResolutionOnlyEdit() ? 'Completar resolución' : (editingCall ? 'Editar convocatoria' : 'Nueva convocatoria')">
   <div class="form-grid">
     <p class="required-legend"><span class="required">*</span> Campos obligatorios</p>
-    <p-message [severity]="formStatusMessageSeverity()" styleClass="call-status-message">
+    <p-message
+      *ngIf="formVisible"
+      [severity]="formStatusMessageSeverity()"
+      [closable]="false"
+      styleClass="call-status-message">
       <div class="call-status-content">
         <span>Estado</span>
         <p-tag
           [value]="editingCall?.status?.label || 'Borrador'"
           [severity]="editingCall ? statusSeverity(editingCall.status.value) : 'secondary'">
         </p-tag>
-        <small>El estado cambia mediante las acciones de la convocatoria.</small>
+        <small>{{ formStatusDescription() }}</small>
       </div>
     </p-message>
     <div class="field full-width" [class.field-error]="formAttempted && !form.name.trim()">

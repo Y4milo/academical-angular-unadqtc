@@ -304,6 +304,24 @@ export class DegreeCallsComponent implements OnInit {
     return map[this.editingCall.status.value];
   }
 
+  formStatusDescription(): string {
+    if (!this.editingCall) {
+      return 'La convocatoria se guardará inicialmente como borrador.';
+    }
+    if (this.reopenAfterSave) {
+      return 'Al guardar los datos obligatorios, la convocatoria se reabrirá automáticamente.';
+    }
+
+    const descriptions: Record<DegreeCallStatusValue, string> = {
+      draft: 'Complete los datos y utilice la acción Abrir cuando corresponda.',
+      open: 'La convocatoria está habilitada para gestionar su padrón de aptos.',
+      closed: 'La convocatoria está cerrada y su padrón permanece en modo consulta.',
+      exported: 'La convocatoria ya fue exportada y su padrón permanece en modo consulta.',
+      annulled: 'La convocatoria está anulada y se conserva únicamente para auditoría.',
+    };
+    return descriptions[this.editingCall.status.value];
+  }
+
   private runAction(call: DegreeCall, action: () => ReturnType<DegreesTitlesService['openCall']>): void {
     this.actionId = call.id;
     action().subscribe({
