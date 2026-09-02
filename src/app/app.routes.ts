@@ -55,9 +55,12 @@ import {
 } from './dashboard/staff/degrees-titles/degree-calls.component';
 import {DegreeRecordsComponent} from './dashboard/staff/degrees-titles/degree-records.component';
 import {PublicEthnicityFormComponent} from './degrees-titles/public-ethnicity-form.component';
+import {PublicSupportRequestComponent} from './support/public-support-request.component';
+import {SupportRequestsAdminComponent} from './support/support-requests-admin.component';
 
 export const routes: Routes = [
   {path: 'grados-titulos/variables-etnicas/:token', component: PublicEthnicityFormComponent},
+  {path: 'soporte/correo', component: PublicSupportRequestComponent},
   {
     path: '',
     redirectTo: PATHS.login.staff,
@@ -126,6 +129,10 @@ export const routes: Routes = [
         path: PATHS.admin.degreesTitles.exports.path,
         component: DegreesTitlesPageComponent,
         data: {title: 'Exportaciones SUNEDU'},
+      },
+      {
+        path: 'support/requests',
+        component: SupportRequestsAdminComponent,
       },
     ]
   },

@@ -1,0 +1,75 @@
+<main class="support-page">
+  <header class="institutional-header">
+    <div class="brand">
+      <img src="/img/logo-unadqtc-rojo.png" alt="Escudo de la Universidad Nacional de Arte Diego Quispe Tito del Cusco">
+      <div class="brand-copy"><strong>Universidad Nacional de Arte</strong><span>Diego Quispe Tito del Cusco</span><small>Oficina de Tecnologías de la Información</small></div>
+    </div>
+    <button pButton type="button" [icon]="themeMode === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" class="theme-toggle"
+            [rounded]="true" [outlined]="true" severity="secondary"
+            [attr.aria-label]="themeMode === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
+            [pTooltip]="themeMode === 'dark' ? 'Tema claro' : 'Tema oscuro'" (click)="toggleTheme()"></button>
+  </header>
+
+  <app-test-mode-banner *ngIf="testMode" area="el formulario de Soporte Informático" [publicView]="true"></app-test-mode-banner>
+
+  <p-card styleClass="institutional-card">
+    <div *ngIf="!ticket">
+      <div class="form-title"><span class="eyebrow">FORMULARIO OFICIAL</span><h1>Solicitud de correo institucional</h1>
+        <p class="intro">Identifique su vínculo universitario y el trámite que necesita. Academical validará sus datos antes de atender la solicitud.</p></div>
+      <div class="privacy-note"><i class="pi pi-shield"></i><span>Sus datos se usarán únicamente para validar su identidad y atender esta solicitud. Nunca escriba contraseñas ni códigos de autenticación.</span></div>
+
+      <p-steps styleClass="support-steps" [class.step-error-0]="stepError === 0" [class.step-error-1]="stepError === 1" [class.step-error-2]="stepError === 2" [model]="steps" [activeIndex]="activeStep" [readonly]="true"></p-steps>
+      <div class="form-message" *ngIf="error && activeStep !== 2"><p-message severity="error" [text]="error"></p-message></div>
+
+      <section *ngIf="activeStep === 0" class="question step-panel"><div class="question-number">01</div><label>Identificación del solicitante</label>
+        <p class="question-help">Primero comprobaremos su identidad para mostrar únicamente los canales registrados que puede utilizar.</p>
+        <div class="field-grid">
+          <label>Tipo de integrante <b>*</b><p-select [(ngModel)]="form.requester_type" [options]="requesterOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select></label>
+          <label>Número de documento <b>*</b><input pInputText [(ngModel)]="form.document_number" maxlength="20" autocomplete="off" placeholder="Ingrese su DNI o documento"></label>
+          <label *ngIf="form.requester_type === 'student'" class="full-field">Código de estudiante <b>*</b><input pInputText [(ngModel)]="form.student_code" maxlength="30" autocomplete="off" placeholder="Ingrese su código académico"></label>
+        </div>
+        <button pButton type="button" class="submit-button step-action" label="Validar y continuar" icon="pi pi-arrow-right" iconPos="right" [loading]="saving" (click)="validateIdentity()"></button>
+      </section>
+
+      <section *ngIf="activeStep === 1" class="question step-panel"><div class="question-number">02</div><label>¿Qué atención necesita? <b>*</b></label>
+        <p-select class="wide-select" [(ngModel)]="form.request_type" [options]="requestOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+        <div class="step-buttons"><button pButton type="button" label="Atrás" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (click)="backToIdentity()"></button><button pButton type="button" class="institutional-button" label="Continuar" icon="pi pi-arrow-right" iconPos="right" (click)="goToContact()"></button></div>
+      </section>
+
+      <div *ngIf="activeStep === 2">
+      <section class="question"><div class="question-number">03</div><label>Verificación de contacto</label>
+        <p class="question-help">Solo se muestran los canales válidos encontrados en Academical. Debe escribir el dato completo para comprobarlo.</p>
+        <div class="field-grid">
+          <label>Canal disponible <b>*</b><p-select [(ngModel)]="form.contact_channel" [options]="availableChannels" optionLabel="label" optionValue="value" appendTo="body"></p-select></label>
+          <label>{{ form.contact_channel === 'email' ? 'Correo personal registrado' : 'Celular registrado' }} <b>*</b><input pInputText [(ngModel)]="form.contact_value" maxlength="190" autocomplete="off" [placeholder]="form.contact_channel === 'email' ? 'nombre@correo.com' : 'Número de celular'"></label>
+          <label *ngIf="form.contact_channel === 'phone'" class="full-field">Nuevo correo personal <b>*</b><input pInputText [(ngModel)]="form.new_personal_email" maxlength="190" type="email" autocomplete="email" placeholder="nombre@correo-personal.com"><small>Se actualizará únicamente después de validar el caso. No ingrese un correo institucional.</small></label>
+        </div>
+      </section>
+
+      <section class="question last-question"><div class="question-number">04</div><label>Descripción adicional</label>
+        <p class="question-help">Explique el problema sin incluir contraseñas ni códigos de seguridad.</p>
+        <textarea [(ngModel)]="form.description" maxlength="2000" rows="4" placeholder="Describa brevemente lo ocurrido"></textarea>
+      </section>
+
+      <div class="form-message" *ngIf="error"><p-message severity="error" [text]="error"></p-message></div>
+      <button pButton type="button" class="submit-button" label="Registrar solicitud" icon="pi pi-send" [loading]="saving" (click)="submit()"></button>
+      <button pButton type="button" class="back-button" label="Atrás" icon="pi pi-arrow-left" severity="secondary" [text]="true" (click)="activeStep = 1"></button>
+      <p class="required-note">* Campos obligatorios</p>
+      </div>
+    </div>
+
+    <div *ngIf="ticket" class="result"><p-steps styleClass="support-steps result-steps" [model]="steps" [activeIndex]="3" [readonly]="true"></p-steps><i class="pi pi-check-circle"></i><span class="eyebrow">SOLICITUD REGISTRADA</span><h2>{{ ticket }}</h2>
+      <p-message *ngIf="wasDuplicate" severity="warn" [text]="responseMessage"></p-message>
+      <p *ngIf="status === 'manual_review'">Un administrador revisará los datos porque no fue posible validarlos automáticamente.</p>
+      <div *ngIf="verificationRequired" class="verification"><div class="identity-icon"><i class="pi pi-envelope"></i></div><div><strong>Verifique su identidad</strong><p>{{form.contact_channel === 'phone' ? 'Enviamos un enlace al nuevo correo personal. Ábralo para confirmar que tiene acceso.' : 'Enviamos un código al correo personal que coincide con el registrado.'}}</p></div>
+        <label *ngIf="form.contact_channel === 'email'">Código de seis dígitos<input pInputText [(ngModel)]="code" maxlength="6" inputmode="numeric" autocomplete="one-time-code"></label>
+        <button *ngIf="form.contact_channel === 'email'" pButton class="submit-button" label="Validar identidad" [loading]="saving" (click)="verify()"></button></div>
+      <p *ngIf="status === 'automatically_validated'">Su identidad fue validada correctamente. La solicitud está lista para ser atendida.</p>
+      <p *ngIf="status === 'pending_approval'">Su identidad fue validada. Por seguridad, un administrador debe aprobar la creación, reactivación o cambio de acceso.</p>
+      <div *ngIf="resultEmail" class="email-result"><small>Su correo institucional es</small><strong>{{ resultEmail }}</strong></div>
+      <div class="form-message" *ngIf="error"><p-message severity="error" [text]="error"></p-message></div>
+      <button pButton label="Registrar otra solicitud" severity="secondary" [outlined]="true" (click)="reset()"></button>
+    </div>
+  </p-card>
+  <footer class="page-footer">Universidad Nacional de Arte Diego Quispe Tito · Oficina de Tecnologías de la Información</footer>
+</main>

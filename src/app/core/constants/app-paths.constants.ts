@@ -38,6 +38,9 @@ export const PATHS = {
         link: `admin/degrees-titles/exports`,
       },
     },
+    support: {
+      requests: {path: `support/requests`, link: `admin/support/requests`},
+    },
   },
   degreesTitles: {
     path: `degrees-titles`,
