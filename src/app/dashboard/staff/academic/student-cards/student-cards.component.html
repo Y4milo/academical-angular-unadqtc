@@ -33,7 +33,9 @@
         </div>
       }
     </div>
-    <p-tabView [class.semester-read-only]="isHistoricalSemester">
+    <p-tabView
+      [(activeIndex)]="activeTabIndex"
+      [class.semester-read-only]="isHistoricalSemester">
       <p-tabPanel>
         <ng-template pTemplate="header">
           Pendientes de validar
