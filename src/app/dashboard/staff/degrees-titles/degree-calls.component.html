@@ -59,7 +59,7 @@
           <th style="width: 9rem">Estado</th>
           <th style="width: 7rem">Aptos</th>
           <th style="width: 8rem">Exportaciones</th>
-          <th style="width: 20rem">Acciones</th>
+          <th style="width: 30rem">Acciones</th>
         </tr>
       </ng-template>
 
@@ -84,6 +84,18 @@
           <td>{{ call.exports_count }}</td>
           <td>
             <div class="row-actions">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-users"
+                [label]="recordsActionLabel(call)"
+                size="small"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="!canViewRecords(call)"
+                [title]="call.status.value === 'draft' ? 'Abra la convocatoria para gestionar su padrón' : recordsActionLabel(call)"
+                (click)="goToRecords(call)">
+              </button>
               <button
                 *ngIf="canEdit(call)"
                 pButton
@@ -154,6 +166,20 @@
   [header]="isResolutionOnlyEdit() ? 'Completar resolución' : (editingCall ? 'Editar convocatoria' : 'Nueva convocatoria')">
   <div class="form-grid">
     <p class="required-legend"><span class="required">*</span> Campos obligatorios</p>
+    <p-message
+      *ngIf="formVisible"
+      [severity]="formStatusMessageSeverity()"
+      [closable]="false"
+      styleClass="call-status-message">
+      <div class="call-status-content">
+        <span>Estado</span>
+        <p-tag
+          [value]="editingCall?.status?.label || 'Borrador'"
+          [severity]="editingCall ? statusSeverity(editingCall.status.value) : 'secondary'">
+        </p-tag>
+        <small>{{ formStatusDescription() }}</small>
+      </div>
+    </p-message>
     <div class="field full-width" [class.field-error]="formAttempted && !form.name.trim()">
       <label for="call-name">Nombre <span class="required">*</span></label>
       <input id="call-name" pInputText type="text" maxlength="150" [(ngModel)]="form.name"
