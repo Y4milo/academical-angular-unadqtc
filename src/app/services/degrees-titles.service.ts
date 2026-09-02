@@ -42,11 +42,6 @@ export interface DegreeCallListResponse {
   };
 }
 
-export interface DegreeCallMutationPayload {
-  message: string;
-  data: DegreeCall;
-}
-
 export interface DegreeCatalogOption {
   id: number;
   value?: string;
@@ -54,6 +49,7 @@ export interface DegreeCatalogOption {
   name?: string;
   resolution_number?: string | null;
   resolution_date?: string | null;
+  records_count?: number;
 }
 
 export interface DegreeStudent {
@@ -178,6 +174,19 @@ export interface PublicEthnicityForm {
   test_mode: boolean;
 }
 
+export interface DegreeBulkProcess {
+  key: string;
+  action: 'pdf' | 'ethnicity-email';
+  status: 'queued' | 'processing' | 'completed';
+  total: number;
+  processed: number;
+  completed: number;
+  failed: number;
+  progress: number;
+  download_available: boolean;
+  results: {record_id: number; student_name?: string; status: 'completed' | 'failed'; message?: string}[];
+}
+
 export interface DegreeRecordPayload {
   degree_call_id?: number;
   student_id?: number;
@@ -221,24 +230,24 @@ export class DegreesTitlesService {
     return this.http.get<DegreeCallListResponse>(`${this.apiURL}/calls`, {params});
   }
 
-  createCall(payload: DegreeCallPayload): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.post<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls`, payload);
+  createCall(payload: DegreeCallPayload): Observable<ApiData<DegreeCall>> {
+    return this.http.post<ApiData<DegreeCall>>(`${this.apiURL}/calls`, payload);
   }
 
-  updateCall(id: number, payload: DegreeCallPayload): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.put<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}`, payload);
+  updateCall(id: number, payload: DegreeCallPayload): Observable<ApiData<DegreeCall>> {
+    return this.http.put<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}`, payload);
   }
 
-  openCall(id: number): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.patch<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}/open`, {});
+  openCall(id: number): Observable<ApiData<DegreeCall>> {
+    return this.http.patch<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}/open`, {});
   }
 
-  closeCall(id: number): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.patch<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}/close`, {});
+  closeCall(id: number): Observable<ApiData<DegreeCall>> {
+    return this.http.patch<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}/close`, {});
   }
 
-  annulCall(id: number): Observable<ApiData<DegreeCallMutationPayload>> {
-    return this.http.delete<ApiData<DegreeCallMutationPayload>>(`${this.apiURL}/calls/${id}`);
+  annulCall(id: number): Observable<ApiData<DegreeCall>> {
+    return this.http.delete<ApiData<DegreeCall>>(`${this.apiURL}/calls/${id}`);
   }
 
   getRecordCatalogs(): Observable<{data: {
@@ -289,6 +298,18 @@ export class DegreesTitlesService {
 
   annulRecord(id: number): Observable<ApiData<{message: string; data: DegreeRecord}>> {
     return this.http.delete<ApiData<{message: string; data: DegreeRecord}>>(`${this.apiURL}/records/${id}`);
+  }
+
+  startBulkProcess(action: 'pdf' | 'ethnicity-email', recordIds: number[]): Observable<ApiData<DegreeBulkProcess>> {
+    return this.http.post<ApiData<DegreeBulkProcess>>(`${this.apiURL}/records/bulk/${action}`, {record_ids: recordIds});
+  }
+
+  getBulkProcess(key: string): Observable<ApiData<DegreeBulkProcess>> {
+    return this.http.get<ApiData<DegreeBulkProcess>>(`${this.apiURL}/records/bulk/status/${key}`);
+  }
+
+  downloadBulkPdf(key: string): Observable<Blob> {
+    return this.http.get(`${this.apiURL}/records/bulk/download/${key}`, {responseType: 'blob'});
   }
 
   downloadDegreeRecordPdf(id: number): Observable<HttpResponse<Blob>> {

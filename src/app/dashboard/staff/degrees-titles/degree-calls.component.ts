@@ -1,11 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {DatePipe, NgIf} from '@angular/common';
+import {Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
 import {DatePicker} from 'primeng/datepicker';
 import {DialogModule} from 'primeng/dialog';
 import {InputTextModule} from 'primeng/inputtext';
+import {MessageModule} from 'primeng/message';
 import {Select} from 'primeng/select';
 import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
@@ -20,6 +22,7 @@ import {
 import {LoginService} from '../../../services/login.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
+import {PATHS} from '../../../core/constants/app-paths.constants';
 
 interface SelectOption {
   label: string;
@@ -36,6 +39,7 @@ interface SelectOption {
     DialogModule,
     FormsModule,
     InputTextModule,
+    MessageModule,
     NgIf,
     Select,
     TableModule,
@@ -67,6 +71,7 @@ export class DegreeCallsComponent implements OnInit {
   formVisible = false;
   formAttempted = false;
   editingCall: DegreeCall | null = null;
+  reopenAfterSave = false;
   form = this.emptyForm();
   mailTestMode = false;
   mailTestRecipient: string | null = null;
@@ -75,6 +80,7 @@ export class DegreeCallsComponent implements OnInit {
     private degreesTitlesService: DegreesTitlesService,
     private loginService: LoginService,
     private notificationService: NotificationService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -125,17 +131,19 @@ export class DegreeCallsComponent implements OnInit {
 
   openCreate(): void {
     this.editingCall = null;
+    this.reopenAfterSave = false;
     this.formAttempted = false;
     this.form = this.emptyForm();
     this.formVisible = true;
   }
 
-  openEdit(call: DegreeCall): void {
+  openEdit(call: DegreeCall, reopenAfterSave = false): void {
     if (!this.canEdit(call)) {
       return;
     }
 
     this.editingCall = call;
+    this.reopenAfterSave = reopenAfterSave;
     this.formAttempted = false;
     this.form = {
       name: call.name,
@@ -175,8 +183,16 @@ export class DegreeCallsComponent implements OnInit {
       next: response => {
         this.saving = false;
         if (response.status === STATUS.success) {
+          const callToReopen = this.reopenAfterSave ? response.payload.data : null;
           this.formVisible = false;
           this.formAttempted = false;
+          this.reopenAfterSave = false;
+
+          if (callToReopen) {
+            this.runAction(callToReopen, () => this.degreesTitlesService.openCall(callToReopen.id));
+            return;
+          }
+
           this.notificationService.success(
             this.editingCall ? 'Convocatoria actualizada' : 'Convocatoria creada',
             response.payload.message,
@@ -195,7 +211,7 @@ export class DegreeCallsComponent implements OnInit {
 
   openCall(call: DegreeCall): void {
     if (!call.name?.trim() || !call.resolution_number?.trim() || !call.resolution_date) {
-      this.openEdit(call);
+      this.openEdit(call, true);
       this.notificationService.warning(
         'Complete la convocatoria',
         'Registre el nombre, el número y la fecha de resolución antes de abrir o reabrir.',
@@ -246,6 +262,24 @@ export class DegreeCallsComponent implements OnInit {
       || (this.isAdmin && ['closed', 'exported'].includes(call.status.value));
   }
 
+  canViewRecords(call: DegreeCall): boolean {
+    return call.status.value !== 'draft'
+      && (call.status.value !== 'annulled' || call.records_count > 0);
+  }
+
+  recordsActionLabel(call: DegreeCall): string {
+    return call.status.value === 'open' ? 'Gestionar padrón' : 'Ver padrón';
+  }
+
+  goToRecords(call: DegreeCall): void {
+    if (!this.canViewRecords(call)) return;
+
+    const route = this.isAdmin
+      ? PATHS.admin.degreesTitles.records.link
+      : PATHS.degreesTitles.records.link;
+    this.router.navigate([route], {queryParams: {call_id: call.id}});
+  }
+
   statusSeverity(status: DegreeCallStatusValue): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     const map: Record<DegreeCallStatusValue, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
       draft: 'secondary',
@@ -255,6 +289,37 @@ export class DegreeCallsComponent implements OnInit {
       annulled: 'danger',
     };
     return map[status];
+  }
+
+  formStatusMessageSeverity(): 'success' | 'info' | 'warn' | 'error' | 'secondary' {
+    if (!this.editingCall) return 'secondary';
+
+    const map: Record<DegreeCallStatusValue, 'success' | 'info' | 'warn' | 'error' | 'secondary'> = {
+      draft: 'secondary',
+      open: 'success',
+      closed: 'warn',
+      exported: 'info',
+      annulled: 'error',
+    };
+    return map[this.editingCall.status.value];
+  }
+
+  formStatusDescription(): string {
+    if (!this.editingCall) {
+      return 'La convocatoria se guardará inicialmente como borrador.';
+    }
+    if (this.reopenAfterSave) {
+      return 'Al guardar los datos obligatorios, la convocatoria se reabrirá automáticamente.';
+    }
+
+    const descriptions: Record<DegreeCallStatusValue, string> = {
+      draft: 'Complete los datos y utilice la acción Abrir cuando corresponda.',
+      open: 'La convocatoria está habilitada para gestionar su padrón de aptos.',
+      closed: 'La convocatoria está cerrada y su padrón permanece en modo consulta.',
+      exported: 'La convocatoria ya fue exportada y su padrón permanece en modo consulta.',
+      annulled: 'La convocatoria está anulada y se conserva únicamente para auditoría.',
+    };
+    return descriptions[this.editingCall.status.value];
   }
 
   private runAction(call: DegreeCall, action: () => ReturnType<DegreesTitlesService['openCall']>): void {
