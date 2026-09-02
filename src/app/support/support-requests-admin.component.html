@@ -1,0 +1,107 @@
+<div class="admin-support">
+  <div class="heading">
+    <div><h2>Solicitudes de soporte</h2><p>Validación de identidad y atención de cuentas institucionales.</p></div>
+    <a pButton href="/soporte/correo" target="_blank" icon="pi pi-external-link" class="p-button-outlined">Abrir formulario público</a>
+  </div>
+
+  <app-test-mode-banner *ngIf="testMode" area="Soporte Informático" [recipient]="testRecipient"></app-test-mode-banner>
+
+  <p-card>
+    <div class="filters">
+      <label>Búsqueda<input pInputText [(ngModel)]="search" placeholder="Número de solicitud" (keyup.enter)="load(1)"></label>
+      <label>Estado<p-select [(ngModel)]="status" [options]="statusOptions" optionLabel="label" optionValue="value"></p-select></label>
+      <button pButton label="Buscar" icon="pi pi-search" (click)="load(1)"></button>
+    </div>
+  </p-card>
+
+  <p-card>
+    <p-table [value]="requests" [loading]="loading" [paginator]="true" [rows]="perPage" [totalRecords]="total" [lazy]="true" (onPage)="load(($event.first/$event.rows)+1)">
+      <ng-template pTemplate="header"><tr><th>Solicitud</th><th>Persona</th><th>Trámite</th><th>Documento</th><th>Estado</th><th></th></tr></ng-template>
+      <ng-template pTemplate="body" let-row><tr>
+        <td><strong>{{row.ticket_number}}</strong><small>{{row.created_at|date:'dd/MM/yyyy HH:mm'}}</small></td>
+        <td>{{requesterLabel(row.requester_type_declared)}}</td><td>{{requestLabel(row.request_type)}}</td><td>••••{{row.document_last_four}}</td>
+        <td><p-tag [value]="label(row.status)" [severity]="severity(row.status)"></p-tag></td>
+        <td><button pButton label="Revisar" icon="pi pi-eye" size="small" (click)="open(row)"></button></td>
+      </tr></ng-template>
+      <ng-template pTemplate="emptymessage"><tr><td colspan="6">No se encontraron solicitudes.</td></tr></ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-dialog [(visible)]="detailVisible" [modal]="true" [style]="{width:'min(96vw,860px)'}" styleClass="support-workflow-dialog" header="Detalle de solicitud">
+  <div *ngIf="selected" class="detail">
+    <div class="summary">
+      <p-card><small>Solicitud</small><strong>{{selected.ticket_number}}</strong></p-card>
+      <p-card><small>Estudiante</small><strong>{{selected.requester_summary?.full_name || 'No identificado'}}</strong></p-card>
+      <p-card><small>Datos de identificación</small><div class="identity-details"><span><b>Código:</b> {{selected.requester_summary?.code || 'Sin código'}}</span><span><b>DNI:</b> {{selected.requester_summary?.document}}</span><span><b>Celular:</b> {{selected.requester_summary?.phone || 'No registrado'}}</span></div></p-card>
+    </div>
+
+    <p-steps [model]="workflowSteps" [activeIndex]="reviewStep" [readonly]="true"></p-steps>
+    <p-message *ngIf="actionMessage" severity="success" [text]="actionMessage"></p-message>
+    <p-message *ngIf="actionError && (actionErrorStep === reviewStep || (actionErrorStep === 1 && reviewStep === 2))" severity="error" [text]="actionError"></p-message>
+
+    <div *ngIf="reviewStep === 0" class="workflow-panel review-panel">
+    <p-message *ngIf="selected.requester_type_detected && selected.requester_type_declared !== selected.requester_type_detected" severity="warn"
+               [text]="'Tipo declarado: ' + requesterLabel(selected.requester_type_declared) + '. Tipo detectado: ' + requesterLabel(selected.requester_type_detected) + '.'"></p-message>
+    <p-message *ngIf="selected.manual_review_reason" severity="error">
+      <div><strong>Motivo de revisión</strong><span>{{selected.manual_review_reason}}</span></div>
+    </p-message>
+
+    <p-message *ngIf="selected.requested_personal_email" severity="info" [text]="'Nuevo correo personal solicitado: ' + selected.requested_personal_email + '. Se actualizará al aprobar la solicitud.'"></p-message>
+    <h3>Comprobaciones automáticas</h3>
+    <div class="validation-grid">
+      <p-tag *ngFor="let item of selected.validation_snapshot|keyvalue"
+             [value]="checkLabel(item.key)" [icon]="item.value ? 'pi pi-check-circle' : 'pi pi-times-circle'"
+             [severity]="item.value ? 'success' : 'danger'"></p-tag>
+    </div>
+
+    <p-card *ngIf="selected.contact_comparison as comparison" styleClass="contact-comparison-card">
+      <ng-template pTemplate="header">
+        <div class="contact-comparison-header">
+          <div><small>VALIDACIÓN DE CONTACTO</small><strong>{{contactChannelLabel(comparison.channel)}}</strong></div>
+          <p-tag [value]="comparison.matches ? 'Coincide' : 'No coincide'" [icon]="comparison.matches ? 'pi pi-check-circle' : 'pi pi-times-circle'" [severity]="comparison.matches ? 'success' : 'danger'"></p-tag>
+        </div>
+      </ng-template>
+      <div class="contact-values">
+        <div><small>Ingresado por el solicitante</small><strong>{{comparison.submitted || 'No proporcionado'}}</strong></div>
+        <i class="pi pi-arrow-right"></i>
+        <div><small>Registrado en Academical</small><strong>{{comparison.registered || 'No registrado'}}</strong></div>
+      </div>
+      <p class="comparison-help">Para correo se ignoran mayúsculas y espacios externos. Para celular se comparan únicamente los dígitos.</p>
+    </p-card>
+    </div>
+
+    <div *ngIf="reviewStep === 1" class="workflow-panel">
+      <h3>Validación del nuevo correo personal</h3>
+      <p-card>
+        <div class="recovery-email"><small>Correo propuesto por el solicitante</small><strong>{{selected.proposed_personal_email || 'No proporcionado'}}</strong></div>
+        <p-message *ngIf="selected.personal_email_verified" severity="success" text="El solicitante confirmó que controla este correo personal."></p-message>
+        <p class="comparison-help">La verificación se envía automáticamente al registrar la solicitud. El enlace vence en 30 minutos y el administrador no puede aprobar mientras esté pendiente.</p>
+      </p-card>
+    </div>
+
+    <div *ngIf="reviewStep === 2" class="workflow-panel">
+      <h3>Decisión administrativa</h3>
+    <label>Nuevo estado
+      <p-select [(ngModel)]="nextStatus" [options]="statusOptions.slice(1)" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+    </label>
+    <label>Observación obligatoria
+      <textarea pTextarea [(ngModel)]="notes" rows="4" [autoResize]="true" placeholder="Explique la acción realizada o el motivo del cambio"></textarea>
+    </label>
+      <p-message *ngIf="nextStatus === 'approved' && !selected.personal_email_verified" severity="error" text="No se puede aprobar hasta verificar el correo personal."></p-message>
+    </div>
+
+    <div *ngIf="reviewStep === 3" class="workflow-panel">
+      <h3>Ejecutar recuperación</h3>
+      <p-message *ngIf="selected.status !== 'approved' || !selected.personal_email_verified" severity="warn" text="La solicitud debe estar aprobada y el correo personal verificado."></p-message>
+      <p>Al aprobar se consulta inmediatamente la cuenta en Microsoft 365, se ejecuta la solicitud y se notifica al correo personal verificado. Para restablecimiento se genera una contraseña temporal de un solo uso.</p>
+      <button pButton label="Ejecutar y notificar" icon="pi pi-send" [disabled]="selected.status !== 'approved' || !selected.personal_email_verified" [loading]="saving" (click)="executeRecovery()"></button>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" severity="secondary" [outlined]="true" (click)="selected=null"></button>
+    <button *ngIf="reviewStep > 0" pButton label="Atrás" icon="pi pi-arrow-left" severity="secondary" [text]="true" (click)="reviewStep=reviewStep-1"></button>
+    <button *ngIf="reviewStep < 3 && reviewStep !== 2" pButton label="Continuar" icon="pi pi-arrow-right" iconPos="right" (click)="reviewStep=reviewStep+1"></button>
+    <button *ngIf="reviewStep === 2" pButton label="Guardar decisión" icon="pi pi-save" [disabled]="!notes.trim() || (nextStatus === 'approved' && !selected?.personal_email_verified)" [loading]="saving" (click)="save()"></button>
+  </ng-template>
+</p-dialog>
