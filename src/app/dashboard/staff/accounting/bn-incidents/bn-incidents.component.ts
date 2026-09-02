@@ -60,18 +60,9 @@ export class BnIncidentsComponent implements OnInit {
     { label: 'Exitosos', value: 'success' },
     { label: 'Incidencias', value: 'error' },
   ];
-  readonly fileTypeOptions: SelectOption[] = [
-    { label: 'Todos', value: '' },
-    { label: 'ING', value: 'ING' },
-    { label: 'PAGOS', value: 'PAGOS' },
-    { label: 'REP', value: 'REP' },
-    { label: 'DUP', value: 'DUP' },
-  ];
-
   dateRange: Date[] = [];
   operation = '';
-  status = 'error';
-  fileType = '';
+  status = '';
   search = '';
   page = 1;
   perPage = 20;
@@ -140,8 +131,7 @@ export class BnIncidentsComponent implements OnInit {
   clearFilters(): void {
     this.dateRange = [];
     this.operation = '';
-    this.status = 'error';
-    this.fileType = '';
+    this.status = '';
     this.search = '';
     this.loadData(1);
   }
@@ -312,7 +302,6 @@ export class BnIncidentsComponent implements OnInit {
       end_date: range.endDate,
       operation: this.operation,
       status: this.status,
-      file_type: this.fileType,
       search: this.search,
       page: this.page,
       per_page: this.perPage,
