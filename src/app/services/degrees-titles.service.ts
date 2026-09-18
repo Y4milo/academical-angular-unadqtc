@@ -258,7 +258,6 @@ export class DegreesTitlesService {
   getRecordCatalogs(): Observable<{data: {
     degree_types: DegreeCatalogOption[];
     diploma_issue_types: DegreeCatalogOption[];
-    degree_obtainment_modalities: DegreeCatalogOption[];
     id_types: DegreeCatalogOption[];
     genders: DegreeCatalogOption[];
     campuses: DegreeCatalogOption[];

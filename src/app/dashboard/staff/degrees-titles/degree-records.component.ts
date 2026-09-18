@@ -86,7 +86,6 @@ export class DegreeRecordsComponent implements OnInit {
   filterCalls: DegreeCatalogOption[] = [];
   degreeTypes: DegreeCatalogOption[] = [];
   issueTypes: DegreeCatalogOption[] = [];
-  obtainmentModalities: DegreeCatalogOption[] = [];
   idTypes: DegreeCatalogOption[] = [];
   catalogGenders: DegreeCatalogOption[] = [];
   campuses: DegreeCatalogOption[] = [];
@@ -154,7 +153,6 @@ export class DegreeRecordsComponent implements OnInit {
         this.degreeTypes = (response.data.degree_types ?? [])
           .filter(type => ['bachelor', 'professional_title'].includes(type.value ?? ''));
         this.issueTypes = response.data.diploma_issue_types ?? [];
-        this.obtainmentModalities = response.data.degree_obtainment_modalities ?? [];
         this.idTypes = response.data.id_types ?? [];
         this.catalogGenders = response.data.genders ?? [];
         this.campuses = response.data.campuses ?? [];

@@ -297,10 +297,6 @@
       <div class="form-grid diploma-grid">
     <label><span>Código de la universidad</span><input pInputText [value]="diplomaDefaults.institution_code" readonly></label>
     <label><span>Documento de identidad</span><input pInputText [value]="diplomaDocument" readonly></label>
-    <label><span>Modalidad de obtención <b>*</b></span>
-      <p-select [(ngModel)]="form.sunedu_data['MOD_OBT']" [options]="obtainmentModalities"
-                optionLabel="label" optionValue="label" placeholder="Seleccione" appendTo="body"></p-select>
-    </label>
     <label><span>Tipo de emisión del diploma <b>*</b></span>
       <p-select [(ngModel)]="form.diploma_issue_type_id" [options]="issueTypes" optionLabel="label" optionValue="id"
                 placeholder="Seleccione" [showClear]="true" appendTo="body"></p-select>
