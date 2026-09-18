@@ -216,13 +216,7 @@
       </div>
       <div class="academic-code-fields">
         <label><span>Código académico oficial <b>*</b></span>
-          <input pInputText [ngModel]="officialStudentCode"
-                 (ngModelChange)="officialStudentCode = normalizeAcademicCode($event)"
-                 maxlength="20" autocomplete="off" placeholder="Solo letras mayúsculas y números"
-                 [class.ng-invalid]="officialCodeHasInvalidCharacters">
-          <small *ngIf="officialCodeHasInvalidCharacters" class="field-warning">
-            <i class="pi pi-exclamation-triangle"></i> Solo se permiten letras mayúsculas y números.
-          </small>
+          <input pInputText [(ngModel)]="officialStudentCode" inputmode="numeric" maxlength="10" placeholder="6 a 10 dígitos">
         </label>
         <label><span>Motivo de la corrección <b>*</b></span>
           <input pInputText [(ngModel)]="officialCodeReason" maxlength="255" placeholder="Indique la fuente que confirma el código">
@@ -317,15 +311,7 @@
           header="Registrar estudiante con código académico oficial">
   <p-message severity="info" text="El código es obligatorio y no se reemplazará ni se generará desde el DNI."></p-message>
   <div class="form-grid manual-student-form">
-    <label><span>Código académico oficial <b>*</b></span>
-      <input pInputText [ngModel]="manualStudent.code"
-             (ngModelChange)="manualStudent.code = normalizeAcademicCode($event)"
-             maxlength="20" autocomplete="off" placeholder="Solo letras mayúsculas y números"
-             [class.ng-invalid]="manualCodeHasInvalidCharacters">
-      <small *ngIf="manualCodeHasInvalidCharacters" class="field-warning">
-        <i class="pi pi-exclamation-triangle"></i> Solo se permiten letras mayúsculas y números.
-      </small>
-    </label>
+    <label><span>Código académico oficial <b>*</b></span><input pInputText [(ngModel)]="manualStudent.code" inputmode="numeric" maxlength="10"></label>
     <label><span>Número de documento <b>*</b></span><input pInputText [(ngModel)]="manualStudent.number" maxlength="20"></label>
     <label><span>Tipo de documento <b>*</b></span><p-select [(ngModel)]="manualStudent.id_type_id" [options]="idTypes" optionLabel="label" optionValue="id" appendTo="body"></p-select></label>
     <label><span>Sexo <b>*</b></span><p-select [(ngModel)]="manualStudent.gender_id" [options]="catalogGenders" optionLabel="label" optionValue="id" appendTo="body"></p-select></label>

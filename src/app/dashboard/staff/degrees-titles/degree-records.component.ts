@@ -431,10 +431,6 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   saveManualStudent(): void {
-    if (!this.isValidAcademicCode(this.manualStudent.code)) {
-      this.notifications.warning('Código académico inválido', 'Use únicamente letras mayúsculas y números, entre 4 y 20 caracteres.');
-      return;
-    }
     this.savingManualStudent = true;
     this.service.createManualStudent(this.manualStudent).subscribe({
       next: response => {
@@ -456,8 +452,8 @@ export class DegreeRecordsComponent implements OnInit {
     const studentId = this.selectedStudent?.id ?? this.editing?.student_id;
     const code = this.officialStudentCode.trim();
     const reason = this.officialCodeReason.trim();
-    if (!studentId || !this.isValidAcademicCode(code) || reason.length < 10) {
-      this.notifications.warning('Datos incompletos', 'El código debe contener únicamente letras mayúsculas y números, además de un motivo de al menos 10 caracteres.');
+    if (!studentId || !/^\d{6,10}$/.test(code) || reason.length < 10) {
+      this.notifications.warning('Datos incompletos', 'Ingrese un código académico de 6 a 10 dígitos y un motivo de al menos 10 caracteres.');
       return;
     }
     this.confirmingStudentCode = true;
@@ -483,22 +479,6 @@ export class DegreeRecordsComponent implements OnInit {
         this.notifications.notifyApiData(error);
       },
     });
-  }
-
-  normalizeAcademicCode(value: string): string {
-    return (value ?? '').toUpperCase();
-  }
-
-  isValidAcademicCode(value: string): boolean {
-    return /^[A-Z0-9]{4,20}$/.test((value ?? '').trim());
-  }
-
-  get officialCodeHasInvalidCharacters(): boolean {
-    return this.officialStudentCode.length > 0 && !/^[A-Z0-9]*$/.test(this.officialStudentCode);
-  }
-
-  get manualCodeHasInvalidCharacters(): boolean {
-    return this.manualStudent.code?.length > 0 && !/^[A-Z0-9]*$/.test(this.manualStudent.code);
   }
 
   verifyCurrentInstitutionalEmail(): void {
