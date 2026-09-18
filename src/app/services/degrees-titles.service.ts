@@ -65,6 +65,7 @@ export interface DegreeStudent {
   mother_last_name: string | null;
   full_name: string;
   gender: string | null;
+  gender_code: 'M' | 'F' | null;
   personal_email: string | null;
   institutional_email: string | null;
   institutional_email_status: string | null;
@@ -89,6 +90,8 @@ export interface DegreeAcademicDenomination extends DegreeCatalogReference {
   degree_type_id: number;
   degree_type_code: string;
   specialty_required: boolean;
+  denomination_male: string | null;
+  denomination_female: string | null;
 }
 
 export interface DegreeAcademicProgram extends DegreeCatalogReference {
@@ -269,6 +272,11 @@ export class DegreesTitlesService {
       automatic_fields: string[];
     };
     mail_delivery: {test_mode: boolean; test_recipient: string | null};
+    diploma_defaults: {
+      university_name: string;
+      institution_code: string;
+      authorities: {name: string; role: string; short_role?: string}[];
+    };
   }}> {
     return this.http.get<any>(`${this.apiURL}/record-catalogs`);
   }

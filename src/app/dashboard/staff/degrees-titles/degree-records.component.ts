@@ -33,6 +33,7 @@ import {
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
+import {denominationForDegreeType, resolveDegreeDenomination} from './degree-diploma.utils';
 
 @Component({
   selector: 'app-degree-records',
@@ -53,7 +54,6 @@ export class DegreeRecordsComponent implements OnInit {
       this.dateField('EGRES_FEC', 'Fecha de egreso'), this.field('PROC_BACH', 'Procedencia del bachiller'),
       this.field('PROC_INST_ORIG', 'Institución de origen'), this.field('PROC_TITULO_PED', 'Título pedagógico de procedencia'),
       this.field('PROG_ESTU', 'Programa de estudios'), this.numberField('NUM_CRED', 'Número de créditos'),
-      this.field('MOD_OBT', 'Modalidad de obtención'),
       this.selectField('MOD_EST', 'Modalidad de estudios', [
         {label: 'Presencial', value: 'P'}, {label: 'Semipresencial', value: 'S'}, {label: 'A distancia', value: 'D'},
       ]),
@@ -67,16 +67,12 @@ export class DegreeRecordsComponent implements OnInit {
       this.field('MEC_UTI', 'Mecanismo utilizado'), this.field('DEP_VER_ORIG', 'Dependencia que verificó originalidad'),
       this.field('MOD_SUSTENTACION', 'Modalidad de sustentación'),
     ]},
-    {legend: 'Revalidación y procedencia extranjera', fields: [
-      this.field('PROC_REV_PAIS', 'País de revalidación'), this.field('PROC_REV_UNIV', 'Universidad de revalidación'),
-      this.field('PROC_REV_GRADO', 'Grado revalidado'), this.field('CRIT_REV', 'Criterio de revalidación'),
+    {legend: 'Procedencia extranjera', fields: [
       this.field('PROC_PAIS_EXT', 'País de procedencia extranjera'),
       this.field('PROC_UNIV_EXT', 'Universidad extranjera'), this.field('PROC_GRADO_EXT', 'Grado extranjero'),
     ]},
     {legend: 'Duplicados, oficio y modificaciones', fields: [
-      this.field('RESO_NUM_DUP_NUE', 'Nueva resolución de duplicado'),
-      this.dateField('RESO_FEC_DUP_NUE', 'Fecha de resolución de duplicado'),
-      this.dateField('DIPL_FEC_DUP_NUE', 'Fecha del diploma duplicado'), this.field('REG_OFICIO', 'Número de oficio'),
+      this.field('REG_OFICIO', 'Número de oficio'),
       this.dateField('FEC_MAT_MOD', 'Fecha de matrícula modificada'),
       this.dateField('FEC_INICIO_MOD', 'Inicio de modificación'), this.dateField('FEC_FIN_MOD', 'Fin de modificación'),
     ]},
@@ -97,6 +93,7 @@ export class DegreeRecordsComponent implements OnInit {
   suneduSchemaVersion = '';
   mailTestMode = false;
   mailTestRecipient: string | null = null;
+  diplomaDefaults = {university_name: '', institution_code: '', authorities: [] as {name: string; role: string; short_role?: string}[]};
   students: DegreeStudent[] = [];
   selectedStudent: DegreeStudent | null = null;
   selectedCallId: number | null = null;
@@ -116,6 +113,7 @@ export class DegreeRecordsComponent implements OnInit {
   officialCodeReason = '';
   confirmingStudentCode = false;
   saving = false;
+  revalidationEnabled = false;
   dialogVisible = false;
   editing: DegreeRecord | null = null;
   linkDialogVisible = false;
@@ -162,6 +160,7 @@ export class DegreeRecordsComponent implements OnInit {
         this.suneduSchemaVersion = response.data.sunedu_schema?.version ?? '';
         this.mailTestMode = response.data.mail_delivery?.test_mode ?? false;
         this.mailTestRecipient = response.data.mail_delivery?.test_recipient ?? null;
+        this.diplomaDefaults = response.data.diploma_defaults ?? this.diplomaDefaults;
         this.loadRecords(1);
       },
       error: error => {
@@ -210,6 +209,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.studentSearch = '';
     this.studentSearchCompleted = false;
     this.studentIdentityResult = null;
+    this.revalidationEnabled = false;
     this.officialStudentCode = '';
     this.officialCodeReason = '';
     this.form = this.emptyForm();
@@ -241,7 +241,17 @@ export class DegreeRecordsComponent implements OnInit {
       registry_number: record.registry_number ?? '',
       sunedu_data: this.manualSuneduData(record.sunedu_data ?? {}),
     };
+    this.revalidationEnabled = ['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO']
+      .some(field => !!this.form.sunedu_data[field]);
     this.dialogVisible = true;
+  }
+
+  toggleRevalidation(): void {
+    this.revalidationEnabled = !this.revalidationEnabled;
+    if (!this.revalidationEnabled) {
+      ['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO', 'CRIT_REV']
+        .forEach(field => this.form.sunedu_data[field] = null);
+    }
   }
 
   findStudents(): void {
@@ -266,8 +276,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.form.professional_career_id = student.career?.id ?? null;
     this.form.degree_program_id = student.program?.id ?? null;
     this.form.degree_denomination_id = null;
-    const gender = (student.gender ?? '').toLowerCase();
-    this.form.gender = gender.startsWith('f') || gender.includes('mujer') ? 'F' : gender ? 'M' : null;
+    this.form.gender = student.gender_code;
     this.students = [];
     this.applyDefaultProgram();
     this.syncDenomination();
@@ -378,6 +387,29 @@ export class DegreeRecordsComponent implements OnInit {
   get canVerifyCurrentInstitutionalEmail(): boolean {
     if (this.selectedStudent) return this.canVerifyInstitutionalStatus(this.currentStudentIdentityStatus);
     return this.editing ? this.canVerifyInstitutionalEmail(this.editing) : false;
+  }
+
+  get resolvedDegreeDenomination(): string {
+    const historicalSnapshot = this.editing
+      && this.form.degree_denomination_id === this.editing.degree_denomination_id
+      && this.form.gender === this.editing.gender
+      ? this.editing.degree_denomination
+      : null;
+    return resolveDegreeDenomination(this.selectedDenomination, this.form.gender, historicalSnapshot);
+  }
+
+  get diplomaStudentName(): string {
+    return this.selectedStudent?.full_name ?? this.editing?.full_name ?? '';
+  }
+
+  get diplomaDocument(): string {
+    const type = this.selectedStudent?.document_type ?? this.editing?.document_type_label ?? this.editing?.document_type ?? '';
+    const number = this.selectedStudent?.document_number ?? this.editing?.document_number ?? '';
+    return [type, number].filter(Boolean).join(' ');
+  }
+
+  get isDuplicateDiploma(): boolean {
+    return this.issueTypes.find(option => option.id === this.form.diploma_issue_type_id)?.value === 'duplicate';
   }
 
   get hasStudentContext(): boolean {
@@ -537,8 +569,7 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   private syncDenomination(): void {
-    this.form.degree_denomination_id = this.selectedCareer?.denominations
-      .find(option => option.degree_type_id === this.form.degree_type_id)?.id ?? null;
+    this.form.degree_denomination_id = denominationForDegreeType(this.selectedCareer, this.form.degree_type_id)?.id ?? null;
   }
 
   save(): void {
