@@ -65,3 +65,35 @@ code { white-space: nowrap; font-size: .78rem; }
   .full { grid-column: auto; }
   .comparison-grid, .checks { grid-template-columns: 1fr; }
 }
+.academic-code-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--p-orange-500) 45%, var(--p-content-border-color));
+  border-radius: var(--p-border-radius-md);
+  background: color-mix(in srgb, var(--p-orange-500) 8%, var(--p-content-background));
+}
+
+.academic-code-heading {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.academic-code-heading > i { color: var(--p-orange-500); font-size: 1.25rem; }
+.academic-code-heading span { display: grid; gap: .2rem; }
+.academic-code-heading small { color: var(--p-text-muted-color); }
+
+.academic-code-fields {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(280px, 1.3fr) auto;
+  align-items: end;
+  gap: 1rem;
+}
+
+.academic-code-fields label { display: grid; gap: .45rem; }
+.academic-code-fields b { color: var(--p-red-500); }
+
+@media (max-width: 800px) {
+  .academic-code-fields { grid-template-columns: 1fr; }
+}

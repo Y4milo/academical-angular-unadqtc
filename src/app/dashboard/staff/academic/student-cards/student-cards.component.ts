@@ -69,6 +69,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   validatedStudents: StudentCard[] = [];
   unmatchedStudent: StudentCard[] = [];
   flaggedStudents: StudentCard[] = [];
+  activeTabIndex = 0;
   fallbackPhotoUrl = 'img/card-img.png';
   photoPreviewUrls: Record<number, string> = {};
   statusStudentCardOptions: Dictionary[] = [];
@@ -247,19 +248,24 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.unmatchedStudent = [];
     this.validatedStudents = [];
     this.flaggedStudents = [];
+    this.activeTabIndex = 0;
 
     this.studentCardService.listPendingStudentCards(semesterId).subscribe({
       next: response => {
         if (response.status === STATUS.success) {
           this.pendingStudents = response.payload.data;
           this.loadStudentPhotoPreviews(this.pendingStudents);
+          this.selectHistoricalTabWithData();
         } else this.notificationService.notifyApiData(response);
       },
       error: error => this.notificationService.notifyApiData(error),
     });
     this.studentCardService.listUnmatchedStudentCards(semesterId).subscribe({
       next: response => {
-        if (response.status === STATUS.success) this.unmatchedStudent = response.payload.data;
+        if (response.status === STATUS.success) {
+          this.unmatchedStudent = response.payload.data;
+          this.selectHistoricalTabWithData();
+        }
         else this.notificationService.notifyApiData(response);
       },
       error: error => this.notificationService.notifyApiData(error),
@@ -269,6 +275,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         if (response.status === STATUS.success) {
           this.validatedStudents = response.payload.data;
           this.loadStudentPhotoPreviews(this.validatedStudents);
+          this.selectHistoricalTabWithData();
         } else this.notificationService.notifyApiData(response);
       },
       error: error => this.notificationService.notifyApiData(error),
@@ -278,10 +285,28 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         if (response.status === STATUS.success) {
           this.flaggedStudents = response.payload.data;
           this.loadStudentPhotoPreviews(this.flaggedStudents);
+          this.selectHistoricalTabWithData();
         } else this.notificationService.notifyApiData(response);
       },
       error: error => this.notificationService.notifyApiData(error),
     });
+  }
+
+  private selectHistoricalTabWithData(): void {
+    if (!this.isHistoricalSemester) {
+      return;
+    }
+
+    const firstPopulatedTab = [
+      this.pendingStudents,
+      this.validatedStudents,
+      this.flaggedStudents,
+      this.unmatchedStudent,
+    ].findIndex(items => items.length > 0);
+
+    if (firstPopulatedTab >= 0) {
+      this.activeTabIndex = firstPopulatedTab;
+    }
   }
 
   ngOnDestroy(): void {
