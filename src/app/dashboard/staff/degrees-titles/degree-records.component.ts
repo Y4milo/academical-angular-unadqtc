@@ -33,7 +33,7 @@ import {
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
-import {resolveDegreeDenomination} from './degree-diploma.utils';
+import {denominationForDegreeType, resolveDegreeDenomination} from './degree-diploma.utils';
 
 @Component({
   selector: 'app-degree-records',
@@ -276,8 +276,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.form.professional_career_id = student.career?.id ?? null;
     this.form.degree_program_id = student.program?.id ?? null;
     this.form.degree_denomination_id = null;
-    const gender = (student.gender ?? '').toLowerCase();
-    this.form.gender = gender.startsWith('f') || gender.includes('mujer') ? 'F' : gender ? 'M' : null;
+    this.form.gender = student.gender_code;
     this.students = [];
     this.applyDefaultProgram();
     this.syncDenomination();
@@ -391,7 +390,12 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   get resolvedDegreeDenomination(): string {
-    return resolveDegreeDenomination(this.selectedDenomination, this.form.gender);
+    const historicalSnapshot = this.editing
+      && this.form.degree_denomination_id === this.editing.degree_denomination_id
+      && this.form.gender === this.editing.gender
+      ? this.editing.degree_denomination
+      : null;
+    return resolveDegreeDenomination(this.selectedDenomination, this.form.gender, historicalSnapshot);
   }
 
   get diplomaStudentName(): string {
@@ -565,8 +569,7 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   private syncDenomination(): void {
-    this.form.degree_denomination_id = this.selectedCareer?.denominations
-      .find(option => option.degree_type_id === this.form.degree_type_id)?.id ?? null;
+    this.form.degree_denomination_id = denominationForDegreeType(this.selectedCareer, this.form.degree_type_id)?.id ?? null;
   }
 
   save(): void {

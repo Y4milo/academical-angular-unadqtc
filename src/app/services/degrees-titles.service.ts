@@ -65,6 +65,7 @@ export interface DegreeStudent {
   mother_last_name: string | null;
   full_name: string;
   gender: string | null;
+  gender_code: 'M' | 'F' | null;
   personal_email: string | null;
   institutional_email: string | null;
   institutional_email_status: string | null;
