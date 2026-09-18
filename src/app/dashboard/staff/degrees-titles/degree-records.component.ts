@@ -365,7 +365,7 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   get currentStudentIdentityStatus(): string {
-    if (this.selectedStudent?.code_status !== 'confirmed'
+    if ((this.selectedStudent && this.selectedStudent.code_status !== 'confirmed')
       || (this.editing && this.editing.institutional_identity?.code_status !== 'confirmed')) {
       return 'academic_code_required';
     }
@@ -378,6 +378,10 @@ export class DegreeRecordsComponent implements OnInit {
   get canVerifyCurrentInstitutionalEmail(): boolean {
     if (this.selectedStudent) return this.canVerifyInstitutionalStatus(this.currentStudentIdentityStatus);
     return this.editing ? this.canVerifyInstitutionalEmail(this.editing) : false;
+  }
+
+  get hasStudentContext(): boolean {
+    return !!this.selectedStudent || !!this.editing;
   }
 
   get currentInstitutionalEmailActionLabel(): string {

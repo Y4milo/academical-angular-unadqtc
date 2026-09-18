@@ -197,7 +197,7 @@
           </span>
         </span>
       </div>
-      <p-message *ngIf="selectedStudent?.code_status !== 'confirmed'" class="full"
+      <p-message *ngIf="selectedStudent && selectedStudent.code_status !== 'confirmed'" class="full"
                  severity="warn" text="Este registro usa una referencia provisional. Confirme el código académico oficial antes de consultar Microsoft 365."></p-message>
     </div>
     <div *ngIf="editing" class="selected-student full">
@@ -205,7 +205,7 @@
       Código {{ editing.student_code }} · Documento {{ editing.document_number }}</span>
     </div>
 
-    <div *ngIf="currentStudentIdentityStatus === 'academic_code_required'" class="academic-code-panel full">
+    <div *ngIf="hasStudentContext && currentStudentIdentityStatus === 'academic_code_required'" class="academic-code-panel full">
       <div class="academic-code-heading">
         <i class="pi pi-id-card"></i>
         <span><strong>Código académico requerido</strong>
