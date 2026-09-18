@@ -89,6 +89,8 @@ export interface DegreeAcademicDenomination extends DegreeCatalogReference {
   degree_type_id: number;
   degree_type_code: string;
   specialty_required: boolean;
+  denomination_male: string | null;
+  denomination_female: string | null;
 }
 
 export interface DegreeAcademicProgram extends DegreeCatalogReference {
@@ -256,6 +258,7 @@ export class DegreesTitlesService {
   getRecordCatalogs(): Observable<{data: {
     degree_types: DegreeCatalogOption[];
     diploma_issue_types: DegreeCatalogOption[];
+    degree_obtainment_modalities: DegreeCatalogOption[];
     id_types: DegreeCatalogOption[];
     genders: DegreeCatalogOption[];
     campuses: DegreeCatalogOption[];
@@ -269,6 +272,11 @@ export class DegreesTitlesService {
       automatic_fields: string[];
     };
     mail_delivery: {test_mode: boolean; test_recipient: string | null};
+    diploma_defaults: {
+      university_name: string;
+      institution_code: string;
+      authorities: {name: string; role: string; short_role?: string}[];
+    };
   }}> {
     return this.http.get<any>(`${this.apiURL}/record-catalogs`);
   }

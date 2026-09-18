@@ -232,7 +232,12 @@
       </div>
     </div>
 
-    <label><span>Sexo del estudiante</span><small>SEXO</small>
+    <div class="diploma-heading full">
+      <div><strong>Datos del diploma</strong><span>Revise la información que se imprimirá antes de generar el documento.</span></div>
+      <p-tag value="Anexo N.° 3" severity="info"></p-tag>
+    </div>
+
+    <label><span>Sexo del estudiante</span><small>Determina la denominación institucional configurada</small>
       <p-select [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value"
                 placeholder="Seleccione" appendTo="body"></p-select>
     </label>
@@ -252,39 +257,78 @@
       <p-message *ngIf="studentIdentityResult?.comparison && currentStudentIdentityStatus !== 'verified'"
                  severity="warn" text="La cuenta existe, pero los datos no alcanzan una coincidencia del 100%."></p-message>
     </label>
-    <label><span>Facultad</span><small>FAC_NOM</small>
+    <section class="diploma-section full">
+      <header><span class="section-number">1</span><div><strong>Anverso</strong><small>Información visible en la parte frontal del diploma</small></div></header>
+      <div class="form-grid diploma-grid">
+    <label class="full"><span>Universidad</span><input pInputText [value]="diplomaDefaults.university_name" readonly></label>
+    <label class="full"><span>Estudiante</span><input pInputText [value]="diplomaStudentName" readonly></label>
+    <label><span>Facultad <b>*</b></span>
       <p-select [(ngModel)]="form.faculty_id" [options]="academicTree" optionLabel="label" optionValue="id"
                 placeholder="Seleccione una facultad" appendTo="body" (onChange)="onFacultyChange()"></p-select>
     </label>
-    <label><span>Carrera profesional</span><small>CARR_PROG</small>
+    <label><span>Carrera o programa <b>*</b></span>
       <p-select [(ngModel)]="form.professional_career_id" [options]="careers" optionLabel="label" optionValue="id"
                 placeholder="Seleccione una carrera" appendTo="body" [disabled]="!form.faculty_id"
                 (onChange)="onCareerChange()"></p-select>
     </label>
-    <label *ngIf="requiresSpecialty"><span>Especialidad o mención</span><small>SEG_ESP</small>
+    <label *ngIf="requiresSpecialty"><span>Especialidad o mención</span>
       <p-select [(ngModel)]="form.degree_program_id" [options]="specialtyPrograms" optionLabel="specialty" optionValue="id"
                 placeholder="Seleccione una especialidad" appendTo="body"></p-select>
     </label>
-    <label [class.full]="!requiresSpecialty"><span>Emisión del diploma</span><small>DIPL_TIP_EMI</small>
-      <p-select [(ngModel)]="form.diploma_issue_type_id" [options]="issueTypes" optionLabel="label" optionValue="id"
-                placeholder="Seleccione" [showClear]="true" appendTo="body"></p-select>
-    </label>
-    <label><span>Tipo de grado o título</span><small>ABRE_GYT</small>
+    <label><span>Tipo de grado o título <b>*</b></span>
       <p-select [(ngModel)]="form.degree_type_id" [options]="degreeTypes" optionLabel="label" optionValue="id"
                 placeholder="Seleccione" appendTo="body" (onChange)="onDegreeTypeChange()"></p-select>
     </label>
-    <label><span>Denominación del grado o título</span><small>DEN_GRAD</small>
+    <label><span>Denominación del grado o título <b>*</b></span><small>Resuelta según el sexo registrado</small>
       <span class="input-with-icon"><i class="pi pi-lock"></i>
-        <input pInputText [value]="selectedDenomination?.label || ''" readonly placeholder="Se asignará automáticamente">
+        <input pInputText [value]="resolvedDegreeDenomination" readonly placeholder="Se asignará automáticamente">
       </span>
     </label>
-    <label><span>Número de resolución</span><small>RESO_NUM</small><input pInputText [(ngModel)]="form.resolution_number"></label>
-    <label><span>Fecha de resolución</span><small>RESO_FEC</small><p-datepicker [(ngModel)]="form.resolution_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
-    <label><span>Número de diploma</span><small>DIPL_NUM</small><input pInputText [(ngModel)]="form.diploma_number"></label>
-    <label><span>Fecha del diploma original</span><small>DIPL_FEC_ORG</small><p-datepicker [(ngModel)]="form.diploma_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
-    <label><span>Libro</span><small>REG_LIBRO</small><input pInputText [(ngModel)]="form.registry_book"></label>
-    <label><span>Folio</span><small>REG_FOLIO</small><input pInputText [(ngModel)]="form.registry_folio"></label>
-    <label><span>Número de registro</span><small>REG_REGISTRO</small><input pInputText [(ngModel)]="form.registry_number"></label>
+    <label><span>Fecha del diploma original <b>*</b></span><p-datepicker [(ngModel)]="form.diploma_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+    <label><span>Escuela de posgrado</span><small>Solo cuando corresponda</small><input pInputText [(ngModel)]="form.sunedu_data['ESC_POS']"></label>
+    <div class="authority-list full">
+      <article *ngFor="let authority of diplomaDefaults.authorities"><i class="pi pi-user"></i><span><small>{{ authority.role }}</small><strong>{{ authority.name }}</strong></span></article>
+    </div>
+      </div>
+    </section>
+
+    <section class="diploma-section full">
+      <header><span class="section-number">2</span><div><strong>Reverso</strong><small>Datos de identificación, otorgamiento y registro</small></div></header>
+      <div class="form-grid diploma-grid">
+    <label><span>Código de la universidad</span><input pInputText [value]="diplomaDefaults.institution_code" readonly></label>
+    <label><span>Documento de identidad</span><input pInputText [value]="diplomaDocument" readonly></label>
+    <label><span>Modalidad de obtención <b>*</b></span>
+      <p-select [(ngModel)]="form.sunedu_data['MOD_OBT']" [options]="obtainmentModalities"
+                optionLabel="label" optionValue="label" placeholder="Seleccione" appendTo="body"></p-select>
+    </label>
+    <label><span>Tipo de emisión del diploma <b>*</b></span>
+      <p-select [(ngModel)]="form.diploma_issue_type_id" [options]="issueTypes" optionLabel="label" optionValue="id"
+                placeholder="Seleccione" [showClear]="true" appendTo="body"></p-select>
+    </label>
+    <label><span>Resolución de otorgamiento <b>*</b></span><input pInputText [(ngModel)]="form.resolution_number"></label>
+    <label><span>Fecha de la resolución de otorgamiento <b>*</b></span><p-datepicker [(ngModel)]="form.resolution_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+    <label><span>Número de diploma <b>*</b></span><input pInputText [(ngModel)]="form.diploma_number"></label>
+    <ng-container *ngIf="isDuplicateDiploma">
+      <label><span>Resolución de duplicado o nuevo diploma</span><input pInputText [(ngModel)]="form.sunedu_data['RESO_NUM_DUP_NUE']"></label>
+      <label><span>Fecha de resolución de duplicado</span><p-datepicker [(ngModel)]="form.sunedu_data['RESO_FEC_DUP_NUE']" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+      <label><span>Fecha del diploma duplicado o nuevo</span><p-datepicker [(ngModel)]="form.sunedu_data['DIPL_FEC_DUP_NUE']" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+    </ng-container>
+    <label><span>Libro</span><small>Opcional</small><input pInputText [(ngModel)]="form.registry_book"></label>
+    <label><span>Folio</span><small>Opcional</small><input pInputText [(ngModel)]="form.registry_folio"></label>
+    <label><span>Número de registro</span><small>Opcional</small><input pInputText [(ngModel)]="form.registry_number"></label>
+    <div class="conditional-block full">
+      <button pButton type="button" severity="secondary" [outlined]="true"
+              [icon]="revalidationEnabled ? 'pi pi-minus-circle' : 'pi pi-plus-circle'"
+              [label]="revalidationEnabled ? 'Quitar datos de revalidación' : 'Agregar datos de revalidación'"
+              (click)="toggleRevalidation()"></button>
+      <div *ngIf="revalidationEnabled" class="form-grid">
+        <label><span>País de procedencia de la revalidación <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['PROC_REV_PAIS']"></label>
+        <label><span>Universidad de procedencia <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['PROC_REV_UNIV']"></label>
+        <label class="full"><span>Denominación del grado o título revalidado <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['PROC_REV_GRADO']"></label>
+      </div>
+    </div>
+      </div>
+    </section>
 
     <div class="sunedu-heading full">
       <div><strong>Variables del padrón SUNEDU</strong><span>Versión {{ suneduSchemaVersion }} · estructura de 67 campos</span></div>
