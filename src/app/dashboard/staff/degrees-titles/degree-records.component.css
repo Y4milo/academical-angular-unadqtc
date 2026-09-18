@@ -94,6 +94,14 @@ code { white-space: nowrap; font-size: .78rem; }
 .academic-code-fields label { display: grid; gap: .45rem; }
 .academic-code-fields b { color: var(--p-red-500); }
 
+.field-warning {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  color: var(--p-orange-500);
+  line-height: 1.35;
+}
+
 @media (max-width: 800px) {
   .academic-code-fields { grid-template-columns: 1fr; }
 }
