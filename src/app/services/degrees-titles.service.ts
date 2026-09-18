@@ -55,6 +55,8 @@ export interface DegreeCatalogOption {
 export interface DegreeStudent {
   id: number;
   code: string;
+  code_status: 'confirmed' | 'provisional';
+  legacy_reference: string | null;
   document_number: string;
   document_type: string | null;
   document_type_code: string | null;
@@ -143,11 +145,12 @@ export interface DegreeRecord {
   institutional_identity: {
     personal_email: string | null; institutional_email: string | null; status: string | null;
     verified_at: string | null; synced_at: string | null;
+    code_status: 'confirmed' | 'provisional'; legacy_reference: string | null;
   };
 }
 
 export interface InstitutionalIdentityLookup {
-  status?: 'verified' | 'confirmed' | 'probable' | 'review_required' | 'not_match' | 'not_found' | 'pending' | 'test' | 'invalid_domain';
+  status?: 'verified' | 'confirmed' | 'probable' | 'review_required' | 'not_match' | 'not_found' | 'pending' | 'test' | 'invalid_domain' | 'academic_code_required';
   institutional_email?: string | null;
   institutional_email_source?: string;
   comparison?: {
@@ -253,6 +256,9 @@ export class DegreesTitlesService {
   getRecordCatalogs(): Observable<{data: {
     degree_types: DegreeCatalogOption[];
     diploma_issue_types: DegreeCatalogOption[];
+    id_types: DegreeCatalogOption[];
+    genders: DegreeCatalogOption[];
+    campuses: DegreeCatalogOption[];
     academic_tree: DegreeAcademicFaculty[];
     all_calls: DegreeCatalogOption[];
     open_calls: DegreeCatalogOption[];
@@ -275,6 +281,14 @@ export class DegreesTitlesService {
 
   checkStudentInstitutionalIdentity(id: number): Observable<ApiData<any>> {
     return this.http.get<ApiData<any>>(`${this.apiURL}/students/${id}/institutional-identity`);
+  }
+
+  confirmStudentOfficialCode(id: number, code: string, reason: string): Observable<ApiData<any>> {
+    return this.http.patch<ApiData<any>>(`${this.apiURL}/students/${id}/official-code`, {code, reason});
+  }
+
+  createManualStudent(payload: Record<string, unknown>): Observable<ApiData<any>> {
+    return this.http.post<ApiData<any>>(`${this.apiURL}/students/manual`, payload);
   }
 
   listRecords(filters: {call_id?: number | null; search?: string; status?: string; page?: number; per_page?: number}): Observable<{

@@ -182,6 +182,11 @@
             <span *ngIf="student.institutional_email"><i class="pi pi-envelope"></i> {{ student.institutional_email }}</span></div>
         </ng-template>
       </p-listbox>
+      <div *ngIf="studentSearchCompleted && !students.length && !selectedStudent" class="empty-student-result">
+        <p-message severity="warn" text="No se encontró al estudiante. No se generará ningún código automáticamente."></p-message>
+        <button pButton type="button" icon="pi pi-user-plus" label="Registrar estudiante con código oficial"
+                severity="secondary" [outlined]="true" (click)="openManualStudent()"></button>
+      </div>
       <div class="selected-student" *ngIf="selectedStudent">
         <i class="pi pi-check-circle"></i>
         <span class="selected-student-content"><strong>{{ selectedStudent.full_name }}</strong>
@@ -192,10 +197,33 @@
           </span>
         </span>
       </div>
+      <p-message *ngIf="selectedStudent?.code_status !== 'confirmed'" class="full"
+                 severity="warn" text="Este registro usa una referencia provisional. Confirme el código académico oficial antes de consultar Microsoft 365."></p-message>
     </div>
     <div *ngIf="editing" class="selected-student full">
       <i class="pi pi-user"></i><span><strong>{{ editing.full_name }}</strong><br>
       Código {{ editing.student_code }} · Documento {{ editing.document_number }}</span>
+    </div>
+
+    <div *ngIf="currentStudentIdentityStatus === 'academic_code_required'" class="academic-code-panel full">
+      <div class="academic-code-heading">
+        <i class="pi pi-id-card"></i>
+        <span><strong>Código académico requerido</strong>
+          <small *ngIf="selectedStudent?.legacy_reference || editing?.institutional_identity?.legacy_reference">
+            Referencia de importación: {{ selectedStudent?.legacy_reference || editing?.institutional_identity?.legacy_reference }}
+          </small>
+        </span>
+      </div>
+      <div class="academic-code-fields">
+        <label><span>Código académico oficial <b>*</b></span>
+          <input pInputText [(ngModel)]="officialStudentCode" inputmode="numeric" maxlength="10" placeholder="6 a 10 dígitos">
+        </label>
+        <label><span>Motivo de la corrección <b>*</b></span>
+          <input pInputText [(ngModel)]="officialCodeReason" maxlength="255" placeholder="Indique la fuente que confirma el código">
+        </label>
+        <button pButton type="button" icon="pi pi-check" label="Confirmar código"
+                [loading]="confirmingStudentCode" (click)="confirmOfficialStudentCode()"></button>
+      </div>
     </div>
 
     <label><span>Sexo del estudiante</span><small>SEXO</small>
@@ -276,6 +304,28 @@
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" (click)="dialogVisible = false"></button>
     <button pButton type="button" label="Guardar" icon="pi pi-save" [loading]="saving" (click)="save()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="manualStudentDialogVisible" [modal]="true" [style]="{width: 'min(900px, 96vw)'}"
+          header="Registrar estudiante con código académico oficial">
+  <p-message severity="info" text="El código es obligatorio y no se reemplazará ni se generará desde el DNI."></p-message>
+  <div class="form-grid manual-student-form">
+    <label><span>Código académico oficial <b>*</b></span><input pInputText [(ngModel)]="manualStudent.code" inputmode="numeric" maxlength="10"></label>
+    <label><span>Número de documento <b>*</b></span><input pInputText [(ngModel)]="manualStudent.number" maxlength="20"></label>
+    <label><span>Tipo de documento <b>*</b></span><p-select [(ngModel)]="manualStudent.id_type_id" [options]="idTypes" optionLabel="label" optionValue="id" appendTo="body"></p-select></label>
+    <label><span>Sexo <b>*</b></span><p-select [(ngModel)]="manualStudent.gender_id" [options]="catalogGenders" optionLabel="label" optionValue="id" appendTo="body"></p-select></label>
+    <label class="full"><span>Nombres <b>*</b></span><input pInputText [(ngModel)]="manualStudent.names"></label>
+    <label><span>Apellido paterno <b>*</b></span><input pInputText [(ngModel)]="manualStudent.father_last_name"></label>
+    <label><span>Apellido materno <b>*</b></span><input pInputText [(ngModel)]="manualStudent.mother_last_name"></label>
+    <label><span>Facultad <b>*</b></span><p-select [(ngModel)]="manualStudent.faculty" [options]="academicTree" optionLabel="label" optionValue="id" appendTo="body" (onChange)="onManualFacultyChange()"></p-select></label>
+    <label><span>Carrera profesional <b>*</b></span><p-select [(ngModel)]="manualStudent.major" [options]="manualCareers" optionLabel="label" optionValue="id" appendTo="body" [disabled]="!manualStudent.faculty" (onChange)="onManualCareerChange()"></p-select></label>
+    <label *ngIf="manualPrograms.length"><span>Especialidad</span><p-select [(ngModel)]="manualStudent.degree_program_id" [options]="manualPrograms" optionLabel="label" optionValue="id" appendTo="body" [showClear]="true"></p-select></label>
+    <label><span>Correo personal</span><input pInputText [(ngModel)]="manualStudent.email" type="email"></label>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" (click)="manualStudentDialogVisible = false"></button>
+    <button pButton type="button" label="Registrar estudiante" icon="pi pi-save" [loading]="savingManualStudent" (click)="saveManualStudent()"></button>
   </ng-template>
 </p-dialog>
 
