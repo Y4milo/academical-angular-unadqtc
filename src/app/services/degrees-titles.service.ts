@@ -70,7 +70,9 @@ export interface DegreeAcademicDimension {
  * `student_id` is a legacy operational reference only and may be null; that is expected and valid.
  */
 export interface DegreeStudentCandidate {
-  academic_profile_id: number;
+  source: 'academic_profile' | 'manual_academic_profile';
+  academic_profile_id: number | null;
+  manual_academic_profile_id: number | null;
   core_person_id: number;
   core_student_id: number;
   student_id: number | null;
@@ -103,7 +105,60 @@ export interface DegreeStudentCandidate {
     status: string | null;
     match_status: string | null;
     verified_at: string | null;
+    checked_at: string | null;
+    error_code: string | null;
   };
+}
+
+export interface CoreAcademicCatalogReference {
+  code: string;
+  value: string;
+  label: string;
+}
+
+export interface CoreAcademicStudentCandidate {
+  core_student_id: number; core_person_id: number; code: string; legacy_code: string | null;
+  document_type: string | null; document_number: string; names: string;
+  paternal_last_name: string; maternal_last_name: string | null; full_name: string;
+  faculty: CoreAcademicCatalogReference | null;
+  major: CoreAcademicCatalogReference | null;
+  specialization: CoreAcademicCatalogReference | null;
+}
+
+export type DegreeStudentSearchStatus = 'found' | 'core_candidates_found' | 'core_not_found' | 'core_search_unsupported' | 'technical_error';
+
+export interface DegreeStudentSearchResponse {
+  data: DegreeStudentCandidate[];
+  meta: {search: {status: DegreeStudentSearchStatus; source: 'local' | 'core' | 'none'; candidates?: CoreAcademicStudentCandidate[]}};
+}
+
+export interface DegreeResolvedIdentity {
+  core_person_id: number | null;
+  document_type: 'dni';
+  document_number: string;
+  names: string;
+  paternal_last_name: string;
+  maternal_last_name: string | null;
+  full_name: string;
+  gender: {code: string | null; value: string | null; label: string | null};
+  identity_source: string | null;
+}
+
+export interface DegreeIdentityResolutionResponse {
+  data: {
+    status: 'academic_profile_found' | 'identity_found' | 'identity_not_found' | 'technical_error';
+    source: 'core_academic' | 'core_person' | 'core';
+    candidate: DegreeStudentCandidate | null;
+    identity: DegreeResolvedIdentity | null;
+  };
+}
+
+export type ManualAcademicCodeStatus = 'core_profile_found' | 'code_available' | 'identity_conflict' | 'technical_error';
+
+export interface DegreeManualAcademicProfilePayload {
+  document_type: 'dni'; document_number: string; core_person_id: number | null; student_code: string;
+  faculty_id: number; professional_career_id: number; degree_program_id: number; campus_id: number;
+  study_plan: number | null; reason: string;
 }
 
 export interface DegreeCatalogReference {
@@ -141,6 +196,8 @@ export interface DegreeRecord {
   call: {id: number; name: string; status: {value: string; label: string}};
   student_id: number | null;
   academic_profile_id: number | null;
+  manual_academic_profile_id: number | null;
+  academic_source: 'academic_profile' | 'manual_academic_profile' | 'legacy_student' | null;
   barcode: string;
   student_code: string;
   document_type: string | null;
@@ -176,7 +233,7 @@ export interface DegreeRecord {
   institutional_identity: {
     personal_email: string | null; institutional_email: string | null; status: string | null;
     candidate?: string | null; match_status?: string | null; microsoft_user_id?: string | null;
-    source?: 'academic_profile' | 'legacy_student'; checked_at?: string | null; error_code?: string | null;
+    source?: 'academic_profile' | 'manual_academic_profile' | 'legacy_student'; checked_at?: string | null; error_code?: string | null;
     verified_at: string | null; synced_at: string | null;
     code_status: 'confirmed' | 'provisional'; legacy_reference: string | null;
   };
@@ -225,7 +282,8 @@ export interface DegreeBulkProcess {
 
 export interface DegreeRecordPayload {
   degree_call_id?: number;
-  academic_profile_id?: number;
+  academic_profile_id?: number | null;
+  manual_academic_profile_id?: number | null;
   student_id?: number | null;
   degree_type_id: number;
   gender: 'M' | 'F' | null;
@@ -312,10 +370,29 @@ export class DegreesTitlesService {
     return this.http.get<any>(`${this.apiURL}/record-catalogs`);
   }
 
-  searchStudents(search: string): Observable<{data: DegreeStudentCandidate[]}> {
-    return this.http.get<{data: DegreeStudentCandidate[]}>(`${this.apiURL}/students/search`, {
+  searchStudents(search: string): Observable<DegreeStudentSearchResponse> {
+    return this.http.get<DegreeStudentSearchResponse>(`${this.apiURL}/students/search`, {
       params: new HttpParams().set('search', search),
     });
+  }
+
+  syncCoreCandidate(code: string): Observable<{data: {status: 'found' | 'core_not_found' | 'technical_error'; candidate: DegreeStudentCandidate | null}}> {
+    return this.http.post<any>(`${this.apiURL}/students/sync-core-candidate`, {code});
+  }
+
+  resolveStudentIdentity(dni: string): Observable<DegreeIdentityResolutionResponse> {
+    return this.http.post<DegreeIdentityResolutionResponse>(`${this.apiURL}/students/resolve-identity`, {
+      document_type: 'dni',
+      document_number: dni,
+    });
+  }
+
+  checkManualAcademicCode(payload: Pick<DegreeManualAcademicProfilePayload, 'document_number' | 'core_person_id' | 'student_code'>): Observable<any> {
+    return this.http.post(`${this.apiURL}/students/manual-academic/check-code`, payload);
+  }
+
+  createManualAcademicProfile(payload: DegreeManualAcademicProfilePayload): Observable<any> {
+    return this.http.post(`${this.apiURL}/students/manual-academic`, payload);
   }
 
   checkStudentInstitutionalIdentity(id: number): Observable<ApiData<any>> {
