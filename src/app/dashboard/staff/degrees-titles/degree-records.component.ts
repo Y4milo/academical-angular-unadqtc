@@ -27,13 +27,26 @@ import {
   DegreeRecord,
   DegreeRecordPayload,
   DegreeStudentCandidate,
+  DegreeStudentSearchStatus,
+  CoreAcademicStudentCandidate,
   DegreeBulkProcess,
+  DegreeResolvedIdentity,
+  DegreeManualAcademicProfilePayload,
+  ManualAcademicCodeStatus,
   InstitutionalIdentityLookup,
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
-import {denominationForDegreeType, resolveDegreeDenomination} from './degree-diploma.utils';
+import {
+  coreCandidateAcademicLine,
+  coreCandidateDocumentLine,
+  denominationForDegreeType,
+  institutionalIdentityDisplayStatus,
+  isProfileGenderResolved,
+  resolveDegreeDenomination,
+  resolvedGenderLabel,
+} from './degree-diploma.utils';
 
 @Component({
   selector: 'app-degree-records',
@@ -101,6 +114,8 @@ export class DegreeRecordsComponent implements OnInit {
   mailTestRecipient: string | null = null;
   diplomaDefaults = {university_name: '', institution_code: '', authorities: [] as {name: string; role: string; short_role?: string}[]};
   students: DegreeStudentCandidate[] = [];
+  coreCandidates: CoreAcademicStudentCandidate[] = [];
+  syncingCoreCandidateCode: string | null = null;
   selectedStudent: DegreeStudentCandidate | null = null;
   selectedCallId: number | null = null;
   search = '';
@@ -111,6 +126,19 @@ export class DegreeRecordsComponent implements OnInit {
   loading = false;
   searchingStudents = false;
   studentSearchCompleted = false;
+  studentSearchStatus: DegreeStudentSearchStatus | null = null;
+  identityDni = '';
+  identityDniTouched = false;
+  resolvingStudentIdentity = false;
+  resolvedStudentIdentity: DegreeResolvedIdentity | null = null;
+  identityResolutionStatus: 'identity_found' | 'identity_not_found' | 'technical_error' | null = null;
+  manualAcademicVisible = false;
+  manualAcademicSaving = false;
+  manualCodeChecking = false;
+  manualCodeStatus: ManualAcademicCodeStatus | null = null;
+  manualAcademicCreated = false;
+  createdManualCandidate: DegreeStudentCandidate | null = null;
+  manualAcademic: DegreeManualAcademicProfilePayload = this.emptyManualAcademicProfile();
   manualStudentDialogVisible = false;
   savingManualStudent = false;
   officialStudentCode = '';
@@ -212,6 +240,8 @@ export class DegreeRecordsComponent implements OnInit {
     this.students = [];
     this.studentSearch = '';
     this.studentSearchCompleted = false;
+    this.studentSearchStatus = null;
+    this.resetIdentityResolution();
     this.revalidationEnabled = false;
     this.officialStudentCode = '';
     this.officialCodeReason = '';
@@ -230,6 +260,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.form = {
       degree_call_id: record.degree_call_id,
       academic_profile_id: record.academic_profile_id,
+      manual_academic_profile_id: record.manual_academic_profile_id,
       student_id: record.student_id,
       degree_type_id: record.degree_type.id,
       gender: record.gender === 'F' ? 'F' : record.gender === 'M' ? 'M' : null,
@@ -264,15 +295,189 @@ export class DegreeRecordsComponent implements OnInit {
       return;
     }
     this.searchingStudents = true;
+    this.resetIdentityResolution();
     this.service.searchStudents(term).subscribe({
-      next: response => { this.searchingStudents = false; this.studentSearchCompleted = true; this.students = response.data ?? []; },
-      error: error => { this.searchingStudents = false; this.notifications.notifyApiData(error); },
+      next: response => {
+        this.searchingStudents = false;
+        this.studentSearchCompleted = true;
+        this.students = response.data ?? [];
+        this.studentSearchStatus = response.meta?.search?.status ?? (this.students.length ? 'found' : 'core_not_found');
+        this.coreCandidates = response.meta?.search?.candidates ?? [];
+        if (this.studentSearchStatus && ['core_not_found', 'core_search_unsupported'].includes(this.studentSearchStatus) && /^\d{8}$/.test(term)) {
+          this.identityDni = term;
+        }
+      },
+      error: error => {
+        this.searchingStudents = false;
+        this.studentSearchCompleted = true;
+        this.students = [];
+        this.coreCandidates = [];
+        this.studentSearchStatus = error?.error?.meta?.search?.status === 'technical_error' ? 'technical_error' : null;
+        if (this.studentSearchStatus !== 'technical_error') this.notifications.notifyApiData(error);
+      },
     });
+  }
+
+  documentLine(candidate: CoreAcademicStudentCandidate): string {
+    return coreCandidateDocumentLine(candidate);
+  }
+
+  academicLine(candidate: CoreAcademicStudentCandidate): string {
+    return coreCandidateAcademicLine(candidate);
+  }
+
+  selectCoreCandidate(candidate: CoreAcademicStudentCandidate): void {
+    this.syncingCoreCandidateCode = candidate.code;
+    this.service.syncCoreCandidate(candidate.code).subscribe({
+      next: response => {
+        this.syncingCoreCandidateCode = null;
+        if (response.data.status === 'found' && response.data.candidate) {
+          this.chooseStudent(response.data.candidate);
+          this.coreCandidates = [];
+          this.studentSearchStatus = 'found';
+          return;
+        }
+        this.studentSearchStatus = response.data.status;
+      },
+      error: error => {
+        this.syncingCoreCandidateCode = null;
+        this.coreCandidates = [];
+        this.studentSearchStatus = error?.error?.data?.status ?? 'technical_error';
+      },
+    });
+  }
+
+  resolveIdentityByDni(): void {
+    this.identityDniTouched = true;
+    if (!/^\d{8}$/.test(this.identityDni)) return;
+
+    this.resolvingStudentIdentity = true;
+    this.resolvedStudentIdentity = null;
+    this.identityResolutionStatus = null;
+    this.service.resolveStudentIdentity(this.identityDni).subscribe({
+      next: response => {
+        this.resolvingStudentIdentity = false;
+        if (response.data.status === 'academic_profile_found' && response.data.candidate) {
+          this.chooseStudent(response.data.candidate);
+          this.studentSearchStatus = 'found';
+          return;
+        }
+        this.identityResolutionStatus = response.data.status === 'identity_found' || response.data.status === 'identity_not_found'
+          ? response.data.status : 'technical_error';
+        this.resolvedStudentIdentity = response.data.identity;
+      },
+      error: error => {
+        this.resolvingStudentIdentity = false;
+        this.identityResolutionStatus = 'technical_error';
+      },
+    });
+  }
+
+  get identityDniInvalid(): boolean {
+    return !/^\d{8}$/.test(this.identityDni);
+  }
+
+  startManualAcademicProfile(): void {
+    if (!this.resolvedStudentIdentity) return;
+    this.manualAcademicVisible = true;
+    this.manualAcademicCreated = false;
+    this.manualCodeStatus = null;
+    this.manualAcademic = this.emptyManualAcademicProfile();
+    this.manualAcademic.document_number = this.resolvedStudentIdentity.document_number;
+    this.manualAcademic.core_person_id = this.resolvedStudentIdentity.core_person_id;
+  }
+
+  get exceptionalCareers(): DegreeAcademicCareer[] {
+    return this.academicTree.find(faculty => faculty.id === this.manualAcademic.faculty_id)?.careers ?? [];
+  }
+
+  get exceptionalPrograms(): DegreeAcademicProgram[] {
+    return this.exceptionalCareers.find(career => career.id === this.manualAcademic.professional_career_id)?.programs ?? [];
+  }
+
+  onExceptionalFacultyChange(): void {
+    this.manualAcademic.professional_career_id = 0;
+    this.manualAcademic.degree_program_id = 0;
+  }
+
+  onExceptionalCareerChange(): void {
+    this.manualAcademic.degree_program_id = 0;
+  }
+
+  checkManualAcademicCode(): void {
+    this.manualAcademic.student_code = this.manualAcademic.student_code.trim().toUpperCase();
+    if (!/^[A-Z0-9]{4,20}$/.test(this.manualAcademic.student_code)) return;
+    this.manualCodeChecking = true;
+    this.service.checkManualAcademicCode(this.manualAcademic).subscribe({
+      next: response => {
+        this.manualCodeChecking = false;
+        this.manualCodeStatus = response.data.status;
+        if (response.data.status === 'core_profile_found' && response.data.candidate) {
+          this.chooseStudent(response.data.candidate);
+          this.manualAcademicVisible = false;
+          this.notifications.success('Perfil institucional encontrado', 'Se utilizará la información académica de CORE.');
+        }
+      },
+      error: error => {
+        this.manualCodeChecking = false;
+        this.manualCodeStatus = error?.error?.data?.status ?? 'technical_error';
+      },
+    });
+  }
+
+  saveManualAcademicProfile(): void {
+    if (this.manualCodeStatus !== 'code_available') {
+      this.notifications.warning('Código sin verificar', 'Verifique el código académico antes de guardar.');
+      return;
+    }
+    this.manualAcademicSaving = true;
+    this.service.createManualAcademicProfile(this.manualAcademic).subscribe({
+      next: response => {
+        this.manualAcademicSaving = false;
+        if (response.data.status === 'core_profile_found' && response.data.candidate) {
+          this.chooseStudent(response.data.candidate);
+          this.manualAcademicVisible = false;
+          return;
+        }
+        this.manualAcademicCreated = response.data.status === 'manual_profile_created';
+        this.createdManualCandidate = response.data.profile?.candidate ?? null;
+        if (this.manualAcademicCreated && this.createdManualCandidate) {
+          this.chooseStudent(this.createdManualCandidate);
+          this.manualAcademicVisible = false;
+          this.notifications.success('Perfil excepcional registrado', 'El perfil académico manual quedó listo y fue seleccionado.');
+        }
+      },
+      error: error => {
+        this.manualAcademicSaving = false;
+        if (error?.error?.data?.status === 'identity_conflict') this.manualCodeStatus = 'identity_conflict';
+        else this.notifications.notifyApiData(error);
+      },
+    });
+  }
+
+  private resetIdentityResolution(): void {
+    this.identityDni = '';
+    this.identityDniTouched = false;
+    this.resolvingStudentIdentity = false;
+    this.resolvedStudentIdentity = null;
+    this.identityResolutionStatus = null;
+    this.manualAcademicVisible = false;
+    this.manualAcademicCreated = false;
+    this.createdManualCandidate = null;
+    this.manualCodeStatus = null;
+    this.manualAcademic = this.emptyManualAcademicProfile();
+  }
+
+  private emptyManualAcademicProfile(): DegreeManualAcademicProfilePayload {
+    return {document_type: 'dni', document_number: '', core_person_id: null, student_code: '',
+      faculty_id: 0, professional_career_id: 0, degree_program_id: 0, campus_id: 0,
+      study_plan: null, reason: ''};
   }
 
   chooseStudent(candidate: DegreeStudentCandidate): void {
     this.selectedStudent = candidate;
     this.form.academic_profile_id = candidate.academic_profile_id;
+    this.form.manual_academic_profile_id = candidate.manual_academic_profile_id;
     this.form.student_id = candidate.student_id;
     this.form.faculty_id = candidate.faculty.local_id;
     this.form.professional_career_id = candidate.major.local_id;
@@ -283,6 +488,7 @@ export class DegreeRecordsComponent implements OnInit {
     const localGender = this.catalogGenders.find(option => option.id === candidate.gender.local_id);
     this.form.gender = localGender?.value === 'F' || localGender?.value === 'M' ? localGender.value : null;
     this.students = [];
+    this.coreCandidates = [];
     this.applyDefaultProgram();
     this.syncDenomination();
     // No live Microsoft/Core call here: institutional email state is read directly from the
@@ -378,9 +584,9 @@ export class DegreeRecordsComponent implements OnInit {
 
   get currentStudentIdentityStatus(): string {
     if (this.selectedStudent) {
-      return this.selectedStudent.institutional_email?.status ?? 'pending';
+      return institutionalIdentityDisplayStatus(this.selectedStudent.institutional_email);
     }
-    if (this.editing && this.editing.academic_profile_id === null
+    if (this.editing && this.editing.academic_source === 'legacy_student'
       && this.editing.institutional_identity?.code_status !== 'confirmed') {
       return 'academic_code_required';
     }
@@ -393,6 +599,17 @@ export class DegreeRecordsComponent implements OnInit {
     // edits keep using the untouched InstitutionalIdentityController re-verification flow.
     if (this.selectedStudent) return false;
     return this.editing ? this.canVerifyInstitutionalEmail(this.editing) : false;
+  }
+
+  // Once a candidate is selected, gender is authoritative from the academic profile whenever
+  // it resolves to M/F (see chooseStudent()); only then is the manual selector hidden and the
+  // operator's choice becomes irrelevant — matches the backend, which ignores it in that case too.
+  get profileGenderResolved(): boolean {
+    return isProfileGenderResolved(!!this.selectedStudent, this.form.gender);
+  }
+
+  get resolvedGenderLabel(): string {
+    return resolvedGenderLabel(this.form.gender);
   }
 
   get resolvedDegreeDenomination(): string {
@@ -550,7 +767,7 @@ export class DegreeRecordsComponent implements OnInit {
       this.notifications.warning('Datos incompletos', 'Seleccione la convocatoria.');
       return;
     }
-    if (!this.editing && !this.form.academic_profile_id) {
+    if (!this.editing && !this.form.academic_profile_id && !this.form.manual_academic_profile_id) {
       this.notifications.warning('No se puede continuar', 'Seleccione un perfil académico vigente del estudiante.');
       return;
     }
@@ -719,18 +936,19 @@ export class DegreeRecordsComponent implements OnInit {
   identitySeverity(status?: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     return ['verified', 'confirmed'].includes(status ?? '') ? 'success' : status === 'probable' ? 'info' :
       ['review_required', 'pending', 'academic_code_required'].includes(status ?? '') ? 'warn' :
-        ['not_match', 'not_found', 'invalid_domain'].includes(status ?? '') ? 'danger' : 'secondary';
+        ['not_match', 'not_found', 'invalid_domain', 'technical_error'].includes(status ?? '') ? 'danger' : 'secondary';
   }
 
   identityLabel(status?: string): string {
     return ({verified: 'Verificado 100% con Microsoft 365', confirmed: 'Coincidencia confirmada', probable: 'Coincidencia probable',
       review_required: 'Requiere revisión', not_match: 'No corresponde', not_found: 'Cuenta institucional no encontrada',
       pending: 'Pendiente de verificación', test: 'Correo de prueba', invalid_domain: 'Dominio no institucional',
-      academic_code_required: 'Código académico requerido'} as Record<string, string>)[status ?? ''] ?? 'Sin verificar';
+      academic_code_required: 'Código académico requerido',
+      technical_error: 'No fue posible verificar con Microsoft 365. Intente nuevamente.'} as Record<string, string>)[status ?? ''] ?? 'Sin verificar';
   }
 
   private canVerifyInstitutionalStatus(status?: string | null): boolean {
-    return ['pending', 'not_found', 'probable', 'review_required', 'not_match', 'invalid_domain']
+    return ['pending', 'not_found', 'probable', 'review_required', 'not_match', 'invalid_domain', 'technical_error']
       .includes(status ?? 'pending');
   }
 
@@ -742,6 +960,7 @@ export class DegreeRecordsComponent implements OnInit {
       review_required: 'Revisar identidad institucional',
       not_match: 'Revisar correo institucional',
       invalid_domain: 'Corregir correo institucional',
+      technical_error: 'Reintentar verificación',
     } as Record<string, string>)[status ?? 'pending'] ?? 'Verificar correo institucional';
   }
 
@@ -763,7 +982,7 @@ export class DegreeRecordsComponent implements OnInit {
 
   private emptyForm(): any {
     return {
-      degree_call_id: null, academic_profile_id: null, student_id: null,
+      degree_call_id: null, academic_profile_id: null, manual_academic_profile_id: null, student_id: null,
       degree_type_id: null, diploma_issue_type_id: null,
       gender: null,
       faculty_id: null, professional_career_id: null, degree_program_id: null, degree_denomination_id: null,

@@ -184,10 +184,128 @@
           </div>
         </ng-template>
       </p-listbox>
-      <div *ngIf="studentSearchCompleted && !students.length && !selectedStudent" class="empty-student-result">
-        <p-message severity="warn"
-                   text="No se encontró al estudiante en la fuente académica institucional. Verifique/sincronice la información desde CORE."></p-message>
+      <div *ngIf="coreCandidates.length" class="full core-results">
+        <div class="core-results-header">
+          <span>Resultados encontrados en CORE</span>
+          <span class="core-results-count">{{ coreCandidates.length }} resultado{{ coreCandidates.length === 1 ? '' : 's' }}</span>
+        </div>
+        <ul class="core-candidate-list">
+          <li *ngFor="let candidate of coreCandidates">
+            <button type="button" class="core-candidate-card"
+                    [class.is-syncing]="syncingCoreCandidateCode === candidate.code"
+                    [disabled]="syncingCoreCandidateCode !== null"
+                    (click)="selectCoreCandidate(candidate)">
+              <span class="core-candidate-info">
+                <span class="core-candidate-name">{{ candidate.full_name }}</span>
+                <span class="core-candidate-document">{{ documentLine(candidate) }}</span>
+                <span class="core-candidate-academic" *ngIf="academicLine(candidate)">{{ academicLine(candidate) }}</span>
+              </span>
+              <span class="core-candidate-action">
+                <ng-container *ngIf="syncingCoreCandidateCode === candidate.code; else selectLabel">
+                  <i class="pi pi-spin pi-spinner"></i>
+                </ng-container>
+                <ng-template #selectLabel>Seleccionar <i class="pi pi-arrow-right"></i></ng-template>
+              </span>
+            </button>
+          </li>
+        </ul>
       </div>
+      <div *ngIf="studentSearchCompleted && !students.length && !coreCandidates.length && !selectedStudent" class="empty-student-result">
+        <p-message *ngIf="studentSearchStatus === 'core_not_found'" severity="warn"
+                   text="No se encontró el perfil académico del estudiante en CORE. Será necesario verificarlo mediante DNI."></p-message>
+        <p-message *ngIf="studentSearchStatus === 'core_search_unsupported'" severity="info"
+                   text="La búsqueda institucional por nombres o apellidos no está disponible. Ingrese el DNI del estudiante para continuar."></p-message>
+        <p-message *ngIf="studentSearchStatus === 'technical_error'" severity="error"
+                   text="No fue posible consultar la fuente institucional. Intente nuevamente."></p-message>
+      </div>
+      <div *ngIf="!selectedStudent && (studentSearchStatus === 'core_not_found' || studentSearchStatus === 'core_search_unsupported')"
+           class="identity-resolution full">
+        <p-fieldset legend="Verificación obligatoria de identidad">
+          <label>DNI del estudiante <span class="required">*</span>
+            <div class="search-row">
+              <input pInputText [(ngModel)]="identityDni" maxlength="8" inputmode="numeric"
+                     (blur)="identityDniTouched = true" (keyup.enter)="resolveIdentityByDni()"
+                     placeholder="Ingrese 8 dígitos">
+              <button pButton type="button" icon="pi pi-id-card" label="Verificar identidad"
+                      [loading]="resolvingStudentIdentity" (click)="resolveIdentityByDni()"></button>
+            </div>
+            <small class="field-error" *ngIf="identityDniTouched && identityDniInvalid">
+              El DNI es obligatorio y debe contener exactamente 8 dígitos.
+            </small>
+          </label>
+
+          <p-message *ngIf="identityResolutionStatus === 'identity_not_found'" severity="warn"
+                     text="No fue posible obtener automáticamente la identidad del estudiante con este DNI."></p-message>
+          <p-message *ngIf="identityResolutionStatus === 'technical_error'" severity="error"
+                     text="No fue posible verificar la identidad en este momento. Intente nuevamente."></p-message>
+
+          <div *ngIf="resolvedStudentIdentity" class="selected-student identity-readonly">
+            <i class="pi pi-verified"></i>
+            <span class="selected-student-content">
+              <strong>Identidad encontrada</strong>
+              <span>DNI: {{ resolvedStudentIdentity.document_number }}</span>
+              <span>Nombres: {{ resolvedStudentIdentity.names }}</span>
+              <span>Apellido paterno: {{ resolvedStudentIdentity.paternal_last_name }}</span>
+              <span>Apellido materno: {{ resolvedStudentIdentity.maternal_last_name || 'No registrado' }}</span>
+              <span>Sexo: {{ resolvedStudentIdentity.gender.label || 'No registrado' }}</span>
+              <span>Fuente: Identidad institucional verificada</span>
+            </span>
+          </div>
+          <button *ngIf="resolvedStudentIdentity" pButton type="button" icon="pi pi-arrow-right"
+                  label="Continuar con datos académicos" (click)="startManualAcademicProfile()"></button>
+        </p-fieldset>
+      </div>
+
+      <p-fieldset *ngIf="manualAcademicVisible && resolvedStudentIdentity" class="full" legend="Datos académicos excepcionales">
+        <p-message severity="warn" text="Este perfil se registrará como excepción manual y no como información académica proveniente de CORE."></p-message>
+        <div class="form-grid">
+          <label>Código académico <span class="required">*</span>
+            <div class="search-row">
+              <input pInputText [(ngModel)]="manualAcademic.student_code" maxlength="20"
+                     (ngModelChange)="manualCodeStatus = null" placeholder="Ejemplo: A211104">
+              <button pButton type="button" icon="pi pi-search" label="Verificar código"
+                      [loading]="manualCodeChecking" (click)="checkManualAcademicCode()"></button>
+            </div>
+          </label>
+          <div>
+            <p-message *ngIf="manualCodeStatus === 'code_available'" severity="success"
+                       text="Código disponible para perfil académico excepcional."></p-message>
+            <p-message *ngIf="manualCodeStatus === 'identity_conflict'" severity="error"
+                       text="El código académico ingresado pertenece a otra identidad en CORE."></p-message>
+            <p-message *ngIf="manualCodeStatus === 'technical_error'" severity="error"
+                       text="No fue posible verificar el código académico en CORE. Intente nuevamente."></p-message>
+          </div>
+
+          <label>Facultad <span class="required">*</span>
+            <p-select [(ngModel)]="manualAcademic.faculty_id" [options]="academicTree" optionLabel="label" optionValue="id"
+                      appendTo="body" placeholder="Seleccione" (onChange)="onExceptionalFacultyChange()"></p-select>
+          </label>
+          <label>Carrera profesional <span class="required">*</span>
+            <p-select [(ngModel)]="manualAcademic.professional_career_id" [options]="exceptionalCareers" optionLabel="label" optionValue="id"
+                      appendTo="body" placeholder="Seleccione" (onChange)="onExceptionalCareerChange()"></p-select>
+          </label>
+          <label>Programa / especialidad <span class="required">*</span>
+            <p-select [(ngModel)]="manualAcademic.degree_program_id" [options]="exceptionalPrograms" optionLabel="label" optionValue="id"
+                      appendTo="body" placeholder="Seleccione"></p-select>
+          </label>
+          <label>Campus <span class="required">*</span>
+            <p-select [(ngModel)]="manualAcademic.campus_id" [options]="campuses" optionLabel="label" optionValue="id"
+                      appendTo="body" placeholder="Seleccione"></p-select>
+          </label>
+          <label>Plan de estudios
+            <p-inputNumber [(ngModel)]="manualAcademic.study_plan" [useGrouping]="false" [min]="1900" [max]="2100"></p-inputNumber>
+          </label>
+          <label class="full">Motivo <span class="required">*</span>
+            <input pInputText [(ngModel)]="manualAcademic.reason" maxlength="1000"
+                   placeholder="Explique por qué se requiere el perfil académico excepcional">
+          </label>
+        </div>
+        <p-message *ngIf="manualAcademicCreated" severity="success"
+                   text="El perfil académico excepcional fue registrado con estado Listo."></p-message>
+        <button pButton type="button" icon="pi pi-save" label="Guardar perfil excepcional"
+                [loading]="manualAcademicSaving" [disabled]="manualAcademicCreated"
+                (click)="saveManualAcademicProfile()"></button>
+      </p-fieldset>
       <div class="selected-student" *ngIf="selectedStudent">
         <i class="pi pi-check-circle"></i>
         <span class="selected-student-content"><strong>{{ selectedStudent.full_name }}</strong>
@@ -195,6 +313,11 @@
           <span><i class="pi pi-envelope"></i>{{ selectedInstitutionalEmail }}</span>
           <span *ngIf="selectedStudent.faculty.label || selectedStudent.major.label">
             <i class="pi pi-graduation-cap"></i>{{ selectedStudent.faculty.label || 'Facultad pendiente' }} · {{ selectedStudent.major.label || 'Carrera pendiente' }}
+            <ng-container *ngIf="selectedStudent.specialization.label"> · {{ selectedStudent.specialization.label }}</ng-container>
+          </span>
+          <span *ngIf="selectedStudent.campus.label">
+            <i class="pi pi-map-marker"></i>{{ selectedStudent.campus.label }}
+            <ng-container *ngIf="selectedStudent.study_plan">  · Plan {{ selectedStudent.study_plan }}</ng-container>
           </span>
         </span>
       </div>
@@ -236,7 +359,12 @@
       <p-tag value="Anexo N.° 3" severity="info"></p-tag>
     </div>
 
-    <label><span>Sexo del estudiante</span><small>Determina la denominación institucional configurada</small>
+    <label *ngIf="profileGenderResolved"><span>Sexo del estudiante</span><small>Registrado en la fuente académica institucional</small>
+      <span class="input-with-icon"><i class="pi pi-lock"></i>
+        <input pInputText [value]="resolvedGenderLabel" readonly>
+      </span>
+    </label>
+    <label *ngIf="!profileGenderResolved"><span>Sexo del estudiante <b>*</b></span><small>Determina la denominación institucional configurada</small>
       <p-select [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value"
                 placeholder="Seleccione" appendTo="body"></p-select>
     </label>
@@ -263,19 +391,38 @@
       <div class="form-grid diploma-grid">
     <label class="full"><span>Universidad</span><input pInputText [value]="diplomaDefaults.university_name" readonly></label>
     <label class="full"><span>Estudiante</span><input pInputText [value]="diplomaStudentName" readonly></label>
-    <label><span>Facultad <b>*</b></span>
-      <p-select [(ngModel)]="form.faculty_id" [options]="academicTree" optionLabel="label" optionValue="id"
-                placeholder="Seleccione una facultad" appendTo="body" (onChange)="onFacultyChange()"></p-select>
-    </label>
-    <label><span>Carrera o programa <b>*</b></span>
-      <p-select [(ngModel)]="form.professional_career_id" [options]="careers" optionLabel="label" optionValue="id"
-                placeholder="Seleccione una carrera" appendTo="body" [disabled]="!form.faculty_id"
-                (onChange)="onCareerChange()"></p-select>
-    </label>
-    <label *ngIf="requiresSpecialty"><span>Especialidad o mención</span>
-      <p-select [(ngModel)]="form.degree_program_id" [options]="specialtyPrograms" optionLabel="specialty" optionValue="id"
-                placeholder="Seleccione una especialidad" appendTo="body"></p-select>
-    </label>
+    <ng-container *ngIf="selectedStudent; else editableAcademicFields">
+      <label><span>Facultad</span><small>DATO INSTITUCIONAL</small>
+        <span class="input-with-icon"><i class="pi pi-lock"></i>
+          <input pInputText [value]="selectedStudent.faculty.label || 'Sin conciliar'" readonly>
+        </span>
+      </label>
+      <label><span>Carrera o programa</span><small>DATO INSTITUCIONAL</small>
+        <span class="input-with-icon"><i class="pi pi-lock"></i>
+          <input pInputText [value]="selectedStudent.major.label || 'Sin conciliar'" readonly>
+        </span>
+      </label>
+      <label *ngIf="selectedStudent.specialization.label"><span>Especialidad o mención</span><small>DATO INSTITUCIONAL</small>
+        <span class="input-with-icon"><i class="pi pi-lock"></i>
+          <input pInputText [value]="selectedStudent.specialization.label" readonly>
+        </span>
+      </label>
+    </ng-container>
+    <ng-template #editableAcademicFields>
+      <label><span>Facultad <b>*</b></span>
+        <p-select [(ngModel)]="form.faculty_id" [options]="academicTree" optionLabel="label" optionValue="id"
+                  placeholder="Seleccione una facultad" appendTo="body" (onChange)="onFacultyChange()"></p-select>
+      </label>
+      <label><span>Carrera o programa <b>*</b></span>
+        <p-select [(ngModel)]="form.professional_career_id" [options]="careers" optionLabel="label" optionValue="id"
+                  placeholder="Seleccione una carrera" appendTo="body" [disabled]="!form.faculty_id"
+                  (onChange)="onCareerChange()"></p-select>
+      </label>
+      <label *ngIf="requiresSpecialty"><span>Especialidad o mención</span>
+        <p-select [(ngModel)]="form.degree_program_id" [options]="specialtyPrograms" optionLabel="specialty" optionValue="id"
+                  placeholder="Seleccione una especialidad" appendTo="body"></p-select>
+      </label>
+    </ng-template>
     <label><span>Tipo de grado o título <b>*</b></span>
       <p-select [(ngModel)]="form.degree_type_id" [options]="degreeTypes" optionLabel="label" optionValue="id"
                 placeholder="Seleccione" appendTo="body" (onChange)="onDegreeTypeChange()"></p-select>
