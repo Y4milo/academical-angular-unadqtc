@@ -178,39 +178,38 @@
                  [listStyle]="{'max-height': '190px'}" (onChange)="chooseStudent($event.value)">
         <ng-template pTemplate="item" let-student>
           <div class="student-option"><strong>{{ student.full_name }}</strong>
-            <span>Código {{ student.code }} · {{ student.document_type }} {{ student.document_number }}</span>
-            <span *ngIf="student.institutional_email"><i class="pi pi-envelope"></i> {{ student.institutional_email }}</span></div>
+            <span>Código {{ student.code }} · {{ student.document.type }} {{ student.document.number }}</span>
+            <span *ngIf="student.institutional_email?.verified || student.institutional_email?.candidate">
+              <i class="pi pi-envelope"></i> {{ student.institutional_email.verified || student.institutional_email.candidate }}</span>
+          </div>
         </ng-template>
       </p-listbox>
       <div *ngIf="studentSearchCompleted && !students.length && !selectedStudent" class="empty-student-result">
-        <p-message severity="warn" text="No se encontró al estudiante. No se generará ningún código automáticamente."></p-message>
-        <button pButton type="button" icon="pi pi-user-plus" label="Registrar estudiante con código oficial"
-                severity="secondary" [outlined]="true" (click)="openManualStudent()"></button>
+        <p-message severity="warn"
+                   text="No se encontró al estudiante en la fuente académica institucional. Verifique/sincronice la información desde CORE."></p-message>
       </div>
       <div class="selected-student" *ngIf="selectedStudent">
         <i class="pi pi-check-circle"></i>
         <span class="selected-student-content"><strong>{{ selectedStudent.full_name }}</strong>
-          <span>Código {{ selectedStudent.code }} · {{ selectedStudent.document_type }} {{ selectedStudent.document_number }}</span>
-          <span><i class="pi pi-envelope"></i>{{ selectedStudent.institutional_email || 'Correo institucional no registrado' }}</span>
-          <span *ngIf="selectedStudent.faculty || selectedStudent.career">
-            <i class="pi pi-graduation-cap"></i>{{ selectedStudent.faculty?.label || 'Facultad pendiente' }} · {{ selectedStudent.career?.label || 'Carrera pendiente' }}
+          <span>Código {{ selectedStudent.code }} · {{ selectedStudent.document.type }} {{ selectedStudent.document.number }}</span>
+          <span><i class="pi pi-envelope"></i>{{ selectedInstitutionalEmail }}</span>
+          <span *ngIf="selectedStudent.faculty.label || selectedStudent.major.label">
+            <i class="pi pi-graduation-cap"></i>{{ selectedStudent.faculty.label || 'Facultad pendiente' }} · {{ selectedStudent.major.label || 'Carrera pendiente' }}
           </span>
         </span>
       </div>
-      <p-message *ngIf="selectedStudent && selectedStudent.code_status !== 'confirmed'" class="full"
-                 severity="warn" text="Este registro usa una referencia provisional. Confirme el código académico oficial antes de consultar Microsoft 365."></p-message>
     </div>
     <div *ngIf="editing" class="selected-student full">
       <i class="pi pi-user"></i><span><strong>{{ editing.full_name }}</strong><br>
       Código {{ editing.student_code }} · Documento {{ editing.document_number }}</span>
     </div>
 
-    <div *ngIf="hasStudentContext && currentStudentIdentityStatus === 'academic_code_required'" class="academic-code-panel full">
+    <div *ngIf="editing && currentStudentIdentityStatus === 'academic_code_required'" class="academic-code-panel full">
       <div class="academic-code-heading">
         <i class="pi pi-id-card"></i>
         <span><strong>Código académico requerido</strong>
-          <small *ngIf="selectedStudent?.legacy_reference || editing?.institutional_identity?.legacy_reference">
-            Referencia de importación: {{ selectedStudent?.legacy_reference || editing?.institutional_identity?.legacy_reference }}
+          <small *ngIf="editing?.institutional_identity?.legacy_reference">
+            Referencia de importación: {{ editing.institutional_identity.legacy_reference }}
           </small>
         </span>
       </div>
@@ -251,11 +250,13 @@
         <button *ngIf="canVerifyCurrentInstitutionalEmail" pButton type="button"
                 [label]="currentInstitutionalEmailActionLabel"
                 icon="pi pi-verified" severity="secondary" [outlined]="true" size="small"
-                [loading]="studentIdentityChecking || (!!editing && checkingIdentityId === editing.id)"
+                [loading]="!!editing && checkingIdentityId === editing.id"
                 (click)="verifyCurrentInstitutionalEmail()"></button>
       </span>
-      <p-message *ngIf="studentIdentityResult?.comparison && currentStudentIdentityStatus !== 'verified'"
+      <p-message *ngIf="editing && identityLookup?.comparison && currentStudentIdentityStatus !== 'verified'"
                  severity="warn" text="La cuenta existe, pero los datos no alcanzan una coincidencia del 100%."></p-message>
+      <p-message *ngIf="selectedStudent && ['probable', 'review_required'].includes(selectedStudent.institutional_email.match_status ?? '')"
+                 severity="warn" text="La cuenta existe en Microsoft 365, pero la coincidencia registrada en Core no llega al 100%."></p-message>
     </label>
     <section class="diploma-section full">
       <header><span class="section-number">1</span><div><strong>Anverso</strong><small>Información visible en la parte frontal del diploma</small></div></header>
@@ -305,9 +306,9 @@
     <label><span>Fecha de la resolución de otorgamiento <b>*</b></span><p-datepicker [(ngModel)]="form.resolution_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
     <label><span>Número de diploma <b>*</b></span><input pInputText [(ngModel)]="form.diploma_number"></label>
     <ng-container *ngIf="isDuplicateDiploma">
-      <label><span>Resolución de duplicado o nuevo diploma</span><input pInputText [(ngModel)]="form.sunedu_data['RESO_NUM_DUP_NUE']"></label>
-      <label><span>Fecha de resolución de duplicado</span><p-datepicker [(ngModel)]="form.sunedu_data['RESO_FEC_DUP_NUE']" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
-      <label><span>Fecha del diploma duplicado o nuevo</span><p-datepicker [(ngModel)]="form.sunedu_data['DIPL_FEC_DUP_NUE']" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+      <label><span>Resolución de duplicado o nuevo diploma <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['RESO_NUM_DUP_NUE']"></label>
+      <label><span>Fecha de resolución de duplicado <b>*</b></span><p-datepicker [(ngModel)]="form.sunedu_data['RESO_FEC_DUP_NUE']" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
+      <label><span>Fecha del diploma duplicado o nuevo <b>*</b></span><p-datepicker [(ngModel)]="form.sunedu_data['DIPL_FEC_DUP_NUE']" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
     </ng-container>
     <label><span>Libro</span><small>Opcional</small><input pInputText [(ngModel)]="form.registry_book"></label>
     <label><span>Folio</span><small>Opcional</small><input pInputText [(ngModel)]="form.registry_folio"></label>
@@ -321,6 +322,7 @@
         <label><span>País de procedencia de la revalidación <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['PROC_REV_PAIS']"></label>
         <label><span>Universidad de procedencia <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['PROC_REV_UNIV']"></label>
         <label class="full"><span>Denominación del grado o título revalidado <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['PROC_REV_GRADO']"></label>
+        <label class="full"><span>Criterio de revalidación <b>*</b></span><input pInputText [(ngModel)]="form.sunedu_data['CRIT_REV']"></label>
       </div>
     </div>
       </div>
@@ -349,7 +351,8 @@
   </div>
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" (click)="dialogVisible = false"></button>
-    <button pButton type="button" label="Guardar" icon="pi pi-save" [loading]="saving" (click)="save()"></button>
+    <button pButton type="button" label="Guardar" icon="pi pi-save" [loading]="saving"
+            (click)="save()"></button>
   </ng-template>
 </p-dialog>
 

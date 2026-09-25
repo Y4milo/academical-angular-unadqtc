@@ -26,7 +26,7 @@ import {
   DegreeAcademicProgram,
   DegreeRecord,
   DegreeRecordPayload,
-  DegreeStudent,
+  DegreeStudentCandidate,
   DegreeBulkProcess,
   InstitutionalIdentityLookup,
   DegreesTitlesService,
@@ -47,6 +47,12 @@ import {denominationForDegreeType, resolveDegreeDenomination} from './degree-dip
   styleUrl: './degree-records.component.css',
 })
 export class DegreeRecordsComponent implements OnInit {
+  private readonly conditionalSuneduFields = [
+    {key: 'RESO_NUM_DUP_NUE', type: 'text'}, {key: 'RESO_FEC_DUP_NUE', type: 'date'},
+    {key: 'DIPL_FEC_DUP_NUE', type: 'date'}, {key: 'PROC_REV_PAIS', type: 'text'},
+    {key: 'PROC_REV_UNIV', type: 'text'}, {key: 'PROC_REV_GRADO', type: 'text'},
+    {key: 'CRIT_REV', type: 'text'},
+  ];
   readonly genderOptions = [{label: 'Masculino', value: 'M'}, {label: 'Femenino', value: 'F'}];
   readonly suneduGroups = [
     {legend: 'Información académica', fields: [
@@ -94,8 +100,8 @@ export class DegreeRecordsComponent implements OnInit {
   mailTestMode = false;
   mailTestRecipient: string | null = null;
   diplomaDefaults = {university_name: '', institution_code: '', authorities: [] as {name: string; role: string; short_role?: string}[]};
-  students: DegreeStudent[] = [];
-  selectedStudent: DegreeStudent | null = null;
+  students: DegreeStudentCandidate[] = [];
+  selectedStudent: DegreeStudentCandidate | null = null;
   selectedCallId: number | null = null;
   search = '';
   studentSearch = '';
@@ -107,8 +113,6 @@ export class DegreeRecordsComponent implements OnInit {
   studentSearchCompleted = false;
   manualStudentDialogVisible = false;
   savingManualStudent = false;
-  studentIdentityChecking = false;
-  studentIdentityResult: InstitutionalIdentityLookup | null = null;
   officialStudentCode = '';
   officialCodeReason = '';
   confirmingStudentCode = false;
@@ -208,7 +212,6 @@ export class DegreeRecordsComponent implements OnInit {
     this.students = [];
     this.studentSearch = '';
     this.studentSearchCompleted = false;
-    this.studentIdentityResult = null;
     this.revalidationEnabled = false;
     this.officialStudentCode = '';
     this.officialCodeReason = '';
@@ -222,11 +225,11 @@ export class DegreeRecordsComponent implements OnInit {
     if (record.call?.status?.value !== 'open' || record.status?.value === 'annulled') return;
     this.editing = record;
     this.selectedStudent = null;
-    this.studentIdentityResult = null;
     this.officialStudentCode = '';
     this.officialCodeReason = '';
     this.form = {
       degree_call_id: record.degree_call_id,
+      academic_profile_id: record.academic_profile_id,
       student_id: record.student_id,
       degree_type_id: record.degree_type.id,
       gender: record.gender === 'F' ? 'F' : record.gender === 'M' ? 'M' : null,
@@ -241,7 +244,7 @@ export class DegreeRecordsComponent implements OnInit {
       registry_number: record.registry_number ?? '',
       sunedu_data: this.manualSuneduData(record.sunedu_data ?? {}),
     };
-    this.revalidationEnabled = ['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO']
+    this.revalidationEnabled = ['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO', 'CRIT_REV']
       .some(field => !!this.form.sunedu_data[field]);
     this.dialogVisible = true;
   }
@@ -267,23 +270,23 @@ export class DegreeRecordsComponent implements OnInit {
     });
   }
 
-  chooseStudent(student: DegreeStudent): void {
-    this.selectedStudent = student;
-    this.officialStudentCode = student.code_status === 'confirmed' ? student.code : '';
-    this.officialCodeReason = '';
-    this.form.student_id = student.id;
-    this.form.faculty_id = student.faculty?.id ?? null;
-    this.form.professional_career_id = student.career?.id ?? null;
-    this.form.degree_program_id = student.program?.id ?? null;
+  chooseStudent(candidate: DegreeStudentCandidate): void {
+    this.selectedStudent = candidate;
+    this.form.academic_profile_id = candidate.academic_profile_id;
+    this.form.student_id = candidate.student_id;
+    this.form.faculty_id = candidate.faculty.local_id;
+    this.form.professional_career_id = candidate.major.local_id;
+    this.form.degree_program_id = candidate.specialization.local_id;
     this.form.degree_denomination_id = null;
-    this.form.gender = student.gender_code;
+    // Gender comes from the academic profile (Core replica); resolved to the local M/F catalog
+    // value already loaded for GyT's own denomination rules — Student is never consulted.
+    const localGender = this.catalogGenders.find(option => option.id === candidate.gender.local_id);
+    this.form.gender = localGender?.value === 'F' || localGender?.value === 'M' ? localGender.value : null;
     this.students = [];
     this.applyDefaultProgram();
     this.syncDenomination();
-    if (student.code_status === 'confirmed'
-      && !['verified', 'confirmed', 'test'].includes(student.institutional_email_status ?? 'pending')) {
-      this.verifySelectedStudent();
-    }
+    // No live Microsoft/Core call here: institutional email state is read directly from the
+    // already-synced academic profile. GyT search/selection is strictly read-only.
   }
 
   startBulkProcess(action: 'pdf' | 'ethnicity-email'): void {
@@ -367,25 +370,28 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   get selectedInstitutionalEmail(): string {
-    return this.studentIdentityResult?.institutional_email
-      ?? this.selectedStudent?.institutional_email
+    return this.selectedStudent?.institutional_email?.verified
+      ?? this.selectedStudent?.institutional_email?.candidate
       ?? this.editing?.institutional_identity?.institutional_email
       ?? 'Correo institucional no registrado';
   }
 
   get currentStudentIdentityStatus(): string {
-    if ((this.selectedStudent && this.selectedStudent.code_status !== 'confirmed')
-      || (this.editing && this.editing.institutional_identity?.code_status !== 'confirmed')) {
+    if (this.selectedStudent) {
+      return this.selectedStudent.institutional_email?.status ?? 'pending';
+    }
+    if (this.editing && this.editing.academic_profile_id === null
+      && this.editing.institutional_identity?.code_status !== 'confirmed') {
       return 'academic_code_required';
     }
-    return this.studentIdentityResult?.status
-      ?? this.selectedStudent?.institutional_email_status
-      ?? this.editing?.institutional_identity?.status
-      ?? 'pending';
+    return this.editing?.institutional_identity?.status ?? 'pending';
   }
 
   get canVerifyCurrentInstitutionalEmail(): boolean {
-    if (this.selectedStudent) return this.canVerifyInstitutionalStatus(this.currentStudentIdentityStatus);
+    // New-source candidates (AcademicStudentProfile) never trigger a live Microsoft check from
+    // GyT search/selection; that state is already synced from Core. Only pre-existing DegreeRecord
+    // edits keep using the untouched InstitutionalIdentityController re-verification flow.
+    if (this.selectedStudent) return false;
     return this.editing ? this.canVerifyInstitutionalEmail(this.editing) : false;
   }
 
@@ -403,8 +409,8 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   get diplomaDocument(): string {
-    const type = this.selectedStudent?.document_type ?? this.editing?.document_type_label ?? this.editing?.document_type ?? '';
-    const number = this.selectedStudent?.document_number ?? this.editing?.document_number ?? '';
+    const type = this.selectedStudent?.document.type ?? this.editing?.document_type_label ?? this.editing?.document_type ?? '';
+    const number = this.selectedStudent?.document.number ?? this.editing?.document_number ?? '';
     return [type, number].filter(Boolean).join(' ');
   }
 
@@ -412,33 +418,8 @@ export class DegreeRecordsComponent implements OnInit {
     return this.issueTypes.find(option => option.id === this.form.diploma_issue_type_id)?.value === 'duplicate';
   }
 
-  get hasStudentContext(): boolean {
-    return !!this.selectedStudent || !!this.editing;
-  }
-
   get currentInstitutionalEmailActionLabel(): string {
     return this.institutionalEmailActionForStatus(this.currentStudentIdentityStatus);
-  }
-
-  verifySelectedStudent(): void {
-    if (!this.selectedStudent || this.selectedStudent.code_status !== 'confirmed'
-      || this.selectedStudent.institutional_email_status === 'test') return;
-    this.studentIdentityChecking = true;
-    this.service.checkStudentInstitutionalIdentity(this.selectedStudent.id).subscribe({
-      next: response => {
-        this.studentIdentityChecking = false;
-        if (response.status !== STATUS.success) return this.notifications.notifyApiData(response);
-        const data = response.payload.data as InstitutionalIdentityLookup;
-        this.studentIdentityResult = data;
-        this.selectedStudent!.institutional_email = data.institutional_email ?? this.selectedStudent!.institutional_email;
-        this.selectedStudent!.institutional_email_status = data.status ?? this.selectedStudent!.institutional_email_status;
-        this.selectedStudent!.institutional_email_verified = data.status === 'verified';
-      },
-      error: error => {
-        this.studentIdentityChecking = false;
-        this.notifications.notifyApiData(error);
-      },
-    });
   }
 
   openManualStudent(): void {
@@ -488,8 +469,10 @@ export class DegreeRecordsComponent implements OnInit {
     });
   }
 
+  // Official-code confirmation only applies to legacy DegreeRecord/Student edits.
+  // AcademicStudentProfile candidates already carry Core's authoritative code and never need it.
   confirmOfficialStudentCode(): void {
-    const studentId = this.selectedStudent?.id ?? this.editing?.student_id;
+    const studentId = this.editing?.student_id;
     const code = this.officialStudentCode.trim();
     const reason = this.officialCodeReason.trim();
     if (!studentId || !this.isValidAcademicCode(code) || reason.length < 10) {
@@ -501,18 +484,12 @@ export class DegreeRecordsComponent implements OnInit {
       next: response => {
         this.confirmingStudentCode = false;
         if (response.status !== STATUS.success) return this.notifications.notifyApiData(response);
-        if (this.selectedStudent) {
-          this.selectedStudent.code = code;
-          this.selectedStudent.code_status = 'confirmed';
-        }
         if (this.editing) {
           this.editing.student_code = code;
           this.editing.institutional_identity.code_status = 'confirmed';
         }
-        this.studentIdentityResult = null;
         this.notifications.success('Código académico confirmado', response.payload.message);
-        if (this.selectedStudent) this.verifySelectedStudent();
-        else this.loadRecords(this.page);
+        this.loadRecords(this.page);
       },
       error: error => {
         this.confirmingStudentCode = false;
@@ -538,10 +515,6 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   verifyCurrentInstitutionalEmail(): void {
-    if (this.selectedStudent) {
-      this.verifySelectedStudent();
-      return;
-    }
     if (this.editing) this.checkInstitutionalIdentity(this.editing);
   }
 
@@ -573,13 +546,27 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   save(): void {
-    if (!this.editing && (!this.form.degree_call_id || !this.form.student_id)) {
-      this.notifications.warning('Datos incompletos', 'Seleccione la convocatoria y el estudiante.');
+    if (!this.editing && !this.form.degree_call_id) {
+      this.notifications.warning('Datos incompletos', 'Seleccione la convocatoria.');
       return;
     }
-    if (!this.form.degree_type_id || !this.form.faculty_id || !this.form.professional_career_id
+    if (!this.editing && !this.form.academic_profile_id) {
+      this.notifications.warning('No se puede continuar', 'Seleccione un perfil académico vigente del estudiante.');
+      return;
+    }
+    if (!this.form.degree_type_id || !this.form.diploma_issue_type_id || !this.form.faculty_id || !this.form.professional_career_id
       || !this.form.degree_denomination_id || (this.requiresSpecialty && !this.form.degree_program_id)) {
       this.notifications.warning('Datos académicos incompletos', 'Seleccione una combinación válida de facultad, carrera, grado y especialidad.');
+      return;
+    }
+    if (this.isDuplicateDiploma && ['RESO_NUM_DUP_NUE', 'RESO_FEC_DUP_NUE', 'DIPL_FEC_DUP_NUE']
+      .some(field => !this.form.sunedu_data[field])) {
+      this.notifications.warning('Datos de duplicado incompletos', 'Complete la resolución y las fechas del diploma duplicado.');
+      return;
+    }
+    if (this.revalidationEnabled && ['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO', 'CRIT_REV']
+      .some(field => !this.form.sunedu_data[field])) {
+      this.notifications.warning('Datos de revalidación incompletos', 'Complete todos los campos de revalidación.');
       return;
     }
     const payload: DegreeRecordPayload = {
@@ -776,7 +763,8 @@ export class DegreeRecordsComponent implements OnInit {
 
   private emptyForm(): any {
     return {
-      degree_call_id: null, student_id: null, degree_type_id: null, diploma_issue_type_id: null,
+      degree_call_id: null, academic_profile_id: null, student_id: null,
+      degree_type_id: null, diploma_issue_type_id: null,
       gender: null,
       faculty_id: null, professional_career_id: null, degree_program_id: null, degree_denomination_id: null,
       resolution_number: '',
@@ -807,12 +795,20 @@ export class DegreeRecordsComponent implements OnInit {
       const value = data[field.key] ?? null;
       result[field.key] = field.type === 'date' && typeof value === 'string' ? this.parseDate(value) : value;
     });
+    this.conditionalSuneduFields.forEach(field => {
+      const value = data[field.key] ?? null;
+      result[field.key] = field.type === 'date' && typeof value === 'string' ? this.parseDate(value) : value;
+    });
     return result;
   }
 
   private serialiseSuneduData(data: Record<string, any>): Record<string, string | number | null> {
     const result: Record<string, string | number | null> = {};
     this.suneduGroups.flatMap(group => group.fields).forEach(field => {
+      const value = data?.[field.key] ?? null;
+      result[field.key] = field.type === 'date' ? this.formatDate(value) : value;
+    });
+    this.conditionalSuneduFields.forEach(field => {
       const value = data?.[field.key] ?? null;
       result[field.key] = field.type === 'date' ? this.formatDate(value) : value;
     });
