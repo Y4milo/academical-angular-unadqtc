@@ -52,31 +52,58 @@ export interface DegreeCatalogOption {
   records_count?: number;
 }
 
-export interface DegreeStudent {
-  id: number;
+/**
+ * A degree program is not always a specialty. For example, CROA / Educación Artística
+ * can have `specialization.local_id` set (a real degree program) while `specialization.code`
+ * stays null. Never treat degree_program as a specialty by inference.
+ */
+export interface DegreeAcademicDimension {
+  code: string | null;
+  value: string | null;
+  label: string | null;
+  local_id: number | null;
+}
+
+/**
+ * Search candidate sourced exclusively from the local AcademicStudentProfile replica of Core.
+ * `academic_profile_id` is the primary identity for selection — never `student_id`.
+ * `student_id` is a legacy operational reference only and may be null; that is expected and valid.
+ */
+export interface DegreeStudentCandidate {
+  academic_profile_id: number;
+  core_person_id: number;
+  core_student_id: number;
+  student_id: number | null;
+
   code: string;
-  code_status: 'confirmed' | 'provisional';
-  legacy_reference: string | null;
-  document_number: string;
-  document_type: string | null;
-  document_type_code: string | null;
+  legacy_code: string | null;
+
+  document: {type: string | null; number: string};
+
   names: string;
-  father_last_name: string;
-  mother_last_name: string | null;
+  paternal_last_name: string;
+  maternal_last_name: string | null;
   full_name: string;
-  gender: string | null;
-  gender_code: 'M' | 'F' | null;
-  personal_email: string | null;
-  institutional_email: string | null;
-  institutional_email_status: string | null;
-  institutional_email_source: 'student' | 'legacy_email' | 'generated_candidate' | 'test';
-  institutional_email_verified: boolean;
-  major: string | null;
-  faculty: DegreeCatalogReference | null;
-  career: DegreeCatalogReference | null;
-  program: DegreeCatalogReference | null;
-  specialty: string | null;
-  academic_data_complete: boolean;
+
+  gender: {code: string | null; local_id: number | null};
+
+  faculty: DegreeAcademicDimension;
+  major: DegreeAcademicDimension;
+  specialization: DegreeAcademicDimension;
+  campus: DegreeAcademicDimension;
+
+  study_plan: number | null;
+  academic_is_complete: boolean;
+  crosswalk_status: 'complete' | 'incomplete' | 'ambiguous';
+
+  institutional_email: {
+    core: string | null;
+    candidate: string | null;
+    verified: string | null;
+    status: string | null;
+    match_status: string | null;
+    verified_at: string | null;
+  };
 }
 
 export interface DegreeCatalogReference {
@@ -112,7 +139,8 @@ export interface DegreeRecord {
   id: number;
   degree_call_id: number;
   call: {id: number; name: string; status: {value: string; label: string}};
-  student_id: number;
+  student_id: number | null;
+  academic_profile_id: number | null;
   barcode: string;
   student_code: string;
   document_type: string | null;
@@ -147,6 +175,8 @@ export interface DegreeRecord {
   };
   institutional_identity: {
     personal_email: string | null; institutional_email: string | null; status: string | null;
+    candidate?: string | null; match_status?: string | null; microsoft_user_id?: string | null;
+    source?: 'academic_profile' | 'legacy_student'; checked_at?: string | null; error_code?: string | null;
     verified_at: string | null; synced_at: string | null;
     code_status: 'confirmed' | 'provisional'; legacy_reference: string | null;
   };
@@ -195,7 +225,8 @@ export interface DegreeBulkProcess {
 
 export interface DegreeRecordPayload {
   degree_call_id?: number;
-  student_id?: number;
+  academic_profile_id?: number;
+  student_id?: number | null;
   degree_type_id: number;
   gender: 'M' | 'F' | null;
   diploma_issue_type_id: number | null;
@@ -281,8 +312,8 @@ export class DegreesTitlesService {
     return this.http.get<any>(`${this.apiURL}/record-catalogs`);
   }
 
-  searchStudents(search: string): Observable<{data: DegreeStudent[]}> {
-    return this.http.get<{data: DegreeStudent[]}>(`${this.apiURL}/students/search`, {
+  searchStudents(search: string): Observable<{data: DegreeStudentCandidate[]}> {
+    return this.http.get<{data: DegreeStudentCandidate[]}>(`${this.apiURL}/students/search`, {
       params: new HttpParams().set('search', search),
     });
   }
