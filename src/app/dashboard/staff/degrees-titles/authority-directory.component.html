@@ -1,0 +1,50 @@
+<div class="institutional-surface">
+  <header class="surface-header">
+    <h2>Autoridades y responsables</h2>
+    <p>Administra las designaciones institucionales vigentes.</p>
+  </header>
+
+  <div class="directory-head" aria-hidden="true">
+    <span>Cargo</span>
+    <span>Autoridad actual</span>
+    <span>Prefijo</span>
+    <span>Vigencia</span>
+    <span></span>
+  </div>
+
+  <div class="directory-rows">
+    <div class="directory-row" *ngFor="let role of roles">
+      <div class="directory-cell directory-cell--role">
+        <span class="role-name">{{ roleTitle(role.role_key) }}</span>
+      </div>
+
+      <div class="directory-cell directory-cell--person">
+        <ng-container *ngIf="role.current as current; else unset">
+          <p-avatar [label]="initials(current.staff.full_name)" shape="circle" styleClass="row-avatar"></p-avatar>
+          <div class="person-info">
+            <strong>{{ displayName(current) }}</strong>
+            <span class="muted">DNI {{ maskDni(current.staff.number) }}</span>
+          </div>
+        </ng-container>
+        <ng-template #unset>
+          <p-tag severity="warn" value="Sin designar"></p-tag>
+        </ng-template>
+      </div>
+
+      <div class="directory-cell directory-cell--label" data-label="Prefijo">
+        <span *ngIf="role.current as current">{{ current.professional_prefix?.label ?? '—' }}</span>
+        <span *ngIf="!role.current">—</span>
+      </div>
+
+      <div class="directory-cell directory-cell--label" data-label="Vigencia">
+        <span *ngIf="role.current as current">{{ current.activated_at | date:'dd/MM/yyyy' }}</span>
+        <span *ngIf="!role.current">—</span>
+      </div>
+
+      <div class="directory-cell directory-cell--action">
+        <p-button [label]="role.current ? 'Gestionar' : designateActionLabel(role.role_key)"
+                  [outlined]="!role.current" (onClick)="manage.emit(role.role_key)"></p-button>
+      </div>
+    </div>
+  </div>
+</div>

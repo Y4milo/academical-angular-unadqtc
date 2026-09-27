@@ -302,6 +302,66 @@ export interface DegreeRecordPayload {
   sunedu_data: Record<string, string | number | null>;
 }
 
+export type DegreeGeneralAuthorityRoleKey =
+  'gyt_responsible' | 'president' | 'academic_vicepresident' | 'secretary_general';
+
+export interface DegreeGeneralAuthorityStaff {
+  id: number;
+  number: string;
+  full_name: string;
+}
+
+export interface DegreeGeneralAuthorityDictionaryRef {
+  id: number;
+  value: string;
+  label: string;
+}
+
+export interface DegreeGeneralAuthority {
+  id: number;
+  role_key: string;
+  administrative_unit: DegreeGeneralAuthorityDictionaryRef | null;
+  staff: DegreeGeneralAuthorityStaff;
+  professional_prefix: DegreeGeneralAuthorityDictionaryRef | null;
+  academic_title: string | null;
+  role_label: string;
+  short_role: string | null;
+  document_phrase: string | null;
+  email: string | null;
+  phone: string | null;
+  active: boolean;
+  activated_at: string | null;
+  deactivated_at: string | null;
+}
+
+export interface DegreeGeneralDataResponse {
+  data: {
+    roles: {role_key: DegreeGeneralAuthorityRoleKey; current: DegreeGeneralAuthority | null}[];
+    professional_prefixes: DegreeGeneralAuthorityDictionaryRef[];
+  };
+}
+
+export interface DegreeGeneralAuthorityDesignationPayload {
+  staff_id: number;
+  professional_prefix_id: number | null;
+  academic_title: string | null;
+  short_role: string | null;
+  document_phrase: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+export type DegreeGeneralAuthorityGenderStatus = 'resolved' | 'unavailable' | 'technical_error';
+
+export interface StaffSearchResponse {
+  data: {
+    status: 'found' | 'not_found' | 'invalid_document';
+    staff: DegreeGeneralAuthorityStaff | null;
+    role_label: string | null;
+    gender_status: DegreeGeneralAuthorityGenderStatus | null;
+  };
+}
+
 @Injectable({providedIn: 'root'})
 export class DegreesTitlesService {
   private readonly apiURL = `${environment.apiUrl}/degrees-titles`;
@@ -471,5 +531,21 @@ export class DegreesTitlesService {
 
   sendEthnicityFormEmail(id: number): Observable<ApiData<{recipient: string; intended_recipient: string; test_mode: boolean; sent_at: string}>> {
     return this.http.post<ApiData<any>>(`${this.apiURL}/records/${id}/ethnicity-email`, {});
+  }
+
+  getGeneralData(): Observable<DegreeGeneralDataResponse> {
+    return this.http.get<DegreeGeneralDataResponse>(`${this.apiURL}/general-data`);
+  }
+
+  searchStaffByDocument(number: string, roleKey: string): Observable<StaffSearchResponse> {
+    return this.http.get<StaffSearchResponse>(`${this.apiURL}/general-data/staff`, {params: {number, role_key: roleKey}});
+  }
+
+  getGeneralAuthorityHistory(roleKey: string): Observable<{data: DegreeGeneralAuthority[]}> {
+    return this.http.get<{data: DegreeGeneralAuthority[]}>(`${this.apiURL}/general-data/${roleKey}/history`);
+  }
+
+  designateGeneralAuthority(roleKey: string, payload: DegreeGeneralAuthorityDesignationPayload): Observable<{data: DegreeGeneralAuthority}> {
+    return this.http.post<{data: DegreeGeneralAuthority}>(`${this.apiURL}/general-data/${roleKey}`, payload);
   }
 }

@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.general-data {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.general-data-header h1 {
+  margin: 0;
+}
+
+.general-data-header p {
+  margin: .35rem 0 0;
+  color: var(--p-text-muted-color);
+}
+
+.general-data-loading {
+  color: var(--p-text-muted-color);
+}
