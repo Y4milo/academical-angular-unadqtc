@@ -1,0 +1,13 @@
+<section class="general-data">
+  <header class="general-data-header">
+    <h1>Datos generales</h1>
+    <p>Configuración institucional vigente de Grados y Títulos.</p>
+  </header>
+
+  <div *ngIf="loading" class="general-data-loading">Cargando datos generales…</div>
+
+  <app-authority-directory *ngIf="!loading && !activeRoleKey" [roles]="roles" (manage)="manage($event)"></app-authority-directory>
+
+  <app-authority-management *ngIf="activeRoleKey" [roleKey]="activeRoleKey" [prefixes]="professionalPrefixes"
+    (back)="backToDirectory()" (changed)="load()"></app-authority-management>
+</section>

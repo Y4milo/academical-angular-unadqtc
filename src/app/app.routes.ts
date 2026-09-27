@@ -54,6 +54,7 @@ import {
   DegreeCallsComponent
 } from './dashboard/staff/degrees-titles/degree-calls.component';
 import {DegreeRecordsComponent} from './dashboard/staff/degrees-titles/degree-records.component';
+import {DegreeGeneralDataComponent} from './dashboard/staff/degrees-titles/degree-general-data.component';
 import {PublicEthnicityFormComponent} from './degrees-titles/public-ethnicity-form.component';
 import {PublicSupportRequestComponent} from './support/public-support-request.component';
 import {SupportRequestsAdminComponent} from './support/support-requests-admin.component';
@@ -118,6 +119,10 @@ export const routes: Routes = [
         component: BnIncidentsComponent
       },
       {
+        path: PATHS.admin.degreesTitles.generalData.path,
+        component: DegreeGeneralDataComponent,
+      },
+      {
         path: PATHS.admin.degreesTitles.calls.path,
         component: DegreeCallsComponent,
       },
@@ -146,6 +151,10 @@ export const routes: Routes = [
         path: '',
         redirectTo: PATHS.degreesTitles.home.path,
         pathMatch: 'full',
+      },
+      {
+        path: PATHS.degreesTitles.generalData.path,
+        component: DegreeGeneralDataComponent,
       },
       {
         path: PATHS.degreesTitles.calls.path,

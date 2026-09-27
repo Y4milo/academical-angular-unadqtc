@@ -1,0 +1,106 @@
+<div class="management-header">
+  <div>
+    <p-button label="Volver a autoridades" icon="pi pi-arrow-left" [text]="true" (onClick)="back.emit()"></p-button>
+    <h1>{{ roleTitle(roleKey) }}</h1>
+    <p>{{ mode === 'designate' ? (redesignatePrefill ? 'Designar nuevamente' : changeActionLabel(roleKey)) : 'Gestión de la autoridad institucional' }}</p>
+  </div>
+</div>
+
+<div *ngIf="mode === 'view'" class="institutional-surface current-authority-card">
+  <div class="current-authority-head">
+    <span class="designation-step-title">Autoridad actual</span>
+    <p-tag *ngIf="current" severity="success" value="Vigente"></p-tag>
+  </div>
+
+  <ng-container *ngIf="current as authority; else unset">
+    <div class="current-authority-body">
+      <p-avatar [label]="initials(authority.staff.full_name)" shape="circle" styleClass="current-avatar"></p-avatar>
+      <div class="current-authority-details">
+        <strong>{{ displayName(authority) }}</strong>
+        <span *ngIf="authority.academic_title" class="muted">{{ authority.academic_title }}</span>
+        <span class="muted">DNI {{ maskDni(authority.staff.number) }}</span>
+        <span *ngIf="authority.activated_at" class="muted">Desde {{ authority.activated_at | date:'dd MMMM yyyy' }}</span>
+      </div>
+    </div>
+
+    <div class="current-authority-contact" *ngIf="authority.email || authority.phone">
+      <span *ngIf="authority.email"><strong>Correo:</strong> {{ authority.email }}</span>
+      <span *ngIf="authority.phone"><strong>Teléfono:</strong> {{ authority.phone }}</span>
+    </div>
+
+    <div class="current-authority-actions">
+      <p-button [label]="changeActionLabel(roleKey)" [outlined]="true" (onClick)="startDesignate()"></p-button>
+    </div>
+  </ng-container>
+
+  <ng-template #unset>
+    <div class="unset-authority">
+      <p-tag severity="warn" value="Sin designar"></p-tag>
+      <p class="muted">Todavía no se ha establecido una persona {{ personLabel(roleKey) }}.</p>
+      <p-button [label]="designateActionLabel(roleKey)" (onClick)="startDesignate()"></p-button>
+    </div>
+  </ng-template>
+</div>
+
+<div *ngIf="mode === 'view'" class="institutional-surface">
+  <span class="designation-step-title">Historial de designaciones</span>
+
+  <div class="history-filters">
+    <label>Buscar
+      <input pInputText [(ngModel)]="searchTerm" placeholder="Nombre o DNI">
+    </label>
+    <label>Estado
+      <p-select [(ngModel)]="statusFilter" [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+    </label>
+    <label>Periodo
+      <p-select [(ngModel)]="periodFilter" [options]="periodOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+    </label>
+    <label>Orden
+      <p-select [(ngModel)]="sortOrder" [options]="sortOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+    </label>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="history-entries">
+    <div class="history-entry" *ngFor="let entry of filteredHistory">
+      <span class="history-entry-period">
+        {{ entry.activated_at | date:'dd MMM yyyy' }} —
+        {{ entry.deactivated_at ? (entry.deactivated_at | date:'dd MMM yyyy') : 'actualidad' }}
+      </span>
+      <div class="history-entry-body">
+        <div class="history-entry-info">
+          <p-avatar [label]="initials(entry.staff.full_name)" shape="circle" styleClass="history-avatar"></p-avatar>
+          <div>
+            <strong>{{ displayName(entry) }}</strong><br>
+            <span class="muted">{{ entry.role_label }} · DNI {{ maskDni(entry.staff.number) }}</span>
+          </div>
+        </div>
+        <div class="history-entry-status">
+          <p-tag [severity]="entry.active ? 'success' : 'secondary'" [value]="entry.active ? 'Vigente' : 'Anterior'"></p-tag>
+          <p-button *ngIf="!entry.active" label="Designar nuevamente" [text]="true" size="small" (onClick)="redesignate(entry)"></p-button>
+        </div>
+      </div>
+      <hr class="section-divider">
+    </div>
+    <p *ngIf="!filteredHistory.length" class="muted">No hay designaciones que coincidan con los filtros.</p>
+  </div>
+</div>
+
+<div *ngIf="mode === 'designate'" class="institutional-surface">
+  <app-authority-designation-form [roleKey]="roleKey" [prefixes]="prefixes" [prefill]="redesignatePrefill"
+    (cancel)="cancelDesignate()" (continueWith)="onFormContinue($event)"></app-authority-designation-form>
+</div>
+
+<p-dialog [(visible)]="confirmVisible" [modal]="true" header="Confirmar nueva designación" [style]="{width: '26rem'}">
+  <div class="confirm-body">
+    <p><strong>{{ roleTitle(roleKey) }}</strong></p>
+    <p *ngIf="current">Autoridad actual: {{ displayName(current) }}</p>
+    <p>Nueva {{ personLabel(roleKey) }}: {{ pendingStaff?.full_name }}</p>
+    <p class="confirm-warning">La autoridad anterior permanecerá en el historial.</p>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="confirmVisible = false"></p-button>
+    <p-button [label]="confirmActionLabel(roleKey)" [loading]="saving" (onClick)="confirmSubmit()"></p-button>
+  </ng-template>
+</p-dialog>

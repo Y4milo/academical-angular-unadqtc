@@ -1,0 +1,69 @@
+<div class="designation-flow">
+  <div class="designation-step" *ngIf="!foundStaff">
+    <p class="designation-step-title">1. Buscar persona</p>
+    <label>DNI
+      <div class="search-row">
+        <input pInputText [(ngModel)]="documentNumber" maxlength="10" inputmode="numeric"
+               (keyup.enter)="searchStaff()" placeholder="Ingrese el DNI">
+        <p-button label="Buscar" [loading]="searchingStaff" (onClick)="searchStaff()"></p-button>
+      </div>
+      <small class="field-error" *ngIf="documentNumberTouched && documentNumberInvalid">
+        Ingrese un número de documento válido.
+      </small>
+    </label>
+
+    <p-message *ngIf="staffSearchStatus === 'not_found'" severity="warn"
+               text="No se encontró una persona con este DNI."></p-message>
+    <p-message *ngIf="staffSearchStatus === 'invalid_document'" severity="error"
+               text="El número de documento ingresado no es válido."></p-message>
+    <p-message *ngIf="staffSearchStatus === 'error'" severity="error"
+               text="No fue posible consultar la información en este momento."></p-message>
+  </div>
+
+  <ng-container *ngIf="foundStaff">
+    <div class="designation-step">
+      <p class="designation-step-title">2. Persona seleccionada</p>
+      <div class="selected-person">
+        <p-avatar [label]="initials(foundStaff.full_name)" shape="circle" size="large"></p-avatar>
+        <div class="selected-person-info">
+          <strong>{{ foundStaff.full_name }}</strong>
+          <span>DNI {{ foundStaff.number }}</span>
+        </div>
+        <p-button label="Buscar otra persona" [text]="true" size="small" (onClick)="changeStaff()"></p-button>
+      </div>
+    </div>
+
+    <div class="designation-step">
+      <p class="designation-step-title">3. Datos de la designación</p>
+
+      <p-message *ngIf="genderStatus === 'unavailable'" severity="warn"
+                 text="El género institucional de esta persona no está registrado en Core. No es posible determinar el cargo oficial hasta que se registre."></p-message>
+      <p-message *ngIf="genderStatus === 'technical_error'" severity="error"
+                 text="No fue posible consultar el género institucional en Core en este momento. Intente nuevamente más tarde."></p-message>
+
+      <div class="designation-form-grid">
+        <label class="full">Cargo oficial
+          <input pInputText [value]="resolvedRoleLabel ?? 'Pendiente de resolver'" [disabled]="true" readonly>
+        </label>
+        <label>Prefijo profesional
+          <p-select [(ngModel)]="form.professional_prefix_id" [options]="prefixes"
+                    optionLabel="label" optionValue="id" [showClear]="true" placeholder="Seleccionar" appendTo="body"></p-select>
+        </label>
+        <label>Grado/Título académico completo
+          <input pInputText [(ngModel)]="form.academic_title" maxlength="190" placeholder="Ej: Maestro en Ciencias de la Educación">
+        </label>
+        <label>Correo
+          <input pInputText [(ngModel)]="form.email" maxlength="190" type="email">
+        </label>
+        <label>Teléfono
+          <input pInputText [(ngModel)]="form.phone" maxlength="30">
+        </label>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="designation-actions">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="cancel.emit()"></p-button>
+    <p-button label="Continuar" [disabled]="!canContinue" (onClick)="submit()"></p-button>
+  </div>
+</div>

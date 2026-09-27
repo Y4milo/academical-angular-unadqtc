@@ -25,6 +25,10 @@ export const PATHS = {
       },
     },
     degreesTitles: {
+      generalData: {
+        path: `degrees-titles/general-data`,
+        link: `admin/degrees-titles/general-data`,
+      },
       calls: {
         path: `degrees-titles/calls`,
         link: `admin/degrees-titles/calls`,
@@ -47,6 +51,10 @@ export const PATHS = {
     home: {
       path: `calls`,
       link: `degrees-titles/calls`,
+    },
+    generalData: {
+      path: `general-data`,
+      link: `degrees-titles/general-data`,
     },
     calls: {
       path: `calls`,
