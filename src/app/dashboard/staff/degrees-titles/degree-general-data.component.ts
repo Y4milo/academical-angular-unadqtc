@@ -8,12 +8,13 @@ import {
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
+import {PageHeaderComponent} from '../../../core/components/page-header.component';
 import {AuthorityDirectoryComponent} from './authority-directory.component';
 import {AuthorityManagementComponent} from './authority-management.component';
 
 @Component({
   selector: 'app-degree-general-data',
-  imports: [AuthorityDirectoryComponent, AuthorityManagementComponent, NgFor, NgIf, SkeletonModule],
+  imports: [AuthorityDirectoryComponent, AuthorityManagementComponent, NgFor, NgIf, PageHeaderComponent, SkeletonModule],
   templateUrl: './degree-general-data.component.html',
   styleUrl: './degree-general-data.component.css',
 })

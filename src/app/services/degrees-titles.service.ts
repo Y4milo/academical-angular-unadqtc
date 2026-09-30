@@ -359,15 +359,47 @@ export interface CoreAuthorityFields {
   email_candidates?: string[];
 }
 
+/** Datos que aún no existen y se completan después de designar; solo se envían los que faltan. */
+export interface DegreeGeneralAuthorityCompletePayload {
+  professional_prefix_id?: number | null;
+  academic_title?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  reason: string;
+}
+
+export type DegreeGeneralAuthorityAuditAction = 'designated' | 'manual_completed' | 'synced_from_core' | 'stale_acknowledged';
+
+/** Cambio auditado de una designación: quién, cuándo, por qué y qué cambió. */
+export interface DegreeGeneralAuthorityAudit {
+  id: number;
+  role_key: string;
+  action: DegreeGeneralAuthorityAuditAction;
+  reason: string | null;
+  changes: Record<string, unknown> | null;
+  changed_by: {id: number; nick: string; name: string} | null;
+  authority: {id: number; staff_name: string | null; active: boolean} | null;
+  created_at: string | null;
+}
+
+export interface DegreeGeneralAuthorityAuditsResponse {
+  data: DegreeGeneralAuthorityAudit[];
+  meta: {current_page: number; last_page: number; per_page: number; total: number};
+}
+
 export interface CoreSnapshotCheck {
   status: CoreSnapshotStatus;
   changes: Record<string, {from: unknown; to: unknown}>;
   core_available: boolean;
+  /** Core conoce a la persona pero puede no tenerla como personal (sin grado, prefijo ni correo institucional). */
+  has_staff_profile?: boolean;
 }
 
 export interface CoreSnapshotRefresh {
   authority: DegreeGeneralAuthority;
   changes: Record<string, {from: unknown; to: unknown}>;
+  core_available?: boolean;
+  has_staff_profile?: boolean;
 }
 
 /** Advertencia 409 al crear/actualizar un registro con copias de CORE vencidas o desactualizadas. */
@@ -605,6 +637,12 @@ export class DegreesTitlesService {
     return this.http.get<{data: DegreeGeneralAuthority[]}>(`${this.apiURL}/general-data/${roleKey}/history`);
   }
 
+  getGeneralAuthorityAudits(roleKey: string, page = 1, perPage = 15): Observable<DegreeGeneralAuthorityAuditsResponse> {
+    return this.http.get<DegreeGeneralAuthorityAuditsResponse>(`${this.apiURL}/general-data/${roleKey}/audits`, {
+      params: {page, per_page: perPage},
+    });
+  }
+
   /** Compara la copia guardada con lo que CORE entrega hoy, sin modificar nada. */
   checkGeneralAuthority(roleKey: string): Observable<{data: CoreSnapshotCheck}> {
     return this.http.get<{data: CoreSnapshotCheck}>(`${this.apiURL}/general-data/${roleKey}/check`);
@@ -613,6 +651,11 @@ export class DegreesTitlesService {
   /** Actualiza la copia desde CORE (si nada cambió solo renueva la vigencia). */
   refreshGeneralAuthority(roleKey: string): Observable<{data: CoreSnapshotRefresh}> {
     return this.http.post<{data: CoreSnapshotRefresh}>(`${this.apiURL}/general-data/${roleKey}/refresh`, {});
+  }
+
+  /** Completa datos que no existen (ni en la designación ni en Core); exige motivo y se audita. */
+  completeGeneralAuthorityData(roleKey: string, payload: DegreeGeneralAuthorityCompletePayload): Observable<{data: DegreeGeneralAuthority}> {
+    return this.http.patch<{data: DegreeGeneralAuthority}>(`${this.apiURL}/general-data/${roleKey}`, payload);
   }
 
   designateGeneralAuthority(roleKey: string, payload: DegreeGeneralAuthorityDesignationPayload): Observable<{data: DegreeGeneralAuthority}> {

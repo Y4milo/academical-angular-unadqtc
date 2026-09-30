@@ -1,108 +1,145 @@
 <div class="designation-flow">
-  <div class="designation-step" *ngIf="!foundStaff">
-    <p class="designation-step-title">1. Buscar persona</p>
-    <label>DNI
-      <div class="search-row">
-        <input pInputText [(ngModel)]="documentNumber" maxlength="10" inputmode="numeric"
-               (keyup.enter)="searchStaff()" placeholder="Ingrese el DNI" [disabled]="searchingStaff">
-        <p-button label="Buscar" [loading]="searchingStaff" (onClick)="searchStaff()"></p-button>
-      </div>
-      <small class="field-error" *ngIf="documentNumberTouched && documentNumberInvalid">
-        Ingrese un número de documento válido.
-      </small>
-    </label>
+  <p-stepper [value]="step" (valueChange)="step = $any($event)" [linear]="false" class="designation-stepper">
+    <p-step-list>
+      <p-step [value]="1">Buscar persona</p-step>
+      <p-step [value]="2" [disabled]="!foundStaff">Datos</p-step>
+      <p-step [value]="3" [disabled]="!canContinue">Confirmar</p-step>
+    </p-step-list>
 
-    <div *ngIf="searchingStaff" class="skeleton-stack" aria-busy="true" aria-label="Consultando a Core">
-      <p-skeleton width="45%" height="1.25rem"></p-skeleton>
-      <p-skeleton width="100%" height="2.5rem"></p-skeleton>
-      <p-skeleton width="100%" height="2.5rem"></p-skeleton>
-    </div>
+    <p-step-panels>
+      <!-- ============================ 1 · Buscar persona ============================ -->
+      <p-step-panel [value]="1">
+        <ng-template #content>
+          <div class="designation-step">
+            <app-form-field label="DNI" for="authority-dni" [required]="true"
+                            [error]="documentNumberTouched && documentNumberInvalid ? 'Ingrese un número de documento válido.' : ''">
+              <div class="search-row">
+                <input pInputText id="authority-dni" [(ngModel)]="documentNumber" maxlength="10" inputmode="numeric"
+                       (keyup.enter)="searchStaff()" placeholder="Ingrese el DNI" [disabled]="searchingStaff">
+                <p-button label="Buscar" [loading]="searchingStaff" (onClick)="searchStaff()"></p-button>
+              </div>
+            </app-form-field>
 
-    <p-message *ngIf="staffSearchStatus === 'not_found'" severity="warn"
-               text="No se encontró una persona con este DNI."></p-message>
-    <p-message *ngIf="staffSearchStatus === 'invalid_document'" severity="error"
-               text="El número de documento ingresado no es válido."></p-message>
-    <p-message *ngIf="staffSearchStatus === 'error'" severity="error"
-               text="No fue posible consultar la información en este momento."></p-message>
-  </div>
+            <div *ngIf="searchingStaff" class="skeleton-stack" aria-busy="true" aria-label="Consultando a Core">
+              <p-skeleton width="45%" height="1.25rem"></p-skeleton>
+              <p-skeleton width="100%" height="2.5rem"></p-skeleton>
+              <p-skeleton width="100%" height="2.5rem"></p-skeleton>
+            </div>
 
-  <ng-container *ngIf="foundStaff">
-    <div class="designation-step">
-      <p class="designation-step-title">2. Persona seleccionada</p>
-      <div class="selected-person">
-        <p-avatar [label]="initials(foundStaff.full_name)" shape="circle" size="large"></p-avatar>
-        <div class="selected-person-info">
-          <strong>{{ foundStaff.full_name }}</strong>
-          <span>DNI {{ foundStaff.number }}</span>
-        </div>
-        <p-button label="Buscar otra persona" [text]="true" size="small" (onClick)="changeStaff()"></p-button>
-      </div>
-    </div>
+            <p-message *ngIf="staffSearchStatus === 'not_found'" severity="warn"
+                       text="No se encontró una persona con este DNI."></p-message>
+            <p-message *ngIf="staffSearchStatus === 'invalid_document'" severity="error"
+                       text="El número de documento ingresado no es válido."></p-message>
+            <p-message *ngIf="staffSearchStatus === 'error'" severity="error"
+                       text="No fue posible consultar la información en este momento."></p-message>
+          </div>
+        </ng-template>
+      </p-step-panel>
 
-    <div class="designation-step">
-      <p class="designation-step-title">3. Datos de la designación</p>
+      <!-- ================================= 2 · Datos ================================ -->
+      <p-step-panel [value]="2">
+        <ng-template #content>
+          <div class="designation-step" *ngIf="foundStaff">
+            <div class="selected-person">
+              <p-avatar [label]="initials(foundStaff.full_name)" shape="circle" size="large"></p-avatar>
+              <div class="selected-person-info">
+                <strong>{{ foundStaff.full_name }}</strong>
+                <span>DNI {{ foundStaff.number }}</span>
+              </div>
+              <p-button label="Buscar otra persona" [text]="true" size="small" (onClick)="changeStaff()"></p-button>
+            </div>
 
-      <p-message *ngIf="genderStatus === 'unavailable'" severity="warn"
-                 text="El género institucional de esta persona no está registrado en Core. No es posible determinar el cargo oficial hasta que se registre."></p-message>
-      <p-message *ngIf="genderStatus === 'technical_error' || coreUnavailable" severity="error"
-                 text="No fue posible consultar los datos en Core en este momento. Intente nuevamente más tarde."></p-message>
-      <p-message *ngIf="notInCore" severity="info"
-                 text="Esta persona no figura como personal en Core: complete manualmente los datos que faltan."></p-message>
-      <p-message *ngIf="coreFields?.status === 'available'" severity="secondary"
-                 text="Los datos de Core no se pueden modificar. Solo se completan a mano los que Core no tiene."></p-message>
+            <p-message *ngIf="genderStatus === 'unavailable'" severity="warn"
+                       text="El género institucional de esta persona no está registrado en Core. No es posible determinar el cargo oficial hasta que se registre."></p-message>
+            <p-message *ngIf="genderStatus === 'technical_error' || coreUnavailable" severity="error"
+                       text="No fue posible consultar los datos en Core en este momento. Intente nuevamente más tarde."></p-message>
+            <p-message *ngIf="notInCore" severity="info"
+                       text="Esta persona no figura como personal en Core: complete manualmente los datos que faltan."></p-message>
+            <p-message *ngIf="coreFields?.status === 'available'" severity="secondary"
+                       text="Los datos de Core no se pueden modificar. Solo se completan a mano los que Core no tiene."></p-message>
 
-      <div class="designation-form-grid">
-        <label class="full">Cargo oficial
-          <input pInputText [value]="resolvedRoleLabel ?? 'Pendiente de resolver'" [disabled]="true" readonly>
-        </label>
+            <div class="form-grid form-grid--2">
+              <app-form-field class="form-grid__full" label="Cargo oficial" for="authority-role-label">
+                <input pInputText id="authority-role-label" [value]="resolvedRoleLabel ?? 'Pendiente de resolver'" [disabled]="true" readonly>
+              </app-form-field>
 
-        <label>
-          <span class="field-heading">Prefijo profesional
-            <p-tag *ngIf="isLocked('professional_prefix_id')" severity="info" value="Core" icon="pi pi-lock"></p-tag>
-            <p-tag *ngIf="isManual('professional_prefix_id')" severity="warn" value="Completar"></p-tag>
-          </span>
-          <p-select [(ngModel)]="form.professional_prefix_id" [options]="prefixes"
-                    optionLabel="label" optionValue="id" [showClear]="!isLocked('professional_prefix_id')"
-                    [disabled]="isLocked('professional_prefix_id')" placeholder="Seleccionar" appendTo="body"></p-select>
-        </label>
+              <app-form-field label="Prefijo profesional" for="authority-prefix">
+                <app-status-tag fieldTag *ngIf="isLocked('professional_prefix_id')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isManual('professional_prefix_id')" severity="warn" value="Completar"></app-status-tag>
+                <p-select inputId="authority-prefix" [(ngModel)]="form.professional_prefix_id" [options]="prefixes"
+                          optionLabel="label" optionValue="id" [showClear]="!isLocked('professional_prefix_id')"
+                          [disabled]="isLocked('professional_prefix_id')" placeholder="Seleccionar" appendTo="body"></p-select>
+              </app-form-field>
 
-        <label>
-          <span class="field-heading">Grado/Título académico completo
-            <p-tag *ngIf="isLocked('academic_title')" severity="info" value="Core" icon="pi pi-lock"></p-tag>
-            <p-tag *ngIf="isManual('academic_title')" severity="warn" value="Completar"></p-tag>
-          </span>
-          <input pInputText [(ngModel)]="form.academic_title" maxlength="190" [disabled]="isLocked('academic_title')"
-                 placeholder="Ej: Maestro en Ciencias de la Educación">
-        </label>
+              <app-form-field label="Grado/Título académico completo" for="authority-title">
+                <app-status-tag fieldTag *ngIf="isLocked('academic_title')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isManual('academic_title')" severity="warn" value="Completar"></app-status-tag>
+                <input pInputText id="authority-title" [(ngModel)]="form.academic_title" maxlength="190"
+                       [disabled]="isLocked('academic_title')" placeholder="Ej: Maestro en Ciencias de la Educación">
+              </app-form-field>
 
-        <label>
-          <span class="field-heading">Correo institucional
-            <p-tag *ngIf="isLocked('email')" severity="info" value="Core" icon="pi pi-lock"></p-tag>
-            <p-tag *ngIf="isManual('email')" severity="warn" value="Completar"></p-tag>
-          </span>
-          <input pInputText [(ngModel)]="form.email" maxlength="190" type="email" [disabled]="isLocked('email')"
-                 [placeholder]="'usuario@' + emailDomain">
-          <small class="field-error" *ngIf="emailInvalid">El correo debe terminar en &#64;{{ emailDomain }}.</small>
-          <span class="email-candidates" *ngIf="emailCandidates.length">
-            <small>Propuestas (sin verificar disponibilidad):</small>
-            <p-button *ngFor="let candidate of emailCandidates" [label]="candidate" [text]="true" size="small"
-                      (onClick)="useEmailCandidate(candidate)"></p-button>
-          </span>
-        </label>
+              <app-form-field label="Correo institucional" for="authority-email"
+                              [error]="emailInvalid ? 'El correo debe terminar en @' + emailDomain + '.' : ''">
+                <app-status-tag fieldTag *ngIf="isLocked('email')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isManual('email')" severity="warn" value="Completar"></app-status-tag>
+                <input pInputText id="authority-email" [(ngModel)]="form.email" maxlength="190" type="email"
+                       [disabled]="isLocked('email')" [placeholder]="'usuario@' + emailDomain">
+                <span class="email-candidates" *ngIf="emailCandidates.length">
+                  <small>Propuestas (sin verificar disponibilidad):</small>
+                  <p-button *ngFor="let candidate of emailCandidates" [label]="candidate" [text]="true" size="small"
+                            (onClick)="useEmailCandidate(candidate)"></p-button>
+                </span>
+              </app-form-field>
 
-        <label>
-          <span class="field-heading">Teléfono
-            <p-tag *ngIf="isLocked('phone')" severity="info" value="Core" icon="pi pi-lock"></p-tag>
-            <p-tag *ngIf="isManual('phone')" severity="warn" value="Completar"></p-tag>
-          </span>
-          <input pInputText [(ngModel)]="form.phone" maxlength="30" [disabled]="isLocked('phone')">
-        </label>
-      </div>
-    </div>
-  </ng-container>
+              <app-form-field label="Teléfono" for="authority-phone">
+                <app-status-tag fieldTag *ngIf="isLocked('phone')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isManual('phone')" severity="warn" value="Completar"></app-status-tag>
+                <input pInputText id="authority-phone" [(ngModel)]="form.phone" maxlength="30" [disabled]="isLocked('phone')">
+              </app-form-field>
+            </div>
 
-  <div class="designation-actions">
+            <div class="form-actions">
+              <p-button label="Volver" severity="secondary" [text]="true" (onClick)="step = 1"></p-button>
+              <p-button label="Revisar" [disabled]="!canContinue" (onClick)="goToSummary()"></p-button>
+            </div>
+          </div>
+        </ng-template>
+      </p-step-panel>
+
+      <!-- ============================== 3 · Confirmar ============================== -->
+      <p-step-panel [value]="3">
+        <ng-template #content>
+          <div class="designation-step" *ngIf="foundStaff">
+            <div class="selected-person">
+              <p-avatar [label]="initials(foundStaff.full_name)" shape="circle" size="large"></p-avatar>
+              <div class="selected-person-info">
+                <strong>{{ foundStaff.full_name }}</strong>
+                <span>{{ resolvedRoleLabel }}</span>
+              </div>
+            </div>
+
+            <ul class="summary-list">
+              <li *ngFor="let row of summaryRows">
+                <span>{{ row.label }}</span>
+                <span>
+                  <ng-container *ngIf="row.value; else noValue">{{ row.value }}</ng-container>
+                  <ng-template #noValue><span class="muted">Sin dato</span></ng-template>
+                  <app-status-tag *ngIf="row.source" [severity]="row.source === 'Core' ? 'info' : 'warn'" [value]="row.source"></app-status-tag>
+                </span>
+              </li>
+            </ul>
+
+            <div class="form-actions">
+              <p-button label="Volver" severity="secondary" [text]="true" (onClick)="step = 2"></p-button>
+              <p-button label="Continuar" [disabled]="!canContinue" (onClick)="submit()"></p-button>
+            </div>
+          </div>
+        </ng-template>
+      </p-step-panel>
+    </p-step-panels>
+  </p-stepper>
+
+  <div class="form-actions" *ngIf="step === 1">
     <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="cancel.emit()"></p-button>
-    <p-button label="Continuar" [disabled]="!canContinue" (onClick)="submit()"></p-button>
   </div>
 </div>

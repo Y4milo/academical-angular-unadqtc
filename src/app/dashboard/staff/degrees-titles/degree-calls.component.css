@@ -35,10 +35,6 @@
   gap: .4rem;
 }
 
-.field label {
-  font-weight: 600;
-}
-
 .field small,
 .call-name small,
 .resolution span,
@@ -137,5 +133,20 @@
 
   .call-status-content {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Los hijos de la rejilla pueden encogerse y los filtros se apilan en pantallas pequeñas */
+.degree-calls > * {
+  min-width: 0;
+}
+
+.page-heading {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 40rem) {
+  .filter-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

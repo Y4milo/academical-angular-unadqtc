@@ -1,4 +1,4 @@
-import {CoreFieldSource, CoreSnapshotStatus, DegreeGeneralAuthority, DegreeGeneralAuthorityRoleKey} from '../../../services/degrees-titles.service';
+import {CoreFieldSource, CoreResolvedField, CoreSnapshotStatus, DegreeGeneralAuthority, DegreeGeneralAuthorityAuditAction, DegreeGeneralAuthorityRoleKey} from '../../../services/degrees-titles.service';
 
 export const ROLE_TITLES: Record<DegreeGeneralAuthorityRoleKey, string> = {
   gyt_responsible: 'Responsable de Grados y Títulos',
@@ -103,4 +103,100 @@ export const INSTITUTIONAL_EMAIL_DOMAIN = 'unadqtc.edu.pe';
 
 export function isInstitutionalEmail(email: string): boolean {
   return email.trim().toLowerCase().endsWith('@' + INSTITUTIONAL_EMAIL_DOMAIN) && /^[^\s@]+@[^\s@]+$/.test(email.trim());
+}
+
+/** Datos de la designación que aún no existen: son los únicos que se pueden completar después de guardar. */
+export function missingResolvedFields(
+  authority: Pick<DegreeGeneralAuthority, 'professional_prefix' | 'academic_title' | 'email' | 'phone'>,
+): CoreResolvedField[] {
+  const missing: CoreResolvedField[] = [];
+  if (!authority.professional_prefix) missing.push('professional_prefix_id');
+  if (!authority.academic_title?.trim()) missing.push('academic_title');
+  if (!authority.email?.trim()) missing.push('email');
+  if (!authority.phone?.trim()) missing.push('phone');
+
+  return missing;
+}
+
+const AUDIT_LABELS: Record<DegreeGeneralAuthorityAuditAction, string> = {
+  designated: 'Designación',
+  manual_completed: 'Datos completados',
+  synced_from_core: 'Actualizado desde Core',
+  stale_acknowledged: 'Continuó con datos vencidos',
+};
+
+export function auditLabel(action: DegreeGeneralAuthorityAuditAction): string {
+  return AUDIT_LABELS[action] ?? action;
+}
+
+export function auditSeverity(action: DegreeGeneralAuthorityAuditAction): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+  switch (action) {
+    case 'designated': return 'success';
+    case 'synced_from_core': return 'info';
+    case 'manual_completed': return 'warn';
+    case 'stale_acknowledged': return 'danger';
+    default: return 'secondary';
+  }
+}
+
+/** Días que faltan para el vencimiento (0 si ya venció o no hay fecha). */
+export function daysUntil(expiresAt: string | null | undefined, now: Date = new Date()): number {
+  if (!expiresAt) {
+    return 0;
+  }
+  const days = Math.ceil((new Date(expiresAt).getTime() - now.getTime()) / 86_400_000);
+
+  return Math.max(days, 0);
+}
+
+/** Porcentaje de la vigencia que queda, entre 0 y 100 (para la barra de progreso). */
+export function vigencyPercent(syncedAt: string | null | undefined, expiresAt: string | null | undefined, now: Date = new Date()): number {
+  if (!syncedAt || !expiresAt) {
+    return 0;
+  }
+  const total = new Date(expiresAt).getTime() - new Date(syncedAt).getTime();
+  const left = new Date(expiresAt).getTime() - now.getTime();
+
+  return total <= 0 ? 0 : Math.min(100, Math.max(0, Math.round((left / total) * 100)));
+}
+
+/** Color de la barra de vigencia según el estado de la copia. */
+export function vigencyColor(status: CoreSnapshotStatus | undefined): string {
+  switch (status) {
+    case 'fresh': return '#16a34a';
+    case 'expiring': return '#d97706';
+    default: return '#dc2626';
+  }
+}
+
+/** Duración legible entre dos fechas ("5 días", "4 meses", "1 año 2 meses"); `to` vacío = hasta hoy. */
+export function tenureLabel(from: string | null | undefined, to?: string | null, now: Date = new Date()): string {
+  if (!from) {
+    return '—';
+  }
+  const startDate = new Date(from);
+  const endDate = to ? new Date(to) : now;
+  const days = Math.floor((endDate.getTime() - startDate.getTime()) / 86_400_000);
+  if (days < 1) {
+    return 'Menos de un día';
+  }
+  if (days < 28) {
+    return days === 1 ? '1 día' : `${days} días`;
+  }
+  // Meses de calendario completos entre ambas fechas (no una aproximación en días).
+  let months = (endDate.getUTCFullYear() - startDate.getUTCFullYear()) * 12 + (endDate.getUTCMonth() - startDate.getUTCMonth());
+  if (endDate.getUTCDate() < startDate.getUTCDate()) {
+    months -= 1;
+  }
+  if (months < 1) {
+    return `${days} días`;
+  }
+  if (months < 12) {
+    return months === 1 ? '1 mes' : `${months} meses`;
+  }
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  const yearText = years === 1 ? '1 año' : `${years} años`;
+
+  return rest === 0 ? yearText : `${yearText} ${rest === 1 ? '1 mes' : `${rest} meses`}`;
 }

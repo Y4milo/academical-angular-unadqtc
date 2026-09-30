@@ -2,20 +2,23 @@
   display: block;
 }
 
+/* La separación con el encabezado (24 px) la define app-page-header, no la rejilla */
 .general-data {
   display: grid;
-  gap: 1.5rem;
-}
-
-.general-data-header h1 {
-  margin: 0;
-}
-
-.general-data-header p {
-  margin: .35rem 0 0;
-  color: var(--p-text-muted-color);
+  gap: 0;
 }
 
 .general-data-loading {
   color: var(--p-text-muted-color);
+}
+
+/* Los hijos de la rejilla pueden encogerse: sin esto las pestañas fuerzan un ancho mayor al de la pantalla */
+.general-data > * {
+  min-width: 0;
+}
+
+@media (max-width: 40rem) {
+  .general-data {
+    padding-inline: var(--page-gutter);
+  }
 }

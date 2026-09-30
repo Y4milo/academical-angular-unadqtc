@@ -38,3 +38,209 @@ body {
   }
 }
 
+
+/*
+ * Variables de diseño compartidas (ver el skill ui-design-consistency). Usar SOLO estos valores para
+ * espaciado, radios y tamaños de texto; no repetir "números mágicos" en cada componente.
+ */
+:root {
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --radius-md: .5rem;
+  --radius-lg: .75rem;
+
+  --text-title: 1.75rem;
+  --text-card-title: 1.125rem;
+  --text-body: .9375rem;
+  --text-small: .8125rem;
+  --text-label: .75rem;
+
+  --leading-tight: 1.25;
+  --leading-body: 1.5;
+
+  --page-gutter: var(--space-4);
+}
+
+/* ======================================================================================
+ * Estándar de formularios (skill ui-design-consistency §5). Todo formulario nuevo usa estas
+ * clases o el componente <app-form-field>; así etiquetas, campos, ayudas, errores y barras de
+ * acciones se ven igual en toda la aplicación.
+ *   etiqueta → control 8 px · entre campos 16 px · entre grupos 24 px · relleno de diálogo 24 px
+ * ====================================================================================== */
+.form-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.form-grid > * {
+  min-width: 0;
+}
+
+.form-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid__full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 40rem) {
+  .form-grid--2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.form-field {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.form-field__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-field__label {
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+.form-field__required {
+  margin-left: var(--space-1);
+  color: var(--p-red-400, #f87171);
+}
+
+.form-field__hint,
+.form-field__error {
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+}
+
+.form-field__hint {
+  color: var(--p-text-muted-color);
+}
+
+.form-field__error {
+  color: var(--p-red-400, #f87171);
+}
+
+.form-field textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+/* Barra de acciones de formularios, asistentes y diálogos: secundaria a la izquierda, principal a la derecha */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+.form-actions > :last-child {
+  margin-left: auto;
+}
+
+/* Diálogos de toda la aplicación: 24 px de relleno (16 px en móvil) y 8 px entre encabezado y contenido */
+.p-dialog .p-dialog-header {
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+
+.p-dialog .p-dialog-content {
+  padding: var(--space-2) var(--space-5) var(--space-5);
+}
+
+.p-dialog .p-dialog-footer {
+  padding: var(--space-3) var(--space-5) var(--space-5);
+  gap: var(--space-2);
+}
+
+@media (max-width: 40rem) {
+  .p-dialog .p-dialog-header {
+    padding: var(--space-4) var(--space-4) var(--space-2);
+  }
+
+  .p-dialog .p-dialog-content {
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+
+  .p-dialog .p-dialog-footer {
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/*
+ * Adaptador para formularios existentes: las plantillas antiguas usan <label>Texto <campo></label> o
+ * PrimeFlex `.field > label`. Heredan el mismo estándar (13 px/600, 8 px hasta el control) sin reescribirlas;
+ * el código nuevo usa <app-form-field>. No definir estilos de etiqueta por componente.
+ */
+label:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, p-select, p-datepicker,
+          p-inputnumber, p-multiselect, p-password, p-listbox, p-autocomplete, p-inputmask):not(:has(input[type="checkbox"], input[type="radio"], p-checkbox, p-radiobutton)) {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+/* El control conserva el tamaño y el peso del texto normal aunque la etiqueta sea más pequeña */
+label:has(input, textarea, p-select, p-datepicker, p-inputnumber) input,
+label:has(input, textarea, p-select, p-datepicker, p-inputnumber) textarea,
+label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-select,
+label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-datepicker {
+  font-size: var(--text-body);
+  font-weight: 400;
+}
+
+/* Etiqueta suelta seguida de su control en un contenedor: usar la clase de etiqueta estándar */
+.form-field__label {
+  display: block;
+}
+
+.field > label {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+/* Etiqueta suelta (<label for="id"> seguida de su control): mismo estilo que el resto de etiquetas */
+.form-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+/* Si el contenedor ya define la separación (flex/grid con gap), el margen no se suma */
+.flex > .form-label,
+.grid > .form-label,
+.form-grid > .form-label,
+.form-field .form-label {
+  margin-bottom: 0;
+}

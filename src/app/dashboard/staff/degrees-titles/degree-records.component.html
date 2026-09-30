@@ -169,9 +169,9 @@
     </label>
 
     <div *ngIf="!editing" class="student-picker full">
-      <label>Buscar estudiante por código, DNI o nombres</label>
+      <label class="form-field__label" for="student-search">Buscar estudiante por código, DNI o nombres</label>
       <div class="search-row">
-        <input pInputText [(ngModel)]="studentSearch" (keyup.enter)="findStudents()" placeholder="Ejemplo: 20191234 o apellido">
+        <input pInputText id="student-search" [(ngModel)]="studentSearch" (keyup.enter)="findStudents()" placeholder="Ejemplo: 20191234 o apellido">
         <button pButton type="button" label="Buscar" icon="pi pi-search" [loading]="searchingStudents" (click)="findStudents()"></button>
       </div>
       <p-listbox *ngIf="students.length" class="student-results" [options]="students" optionLabel="full_name"
