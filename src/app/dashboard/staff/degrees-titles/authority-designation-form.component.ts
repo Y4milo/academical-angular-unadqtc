@@ -7,6 +7,7 @@ import {InputTextModule} from 'primeng/inputtext';
 import {MessageModule} from 'primeng/message';
 import {Select} from 'primeng/select';
 import {SkeletonModule} from 'primeng/skeleton';
+import {StepperModule} from 'primeng/stepper';
 import {TagModule} from 'primeng/tag';
 import {finalize} from 'rxjs';
 import {
@@ -33,7 +34,7 @@ interface DesignationFormModel {
 
 @Component({
   selector: 'app-authority-designation-form',
-  imports: [Avatar, ButtonModule, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, TagModule],
+  imports: [Avatar, ButtonModule, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, StepperModule, TagModule],
   templateUrl: './authority-designation-form.component.html',
   styleUrl: './degree-general-data.shared.css',
 })
@@ -47,6 +48,8 @@ export class AuthorityDesignationFormComponent implements OnChanges {
   readonly initials = initials;
   readonly emailDomain = INSTITUTIONAL_EMAIL_DOMAIN;
 
+  /** Paso del asistente: 1 Buscar persona, 2 Datos, 3 Confirmar. */
+  step = 1;
   documentNumber = '';
   documentNumberTouched = false;
   searchingStaff = false;
@@ -60,6 +63,7 @@ export class AuthorityDesignationFormComponent implements OnChanges {
   constructor(private readonly service: DegreesTitlesService) {}
 
   ngOnChanges(): void {
+    this.step = 1;
     this.documentNumber = '';
     this.documentNumberTouched = false;
     this.staffSearchStatus = null;
@@ -97,6 +101,7 @@ export class AuthorityDesignationFormComponent implements OnChanges {
     }
 
     this.searchingStaff = true;
+    this.step = 1;
     this.staffSearchStatus = null;
     this.foundStaff = null;
     this.resolvedRoleLabel = null;
@@ -112,12 +117,16 @@ export class AuthorityDesignationFormComponent implements OnChanges {
           this.genderStatus = response.data.gender_status;
           this.coreFields = response.data.core_fields ?? null;
           this.applyCoreValues();
+          if (this.foundStaff) {
+            this.step = 2;
+          }
         },
         error: () => (this.staffSearchStatus = 'error'),
       });
   }
 
   changeStaff(): void {
+    this.step = 1;
     this.foundStaff = null;
     this.staffSearchStatus = null;
     this.resolvedRoleLabel = null;
@@ -156,6 +165,29 @@ export class AuthorityDesignationFormComponent implements OnChanges {
 
   useEmailCandidate(email: string): void {
     this.form.email = email;
+  }
+
+  /** Resumen del paso 3: cada dato con su valor y de dónde viene. */
+  get summaryRows(): {label: string; value: string | null; source: 'Core' | 'Manual' | null}[] {
+    const prefix = this.prefixes.find(item => item.id === this.form.professional_prefix_id)?.label ?? null;
+    const rows: {label: string; field: CoreResolvedField; value: string | null}[] = [
+      {label: 'Prefijo profesional', field: 'professional_prefix_id', value: prefix},
+      {label: 'Grado/Título académico', field: 'academic_title', value: this.form.academic_title.trim() || null},
+      {label: 'Correo institucional', field: 'email', value: this.form.email.trim() || null},
+      {label: 'Teléfono', field: 'phone', value: this.form.phone.trim() || null},
+    ];
+
+    return rows.map(row => ({
+      label: row.label,
+      value: row.value,
+      source: this.isLocked(row.field) ? 'Core' : row.value ? 'Manual' : null,
+    }));
+  }
+
+  goToSummary(): void {
+    if (this.canContinue) {
+      this.step = 3;
+    }
   }
 
   get canContinue(): boolean {

@@ -447,3 +447,78 @@
   display: grid;
   gap: 0.35rem;
 }
+
+/* Pestañas de gestión de autoridad */
+.management-tabs {
+  display: block;
+}
+
+.tab-badge {
+  margin-left: 0.4rem;
+}
+
+.snapshot-panel--flat {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.field-table .col-action,
+.audit-table .col-action {
+  width: 8rem;
+  text-align: right;
+}
+
+.row-changed td {
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.change-arrow {
+  margin-left: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.timeline-dot {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--p-content-border-color, rgba(128, 128, 128, 0.6));
+}
+
+.timeline-dot--active {
+  background: #16a34a;
+}
+
+.history-timeline {
+  margin-top: 1rem;
+}
+
+/* Asistente de designación */
+.designation-stepper {
+  display: block;
+}
+
+.summary-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--p-content-border-color, rgba(128, 128, 128, 0.25));
+}
+
+.summary-list li > span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
