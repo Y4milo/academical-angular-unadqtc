@@ -86,6 +86,8 @@
         <p-button label="Actualizar desde Core" icon="pi pi-refresh" [outlined]="true" size="small"
                   [severity]="isStaleSnapshot(snapshotStatus) ? 'danger' : 'secondary'"
                   [disabled]="verifying || refreshing" (onClick)="refreshFromCore()"></p-button>
+        <p-button *ngIf="missingFields.length" label="Completar datos" icon="pi pi-pencil" [outlined]="true" size="small"
+                  [disabled]="verifying || refreshing" (onClick)="openComplete()"></p-button>
       </div>
     </section>
 
@@ -163,5 +165,46 @@
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="confirmVisible = false"></p-button>
     <p-button [label]="confirmActionLabel(roleKey)" [loading]="saving" (onClick)="confirmSubmit()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="completeVisible" [modal]="true" [closable]="!completing" header="Completar datos faltantes"
+          [style]="{width: 'min(30rem, 96vw)'}">
+  <div class="complete-grid" *ngIf="current">
+    <p-message severity="secondary"
+               text="Solo se completan los datos que aún no existen. Los datos ya registrados no se pueden modificar."></p-message>
+
+    <label *ngIf="isMissing('professional_prefix_id')">Prefijo profesional
+      <p-select [(ngModel)]="completeForm.professional_prefix_id" [options]="prefixes" optionLabel="label" optionValue="id"
+                [showClear]="true" placeholder="Seleccionar" appendTo="body"></p-select>
+      <small class="field-error" *ngIf="completeErrors['professional_prefix_id']">{{ completeErrors['professional_prefix_id'] }}</small>
+    </label>
+    <label *ngIf="isMissing('academic_title')">Grado/Título académico completo
+      <input pInputText [(ngModel)]="completeForm.academic_title" maxlength="190" placeholder="Ej: Maestro en Ciencias de la Educación">
+      <small class="field-error" *ngIf="completeErrors['academic_title']">{{ completeErrors['academic_title'] }}</small>
+    </label>
+    <label *ngIf="isMissing('email')">Correo institucional
+      <input pInputText [(ngModel)]="completeForm.email" maxlength="190" type="email" [placeholder]="'usuario@' + emailDomain">
+      <small class="field-error" *ngIf="completeEmailInvalid">El correo debe terminar en &#64;{{ emailDomain }}.</small>
+      <small class="field-error" *ngIf="completeErrors['email']">{{ completeErrors['email'] }}</small>
+    </label>
+    <label *ngIf="isMissing('phone')">Teléfono
+      <input pInputText [(ngModel)]="completeForm.phone" maxlength="30">
+      <small class="field-error" *ngIf="completeErrors['phone']">{{ completeErrors['phone'] }}</small>
+    </label>
+
+    <label>Motivo (obligatorio, mínimo 10 caracteres)
+      <textarea pTextarea [(ngModel)]="completeForm.reason" rows="3" maxlength="500" placeholder="Ej: Dato entregado por la secretaría"></textarea>
+      <small class="field-error" *ngIf="completeErrors['reason']">{{ completeErrors['reason'] }}</small>
+    </label>
+
+    <div *ngIf="completing" class="skeleton-stack" aria-busy="true" aria-label="Guardando">
+      <p-skeleton width="100%" height="2rem"></p-skeleton>
+    </div>
+    <p-message *ngIf="completeErrors['general']" severity="error" [text]="completeErrors['general']"></p-message>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" [text]="true" [disabled]="completing" (onClick)="completeVisible = false"></p-button>
+    <p-button label="Guardar" icon="pi pi-save" [disabled]="!canComplete" [loading]="completing" (onClick)="submitComplete()"></p-button>
   </ng-template>
 </p-dialog>

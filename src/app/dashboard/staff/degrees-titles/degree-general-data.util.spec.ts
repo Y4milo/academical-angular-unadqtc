@@ -1,4 +1,4 @@
-import {changeValue, fieldLabel, isInstitutionalEmail, isStaleSnapshot, snapshotLabel, snapshotSeverity, sourceLabel} from './degree-general-data.util';
+import {changeValue, fieldLabel, isInstitutionalEmail, isStaleSnapshot, missingResolvedFields, snapshotLabel, snapshotSeverity, sourceLabel} from './degree-general-data.util';
 
 describe('degree-general-data.util (copia de CORE)', () => {
   it('describes each snapshot status', () => {
@@ -38,5 +38,14 @@ describe('degree-general-data.util (copia de CORE)', () => {
     expect(changeValue('911111111')).toBe('911111111');
     expect(fieldLabel('phone')).toBe('Teléfono');
     expect(fieldLabel('unknown')).toBe('unknown');
+  });
+
+  it('lists only the data that does not exist yet', () => {
+    expect(missingResolvedFields({professional_prefix: null, academic_title: null, email: '', phone: null}))
+      .toEqual(['professional_prefix_id', 'academic_title', 'email', 'phone']);
+    expect(missingResolvedFields({professional_prefix: {id: 1, value: 'mg', label: 'Mg.'}, academic_title: 'Maestro', email: 'a@unadqtc.edu.pe', phone: ' '}))
+      .toEqual(['phone']);
+    expect(missingResolvedFields({professional_prefix: {id: 1, value: 'mg', label: 'Mg.'}, academic_title: 'Maestro', email: 'a@unadqtc.edu.pe', phone: '987654321'}))
+      .toEqual([]);
   });
 });

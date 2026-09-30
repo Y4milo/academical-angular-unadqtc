@@ -1,4 +1,4 @@
-import {CoreFieldSource, CoreSnapshotStatus, DegreeGeneralAuthority, DegreeGeneralAuthorityRoleKey} from '../../../services/degrees-titles.service';
+import {CoreFieldSource, CoreResolvedField, CoreSnapshotStatus, DegreeGeneralAuthority, DegreeGeneralAuthorityRoleKey} from '../../../services/degrees-titles.service';
 
 export const ROLE_TITLES: Record<DegreeGeneralAuthorityRoleKey, string> = {
   gyt_responsible: 'Responsable de Grados y Títulos',
@@ -103,4 +103,17 @@ export const INSTITUTIONAL_EMAIL_DOMAIN = 'unadqtc.edu.pe';
 
 export function isInstitutionalEmail(email: string): boolean {
   return email.trim().toLowerCase().endsWith('@' + INSTITUTIONAL_EMAIL_DOMAIN) && /^[^\s@]+@[^\s@]+$/.test(email.trim());
+}
+
+/** Datos de la designación que aún no existen: son los únicos que se pueden completar después de guardar. */
+export function missingResolvedFields(
+  authority: Pick<DegreeGeneralAuthority, 'professional_prefix' | 'academic_title' | 'email' | 'phone'>,
+): CoreResolvedField[] {
+  const missing: CoreResolvedField[] = [];
+  if (!authority.professional_prefix) missing.push('professional_prefix_id');
+  if (!authority.academic_title?.trim()) missing.push('academic_title');
+  if (!authority.email?.trim()) missing.push('email');
+  if (!authority.phone?.trim()) missing.push('phone');
+
+  return missing;
 }

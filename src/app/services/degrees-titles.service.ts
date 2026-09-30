@@ -359,6 +359,15 @@ export interface CoreAuthorityFields {
   email_candidates?: string[];
 }
 
+/** Datos que aún no existen y se completan después de designar; solo se envían los que faltan. */
+export interface DegreeGeneralAuthorityCompletePayload {
+  professional_prefix_id?: number | null;
+  academic_title?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  reason: string;
+}
+
 export interface CoreSnapshotCheck {
   status: CoreSnapshotStatus;
   changes: Record<string, {from: unknown; to: unknown}>;
@@ -617,6 +626,11 @@ export class DegreesTitlesService {
   /** Actualiza la copia desde CORE (si nada cambió solo renueva la vigencia). */
   refreshGeneralAuthority(roleKey: string): Observable<{data: CoreSnapshotRefresh}> {
     return this.http.post<{data: CoreSnapshotRefresh}>(`${this.apiURL}/general-data/${roleKey}/refresh`, {});
+  }
+
+  /** Completa datos que no existen (ni en la designación ni en Core); exige motivo y se audita. */
+  completeGeneralAuthorityData(roleKey: string, payload: DegreeGeneralAuthorityCompletePayload): Observable<{data: DegreeGeneralAuthority}> {
+    return this.http.patch<{data: DegreeGeneralAuthority}>(`${this.apiURL}/general-data/${roleKey}`, payload);
   }
 
   designateGeneralAuthority(roleKey: string, payload: DegreeGeneralAuthorityDesignationPayload): Observable<{data: DegreeGeneralAuthority}> {

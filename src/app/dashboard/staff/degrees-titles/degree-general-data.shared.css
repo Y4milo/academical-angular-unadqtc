@@ -436,3 +436,14 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* Diálogo «Completar datos faltantes»: una sola columna */
+.complete-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.complete-grid label {
+  display: grid;
+  gap: 0.35rem;
+}

@@ -7,6 +7,7 @@ import {DialogModule} from 'primeng/dialog';
 import {InputTextModule} from 'primeng/inputtext';
 import {MessageModule} from 'primeng/message';
 import {Select} from 'primeng/select';
+import {Textarea} from 'primeng/textarea';
 import {SkeletonModule} from 'primeng/skeleton';
 import {TagModule} from 'primeng/tag';
 import {finalize} from 'rxjs';
@@ -15,6 +16,7 @@ import {
   CoreSnapshotCheck,
   CoreSnapshotStatus,
   DegreeGeneralAuthority,
+  DegreeGeneralAuthorityCompletePayload,
   DegreeGeneralAuthorityDesignationPayload,
   DegreeGeneralAuthorityDictionaryRef,
   DegreeGeneralAuthorityRoleKey,
@@ -25,7 +27,7 @@ import {NotificationService} from '../../../services/notification.service';
 import {AuthorityDesignationFormComponent} from './authority-designation-form.component';
 import {
   changeActionLabel, changeValue, confirmActionLabel, designateActionLabel, displayName, fieldLabel, initials, isResponsibleRole, isStaleSnapshot,
-  maskDni, personLabel, roleTitle, snapshotLabel, snapshotSeverity, sourceLabel,
+  INSTITUTIONAL_EMAIL_DOMAIN, isInstitutionalEmail, maskDni, missingResolvedFields, personLabel, roleTitle, snapshotLabel, snapshotSeverity, sourceLabel,
 } from './degree-general-data.util';
 
 type StatusFilter = 'all' | 'active' | 'previous';
@@ -33,7 +35,7 @@ type SortOrder = 'desc' | 'asc';
 
 @Component({
   selector: 'app-authority-management',
-  imports: [Avatar, AuthorityDesignationFormComponent, ButtonModule, DatePipe, DialogModule, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, TagModule],
+  imports: [Avatar, AuthorityDesignationFormComponent, ButtonModule, DatePipe, DialogModule, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, TagModule, Textarea],
   templateUrl: './authority-management.component.html',
   styleUrl: './degree-general-data.shared.css',
 })
@@ -59,6 +61,12 @@ export class AuthorityManagementComponent implements OnChanges {
   readonly changeValue = changeValue;
   readonly sourceLabel = sourceLabel;
   readonly resolvedFields: CoreResolvedField[] = ['professional_prefix_id', 'academic_title', 'email', 'phone'];
+  readonly emailDomain = INSTITUTIONAL_EMAIL_DOMAIN;
+
+  completeVisible = false;
+  completing = false;
+  completeForm = {professional_prefix_id: null as number | null, academic_title: '', email: '', phone: '', reason: ''};
+  completeErrors: Partial<Record<CoreResolvedField | 'reason' | 'general', string>> = {};
 
   loading = false;
   verifying = false;
@@ -186,6 +194,84 @@ export class AuthorityManagementComponent implements OnChanges {
           this.notifications.notifyApiData(error);
         },
       });
+  }
+
+  /** Solo se pueden completar los datos que aún no existen en la designación. */
+  get missingFields(): CoreResolvedField[] {
+    return this.current ? missingResolvedFields(this.current) : [];
+  }
+
+  isMissing(field: CoreResolvedField): boolean {
+    return this.missingFields.includes(field);
+  }
+
+  get completeEmailInvalid(): boolean {
+    return this.isMissing('email') && this.completeForm.email.trim() !== '' && !isInstitutionalEmail(this.completeForm.email);
+  }
+
+  get canComplete(): boolean {
+    const hasValue = this.missingFields.some(field => this.completeValue(field) !== null);
+
+    return hasValue && this.completeForm.reason.trim().length >= 10 && !this.completeEmailInvalid && !this.completing;
+  }
+
+  openComplete(): void {
+    this.completeForm = {professional_prefix_id: null, academic_title: '', email: '', phone: '', reason: ''};
+    this.completeErrors = {};
+    this.completeVisible = true;
+  }
+
+  submitComplete(): void {
+    if (!this.canComplete) {
+      return;
+    }
+    const payload: DegreeGeneralAuthorityCompletePayload = {reason: this.completeForm.reason.trim()};
+    for (const field of this.missingFields) {
+      const value = this.completeValue(field);
+      if (value !== null) {
+        (payload as unknown as Record<string, unknown>)[field] = value;
+      }
+    }
+
+    this.completing = true;
+    this.completeErrors = {};
+    this.service.completeGeneralAuthorityData(this.roleKey, payload)
+      .pipe(finalize(() => (this.completing = false)))
+      .subscribe({
+        next: response => {
+          this.completeVisible = false;
+          this.history = this.history.map(item => (item.id === response.data.id ? response.data : item));
+          this.notifications.success('Datos generales', 'Datos completados. Quedó registrado quién y por qué.');
+          this.changed.emit();
+        },
+        error: error => {
+          const errors: Record<string, string[]> | undefined = error?.error?.errors;
+          if (error?.status === 422 && errors) {
+            for (const [field, messages] of Object.entries(errors)) {
+              this.completeErrors[field as CoreResolvedField] = messages[0];
+            }
+            return;
+          }
+          if (error?.status === 422 && error?.error?.data?.status === 'no_changes') {
+            this.completeErrors.general = 'No hay datos nuevos para guardar.';
+            return;
+          }
+          if (error?.status === 503) {
+            this.completeErrors.general = 'No fue posible verificar en Core en este momento. Intente nuevamente más tarde.';
+            return;
+          }
+          this.notifications.notifyApiData(error);
+        },
+      });
+  }
+
+  private completeValue(field: CoreResolvedField): string | number | null {
+    if (field === 'professional_prefix_id') {
+      return this.completeForm.professional_prefix_id;
+    }
+    const value = this.completeForm[field].trim();
+
+    return value === '' ? null : value;
   }
 
   get periodOptions(): {label: string; value: string}[] {
