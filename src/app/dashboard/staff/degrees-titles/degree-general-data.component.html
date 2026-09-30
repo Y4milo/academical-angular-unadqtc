@@ -4,7 +4,10 @@
     <p>Configuración institucional vigente de Grados y Títulos.</p>
   </header>
 
-  <div *ngIf="loading" class="general-data-loading">Cargando datos generales…</div>
+  <div *ngIf="loading" class="institutional-surface skeleton-stack" aria-busy="true" aria-label="Cargando datos generales">
+    <p-skeleton width="40%" height="1.5rem"></p-skeleton>
+    <p-skeleton *ngFor="let row of [1, 2, 3, 4]" width="100%" height="3.5rem"></p-skeleton>
+  </div>
 
   <app-authority-directory *ngIf="!loading && !activeRoleKey" [roles]="roles" (manage)="manage($event)"></app-authority-directory>
 

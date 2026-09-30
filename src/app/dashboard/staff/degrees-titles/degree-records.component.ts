@@ -1,8 +1,10 @@
+import {HttpErrorResponse} from '@angular/common/http';
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {DatePipe, NgFor, NgIf} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
+import {CheckboxModule} from 'primeng/checkbox';
 import {DialogModule} from 'primeng/dialog';
 import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
@@ -35,9 +37,11 @@ import {
   ManualAcademicCodeStatus,
   InstitutionalIdentityLookup,
   DegreesTitlesService,
+  StaleSnapshotWarning,
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
+import {changeValue, fieldLabel, snapshotLabel, snapshotSeverity} from './degree-general-data.util';
 import {
   coreCandidateAcademicLine,
   coreCandidateDocumentLine,
@@ -52,7 +56,7 @@ import {
   selector: 'app-degree-records',
   standalone: true,
   imports: [
-    FormsModule, DatePipe, NgFor, NgIf, ButtonModule, DialogModule, TableModule, TagModule, TooltipModule,
+    FormsModule, DatePipe, NgFor, NgIf, ButtonModule, CheckboxModule, DialogModule, TableModule, TagModule, TooltipModule,
     InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule, ProgressBarModule, TestModeBannerComponent,
   ],
   providers: [ConfirmationService],
@@ -60,6 +64,15 @@ import {
   styleUrl: './degree-records.component.css',
 })
 export class DegreeRecordsComponent implements OnInit {
+  readonly snapshotLabel = snapshotLabel;
+  readonly snapshotSeverity = snapshotSeverity;
+  readonly fieldLabel = fieldLabel;
+  readonly changeValue = changeValue;
+
+  staleDialogVisible = false;
+  staleAccepted = false;
+  staleWarning: StaleSnapshotWarning | null = null;
+  pendingPayload: DegreeRecordPayload | null = null;
   private readonly conditionalSuneduFields = [
     {key: 'RESO_NUM_DUP_NUE', type: 'text'}, {key: 'RESO_FEC_DUP_NUE', type: 'date'},
     {key: 'DIPL_FEC_DUP_NUE', type: 'date'}, {key: 'PROC_REV_PAIS', type: 'text'},
@@ -792,6 +805,31 @@ export class DegreeRecordsComponent implements OnInit {
       diploma_date: this.formatDate(this.form.diploma_date),
       sunedu_data: this.serialiseSuneduData(this.form.sunedu_data),
     };
+    this.submitRecord(payload);
+  }
+
+  /** Continúa el guardado bajo responsabilidad del usuario (el servidor lo audita). */
+  confirmStaleAcknowledgement(): void {
+    if (!this.staleAccepted || !this.pendingPayload) {
+      return;
+    }
+    const payload = {...this.pendingPayload, acknowledge_stale_authorities: true};
+    this.staleDialogVisible = false;
+    this.submitRecord(payload);
+  }
+
+  cancelStaleAcknowledgement(): void {
+    this.staleDialogVisible = false;
+    this.staleWarning = null;
+    this.pendingPayload = null;
+    this.staleAccepted = false;
+  }
+
+  changeEntries(changes: Record<string, {from: unknown; to: unknown}> | unknown[]): {field: string; from: unknown; to: unknown}[] {
+    return Array.isArray(changes) ? [] : Object.entries(changes).map(([field, change]) => ({field, ...change}));
+  }
+
+  private submitRecord(payload: DegreeRecordPayload): void {
     const request = this.editing
       ? this.service.updateRecord(this.editing.id, payload)
       : this.service.createRecord(payload);
@@ -801,14 +839,38 @@ export class DegreeRecordsComponent implements OnInit {
         this.saving = false;
         if (response.status === STATUS.success) {
           this.dialogVisible = false;
+          this.staleWarning = null;
+          this.pendingPayload = null;
+          this.staleAccepted = false;
           this.notifications.success('Padrón actualizado', response.payload.message);
           this.loadRecords(this.editing ? this.page : 1);
           return;
         }
         this.notifications.notifyApiData(response);
       },
-      error: error => { this.saving = false; this.notifications.notifyApiData(error); },
+      error: error => {
+        this.saving = false;
+        const warning = this.staleWarningFrom(error);
+        if (warning) {
+          this.staleWarning = warning;
+          this.pendingPayload = payload;
+          this.staleAccepted = false;
+          this.staleDialogVisible = true;
+          return;
+        }
+        this.notifications.notifyApiData(error);
+      },
     });
+  }
+
+  /** El servidor responde 409 con `requires_acknowledgement` cuando una copia de Core está vencida o cambió. */
+  private staleWarningFrom(error: unknown): StaleSnapshotWarning | null {
+    if (!(error instanceof HttpErrorResponse) || error.status !== 409) {
+      return null;
+    }
+    const payload = error.error?.payload;
+
+    return payload?.requires_acknowledgement === true ? payload as StaleSnapshotWarning : null;
   }
 
   annul(record: DegreeRecord): void {

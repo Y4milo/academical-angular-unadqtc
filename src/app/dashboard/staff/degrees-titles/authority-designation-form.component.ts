@@ -1,13 +1,17 @@
 import {Component, EventEmitter, Input, OnChanges, Output} from '@angular/core';
-import {NgIf} from '@angular/common';
+import {NgFor, NgIf} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Avatar} from 'primeng/avatar';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
 import {MessageModule} from 'primeng/message';
 import {Select} from 'primeng/select';
+import {SkeletonModule} from 'primeng/skeleton';
+import {TagModule} from 'primeng/tag';
 import {finalize} from 'rxjs';
 import {
+  CoreAuthorityFields,
+  CoreResolvedField,
   DegreeGeneralAuthority,
   DegreeGeneralAuthorityDesignationPayload,
   DegreeGeneralAuthorityDictionaryRef,
@@ -16,7 +20,7 @@ import {
   DegreeGeneralAuthorityStaff,
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
-import {initials} from './degree-general-data.util';
+import {initials, INSTITUTIONAL_EMAIL_DOMAIN, isInstitutionalEmail} from './degree-general-data.util';
 
 interface DesignationFormModel {
   professional_prefix_id: number | null;
@@ -29,7 +33,7 @@ interface DesignationFormModel {
 
 @Component({
   selector: 'app-authority-designation-form',
-  imports: [Avatar, ButtonModule, FormsModule, InputTextModule, MessageModule, NgIf, Select],
+  imports: [Avatar, ButtonModule, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, TagModule],
   templateUrl: './authority-designation-form.component.html',
   styleUrl: './degree-general-data.shared.css',
 })
@@ -41,6 +45,7 @@ export class AuthorityDesignationFormComponent implements OnChanges {
   @Output() continueWith = new EventEmitter<{staff: DegreeGeneralAuthorityStaff; payload: DegreeGeneralAuthorityDesignationPayload}>();
 
   readonly initials = initials;
+  readonly emailDomain = INSTITUTIONAL_EMAIL_DOMAIN;
 
   documentNumber = '';
   documentNumberTouched = false;
@@ -49,6 +54,7 @@ export class AuthorityDesignationFormComponent implements OnChanges {
   foundStaff: DegreeGeneralAuthorityStaff | null = null;
   resolvedRoleLabel: string | null = null;
   genderStatus: DegreeGeneralAuthorityGenderStatus | null = null;
+  coreFields: CoreAuthorityFields | null = null;
   form: DesignationFormModel = this.emptyForm();
 
   constructor(private readonly service: DegreesTitlesService) {}
@@ -60,6 +66,7 @@ export class AuthorityDesignationFormComponent implements OnChanges {
     this.foundStaff = null;
     this.resolvedRoleLabel = null;
     this.genderStatus = null;
+    this.coreFields = null;
 
     if (this.prefill) {
       this.form = {
@@ -94,6 +101,7 @@ export class AuthorityDesignationFormComponent implements OnChanges {
     this.foundStaff = null;
     this.resolvedRoleLabel = null;
     this.genderStatus = null;
+    this.coreFields = null;
     this.service.searchStaffByDocument(this.documentNumber.trim(), this.roleKey)
       .pipe(finalize(() => (this.searchingStaff = false)))
       .subscribe({
@@ -102,6 +110,8 @@ export class AuthorityDesignationFormComponent implements OnChanges {
           this.foundStaff = response.data.staff;
           this.resolvedRoleLabel = response.data.role_label;
           this.genderStatus = response.data.gender_status;
+          this.coreFields = response.data.core_fields ?? null;
+          this.applyCoreValues();
         },
         error: () => (this.staffSearchStatus = 'error'),
       });
@@ -112,13 +122,44 @@ export class AuthorityDesignationFormComponent implements OnChanges {
     this.staffSearchStatus = null;
     this.resolvedRoleLabel = null;
     this.genderStatus = null;
+    this.coreFields = null;
     this.documentNumber = '';
     this.documentNumberTouched = false;
     this.form = this.emptyForm();
   }
 
+  /** Un dato que entrega Core queda bloqueado y siempre gana; solo lo que Core no tiene se completa a mano. */
+  isLocked(field: CoreResolvedField): boolean {
+    return this.coreFields?.sources?.[field] === 'core';
+  }
+
+  /** Core respondió pero no tiene el dato: el usuario lo completa manualmente. */
+  isManual(field: CoreResolvedField): boolean {
+    return !!this.coreFields?.sources && this.coreFields.sources[field] !== 'core';
+  }
+
+  get coreUnavailable(): boolean {
+    return this.coreFields?.status === 'technical_error';
+  }
+
+  get notInCore(): boolean {
+    return this.coreFields?.status === 'not_in_core';
+  }
+
+  get emailCandidates(): string[] {
+    return this.isManual('email') ? this.coreFields?.email_candidates ?? [] : [];
+  }
+
+  get emailInvalid(): boolean {
+    return this.isManual('email') && this.form.email.trim() !== '' && !isInstitutionalEmail(this.form.email);
+  }
+
+  useEmailCandidate(email: string): void {
+    this.form.email = email;
+  }
+
   get canContinue(): boolean {
-    return this.foundStaff !== null && this.resolvedRoleLabel !== null;
+    return this.foundStaff !== null && this.resolvedRoleLabel !== null && !this.coreUnavailable && !this.emailInvalid;
   }
 
   submit(): void {
@@ -137,6 +178,17 @@ export class AuthorityDesignationFormComponent implements OnChanges {
         phone: this.form.phone.trim() || null,
       },
     });
+  }
+
+  private applyCoreValues(): void {
+    const values = this.coreFields?.values;
+    if (!values) {
+      return;
+    }
+    if (this.isLocked('professional_prefix_id')) this.form.professional_prefix_id = values.professional_prefix_id;
+    if (this.isLocked('academic_title')) this.form.academic_title = values.academic_title ?? '';
+    if (this.isLocked('email')) this.form.email = values.email ?? '';
+    if (this.isLocked('phone')) this.form.phone = values.phone ?? '';
   }
 
   private emptyForm(): DesignationFormModel {

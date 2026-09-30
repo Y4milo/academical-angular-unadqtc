@@ -368,3 +368,71 @@
 .confirm-warning {
   color: var(--p-text-muted-color);
 }
+
+/* Copia de Core: estados de espera, origen de los datos y cambios detectados */
+.skeleton-stack {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.skeleton-person {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-lines {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.field-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.email-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.snapshot-panel {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--p-content-border-color, rgba(128, 128, 128, 0.25));
+}
+
+.snapshot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.snapshot-sources,
+.snapshot-changes {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.snapshot-sources li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.snapshot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
