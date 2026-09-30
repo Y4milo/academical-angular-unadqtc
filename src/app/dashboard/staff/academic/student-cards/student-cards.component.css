@@ -21,8 +21,6 @@
 }
 
 .semester-selector label {
-  font-size: 0.8rem;
-  font-weight: 700;
   color: var(--text-color-secondary);
 }
 

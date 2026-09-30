@@ -8,7 +8,8 @@ import {MessageModule} from 'primeng/message';
 import {Select} from 'primeng/select';
 import {SkeletonModule} from 'primeng/skeleton';
 import {StepperModule} from 'primeng/stepper';
-import {TagModule} from 'primeng/tag';
+import {FormFieldComponent} from '../../../core/components/form-field.component';
+import {StatusTagComponent} from '../../../core/components/status-tag.component';
 import {finalize} from 'rxjs';
 import {
   CoreAuthorityFields,
@@ -34,7 +35,7 @@ interface DesignationFormModel {
 
 @Component({
   selector: 'app-authority-designation-form',
-  imports: [Avatar, ButtonModule, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, StepperModule, TagModule],
+  imports: [Avatar, ButtonModule, FormFieldComponent, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, StepperModule, StatusTagComponent],
   templateUrl: './authority-designation-form.component.html',
   styleUrl: './degree-general-data.shared.css',
 })

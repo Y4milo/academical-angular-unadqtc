@@ -1,6 +1,6 @@
 import {
   auditLabel, auditSeverity, changeValue, daysUntil, fieldLabel, isInstitutionalEmail, isStaleSnapshot, missingResolvedFields, snapshotLabel, snapshotSeverity,
-  sourceLabel, vigencyColor, vigencyPercent,
+  sourceLabel, tenureLabel, vigencyColor, vigencyPercent,
 } from './degree-general-data.util';
 
 describe('degree-general-data.util (copia de CORE)', () => {
@@ -75,5 +75,16 @@ describe('degree-general-data.util (copia de CORE)', () => {
     expect(vigencyColor('fresh')).toBe('#16a34a');
     expect(vigencyColor('expiring')).toBe('#d97706');
     expect(vigencyColor('expired')).toBe('#dc2626');
+  });
+
+  it('describes how long a designation lasted', () => {
+    const now = new Date('2026-10-01T00:00:00Z');
+    expect(tenureLabel(null, null, now)).toBe('—');
+    expect(tenureLabel('2026-10-01T00:00:00Z', null, now)).toBe('Menos de un día');
+    expect(tenureLabel('2026-09-30T00:00:00Z', null, now)).toBe('1 día');
+    expect(tenureLabel('2026-09-26T00:00:00Z', null, now)).toBe('5 días');
+    expect(tenureLabel('2026-06-01T00:00:00Z', null, now)).toBe('4 meses');
+    expect(tenureLabel('2025-07-20T00:00:00Z', null, now)).toBe('1 año 2 meses');
+    expect(tenureLabel('2024-10-01T00:00:00Z', '2026-10-01T00:00:00Z')).toBe('2 años');
   });
 });

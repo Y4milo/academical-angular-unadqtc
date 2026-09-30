@@ -27,7 +27,7 @@
           </div>
         </ng-container>
         <ng-template #unset>
-          <p-tag severity="warn" value="Sin designar"></p-tag>
+          <app-status-tag severity="warn" value="Sin designar"></app-status-tag>
         </ng-template>
       </div>
 
@@ -43,7 +43,7 @@
 
       <div class="directory-cell directory-cell--action">
         <p-button [label]="role.current ? 'Gestionar' : designateActionLabel(role.role_key)"
-                  [outlined]="!role.current" (onClick)="manage.emit(role.role_key)"></p-button>
+                  [outlined]="!!role.current" [severity]="role.current ? 'secondary' : 'primary'" (onClick)="manage.emit(role.role_key)"></p-button>
       </div>
     </div>
   </div>

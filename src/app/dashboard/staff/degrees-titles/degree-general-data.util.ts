@@ -168,3 +168,35 @@ export function vigencyColor(status: CoreSnapshotStatus | undefined): string {
     default: return '#dc2626';
   }
 }
+
+/** Duración legible entre dos fechas ("5 días", "4 meses", "1 año 2 meses"); `to` vacío = hasta hoy. */
+export function tenureLabel(from: string | null | undefined, to?: string | null, now: Date = new Date()): string {
+  if (!from) {
+    return '—';
+  }
+  const startDate = new Date(from);
+  const endDate = to ? new Date(to) : now;
+  const days = Math.floor((endDate.getTime() - startDate.getTime()) / 86_400_000);
+  if (days < 1) {
+    return 'Menos de un día';
+  }
+  if (days < 28) {
+    return days === 1 ? '1 día' : `${days} días`;
+  }
+  // Meses de calendario completos entre ambas fechas (no una aproximación en días).
+  let months = (endDate.getUTCFullYear() - startDate.getUTCFullYear()) * 12 + (endDate.getUTCMonth() - startDate.getUTCMonth());
+  if (endDate.getUTCDate() < startDate.getUTCDate()) {
+    months -= 1;
+  }
+  if (months < 1) {
+    return `${days} días`;
+  }
+  if (months < 12) {
+    return months === 1 ? '1 mes' : `${months} meses`;
+  }
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  const yearText = years === 1 ? '1 año' : `${years} años`;
+
+  return rest === 0 ? yearText : `${yearText} ${rest === 1 ? '1 mes' : `${rest} meses`}`;
+}

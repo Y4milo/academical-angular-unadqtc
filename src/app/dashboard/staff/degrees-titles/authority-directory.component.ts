@@ -2,13 +2,13 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {DatePipe, NgFor, NgIf} from '@angular/common';
 import {Avatar} from 'primeng/avatar';
 import {ButtonModule} from 'primeng/button';
-import {TagModule} from 'primeng/tag';
+import {StatusTagComponent} from '../../../core/components/status-tag.component';
 import {DegreeGeneralAuthority, DegreeGeneralAuthorityRoleKey} from '../../../services/degrees-titles.service';
 import {changeActionLabel, designateActionLabel, displayName, initials, maskDni, roleTitle} from './degree-general-data.util';
 
 @Component({
   selector: 'app-authority-directory',
-  imports: [Avatar, ButtonModule, DatePipe, NgFor, NgIf, TagModule],
+  imports: [Avatar, ButtonModule, DatePipe, NgFor, NgIf, StatusTagComponent],
   templateUrl: './authority-directory.component.html',
   styleUrl: './degree-general-data.shared.css',
 })

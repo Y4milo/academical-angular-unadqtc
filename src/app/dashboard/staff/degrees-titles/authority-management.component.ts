@@ -4,15 +4,17 @@ import {FormsModule} from '@angular/forms';
 import {Avatar} from 'primeng/avatar';
 import {BadgeModule} from 'primeng/badge';
 import {ButtonModule} from 'primeng/button';
+import {IconFieldModule} from 'primeng/iconfield';
+import {InputIconModule} from 'primeng/inputicon';
 import {DialogModule} from 'primeng/dialog';
 import {InputTextModule} from 'primeng/inputtext';
 import {MessageModule} from 'primeng/message';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {Select} from 'primeng/select';
+import {SelectButtonModule} from 'primeng/selectbutton';
 import {SkeletonModule} from 'primeng/skeleton';
 import {TableLazyLoadEvent, TableModule} from 'primeng/table';
 import {TabsModule} from 'primeng/tabs';
-import {TagModule} from 'primeng/tag';
 import {Textarea} from 'primeng/textarea';
 import {TimelineModule} from 'primeng/timeline';
 import {finalize} from 'rxjs';
@@ -30,12 +32,15 @@ import {
   DegreeGeneralAuthorityStaff,
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
+import {FormFieldComponent} from '../../../core/components/form-field.component';
+import {PageHeaderComponent} from '../../../core/components/page-header.component';
+import {StatusTagComponent} from '../../../core/components/status-tag.component';
 import {NotificationService} from '../../../services/notification.service';
 import {AuthorityDesignationFormComponent} from './authority-designation-form.component';
 import {
   auditLabel, auditSeverity, changeActionLabel, changeValue, confirmActionLabel, daysUntil, designateActionLabel, displayName, fieldLabel, initials,
   INSTITUTIONAL_EMAIL_DOMAIN, isInstitutionalEmail, isResponsibleRole, isStaleSnapshot, maskDni, missingResolvedFields, personLabel, roleTitle,
-  snapshotLabel, snapshotSeverity, sourceLabel, vigencyColor, vigencyPercent,
+  snapshotLabel, snapshotSeverity, sourceLabel, tenureLabel, vigencyColor, vigencyPercent,
 } from './degree-general-data.util';
 
 type StatusFilter = 'all' | 'active' | 'previous';
@@ -56,8 +61,9 @@ interface FieldRow {
 @Component({
   selector: 'app-authority-management',
   imports: [
-    Avatar, AuthorityDesignationFormComponent, BadgeModule, ButtonModule, DatePipe, DialogModule, FormsModule, InputTextModule, MessageModule,
-    NgFor, NgIf, ProgressBarModule, Select, SkeletonModule, TableModule, TabsModule, TagModule, Textarea, TimelineModule,
+    Avatar, AuthorityDesignationFormComponent, BadgeModule, ButtonModule, DatePipe, DialogModule, FormsModule, IconFieldModule, InputIconModule,
+    FormFieldComponent, InputTextModule, MessageModule, NgFor, NgIf, PageHeaderComponent, ProgressBarModule, Select, SelectButtonModule, SkeletonModule,
+    StatusTagComponent, TableModule, TabsModule, Textarea, TimelineModule,
   ],
   templateUrl: './authority-management.component.html',
   styleUrl: './degree-general-data.shared.css',
@@ -86,6 +92,7 @@ export class AuthorityManagementComponent implements OnChanges {
   readonly auditLabel = auditLabel;
   readonly auditSeverity = auditSeverity;
   readonly vigencyColor = vigencyColor;
+  readonly tenureLabel = tenureLabel;
   readonly resolvedFields: CoreResolvedField[] = ['professional_prefix_id', 'academic_title', 'email', 'phone'];
   readonly emailDomain = INSTITUTIONAL_EMAIL_DOMAIN;
 
@@ -129,10 +136,6 @@ export class AuthorityManagementComponent implements OnChanges {
     {label: 'Todos', value: 'all'},
     {label: 'Vigente', value: 'active'},
     {label: 'Anteriores', value: 'previous'},
-  ];
-  readonly sortOptions = [
-    {label: 'Más reciente primero', value: 'desc'},
-    {label: 'Más antiguo primero', value: 'asc'},
   ];
 
   constructor(private readonly service: DegreesTitlesService, private readonly notifications: NotificationService) {}
@@ -402,6 +405,25 @@ export class AuthorityManagementComponent implements OnChanges {
     const value = this.completeForm[field].trim();
 
     return value === '' ? null : value;
+  }
+
+  /** Tiempo que lleva la autoridad vigente en el cargo (para el resumen del historial). */
+  get currentTenure(): string {
+    return tenureLabel(this.current?.activated_at);
+  }
+
+  get previousCount(): number {
+    return this.history.filter(item => !item.active).length;
+  }
+
+  toggleSort(): void {
+    this.sortOrder = this.sortOrder === 'desc' ? 'asc' : 'desc';
+  }
+
+  clearHistoryFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = 'all';
+    this.periodFilter = 'all';
   }
 
   get periodOptions(): {label: string; value: string}[] {

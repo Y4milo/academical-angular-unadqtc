@@ -220,12 +220,6 @@
   margin: .5rem 0;
 }
 
-.history-filters {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
-  gap: 1rem;
-}
-
 .history-filters label {
   display: grid;
   gap: .35rem;
@@ -239,49 +233,11 @@
   }
 }
 
-.history-entries {
-  display: grid;
-  gap: 1rem;
-}
-
-.history-entry {
-  display: grid;
-  gap: .75rem;
-}
-
-.history-entry-period {
-  color: var(--p-text-muted-color);
-  font-size: .8rem;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.history-entry-body {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.history-entry-info {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  flex: 1;
-  min-width: 14rem;
-}
-
 ::ng-deep .history-avatar.p-avatar {
   background: var(--p-content-hover-background);
   color: var(--p-text-color);
   font-weight: 600;
   flex-shrink: 0;
-}
-
-.history-entry-status {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
 }
 
 .designation-flow {
@@ -352,12 +308,6 @@
 
 .required {
   color: var(--p-red-500, #e11d48);
-}
-
-.designation-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: .75rem;
 }
 
 .confirm-body {
@@ -463,8 +413,8 @@
   border-top: 0;
 }
 
-.field-table .col-action,
-.audit-table .col-action {
+:host ::ng-deep .field-table .col-action,
+:host ::ng-deep .audit-table .col-action {
   width: 8rem;
   text-align: right;
 }
@@ -477,22 +427,6 @@
   margin-left: 0.5rem;
   color: #dc2626;
   font-size: 0.875rem;
-}
-
-.timeline-dot {
-  display: inline-block;
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 50%;
-  background: var(--p-content-border-color, rgba(128, 128, 128, 0.6));
-}
-
-.timeline-dot--active {
-  background: #16a34a;
-}
-
-.history-timeline {
-  margin-top: 1rem;
 }
 
 /* Asistente de designación */
@@ -539,3 +473,474 @@
 .management-tabs ::ng-deep .p-tablist {
   border-radius: .75rem .75rem 0 0;
 }
+
+/* ======================================================================================
+ * Diseño profesional (skill ui-design-consistency): escala de espaciado, tipografía,
+ * alineación y responsive. Estas reglas unifican lo definido más arriba.
+ * ====================================================================================== */
+
+:host {
+  line-height: var(--leading-body);
+}
+
+.general-data {
+  gap: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Etiqueta de sección: mismo estilo en tarjetas, cabeceras de tabla y hechos del historial */
+.designation-step-title,
+:host ::ng-deep .field-table th,
+:host ::ng-deep .audit-table th,
+.history-facts dt,
+.metric-label {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.muted {
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+}
+
+/* Tarjetas y bloques */
+.institutional-surface {
+  padding: var(--space-5);
+  gap: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.current-authority-card,
+.snapshot-panel,
+.history {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.snapshot-panel {
+  margin-top: 0;
+}
+
+.current-authority-details {
+  gap: var(--space-1);
+}
+
+.current-authority-contact {
+  gap: var(--space-2) var(--space-5);
+  flex-wrap: wrap;
+}
+
+.current-authority-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+/* Pestañas: tarjeta continua, etiquetas legibles, sin texto pegado */
+.management-tabs ::ng-deep .p-tabpanels {
+  padding: var(--space-5);
+}
+
+.management-tabs ::ng-deep .p-tab {
+  font-weight: 500;
+  padding: var(--space-3) var(--space-4);
+}
+
+.management-tabs ::ng-deep .p-tab.p-tab-active {
+  font-weight: 600;
+}
+
+/* Tabla de campos: primera columna alineada con el resto del contenido de la tarjeta */
+:host ::ng-deep .field-table th,
+:host ::ng-deep .field-table td,
+:host ::ng-deep .audit-table th,
+:host ::ng-deep .audit-table td {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  vertical-align: middle;
+}
+
+:host ::ng-deep .field-table th:first-child,
+:host ::ng-deep .field-table td:first-child,
+:host ::ng-deep .audit-table th:first-child,
+:host ::ng-deep .audit-table td:first-child {
+  padding-left: 0;
+}
+
+:host ::ng-deep .field-table th:last-child,
+:host ::ng-deep .field-table td:last-child {
+  padding-right: 0;
+}
+
+:host ::ng-deep .field-table .col-action {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.snapshot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+/* Auditoría: columnas que no se parten y desplazamiento horizontal si no caben */
+.audit-intro {
+  margin: 0 0 var(--space-4);
+}
+
+:host ::ng-deep .audit-table .col-date,
+:host ::ng-deep .audit-table .col-action-type {
+  white-space: nowrap;
+}
+
+:host ::ng-deep .audit-table .col-actor {
+  min-width: 11rem;
+}
+
+/* ------------------------------------ Historial ----------------------------------- */
+.history-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3);
+}
+
+.metric {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+  background: var(--p-content-hover-background, transparent);
+}
+
+.metric-value {
+  font-size: var(--text-card-title);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+}
+
+.history-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.history-search {
+  flex: 1 1 16rem;
+  min-width: 12rem;
+}
+
+.history-search input {
+  width: 100%;
+}
+
+.history-timeline {
+  margin-top: var(--space-2);
+}
+
+/* La columna "opposite" no se usa: la tarjeta ocupa todo el ancho */
+:host ::ng-deep .history-timeline .p-timeline-event-opposite {
+  display: none;
+}
+
+:host ::ng-deep .history-timeline .p-timeline-event-content {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: var(--space-4);
+}
+
+:host ::ng-deep .history-timeline .p-timeline-event-marker {
+  border: 0;
+  background: transparent;
+}
+
+.timeline-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--p-content-border-color);
+  background: var(--p-content-background);
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.timeline-marker--active {
+  border-color: #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.history-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-lg);
+  background: var(--p-content-background);
+}
+
+.history-card--active {
+  border-color: #16a34a;
+  box-shadow: inset 3px 0 0 #16a34a;
+}
+
+.history-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.history-card-title {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+
+.history-card-title strong {
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.history-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+
+.history-facts dt {
+  margin-bottom: var(--space-1);
+}
+
+.history-facts dd {
+  margin: 0;
+  font-size: var(--text-body);
+  overflow-wrap: anywhere;
+}
+
+.history-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+::ng-deep .history-avatar.p-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--p-content-border-color);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 1.75rem;
+  color: var(--p-text-muted-color);
+}
+
+/* Barra de acciones de asistentes y diálogos: secundaria a la izquierda, principal a la derecha */
+
+.designation-form-grid,
+.complete-grid {
+  gap: var(--space-4);
+}
+
+/* ---------------------------------- Responsive (≤ 40rem) --------------------------- */
+@media (max-width: 40rem) {
+  .general-data {
+    padding-inline: var(--page-gutter);
+  }
+
+  .institutional-surface,
+  .management-tabs ::ng-deep .p-tabpanels {
+    padding: var(--space-4);
+  }
+
+  .current-authority-actions,
+  .history-card-actions {
+    justify-content: stretch;
+  }
+
+  .current-authority-actions ::ng-deep .p-button,
+  .history-card-actions ::ng-deep .p-button,
+  .snapshot-actions ::ng-deep .p-button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .history-card {
+    padding: var(--space-4);
+  }
+
+  .history-card-head {
+    flex-wrap: wrap;
+  }
+
+  /* Tabla de campos apilada: cada fila es una tarjeta con su etiqueta */
+  :host ::ng-deep .stack-on-mobile thead {
+    display: none;
+  }
+
+  :host ::ng-deep .stack-on-mobile tbody tr {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--p-content-border-color);
+  }
+
+  :host ::ng-deep .stack-on-mobile tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 0;
+    border: 0;
+    text-align: right;
+  }
+
+  :host ::ng-deep .stack-on-mobile tbody td[data-label]::before {
+    content: attr(data-label);
+    color: var(--p-text-muted-color);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  :host ::ng-deep .stack-on-mobile tbody td.col-action {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  :host ::ng-deep .stack-on-mobile tbody td.col-action:empty {
+    display: none;
+  }
+}
+
+/* Barra de filtros del historial: una sola fila en escritorio */
+.history-search {
+  flex: 1 1 8rem;
+  min-width: 8rem;
+}
+
+.history-toolbar ::ng-deep .p-select {
+  width: 12rem;
+}
+
+@media (max-width: 40rem) {
+  .history-toolbar ::ng-deep .p-select,
+  .history-toolbar ::ng-deep .p-selectbutton {
+    width: 100%;
+  }
+}
+
+.history-toolbar ::ng-deep .p-select {
+  width: 13rem;
+}
+
+.history-search {
+  flex: 1 1 12rem;
+  min-width: 12rem;
+}
+
+:host,
+.management-tabs,
+.history,
+.history-timeline,
+.history-card,
+.snapshot-panel {
+  min-width: 0;
+}
+
+.management-tabs ::ng-deep .p-tablist,
+.management-tabs ::ng-deep .p-tablist-content {
+  max-width: 100%;
+}
+
+@media (max-width: 40rem) {
+  /* El nombre del dato actúa como título de la tarjeta de la fila */
+  :host ::ng-deep .stack-on-mobile tbody td[data-label="Dato"] {
+    justify-content: flex-start;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  :host ::ng-deep .stack-on-mobile tbody td[data-label="Dato"]::before {
+    display: none;
+  }
+}
+
+/* Un píxel de redondeo no debe provocar una barra de desplazamiento en la tabla de campos */
+:host ::ng-deep .field-table .p-datatable-table-container {
+  overflow-x: hidden;
+}
+
+/* Asistente de designación en pantallas pequeñas */
+.designation-flow,
+.designation-step,
+.designation-stepper,
+.institutional-surface > * {
+  min-width: 0;
+}
+
+@media (max-width: 40rem) {
+  .search-row {
+    flex-wrap: wrap;
+  }
+
+  .search-row input,
+  .search-row ::ng-deep .p-button {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  /* Solo el paso activo muestra su título; los demás quedan como números */
+  :host ::ng-deep .designation-stepper .p-step:not(.p-step-active) .p-step-title {
+    display: none;
+  }
+
+  :host ::ng-deep .designation-stepper .p-step-header {
+    padding-inline: var(--space-2);
+  }
+
+  .summary-list li {
+    flex-wrap: wrap;
+  }
+}
+
+.confirm-body {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.confirm-body p {
+  margin: 0;
+}
+
