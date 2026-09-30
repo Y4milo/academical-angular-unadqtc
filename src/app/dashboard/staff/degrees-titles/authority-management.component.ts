@@ -5,10 +5,15 @@ import {Avatar} from 'primeng/avatar';
 import {ButtonModule} from 'primeng/button';
 import {DialogModule} from 'primeng/dialog';
 import {InputTextModule} from 'primeng/inputtext';
+import {MessageModule} from 'primeng/message';
 import {Select} from 'primeng/select';
+import {SkeletonModule} from 'primeng/skeleton';
 import {TagModule} from 'primeng/tag';
 import {finalize} from 'rxjs';
 import {
+  CoreResolvedField,
+  CoreSnapshotCheck,
+  CoreSnapshotStatus,
   DegreeGeneralAuthority,
   DegreeGeneralAuthorityDesignationPayload,
   DegreeGeneralAuthorityDictionaryRef,
@@ -18,14 +23,17 @@ import {
 } from '../../../services/degrees-titles.service';
 import {NotificationService} from '../../../services/notification.service';
 import {AuthorityDesignationFormComponent} from './authority-designation-form.component';
-import {changeActionLabel, confirmActionLabel, designateActionLabel, displayName, initials, isResponsibleRole, maskDni, personLabel, roleTitle} from './degree-general-data.util';
+import {
+  changeActionLabel, changeValue, confirmActionLabel, designateActionLabel, displayName, fieldLabel, initials, isResponsibleRole, isStaleSnapshot,
+  maskDni, personLabel, roleTitle, snapshotLabel, snapshotSeverity, sourceLabel,
+} from './degree-general-data.util';
 
 type StatusFilter = 'all' | 'active' | 'previous';
 type SortOrder = 'desc' | 'asc';
 
 @Component({
   selector: 'app-authority-management',
-  imports: [Avatar, AuthorityDesignationFormComponent, ButtonModule, DatePipe, DialogModule, FormsModule, InputTextModule, NgFor, NgIf, Select, TagModule],
+  imports: [Avatar, AuthorityDesignationFormComponent, ButtonModule, DatePipe, DialogModule, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, TagModule],
   templateUrl: './authority-management.component.html',
   styleUrl: './degree-general-data.shared.css',
 })
@@ -44,8 +52,20 @@ export class AuthorityManagementComponent implements OnChanges {
   readonly displayName = displayName;
   readonly initials = initials;
   readonly maskDni = maskDni;
+  readonly snapshotLabel = snapshotLabel;
+  readonly snapshotSeverity = snapshotSeverity;
+  readonly isStaleSnapshot = isStaleSnapshot;
+  readonly fieldLabel = fieldLabel;
+  readonly changeValue = changeValue;
+  readonly sourceLabel = sourceLabel;
+  readonly resolvedFields: CoreResolvedField[] = ['professional_prefix_id', 'academic_title', 'email', 'phone'];
 
   loading = false;
+  verifying = false;
+  refreshing = false;
+  coreCheck: CoreSnapshotCheck | null = null;
+  refreshedChanges: Record<string, {from: unknown; to: unknown}> | null = null;
+  coreUnavailable = false;
   history: DegreeGeneralAuthority[] = [];
   mode: 'view' | 'designate' = 'view';
   redesignatePrefill: DegreeGeneralAuthority | null = null;
@@ -79,6 +99,9 @@ export class AuthorityManagementComponent implements OnChanges {
     this.statusFilter = 'all';
     this.periodFilter = 'all';
     this.sortOrder = 'desc';
+    this.coreCheck = null;
+    this.refreshedChanges = null;
+    this.coreUnavailable = false;
     this.load();
   }
 
@@ -94,6 +117,68 @@ export class AuthorityManagementComponent implements OnChanges {
 
   get current(): DegreeGeneralAuthority | null {
     return this.history.find(item => item.active) ?? null;
+  }
+
+  /** Estado de la copia de CORE: la verificación en vivo (si se hizo) manda sobre la vigencia guardada. */
+  get snapshotStatus(): CoreSnapshotStatus {
+    return this.coreCheck?.status ?? this.current?.snapshot?.status ?? 'missing';
+  }
+
+  get checkChanges(): {field: string; from: unknown; to: unknown}[] {
+    return Object.entries(this.coreCheck?.changes ?? {}).map(([field, change]) => ({field, ...change}));
+  }
+
+  get refreshChanges(): {field: string; from: unknown; to: unknown}[] {
+    return Object.entries(this.refreshedChanges ?? {}).map(([field, change]) => ({field, ...change}));
+  }
+
+  verifyWithCore(): void {
+    if (this.verifying || this.refreshing) {
+      return;
+    }
+    this.verifying = true;
+    this.coreUnavailable = false;
+    this.refreshedChanges = null;
+    this.service.checkGeneralAuthority(this.roleKey)
+      .pipe(finalize(() => (this.verifying = false)))
+      .subscribe({
+        next: response => (this.coreCheck = response.data),
+        error: error => {
+          this.coreCheck = null;
+          if (error?.status === 503) {
+            this.coreUnavailable = true;
+            return;
+          }
+          this.notifications.notifyApiData(error);
+        },
+      });
+  }
+
+  refreshFromCore(): void {
+    if (this.verifying || this.refreshing) {
+      return;
+    }
+    this.refreshing = true;
+    this.coreUnavailable = false;
+    this.service.refreshGeneralAuthority(this.roleKey)
+      .pipe(finalize(() => (this.refreshing = false)))
+      .subscribe({
+        next: response => {
+          this.refreshedChanges = response.data.changes;
+          this.coreCheck = null;
+          this.history = this.history.map(item => (item.id === response.data.authority.id ? response.data.authority : item));
+          this.notifications.success('Datos generales', Object.keys(response.data.changes).length
+            ? 'Datos actualizados desde Core.' : 'Los datos ya coinciden con Core. Se renovó la vigencia.');
+          this.changed.emit();
+        },
+        error: error => {
+          if (error?.status === 503) {
+            this.coreUnavailable = true;
+            return;
+          }
+          this.notifications.notifyApiData(error);
+        },
+      });
   }
 
   get periodOptions(): {label: string; value: string}[] {

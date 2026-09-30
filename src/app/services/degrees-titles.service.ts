@@ -281,6 +281,8 @@ export interface DegreeBulkProcess {
 }
 
 export interface DegreeRecordPayload {
+  /** Continuar bajo responsabilidad del usuario con copias de CORE vencidas o desactualizadas (se audita). */
+  acknowledge_stale_authorities?: boolean;
   degree_call_id?: number;
   academic_profile_id?: number | null;
   manual_academic_profile_id?: number | null;
@@ -332,6 +334,63 @@ export interface DegreeGeneralAuthority {
   active: boolean;
   activated_at: string | null;
   deactivated_at: string | null;
+  snapshot?: DegreeGeneralAuthoritySnapshot;
+}
+
+/** Vigencia de la copia de CORE: `outdated` solo lo devuelve la verificación en vivo. */
+export type CoreSnapshotStatus = 'fresh' | 'expiring' | 'expired' | 'missing' | 'outdated';
+
+/** Origen de cada dato de una autoridad: `core` (bloqueado), `manual` (completado a mano) o faltante. */
+export type CoreFieldSource = 'core' | 'manual' | null;
+
+export type CoreResolvedField = 'academic_title' | 'professional_prefix_id' | 'email' | 'phone';
+
+export interface DegreeGeneralAuthoritySnapshot {
+  status: CoreSnapshotStatus;
+  field_sources: Partial<Record<CoreResolvedField, CoreFieldSource>> | null;
+  synced_at: string | null;
+  expires_at: string | null;
+}
+
+export interface CoreAuthorityFields {
+  status: 'available' | 'not_in_core' | 'technical_error';
+  values?: {academic_title: string | null; professional_prefix_id: number | null; email: string | null; phone: string | null};
+  sources?: Record<CoreResolvedField, CoreFieldSource>;
+  email_candidates?: string[];
+}
+
+export interface CoreSnapshotCheck {
+  status: CoreSnapshotStatus;
+  changes: Record<string, {from: unknown; to: unknown}>;
+  core_available: boolean;
+}
+
+export interface CoreSnapshotRefresh {
+  authority: DegreeGeneralAuthority;
+  changes: Record<string, {from: unknown; to: unknown}>;
+}
+
+/** Advertencia 409 al crear/actualizar un registro con copias de CORE vencidas o desactualizadas. */
+export interface StaleSnapshotWarning {
+  requires_acknowledgement: true;
+  title: string;
+  message: string;
+  stale_authorities: {
+    role_key: string;
+    role_label: string;
+    full_name: string | null;
+    snapshot_status: CoreSnapshotStatus;
+    expires_at: string | null;
+    changes: Record<string, {from: unknown; to: unknown}> | never[];
+  }[];
+  stale_student: {
+    academic_profile_id: number;
+    full_name: string;
+    student_code: string;
+    snapshot_status: CoreSnapshotStatus;
+    synced_at: string | null;
+    expires_at: string | null;
+  } | null;
 }
 
 export interface DegreeGeneralDataResponse {
@@ -359,6 +418,7 @@ export interface StaffSearchResponse {
     staff: DegreeGeneralAuthorityStaff | null;
     role_label: string | null;
     gender_status: DegreeGeneralAuthorityGenderStatus | null;
+    core_fields?: CoreAuthorityFields;
   };
 }
 
@@ -543,6 +603,16 @@ export class DegreesTitlesService {
 
   getGeneralAuthorityHistory(roleKey: string): Observable<{data: DegreeGeneralAuthority[]}> {
     return this.http.get<{data: DegreeGeneralAuthority[]}>(`${this.apiURL}/general-data/${roleKey}/history`);
+  }
+
+  /** Compara la copia guardada con lo que CORE entrega hoy, sin modificar nada. */
+  checkGeneralAuthority(roleKey: string): Observable<{data: CoreSnapshotCheck}> {
+    return this.http.get<{data: CoreSnapshotCheck}>(`${this.apiURL}/general-data/${roleKey}/check`);
+  }
+
+  /** Actualiza la copia desde CORE (si nada cambió solo renueva la vigencia). */
+  refreshGeneralAuthority(roleKey: string): Observable<{data: CoreSnapshotRefresh}> {
+    return this.http.post<{data: CoreSnapshotRefresh}>(`${this.apiURL}/general-data/${roleKey}/refresh`, {});
   }
 
   designateGeneralAuthority(roleKey: string, payload: DegreeGeneralAuthorityDesignationPayload): Observable<{data: DegreeGeneralAuthority}> {

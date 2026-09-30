@@ -503,6 +503,51 @@
   </ng-template>
 </p-dialog>
 
+<p-dialog [(visible)]="staleDialogVisible" [modal]="true" [closable]="!saving" header="Datos de Core sin actualizar"
+          [style]="{width: 'min(680px, 96vw)'}" (onHide)="cancelStaleAcknowledgement()">
+  <div class="stale-body" *ngIf="staleWarning as warning">
+    <p-message severity="warn" [text]="warning.message"></p-message>
+
+    <section *ngIf="warning.stale_authorities.length" class="stale-block">
+      <strong>Autoridades que firman el diploma</strong>
+      <ul class="stale-list">
+        <li *ngFor="let authority of warning.stale_authorities">
+          <div class="stale-item-head">
+            <span>{{ authority.role_label }}<ng-container *ngIf="authority.full_name"> · {{ authority.full_name }}</ng-container></span>
+            <p-tag [severity]="snapshotSeverity(authority.snapshot_status)" [value]="snapshotLabel(authority.snapshot_status)"></p-tag>
+          </div>
+          <small *ngIf="authority.expires_at">Vencía el {{ authority.expires_at | date:'dd/MM/yyyy' }}</small>
+          <ul class="stale-changes" *ngIf="changeEntries(authority.changes).length">
+            <li *ngFor="let change of changeEntries(authority.changes)">
+              {{ fieldLabel(change.field) }}: {{ changeValue(change.from) }} → {{ changeValue(change.to) }}
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section *ngIf="warning.stale_student as student" class="stale-block">
+      <strong>Perfil del estudiante</strong>
+      <div class="stale-item-head">
+        <span>{{ student.full_name }} · {{ student.student_code }}</span>
+        <p-tag [severity]="snapshotSeverity(student.snapshot_status)" [value]="snapshotLabel(student.snapshot_status)"></p-tag>
+      </div>
+      <small *ngIf="student.synced_at">Última sincronización {{ student.synced_at | date:'dd/MM/yyyy' }}</small>
+    </section>
+
+    <label class="stale-ack" for="stale-ack">
+      <p-checkbox inputId="stale-ack" [(ngModel)]="staleAccepted" [binary]="true"></p-checkbox>
+      <span>Asumo la responsabilidad de continuar con datos que pueden estar desactualizados. Quedará registrado quién y cuándo.</span>
+    </label>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" [disabled]="saving"
+            (click)="cancelStaleAcknowledgement()"></button>
+    <button pButton type="button" label="Continuar bajo mi responsabilidad" icon="pi pi-check" severity="danger"
+            [disabled]="!staleAccepted" [loading]="saving" (click)="confirmStaleAcknowledgement()"></button>
+  </ng-template>
+</p-dialog>
+
 <p-dialog [(visible)]="manualStudentDialogVisible" [modal]="true" [style]="{width: 'min(900px, 96vw)'}"
           header="Registrar estudiante con código académico oficial">
   <p-message severity="info" text="El código es obligatorio y no se reemplazará ni se generará desde el DNI."></p-message>

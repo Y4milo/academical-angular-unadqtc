@@ -202,3 +202,38 @@ code { white-space: nowrap; font-size: .78rem; }
   .core-candidate-card { flex-direction: column; align-items: flex-start; gap: .5rem; }
   .core-candidate-action { opacity: 1; transform: none; align-self: flex-end; }
 }
+
+/* Confirmación de responsabilidad con copias de Core vencidas o desactualizadas */
+.stale-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.stale-block,
+.stale-list,
+.stale-changes {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stale-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.stale-changes {
+  padding-left: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.stale-ack {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+}

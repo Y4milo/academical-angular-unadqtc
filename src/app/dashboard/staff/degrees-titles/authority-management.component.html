@@ -6,7 +6,16 @@
   </div>
 </div>
 
-<div *ngIf="mode === 'view'" class="institutional-surface current-authority-card">
+<div *ngIf="mode === 'view' && loading" class="institutional-surface skeleton-stack" aria-busy="true" aria-label="Cargando autoridad">
+  <p-skeleton width="30%" height="1rem"></p-skeleton>
+  <div class="skeleton-person">
+    <p-skeleton shape="circle" size="3.5rem"></p-skeleton>
+    <div class="skeleton-lines"><p-skeleton width="16rem" height="1.25rem"></p-skeleton><p-skeleton width="11rem" height="1rem"></p-skeleton></div>
+  </div>
+  <p-skeleton width="9rem" height="2.25rem"></p-skeleton>
+</div>
+
+<div *ngIf="mode === 'view' && !loading" class="institutional-surface current-authority-card">
   <div class="current-authority-head">
     <span class="designation-step-title">Autoridad actual</span>
     <p-tag *ngIf="current" severity="success" value="Vigente"></p-tag>
@@ -28,6 +37,56 @@
       <span *ngIf="authority.phone"><strong>Teléfono:</strong> {{ authority.phone }}</span>
     </div>
 
+    <section class="snapshot-panel" aria-label="Datos de Core">
+      <div class="snapshot-head">
+        <span class="designation-step-title">Datos de Core</span>
+        <p-tag [severity]="snapshotSeverity(snapshotStatus)" [value]="snapshotLabel(snapshotStatus)"></p-tag>
+      </div>
+      <span class="muted" *ngIf="authority.snapshot?.expires_at">
+        Vence el {{ authority.snapshot?.expires_at | date:'dd/MM/yyyy' }}
+        <ng-container *ngIf="authority.snapshot?.synced_at"> · Última sincronización {{ authority.snapshot?.synced_at | date:'dd/MM/yyyy' }}</ng-container>
+      </span>
+      <span class="muted" *ngIf="!authority.snapshot?.expires_at">Esta designación aún no tiene una copia de Core.</span>
+
+      <ul class="snapshot-sources" *ngIf="authority.snapshot?.field_sources as sources">
+        <li *ngFor="let field of resolvedFields">
+          {{ fieldLabel(field) }}
+          <p-tag [severity]="sources[field] === 'core' ? 'info' : sources[field] === 'manual' ? 'warn' : 'secondary'"
+                 [value]="sourceLabel(sources[field])"></p-tag>
+        </li>
+      </ul>
+
+      <div *ngIf="verifying || refreshing" class="skeleton-stack" aria-busy="true" aria-label="Consultando a Core">
+        <p-skeleton width="60%" height="1rem"></p-skeleton>
+        <p-skeleton width="100%" height="2rem"></p-skeleton>
+      </div>
+
+      <p-message *ngIf="coreUnavailable" severity="error"
+                 text="No fue posible consultar a Core en este momento. Intente nuevamente más tarde."></p-message>
+      <p-message *ngIf="coreCheck && !coreCheck.core_available" severity="warn"
+                 text="Core no tiene a esta persona como personal: no se puede comparar."></p-message>
+      <p-message *ngIf="coreCheck?.status === 'outdated'" severity="warn"
+                 text="Los datos cambiaron en Core desde la última sincronización."></p-message>
+      <ul class="snapshot-changes" *ngIf="checkChanges.length">
+        <li *ngFor="let change of checkChanges">
+          <strong>{{ fieldLabel(change.field) }}:</strong> {{ changeValue(change.from) }} → {{ changeValue(change.to) }}
+        </li>
+      </ul>
+      <ul class="snapshot-changes" *ngIf="refreshChanges.length">
+        <li *ngFor="let change of refreshChanges">
+          <strong>{{ fieldLabel(change.field) }}</strong> actualizado: {{ changeValue(change.from) }} → {{ changeValue(change.to) }}
+        </li>
+      </ul>
+
+      <div class="snapshot-actions">
+        <p-button label="Verificar con Core" icon="pi pi-search" [text]="true" size="small"
+                  [disabled]="verifying || refreshing" (onClick)="verifyWithCore()"></p-button>
+        <p-button label="Actualizar desde Core" icon="pi pi-refresh" [outlined]="true" size="small"
+                  [severity]="isStaleSnapshot(snapshotStatus) ? 'danger' : 'secondary'"
+                  [disabled]="verifying || refreshing" (onClick)="refreshFromCore()"></p-button>
+      </div>
+    </section>
+
     <div class="current-authority-actions">
       <p-button [label]="changeActionLabel(roleKey)" [outlined]="true" (onClick)="startDesignate()"></p-button>
     </div>
@@ -42,7 +101,7 @@
   </ng-template>
 </div>
 
-<div *ngIf="mode === 'view'" class="institutional-surface">
+<div *ngIf="mode === 'view' && !loading" class="institutional-surface">
   <span class="designation-step-title">Historial de designaciones</span>
 
   <div class="history-filters">

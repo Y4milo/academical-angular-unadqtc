@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {NgIf} from '@angular/common';
+import {NgFor, NgIf} from '@angular/common';
+import {SkeletonModule} from 'primeng/skeleton';
 import {
   DegreeGeneralAuthority,
   DegreeGeneralAuthorityDictionaryRef,
@@ -12,7 +13,7 @@ import {AuthorityManagementComponent} from './authority-management.component';
 
 @Component({
   selector: 'app-degree-general-data',
-  imports: [AuthorityDirectoryComponent, AuthorityManagementComponent, NgIf],
+  imports: [AuthorityDirectoryComponent, AuthorityManagementComponent, NgFor, NgIf, SkeletonModule],
   templateUrl: './degree-general-data.component.html',
   styleUrl: './degree-general-data.component.css',
 })
