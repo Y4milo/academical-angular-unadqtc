@@ -522,3 +522,20 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Las pestañas se ven como las demás tarjetas de la pantalla */
+.management-tabs ::ng-deep .p-tabpanels,
+.management-tabs ::ng-deep .p-tabpanel {
+  display: block;
+}
+
+.management-tabs ::ng-deep .p-tabpanels {
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--p-content-border-color);
+  border-top: 0;
+  border-radius: 0 0 .75rem .75rem;
+}
+
+.management-tabs ::ng-deep .p-tablist {
+  border-radius: .75rem .75rem 0 0;
+}

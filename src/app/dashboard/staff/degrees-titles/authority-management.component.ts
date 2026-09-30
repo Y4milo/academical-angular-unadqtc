@@ -47,6 +47,9 @@ interface FieldRow {
   label: string;
   value: string | null;
   source: CoreFieldSource | undefined;
+  /** Texto y color del origen: un dato guardado antes de existir la copia se muestra como «Registrado». */
+  sourceText: string;
+  sourceSeverity: 'info' | 'warn' | 'secondary';
   missing: boolean;
 }
 
@@ -202,13 +205,20 @@ export class AuthorityManagementComponent implements OnChanges {
       phone: authority.phone?.trim() || null,
     };
 
-    return this.resolvedFields.map(field => ({
-      field,
-      label: fieldLabel(field),
-      value: values[field],
-      source: authority.snapshot?.field_sources?.[field],
-      missing: values[field] === null,
-    }));
+    return this.resolvedFields.map(field => {
+      const value = values[field];
+      const source = authority.snapshot?.field_sources?.[field];
+
+      return {
+        field,
+        label: fieldLabel(field),
+        value,
+        source,
+        sourceText: value !== null && !source ? 'Registrado' : sourceLabel(source),
+        sourceSeverity: source === 'core' ? 'info' : source === 'manual' ? 'warn' : 'secondary',
+        missing: value === null,
+      } as FieldRow;
+    });
   }
 
   get checkChanges(): {field: string; from: unknown; to: unknown}[] {

@@ -112,8 +112,7 @@
                   </span>
                 </td>
                 <td>
-                  <p-tag [severity]="row.source === 'core' ? 'info' : row.source === 'manual' ? 'warn' : 'secondary'"
-                         [value]="sourceLabel(row.source)"
+                  <p-tag [severity]="row.sourceSeverity" [value]="row.sourceText"
                          [icon]="row.source === 'core' ? 'pi pi-lock' : ''"></p-tag>
                 </td>
                 <td class="col-action">
