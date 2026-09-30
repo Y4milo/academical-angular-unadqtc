@@ -65,6 +65,8 @@
                  text="No fue posible consultar a Core en este momento. Intente nuevamente más tarde."></p-message>
       <p-message *ngIf="coreCheck && !coreCheck.core_available" severity="warn"
                  text="Core no tiene a esta persona como personal: no se puede comparar."></p-message>
+      <p-message *ngIf="notStaffInCore" severity="info"
+                 text="Core conoce a esta persona pero aún no como personal: no tiene grado, prefijo ni correo institucional registrados. Esos datos se mantienen como se completaron a mano."></p-message>
       <p-message *ngIf="coreCheck?.status === 'outdated'" severity="warn"
                  text="Los datos cambiaron en Core desde la última sincronización."></p-message>
       <ul class="snapshot-changes" *ngIf="checkChanges.length">

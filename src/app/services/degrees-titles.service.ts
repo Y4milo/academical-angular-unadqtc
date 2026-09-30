@@ -363,11 +363,15 @@ export interface CoreSnapshotCheck {
   status: CoreSnapshotStatus;
   changes: Record<string, {from: unknown; to: unknown}>;
   core_available: boolean;
+  /** Core conoce a la persona pero puede no tenerla como personal (sin grado, prefijo ni correo institucional). */
+  has_staff_profile?: boolean;
 }
 
 export interface CoreSnapshotRefresh {
   authority: DegreeGeneralAuthority;
   changes: Record<string, {from: unknown; to: unknown}>;
+  core_available?: boolean;
+  has_staff_profile?: boolean;
 }
 
 /** Advertencia 409 al crear/actualizar un registro con copias de CORE vencidas o desactualizadas. */

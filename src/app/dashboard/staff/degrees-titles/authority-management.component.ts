@@ -66,6 +66,8 @@ export class AuthorityManagementComponent implements OnChanges {
   coreCheck: CoreSnapshotCheck | null = null;
   refreshedChanges: Record<string, {from: unknown; to: unknown}> | null = null;
   coreUnavailable = false;
+  /** Core respondió pero no tiene a la persona como personal: sus datos de cargo se completan a mano. */
+  notStaffInCore = false;
   history: DegreeGeneralAuthority[] = [];
   mode: 'view' | 'designate' = 'view';
   redesignatePrefill: DegreeGeneralAuthority | null = null;
@@ -102,6 +104,7 @@ export class AuthorityManagementComponent implements OnChanges {
     this.coreCheck = null;
     this.refreshedChanges = null;
     this.coreUnavailable = false;
+    this.notStaffInCore = false;
     this.load();
   }
 
@@ -142,7 +145,10 @@ export class AuthorityManagementComponent implements OnChanges {
     this.service.checkGeneralAuthority(this.roleKey)
       .pipe(finalize(() => (this.verifying = false)))
       .subscribe({
-        next: response => (this.coreCheck = response.data),
+        next: response => {
+          this.coreCheck = response.data;
+          this.notStaffInCore = response.data.core_available && response.data.has_staff_profile === false;
+        },
         error: error => {
           this.coreCheck = null;
           if (error?.status === 503) {
@@ -165,6 +171,7 @@ export class AuthorityManagementComponent implements OnChanges {
       .subscribe({
         next: response => {
           this.refreshedChanges = response.data.changes;
+          this.notStaffInCore = response.data.core_available !== false && response.data.has_staff_profile === false;
           this.coreCheck = null;
           this.history = this.history.map(item => (item.id === response.data.authority.id ? response.data.authority : item));
           this.notifications.success('Datos generales', Object.keys(response.data.changes).length
