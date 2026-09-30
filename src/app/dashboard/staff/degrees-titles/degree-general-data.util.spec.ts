@@ -1,4 +1,7 @@
-import {changeValue, fieldLabel, isInstitutionalEmail, isStaleSnapshot, missingResolvedFields, snapshotLabel, snapshotSeverity, sourceLabel} from './degree-general-data.util';
+import {
+  auditLabel, auditSeverity, changeValue, daysUntil, fieldLabel, isInstitutionalEmail, isStaleSnapshot, missingResolvedFields, snapshotLabel, snapshotSeverity,
+  sourceLabel, vigencyColor, vigencyPercent,
+} from './degree-general-data.util';
 
 describe('degree-general-data.util (copia de CORE)', () => {
   it('describes each snapshot status', () => {
@@ -47,5 +50,30 @@ describe('degree-general-data.util (copia de CORE)', () => {
       .toEqual(['phone']);
     expect(missingResolvedFields({professional_prefix: {id: 1, value: 'mg', label: 'Mg.'}, academic_title: 'Maestro', email: 'a@unadqtc.edu.pe', phone: '987654321'}))
       .toEqual([]);
+  });
+
+  it('labels the audit actions', () => {
+    expect(auditLabel('designated')).toBe('Designación');
+    expect(auditLabel('manual_completed')).toBe('Datos completados');
+    expect(auditLabel('synced_from_core')).toBe('Actualizado desde Core');
+    expect(auditLabel('stale_acknowledged')).toBe('Continuó con datos vencidos');
+    expect(auditSeverity('stale_acknowledged')).toBe('danger');
+    expect(auditSeverity('designated')).toBe('success');
+  });
+
+  it('computes the days and percentage of vigency left', () => {
+    const now = new Date('2026-10-01T00:00:00Z');
+    expect(daysUntil('2026-10-11T00:00:00Z', now)).toBe(10);
+    expect(daysUntil('2026-09-01T00:00:00Z', now)).toBe(0);
+    expect(daysUntil(null, now)).toBe(0);
+    expect(vigencyPercent('2026-09-01T00:00:00Z', '2026-11-01T00:00:00Z', now)).toBeGreaterThan(40);
+    expect(vigencyPercent('2026-09-01T00:00:00Z', '2026-09-20T00:00:00Z', now)).toBe(0);
+    expect(vigencyPercent(null, null, now)).toBe(0);
+  });
+
+  it('colors the vigency bar by status', () => {
+    expect(vigencyColor('fresh')).toBe('#16a34a');
+    expect(vigencyColor('expiring')).toBe('#d97706');
+    expect(vigencyColor('expired')).toBe('#dc2626');
   });
 });

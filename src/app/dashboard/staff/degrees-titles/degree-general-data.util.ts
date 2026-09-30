@@ -1,4 +1,4 @@
-import {CoreFieldSource, CoreResolvedField, CoreSnapshotStatus, DegreeGeneralAuthority, DegreeGeneralAuthorityRoleKey} from '../../../services/degrees-titles.service';
+import {CoreFieldSource, CoreResolvedField, CoreSnapshotStatus, DegreeGeneralAuthority, DegreeGeneralAuthorityAuditAction, DegreeGeneralAuthorityRoleKey} from '../../../services/degrees-titles.service';
 
 export const ROLE_TITLES: Record<DegreeGeneralAuthorityRoleKey, string> = {
   gyt_responsible: 'Responsable de Grados y Títulos',
@@ -116,4 +116,55 @@ export function missingResolvedFields(
   if (!authority.phone?.trim()) missing.push('phone');
 
   return missing;
+}
+
+const AUDIT_LABELS: Record<DegreeGeneralAuthorityAuditAction, string> = {
+  designated: 'Designación',
+  manual_completed: 'Datos completados',
+  synced_from_core: 'Actualizado desde Core',
+  stale_acknowledged: 'Continuó con datos vencidos',
+};
+
+export function auditLabel(action: DegreeGeneralAuthorityAuditAction): string {
+  return AUDIT_LABELS[action] ?? action;
+}
+
+export function auditSeverity(action: DegreeGeneralAuthorityAuditAction): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+  switch (action) {
+    case 'designated': return 'success';
+    case 'synced_from_core': return 'info';
+    case 'manual_completed': return 'warn';
+    case 'stale_acknowledged': return 'danger';
+    default: return 'secondary';
+  }
+}
+
+/** Días que faltan para el vencimiento (0 si ya venció o no hay fecha). */
+export function daysUntil(expiresAt: string | null | undefined, now: Date = new Date()): number {
+  if (!expiresAt) {
+    return 0;
+  }
+  const days = Math.ceil((new Date(expiresAt).getTime() - now.getTime()) / 86_400_000);
+
+  return Math.max(days, 0);
+}
+
+/** Porcentaje de la vigencia que queda, entre 0 y 100 (para la barra de progreso). */
+export function vigencyPercent(syncedAt: string | null | undefined, expiresAt: string | null | undefined, now: Date = new Date()): number {
+  if (!syncedAt || !expiresAt) {
+    return 0;
+  }
+  const total = new Date(expiresAt).getTime() - new Date(syncedAt).getTime();
+  const left = new Date(expiresAt).getTime() - now.getTime();
+
+  return total <= 0 ? 0 : Math.min(100, Math.max(0, Math.round((left / total) * 100)));
+}
+
+/** Color de la barra de vigencia según el estado de la copia. */
+export function vigencyColor(status: CoreSnapshotStatus | undefined): string {
+  switch (status) {
+    case 'fresh': return '#16a34a';
+    case 'expiring': return '#d97706';
+    default: return '#dc2626';
+  }
 }

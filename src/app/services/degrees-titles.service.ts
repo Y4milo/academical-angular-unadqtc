@@ -368,6 +368,25 @@ export interface DegreeGeneralAuthorityCompletePayload {
   reason: string;
 }
 
+export type DegreeGeneralAuthorityAuditAction = 'designated' | 'manual_completed' | 'synced_from_core' | 'stale_acknowledged';
+
+/** Cambio auditado de una designación: quién, cuándo, por qué y qué cambió. */
+export interface DegreeGeneralAuthorityAudit {
+  id: number;
+  role_key: string;
+  action: DegreeGeneralAuthorityAuditAction;
+  reason: string | null;
+  changes: Record<string, unknown> | null;
+  changed_by: {id: number; nick: string; name: string} | null;
+  authority: {id: number; staff_name: string | null; active: boolean} | null;
+  created_at: string | null;
+}
+
+export interface DegreeGeneralAuthorityAuditsResponse {
+  data: DegreeGeneralAuthorityAudit[];
+  meta: {current_page: number; last_page: number; per_page: number; total: number};
+}
+
 export interface CoreSnapshotCheck {
   status: CoreSnapshotStatus;
   changes: Record<string, {from: unknown; to: unknown}>;
@@ -616,6 +635,12 @@ export class DegreesTitlesService {
 
   getGeneralAuthorityHistory(roleKey: string): Observable<{data: DegreeGeneralAuthority[]}> {
     return this.http.get<{data: DegreeGeneralAuthority[]}>(`${this.apiURL}/general-data/${roleKey}/history`);
+  }
+
+  getGeneralAuthorityAudits(roleKey: string, page = 1, perPage = 15): Observable<DegreeGeneralAuthorityAuditsResponse> {
+    return this.http.get<DegreeGeneralAuthorityAuditsResponse>(`${this.apiURL}/general-data/${roleKey}/audits`, {
+      params: {page, per_page: perPage},
+    });
   }
 
   /** Compara la copia guardada con lo que CORE entrega hoy, sin modificar nada. */

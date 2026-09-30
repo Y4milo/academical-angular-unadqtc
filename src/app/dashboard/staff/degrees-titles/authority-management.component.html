@@ -7,7 +7,7 @@
 </div>
 
 <div *ngIf="mode === 'view' && loading" class="institutional-surface skeleton-stack" aria-busy="true" aria-label="Cargando autoridad">
-  <p-skeleton width="30%" height="1rem"></p-skeleton>
+  <p-skeleton width="60%" height="2.25rem"></p-skeleton>
   <div class="skeleton-person">
     <p-skeleton shape="circle" size="3.5rem"></p-skeleton>
     <div class="skeleton-lines"><p-skeleton width="16rem" height="1.25rem"></p-skeleton><p-skeleton width="11rem" height="1rem"></p-skeleton></div>
@@ -15,140 +15,240 @@
   <p-skeleton width="9rem" height="2.25rem"></p-skeleton>
 </div>
 
-<div *ngIf="mode === 'view' && !loading" class="institutional-surface current-authority-card">
-  <div class="current-authority-head">
-    <span class="designation-step-title">Autoridad actual</span>
-    <p-tag *ngIf="current" severity="success" value="Vigente"></p-tag>
-  </div>
+<p-tabs *ngIf="mode === 'view' && !loading" [value]="activeTab" (valueChange)="activeTab = $any($event)" [scrollable]="true" class="management-tabs">
+  <p-tablist>
+    <p-tab value="current"><i class="pi pi-user"></i>&nbsp;Autoridad actual</p-tab>
+    <p-tab value="core">
+      <i class="pi pi-database"></i>&nbsp;Datos de Core
+      <p-badge *ngIf="needsAttention" value="!" severity="danger" class="tab-badge"></p-badge>
+    </p-tab>
+    <p-tab value="history"><i class="pi pi-history"></i>&nbsp;Historial</p-tab>
+    <p-tab value="audit"><i class="pi pi-list"></i>&nbsp;Auditoría</p-tab>
+  </p-tablist>
 
-  <ng-container *ngIf="current as authority; else unset">
-    <div class="current-authority-body">
-      <p-avatar [label]="initials(authority.staff.full_name)" shape="circle" styleClass="current-avatar"></p-avatar>
-      <div class="current-authority-details">
-        <strong>{{ displayName(authority) }}</strong>
-        <span *ngIf="authority.academic_title" class="muted">{{ authority.academic_title }}</span>
-        <span class="muted">DNI {{ maskDni(authority.staff.number) }}</span>
-        <span *ngIf="authority.activated_at" class="muted">Desde {{ authority.activated_at | date:'dd MMMM yyyy' }}</span>
-      </div>
-    </div>
+  <p-tabpanels>
+    <!-- ============================ Autoridad actual ============================ -->
+    <p-tabpanel value="current">
+      <div class="current-authority-card">
+        <div class="current-authority-head">
+          <span class="designation-step-title">Autoridad actual</span>
+          <p-tag *ngIf="current" severity="success" value="Vigente"></p-tag>
+        </div>
 
-    <div class="current-authority-contact" *ngIf="authority.email || authority.phone">
-      <span *ngIf="authority.email"><strong>Correo:</strong> {{ authority.email }}</span>
-      <span *ngIf="authority.phone"><strong>Teléfono:</strong> {{ authority.phone }}</span>
-    </div>
-
-    <section class="snapshot-panel" aria-label="Datos de Core">
-      <div class="snapshot-head">
-        <span class="designation-step-title">Datos de Core</span>
-        <p-tag [severity]="snapshotSeverity(snapshotStatus)" [value]="snapshotLabel(snapshotStatus)"></p-tag>
-      </div>
-      <span class="muted" *ngIf="authority.snapshot?.expires_at">
-        Vence el {{ authority.snapshot?.expires_at | date:'dd/MM/yyyy' }}
-        <ng-container *ngIf="authority.snapshot?.synced_at"> · Última sincronización {{ authority.snapshot?.synced_at | date:'dd/MM/yyyy' }}</ng-container>
-      </span>
-      <span class="muted" *ngIf="!authority.snapshot?.expires_at">Esta designación aún no tiene una copia de Core.</span>
-
-      <ul class="snapshot-sources" *ngIf="authority.snapshot?.field_sources as sources">
-        <li *ngFor="let field of resolvedFields">
-          {{ fieldLabel(field) }}
-          <p-tag [severity]="sources[field] === 'core' ? 'info' : sources[field] === 'manual' ? 'warn' : 'secondary'"
-                 [value]="sourceLabel(sources[field])"></p-tag>
-        </li>
-      </ul>
-
-      <div *ngIf="verifying || refreshing" class="skeleton-stack" aria-busy="true" aria-label="Consultando a Core">
-        <p-skeleton width="60%" height="1rem"></p-skeleton>
-        <p-skeleton width="100%" height="2rem"></p-skeleton>
-      </div>
-
-      <p-message *ngIf="coreUnavailable" severity="error"
-                 text="No fue posible consultar a Core en este momento. Intente nuevamente más tarde."></p-message>
-      <p-message *ngIf="coreCheck && !coreCheck.core_available" severity="warn"
-                 text="Core no tiene a esta persona como personal: no se puede comparar."></p-message>
-      <p-message *ngIf="notStaffInCore" severity="info"
-                 text="Core conoce a esta persona pero aún no como personal: no tiene grado, prefijo ni correo institucional registrados. Esos datos se mantienen como se completaron a mano."></p-message>
-      <p-message *ngIf="coreCheck?.status === 'outdated'" severity="warn"
-                 text="Los datos cambiaron en Core desde la última sincronización."></p-message>
-      <ul class="snapshot-changes" *ngIf="checkChanges.length">
-        <li *ngFor="let change of checkChanges">
-          <strong>{{ fieldLabel(change.field) }}:</strong> {{ changeValue(change.from) }} → {{ changeValue(change.to) }}
-        </li>
-      </ul>
-      <ul class="snapshot-changes" *ngIf="refreshChanges.length">
-        <li *ngFor="let change of refreshChanges">
-          <strong>{{ fieldLabel(change.field) }}</strong> actualizado: {{ changeValue(change.from) }} → {{ changeValue(change.to) }}
-        </li>
-      </ul>
-
-      <div class="snapshot-actions">
-        <p-button label="Verificar con Core" icon="pi pi-search" [text]="true" size="small"
-                  [disabled]="verifying || refreshing" (onClick)="verifyWithCore()"></p-button>
-        <p-button label="Actualizar desde Core" icon="pi pi-refresh" [outlined]="true" size="small"
-                  [severity]="isStaleSnapshot(snapshotStatus) ? 'danger' : 'secondary'"
-                  [disabled]="verifying || refreshing" (onClick)="refreshFromCore()"></p-button>
-        <p-button *ngIf="missingFields.length" label="Completar datos" icon="pi pi-pencil" [outlined]="true" size="small"
-                  [disabled]="verifying || refreshing" (onClick)="openComplete()"></p-button>
-      </div>
-    </section>
-
-    <div class="current-authority-actions">
-      <p-button [label]="changeActionLabel(roleKey)" [outlined]="true" (onClick)="startDesignate()"></p-button>
-    </div>
-  </ng-container>
-
-  <ng-template #unset>
-    <div class="unset-authority">
-      <p-tag severity="warn" value="Sin designar"></p-tag>
-      <p class="muted">Todavía no se ha establecido una persona {{ personLabel(roleKey) }}.</p>
-      <p-button [label]="designateActionLabel(roleKey)" (onClick)="startDesignate()"></p-button>
-    </div>
-  </ng-template>
-</div>
-
-<div *ngIf="mode === 'view' && !loading" class="institutional-surface">
-  <span class="designation-step-title">Historial de designaciones</span>
-
-  <div class="history-filters">
-    <label>Buscar
-      <input pInputText [(ngModel)]="searchTerm" placeholder="Nombre o DNI">
-    </label>
-    <label>Estado
-      <p-select [(ngModel)]="statusFilter" [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
-    </label>
-    <label>Periodo
-      <p-select [(ngModel)]="periodFilter" [options]="periodOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
-    </label>
-    <label>Orden
-      <p-select [(ngModel)]="sortOrder" [options]="sortOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
-    </label>
-  </div>
-
-  <hr class="section-divider">
-
-  <div class="history-entries">
-    <div class="history-entry" *ngFor="let entry of filteredHistory">
-      <span class="history-entry-period">
-        {{ entry.activated_at | date:'dd MMM yyyy' }} —
-        {{ entry.deactivated_at ? (entry.deactivated_at | date:'dd MMM yyyy') : 'actualidad' }}
-      </span>
-      <div class="history-entry-body">
-        <div class="history-entry-info">
-          <p-avatar [label]="initials(entry.staff.full_name)" shape="circle" styleClass="history-avatar"></p-avatar>
-          <div>
-            <strong>{{ displayName(entry) }}</strong><br>
-            <span class="muted">{{ entry.role_label }} · DNI {{ maskDni(entry.staff.number) }}</span>
+        <ng-container *ngIf="current as authority; else unset">
+          <div class="current-authority-body">
+            <p-avatar [label]="initials(authority.staff.full_name)" shape="circle" styleClass="current-avatar"></p-avatar>
+            <div class="current-authority-details">
+              <strong>{{ displayName(authority) }}</strong>
+              <span *ngIf="authority.academic_title" class="muted">{{ authority.academic_title }}</span>
+              <span class="muted">{{ authority.role_label }}</span>
+              <span class="muted">DNI {{ maskDni(authority.staff.number) }}</span>
+              <span *ngIf="authority.activated_at" class="muted">Desde {{ authority.activated_at | date:'dd MMMM yyyy' }}</span>
+            </div>
           </div>
-        </div>
-        <div class="history-entry-status">
-          <p-tag [severity]="entry.active ? 'success' : 'secondary'" [value]="entry.active ? 'Vigente' : 'Anterior'"></p-tag>
-          <p-button *ngIf="!entry.active" label="Designar nuevamente" [text]="true" size="small" (onClick)="redesignate(entry)"></p-button>
-        </div>
+
+          <div class="current-authority-contact" *ngIf="authority.email || authority.phone">
+            <span *ngIf="authority.email"><strong>Correo:</strong> {{ authority.email }}</span>
+            <span *ngIf="authority.phone"><strong>Teléfono:</strong> {{ authority.phone }}</span>
+          </div>
+
+          <p-message *ngIf="needsAttention" severity="warn"
+                     text="La copia de Core de esta autoridad requiere atención. Revise la pestaña «Datos de Core»."></p-message>
+
+          <div class="current-authority-actions">
+            <p-button [label]="changeActionLabel(roleKey)" [outlined]="true" (onClick)="startDesignate()"></p-button>
+          </div>
+        </ng-container>
+
+        <ng-template #unset>
+          <div class="unset-authority">
+            <p-tag severity="warn" value="Sin designar"></p-tag>
+            <p class="muted">Todavía no se ha establecido una persona {{ personLabel(roleKey) }}.</p>
+            <p-button [label]="designateActionLabel(roleKey)" (onClick)="startDesignate()"></p-button>
+          </div>
+        </ng-template>
       </div>
-      <hr class="section-divider">
-    </div>
-    <p *ngIf="!filteredHistory.length" class="muted">No hay designaciones que coincidan con los filtros.</p>
-  </div>
-</div>
+    </p-tabpanel>
+
+    <!-- ============================== Datos de Core ============================= -->
+    <p-tabpanel value="core">
+      <ng-container *ngIf="current as authority; else noAuthorityForCore">
+        <section class="snapshot-panel snapshot-panel--flat" aria-label="Datos de Core">
+          <div class="snapshot-head">
+            <span class="designation-step-title">Estado de la copia</span>
+            <p-tag [severity]="snapshotSeverity(snapshotStatus)" [value]="snapshotLabel(snapshotStatus)"></p-tag>
+          </div>
+
+          <ng-container *ngIf="authority.snapshot?.expires_at; else neverSynced">
+            <p-progressbar [value]="vigencyLeft" [showValue]="false" [color]="vigencyColor(snapshotStatus)"
+                           [style]="{height: '0.5rem'}" aria-label="Vigencia restante"></p-progressbar>
+            <span class="muted">
+              {{ daysLeft > 0 ? 'Vence el ' : 'Venció el ' }}{{ authority.snapshot?.expires_at | date:'dd/MM/yyyy' }}
+              <ng-container *ngIf="daysLeft > 0"> · quedan {{ daysLeft }} días</ng-container>
+              <ng-container *ngIf="authority.snapshot?.synced_at"> · última sincronización {{ authority.snapshot?.synced_at | date:'dd/MM/yyyy' }}</ng-container>
+            </span>
+          </ng-container>
+          <ng-template #neverSynced>
+            <span class="muted">Esta designación aún no tiene una copia de Core.</span>
+          </ng-template>
+
+          <p-table [value]="fieldRows" styleClass="field-table" [tableStyle]="{'min-width': '32rem'}">
+            <ng-template #header>
+              <tr>
+                <th>Dato</th>
+                <th>Valor</th>
+                <th>Origen</th>
+                <th class="col-action"></th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-row>
+              <tr [class.row-changed]="isChanged(row.field)">
+                <td>{{ row.label }}</td>
+                <td>
+                  <span *ngIf="row.value; else emptyValue">{{ row.value }}</span>
+                  <ng-template #emptyValue><span class="muted">—</span></ng-template>
+                  <span class="change-arrow" *ngIf="isChanged(row.field)">
+                    → <strong>{{ changeText(row.field, coreCheck?.changes?.[row.field]?.to) }}</strong> en Core
+                  </span>
+                </td>
+                <td>
+                  <p-tag [severity]="row.source === 'core' ? 'info' : row.source === 'manual' ? 'warn' : 'secondary'"
+                         [value]="sourceLabel(row.source)"
+                         [icon]="row.source === 'core' ? 'pi pi-lock' : ''"></p-tag>
+                </td>
+                <td class="col-action">
+                  <p-button *ngIf="row.missing" label="Completar" icon="pi pi-pencil" [text]="true" size="small"
+                            [disabled]="verifying || refreshing" (onClick)="openComplete(row.field)"></p-button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+
+          <div *ngIf="verifying || refreshing" class="skeleton-stack" aria-busy="true" aria-label="Consultando a Core">
+            <p-skeleton width="60%" height="1rem"></p-skeleton>
+            <p-skeleton width="100%" height="2rem"></p-skeleton>
+          </div>
+
+          <p-message *ngIf="coreUnavailable" severity="error"
+                     text="No fue posible consultar a Core en este momento. Intente nuevamente más tarde."></p-message>
+          <p-message *ngIf="coreCheck && !coreCheck.core_available" severity="warn"
+                     text="Core no tiene a esta persona: no se puede comparar."></p-message>
+          <p-message *ngIf="notStaffInCore" severity="info"
+                     text="Core conoce a esta persona pero aún no como personal: no tiene grado, prefijo ni correo institucional registrados. Esos datos se mantienen como se completaron a mano."></p-message>
+          <p-message *ngIf="coreCheck?.status === 'outdated'" severity="warn"
+                     text="Los datos cambiaron en Core desde la última sincronización. Use «Actualizar desde Core»."></p-message>
+          <ul class="snapshot-changes" *ngIf="refreshChanges.length">
+            <li *ngFor="let change of refreshChanges">
+              <strong>{{ fieldLabel(change.field) }}</strong> actualizado: {{ changeText(change.field, change.from) }} → {{ changeText(change.field, change.to) }}
+            </li>
+          </ul>
+
+          <div class="snapshot-actions">
+            <p-button label="Verificar con Core" icon="pi pi-search" [text]="true" size="small"
+                      [disabled]="verifying || refreshing" (onClick)="verifyWithCore()"></p-button>
+            <p-button label="Actualizar desde Core" icon="pi pi-refresh" [outlined]="true" size="small"
+                      [severity]="isStaleSnapshot(snapshotStatus) ? 'danger' : 'secondary'"
+                      [disabled]="verifying || refreshing" (onClick)="refreshFromCore()"></p-button>
+          </div>
+        </section>
+      </ng-container>
+      <ng-template #noAuthorityForCore>
+        <p-message severity="info" text="Todavía no hay una persona designada: no hay datos de Core que mostrar."></p-message>
+      </ng-template>
+    </p-tabpanel>
+
+    <!-- ================================ Historial =============================== -->
+    <p-tabpanel value="history">
+      <div class="history-filters">
+        <label>Buscar
+          <input pInputText [(ngModel)]="searchTerm" placeholder="Nombre o DNI">
+        </label>
+        <label>Estado
+          <p-select [(ngModel)]="statusFilter" [options]="statusOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+        </label>
+        <label>Periodo
+          <p-select [(ngModel)]="periodFilter" [options]="periodOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+        </label>
+        <label>Orden
+          <p-select [(ngModel)]="sortOrder" [options]="sortOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+        </label>
+      </div>
+
+      <p-timeline *ngIf="filteredHistory.length" [value]="filteredHistory" styleClass="history-timeline">
+        <ng-template #marker let-entry>
+          <span class="timeline-dot" [class.timeline-dot--active]="entry.active"></span>
+        </ng-template>
+        <ng-template #opposite let-entry>
+          <span class="history-entry-period">
+            {{ entry.activated_at | date:'dd MMM yyyy' }} —
+            {{ entry.deactivated_at ? (entry.deactivated_at | date:'dd MMM yyyy') : 'actualidad' }}
+          </span>
+        </ng-template>
+        <ng-template #content let-entry>
+          <div class="history-entry-body">
+            <div class="history-entry-info">
+              <p-avatar [label]="initials(entry.staff.full_name)" shape="circle" styleClass="history-avatar"></p-avatar>
+              <div>
+                <strong>{{ displayName(entry) }}</strong><br>
+                <span class="muted">{{ entry.role_label }} · DNI {{ maskDni(entry.staff.number) }}</span>
+              </div>
+            </div>
+            <div class="history-entry-status">
+              <p-tag [severity]="entry.active ? 'success' : 'secondary'" [value]="entry.active ? 'Vigente' : 'Anterior'"></p-tag>
+              <p-button *ngIf="!entry.active" label="Designar nuevamente" [text]="true" size="small" (onClick)="redesignate(entry)"></p-button>
+            </div>
+          </div>
+        </ng-template>
+      </p-timeline>
+      <p *ngIf="!filteredHistory.length" class="muted">No hay designaciones que coincidan con los filtros.</p>
+    </p-tabpanel>
+
+    <!-- ================================ Auditoría =============================== -->
+    <p-tabpanel value="audit">
+      <p class="muted">Registro de quién completó, sincronizó o continuó con datos vencidos, cuándo y por qué.</p>
+
+      <p-table [value]="audits" [lazy]="true" (onLazyLoad)="loadAudits($event)" [paginator]="auditsTotal > auditsPerPage"
+               [rows]="auditsPerPage" [totalRecords]="auditsTotal" [loading]="auditsLoading" styleClass="audit-table"
+               [tableStyle]="{'min-width': '38rem'}">
+        <ng-template #header>
+          <tr>
+            <th>Fecha</th>
+            <th>Acción</th>
+            <th>Realizado por</th>
+            <th>Detalle</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-audit>
+          <tr>
+            <td>{{ audit.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td><p-tag [severity]="auditSeverity(audit.action)" [value]="auditLabel(audit.action)"></p-tag></td>
+            <td>
+              {{ audit.changed_by?.name ?? '—' }}
+              <small class="muted" *ngIf="audit.authority?.staff_name"><br>Cargo: {{ audit.authority.staff_name }}</small>
+            </td>
+            <td>
+              <span *ngIf="audit.reason">{{ audit.reason }}</span>
+              <ul class="snapshot-changes" *ngIf="auditChanges(audit).length">
+                <li *ngFor="let change of auditChanges(audit)">
+                  <strong>{{ change.label }}:</strong> {{ changeValue(change.from) }} → {{ changeValue(change.to) }}
+                </li>
+              </ul>
+              <span *ngIf="!audit.reason && !auditChanges(audit).length" class="muted">—</span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="4" class="muted">Todavía no hay cambios auditados para este cargo.</td></tr>
+        </ng-template>
+        <ng-template #loadingbody>
+          <tr *ngFor="let row of [1, 2, 3]">
+            <td colspan="4"><p-skeleton width="100%" height="1.5rem"></p-skeleton></td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>
 
 <div *ngIf="mode === 'designate'" class="institutional-surface">
   <app-authority-designation-form [roleKey]="roleKey" [prefixes]="prefixes" [prefill]="redesignatePrefill"
@@ -174,21 +274,21 @@
     <p-message severity="secondary"
                text="Solo se completan los datos que aún no existen. Los datos ya registrados no se pueden modificar."></p-message>
 
-    <label *ngIf="isMissing('professional_prefix_id')">Prefijo profesional
+    <label *ngIf="isCompletable('professional_prefix_id')">Prefijo profesional
       <p-select [(ngModel)]="completeForm.professional_prefix_id" [options]="prefixes" optionLabel="label" optionValue="id"
                 [showClear]="true" placeholder="Seleccionar" appendTo="body"></p-select>
       <small class="field-error" *ngIf="completeErrors['professional_prefix_id']">{{ completeErrors['professional_prefix_id'] }}</small>
     </label>
-    <label *ngIf="isMissing('academic_title')">Grado/Título académico completo
+    <label *ngIf="isCompletable('academic_title')">Grado/Título académico completo
       <input pInputText [(ngModel)]="completeForm.academic_title" maxlength="190" placeholder="Ej: Maestro en Ciencias de la Educación">
       <small class="field-error" *ngIf="completeErrors['academic_title']">{{ completeErrors['academic_title'] }}</small>
     </label>
-    <label *ngIf="isMissing('email')">Correo institucional
+    <label *ngIf="isCompletable('email')">Correo institucional
       <input pInputText [(ngModel)]="completeForm.email" maxlength="190" type="email" [placeholder]="'usuario@' + emailDomain">
       <small class="field-error" *ngIf="completeEmailInvalid">El correo debe terminar en &#64;{{ emailDomain }}.</small>
       <small class="field-error" *ngIf="completeErrors['email']">{{ completeErrors['email'] }}</small>
     </label>
-    <label *ngIf="isMissing('phone')">Teléfono
+    <label *ngIf="isCompletable('phone')">Teléfono
       <input pInputText [(ngModel)]="completeForm.phone" maxlength="30">
       <small class="field-error" *ngIf="completeErrors['phone']">{{ completeErrors['phone'] }}</small>
     </label>
