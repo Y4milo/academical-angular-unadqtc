@@ -1,21 +1,102 @@
-<div *ngIf="attendanceDayGroups.length === 0" class="text-center font-italic text-orange-500 py-5">
+<div *ngIf="totalMarks === 0" class="text-center font-italic text-orange-500 py-5">
   {{ emptyMessage }}
 </div>
 
+<div *ngIf="totalMarks > 0" class="attendance-toolbar">
+  <div class="attendance-toolbar-field attendance-toolbar-search">
+    <label class="form-label" for="attendance-search">Buscar</label>
+    <input
+      id="attendance-search"
+      type="text"
+      pInputText
+      class="w-full"
+      placeholder="Fecha, hora, sede, método..."
+      [(ngModel)]="query"
+      (ngModelChange)="applyFilters()"/>
+  </div>
+
+  <div class="attendance-toolbar-field">
+    <label class="form-label" for="attendance-campus">Sede</label>
+    <p-select
+      inputId="attendance-campus"
+      [options]="campusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="campus"
+      (ngModelChange)="applyFilters()"
+      placeholder="Todas"
+      [showClear]="true"
+      styleClass="w-full"></p-select>
+  </div>
+
+  <div class="attendance-toolbar-field">
+    <label class="form-label" for="attendance-method">Método</label>
+    <p-select
+      inputId="attendance-method"
+      [options]="methodOptions"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="method"
+      (ngModelChange)="applyFilters()"
+      placeholder="Todos"
+      [showClear]="true"
+      styleClass="w-full"></p-select>
+  </div>
+
+  <div class="attendance-toolbar-field">
+    <label class="form-label" for="attendance-role">Marcación</label>
+    <p-select
+      inputId="attendance-role"
+      [options]="roleOptions"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="role"
+      (ngModelChange)="applyFilters()"
+      placeholder="Todas"
+      [showClear]="true"
+      styleClass="w-full"></p-select>
+  </div>
+
+  <div class="attendance-toolbar-summary">
+    <span>{{ matchingMarks }} de {{ totalMarks }} marcaciones en {{ filteredDays.length }} {{ filteredDays.length === 1 ? 'día' : 'días' }}</span>
+    <button *ngIf="hasFilters" pButton type="button" size="small" severity="secondary" icon="pi pi-filter-slash" label="Limpiar filtros" (click)="clearFilters()"></button>
+  </div>
+</div>
+
+<div *ngIf="totalMarks > 0 && filteredDays.length === 0" class="text-center font-italic text-orange-500 py-5">
+  Ninguna marcación coincide con los filtros.
+</div>
+
 <div
-  *ngIf="attendanceDayGroups.length > 0"
+  *ngIf="pageDays.length > 0"
   class="attendance-card-grid"
-  [ngClass]="{ 'single-card-grid': attendanceDayGroups.length === 1 }">
-  <p-card *ngFor="let dayGroup of attendanceDayGroups" header="{{ dayGroup.date }}" styleClass="attendance-prime-card">
+  [ngClass]="{ 'single-card-grid': pageDays.length === 1 }">
+  <p-card *ngFor="let dayGroup of pageDays" header="{{ dayGroup.date }}" styleClass="attendance-prime-card">
     <div class="attendance-location-stack">
       <div *ngFor="let locationGroup of dayGroup.locations" class="attendance-location-row">
         <div class="attendance-mark-list">
           <div *ngFor="let item of locationGroup.attendances" class="attendance-mark-row">
             <span class="attendance-hour">{{ item.punch_time.split(' ')[1] }}</span>
-            <span class="attendance-method" [ngClass]="getVerifyClass(item.verify_type)">
-              <app-lucide-icon [name]="getVerifyIconName(item.verify_type)" [size]="16"></app-lucide-icon>
-              <span>{{ getVerifyName(item.verify_type) }}</span>
+
+            <span *ngIf="roleView(item) as role" class="attendance-role" [ngClass]="role.cssClass">
+              <app-lucide-icon [name]="role.icon" [size]="14"></app-lucide-icon>
+              <span>{{ role.name }}</span>
             </span>
+
+            <span
+              class="attendance-method"
+              [ngClass]="methodView(item).cssClass"
+              [attr.title]="manualDetail(item)">
+              <app-lucide-icon [name]="methodView(item).icon" [size]="16"></app-lucide-icon>
+              <span>{{ methodView(item).name }}</span>
+            </span>
+
+            <div *ngIf="item.punch_label || (showDetails && item.reason)" class="attendance-mark-note">
+              <span *ngIf="item.punch_label" [ngClass]="getPunchClass(item.punch_status)">{{ item.punch_label }}</span>
+              <span *ngIf="showDetails && item.reason" class="attendance-mark-reason">
+                Motivo: {{ item.reason }}<ng-container *ngIf="item.registered_by"> · Registró: {{ item.registered_by }}</ng-container>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -29,3 +110,14 @@
     </div>
   </p-card>
 </div>
+
+<p-paginator
+  *ngIf="filteredDays.length > pageSizes[0]"
+  styleClass="attendance-paginator"
+  [first]="first"
+  [rows]="rows"
+  [totalRecords]="filteredDays.length"
+  [rowsPerPageOptions]="pageSizes"
+  [showCurrentPageReport]="true"
+  currentPageReportTemplate="Días {first} a {last} de {totalRecords}"
+  (onPageChange)="onPageChange($event)"></p-paginator>

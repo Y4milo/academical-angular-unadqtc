@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {AttendanceService, StaffAttendancePerson} from '../../../../services/attendance.service';
+import {AttendanceService, StaffAttendancePerson, StaffSearchResult} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {Attendance} from '../../../../models/attendance.model';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
@@ -8,6 +8,9 @@ import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
+import {AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent} from 'primeng/autocomplete';
+import {TagModule} from 'primeng/tag';
+import {MessageModule} from 'primeng/message';
 import {NgIf} from '@angular/common';
 import {STATUS} from '../../../../core/constants/api-status.constants';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
@@ -26,6 +29,9 @@ import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards
     CalendarModule,
     ButtonModule,
     InputTextModule,
+    AutoCompleteModule,
+    TagModule,
+    MessageModule,
     DatePicker,
     StaffAttendanceCardsComponent,
   ],
@@ -36,6 +42,11 @@ export class AttendanceListComponent implements OnInit {
   user = 'Empleado';
   today = new Date();
   number = '';
+  /** Lo que se escribe en el buscador: un DNI (o su inicio) o parte del nombre. */
+  query = '';
+  suggestions: StaffSearchResult[] = [];
+  /** true después de la primera consulta: sirve para distinguir «no existe» de «sin marcaciones». */
+  searched = false;
   consultedStaff: StaffAttendancePerson | null = null;
   dateRange: Date[] = [];
   attendances: Attendance[] = [];
@@ -51,6 +62,41 @@ export class AttendanceListComponent implements OnInit {
   ngOnInit() {
     // Renderizar calendario después de la inicialización
     setTimeout(() => this.showCalendar = true, 0);
+  }
+
+  /** Qué decir cuando no hay marcaciones: no es lo mismo una persona que no existe que una sin marcaciones en esas fechas. */
+  get emptyMessage(): string {
+    if (!this.searched) {
+      return 'Busque una persona por DNI o por nombre';
+    }
+
+    return this.consultedStaff
+      ? 'Sin marcaciones en esas fechas'
+      : 'No se encontró personal con ese DNI';
+  }
+
+  searchStaff(event: AutoCompleteCompleteEvent): void {
+    this.attendanceService.searchStaff(event.query).subscribe({
+      next: (res) => {
+        this.suggestions = res.status === STATUS.success ? res.payload.data : [];
+      },
+      error: () => {
+        this.suggestions = [];
+      },
+    });
+  }
+
+  onQueryChange(value: string | StaffSearchResult): void {
+    if (typeof value === 'string') {
+      this.number = value.trim();
+    }
+  }
+
+  onStaffSelected(event: AutoCompleteSelectEvent): void {
+    const selected = event.value as StaffSearchResult;
+    this.number = selected.dni;
+    this.query = selected.dni;
+    this.loadAttendances();
   }
 
   loadAttendances(startDate?: string, endDate?: string) {
@@ -71,6 +117,7 @@ export class AttendanceListComponent implements OnInit {
         this.loading = false;
         if (res.status === STATUS.success) {
           this.consultedStaff = res.payload.data.staff;
+          this.searched = true;
           this.attendances = res.payload.data.attendances;
         } else {
           this.notificationService.notifyApiData(res);
