@@ -1,113 +1,168 @@
-<div *ngIf="totalMarks === 0" class="text-center font-italic text-orange-500 py-5">
-  {{ emptyMessage }}
+<div *ngIf="totalMarks === 0" class="attendance-empty">
+  <app-lucide-icon name="clipboard-pen" [size]="28"></app-lucide-icon>
+  <strong>{{ emptyTitle }}</strong>
+  <p>{{ emptyMessage }}</p>
 </div>
 
-<div *ngIf="totalMarks > 0" class="attendance-toolbar">
-  <div class="attendance-toolbar-field attendance-toolbar-search">
-    <label class="form-label" for="attendance-search">Buscar</label>
-    <input
-      id="attendance-search"
-      type="text"
-      pInputText
-      class="w-full"
-      placeholder="Fecha, hora, sede, método..."
-      [(ngModel)]="query"
-      (ngModelChange)="applyFilters()"/>
+<p-card *ngIf="totalMarks > 0" styleClass="attendance-panel">
+  <div class="attendance-stats">
+    <div class="attendance-stat">
+      <span class="attendance-stat-value">{{ matchingMarks }}</span>
+      <span class="attendance-stat-label">{{ matchingMarks === 1 ? 'marcación' : 'marcaciones' }}</span>
+    </div>
+    <div class="attendance-stat">
+      <span class="attendance-stat-value">{{ filteredDays.length }}</span>
+      <span class="attendance-stat-label">{{ filteredDays.length === 1 ? 'día' : 'días' }}</span>
+    </div>
+    <div class="attendance-stat" *ngIf="manualMarks > 0">
+      <span class="attendance-stat-value attendance-stat-manual">{{ manualMarks }}</span>
+      <span class="attendance-stat-label">{{ manualMarks === 1 ? 'manual' : 'manuales' }}</span>
+    </div>
+    <span class="attendance-stat-total" *ngIf="hasFilters">de {{ totalMarks }} en total</span>
+    <p-button
+      *ngIf="hasFilters"
+      class="attendance-clear"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      icon="pi pi-filter-slash"
+      label="Limpiar filtros"
+      (onClick)="clearFilters()"></p-button>
   </div>
 
-  <div class="attendance-toolbar-field">
-    <label class="form-label" for="attendance-campus">Sede</label>
-    <p-select
-      inputId="attendance-campus"
-      [options]="campusOptions"
-      optionLabel="label"
-      optionValue="value"
-      [(ngModel)]="campus"
-      (ngModelChange)="applyFilters()"
-      placeholder="Todas"
-      [showClear]="true"
-      styleClass="w-full"></p-select>
-  </div>
+  <div class="attendance-toolbar">
+    <div class="attendance-toolbar-field attendance-toolbar-search">
+      <label class="attendance-label" for="attendance-search">Buscar</label>
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search"></p-inputicon>
+        <input
+          id="attendance-search"
+          type="text"
+          pInputText
+          class="w-full"
+          placeholder="Fecha, hora, sede, método..."
+          [(ngModel)]="query"
+          (ngModelChange)="applyFilters()"/>
+      </p-iconfield>
+    </div>
 
-  <div class="attendance-toolbar-field">
-    <label class="form-label" for="attendance-method">Método</label>
-    <p-select
-      inputId="attendance-method"
-      [options]="methodOptions"
-      optionLabel="label"
-      optionValue="value"
-      [(ngModel)]="method"
-      (ngModelChange)="applyFilters()"
-      placeholder="Todos"
-      [showClear]="true"
-      styleClass="w-full"></p-select>
-  </div>
+    <div class="attendance-toolbar-field">
+      <label class="attendance-label" for="attendance-campus">Sede</label>
+      <p-select
+        inputId="attendance-campus"
+        [options]="campusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="campus"
+        (ngModelChange)="applyFilters()"
+        placeholder="Todas"
+        [showClear]="true"
+        styleClass="w-full"></p-select>
+    </div>
 
-  <div class="attendance-toolbar-field">
-    <label class="form-label" for="attendance-role">Marcación</label>
-    <p-select
-      inputId="attendance-role"
-      [options]="roleOptions"
-      optionLabel="label"
-      optionValue="value"
-      [(ngModel)]="role"
-      (ngModelChange)="applyFilters()"
-      placeholder="Todas"
-      [showClear]="true"
-      styleClass="w-full"></p-select>
-  </div>
+    <div class="attendance-toolbar-field">
+      <label class="attendance-label" for="attendance-method">Método</label>
+      <p-select
+        inputId="attendance-method"
+        [options]="methodOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="method"
+        (ngModelChange)="applyFilters()"
+        placeholder="Todos"
+        [showClear]="true"
+        styleClass="w-full"></p-select>
+    </div>
 
-  <div class="attendance-toolbar-summary">
-    <span>{{ matchingMarks }} de {{ totalMarks }} marcaciones en {{ filteredDays.length }} {{ filteredDays.length === 1 ? 'día' : 'días' }}</span>
-    <button *ngIf="hasFilters" pButton type="button" size="small" severity="secondary" icon="pi pi-filter-slash" label="Limpiar filtros" (click)="clearFilters()"></button>
+    <div class="attendance-toolbar-field attendance-toolbar-roles">
+      <span class="attendance-label" id="attendance-role-label">Marcación</span>
+      <p-selectButton
+        ariaLabelledBy="attendance-role-label"
+        [options]="roleOptions"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        [(ngModel)]="role"
+        (ngModelChange)="applyFilters()"></p-selectButton>
+    </div>
   </div>
-</div>
+</p-card>
 
-<div *ngIf="totalMarks > 0 && filteredDays.length === 0" class="text-center font-italic text-orange-500 py-5">
-  Ninguna marcación coincide con los filtros.
+<div *ngIf="totalMarks > 0 && filteredDays.length === 0" class="attendance-empty">
+  <app-lucide-icon name="circle-alert" [size]="28"></app-lucide-icon>
+  <strong>Sin resultados</strong>
+  <p>Ninguna marcación coincide con los filtros.</p>
+  <p-button size="small" severity="secondary" [outlined]="true" label="Limpiar filtros" (onClick)="clearFilters()"></p-button>
 </div>
 
 <div
   *ngIf="pageDays.length > 0"
   class="attendance-card-grid"
   [ngClass]="{ 'single-card-grid': pageDays.length === 1 }">
-  <p-card *ngFor="let dayGroup of pageDays" header="{{ dayGroup.date }}" styleClass="attendance-prime-card">
-    <div class="attendance-location-stack">
-      <div *ngFor="let locationGroup of dayGroup.locations" class="attendance-location-row">
-        <div class="attendance-mark-list">
-          <div *ngFor="let item of locationGroup.attendances" class="attendance-mark-row">
-            <span class="attendance-hour">{{ item.punch_time.split(' ')[1] }}</span>
+  <p-card *ngFor="let day of pageDays" styleClass="attendance-prime-card">
+    <ng-template pTemplate="header">
+      <div class="day-head">
+        <div class="day-date">
+          <span class="day-number">{{ day.day }}</span>
+          <span class="day-date-text">
+            <span class="day-weekday">{{ day.weekday }}</span>
+            <span class="day-month">{{ day.month }}</span>
+          </span>
+        </div>
+        <div class="day-summary">
+          <span class="day-range">{{ day.range }}</span>
+          <span class="day-count">
+            {{ day.count }} {{ day.count === 1 ? 'marcación' : 'marcaciones' }}<ng-container *ngIf="day.locations.length > 1"> · {{ day.locations.length }} sedes</ng-container>
+          </span>
+        </div>
+      </div>
+    </ng-template>
 
-            <span *ngIf="roleView(item) as role" class="attendance-role" [ngClass]="role.cssClass">
-              <app-lucide-icon [name]="role.icon" [size]="14"></app-lucide-icon>
-              <span>{{ role.name }}</span>
-            </span>
+    <ng-container *ngFor="let stop of day.locations; let first = first">
+      <p-divider *ngIf="!first" align="center" styleClass="day-switch">
+        <span class="day-switch-label"><app-lucide-icon name="rotate-ccw" [size]="12"></app-lucide-icon> Cambió de sede</span>
+      </p-divider>
 
-            <span
-              class="attendance-method"
-              [ngClass]="methodView(item).cssClass"
-              [attr.title]="manualDetail(item)">
-              <app-lucide-icon [name]="methodView(item).icon" [size]="16"></app-lucide-icon>
-              <span>{{ methodView(item).name }}</span>
-            </span>
+      <p-tag
+        class="day-campus"
+        severity="info"
+        [rounded]="true"
+        icon="pi pi-map-marker"
+        [value]="stop.campus"></p-tag>
 
-            <div *ngIf="item.punch_label || (showDetails && item.reason)" class="attendance-mark-note">
+      <p-timeline [value]="stop.attendances" styleClass="attendance-timeline">
+        <ng-template pTemplate="marker" let-item>
+          <span class="tick-dot" [ngClass]="roleView(item)?.cssClass ?? 'attendance-role-none'">
+            <app-lucide-icon [name]="roleView(item)?.icon ?? 'circle-dot'" [size]="14"></app-lucide-icon>
+          </span>
+        </ng-template>
+
+        <ng-template pTemplate="content" let-item>
+          <div class="tick">
+            <div class="tick-line">
+              <span class="tick-time">{{ item.punch_time.split(' ')[1] }}</span>
+              <span class="tick-role">{{ roleView(item)?.name ?? 'Marcación' }}</span>
+              <p-tag
+                [severity]="methodView(item).severity"
+                [pTooltip]="manualDetail(item) ?? ''"
+                [rounded]="true">
+                <span class="method-tag">
+                  <app-lucide-icon [name]="methodView(item).icon" [size]="12"></app-lucide-icon>
+                  <span>{{ methodView(item).name }}</span>
+                </span>
+              </p-tag>
+            </div>
+
+            <div *ngIf="item.punch_label || (showDetails && item.reason)" class="tick-note">
               <span *ngIf="item.punch_label" [ngClass]="getPunchClass(item.punch_status)">{{ item.punch_label }}</span>
               <span *ngIf="showDetails && item.reason" class="attendance-mark-reason">
                 Motivo: {{ item.reason }}<ng-container *ngIf="item.registered_by"> · Registró: {{ item.registered_by }}</ng-container>
               </span>
             </div>
           </div>
-        </div>
-
-        <p-divider layout="vertical" styleClass="attendance-divider"></p-divider>
-
-        <div class="attendance-location-panel">
-          <app-lucide-icon name="map-pin" class="text-red-500" [size]="18"></app-lucide-icon>
-          <span>{{ locationGroup.campus }}</span>
-        </div>
-      </div>
-    </div>
+        </ng-template>
+      </p-timeline>
+    </ng-container>
   </p-card>
 </div>
 

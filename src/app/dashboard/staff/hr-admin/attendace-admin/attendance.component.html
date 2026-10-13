@@ -1,25 +1,25 @@
-<div class="flex flex-column align-items-center mb-4">
+<header class="attendance-page-head">
   <h3>Registro de asistencias</h3>
-</div>
+</header>
 
-<div class="attendance-filter-grid">
-  <div class="flex flex-column gap-2">
-    <label class="form-label" for="staff-query">DNI o nombre</label>
+<form class="attendance-search-bar" (ngSubmit)="loadAttendances()">
+  <div class="attendance-search-person">
+    <label class="attendance-sr-only" for="staff-query">DNI o nombre</label>
     <p-autoComplete
       inputId="staff-query"
+      name="staffQuery"
       [(ngModel)]="query"
       [suggestions]="suggestions"
       (completeMethod)="searchStaff($event)"
       (onSelect)="onStaffSelected($event)"
       (ngModelChange)="onQueryChange($event)"
-      (keydown.enter)="loadAttendances()"
       optionLabel="dni"
       [minLength]="3"
       [delay]="300"
       [forceSelection]="false"
-      placeholder="Escriba un DNI o un nombre"
+      placeholder="Buscar por DNI o nombre"
       styleClass="w-full"
-      inputStyleClass="w-full">
+      inputStyleClass="w-full attendance-search-input">
       <ng-template let-item pTemplate="item">
         <div class="staff-suggestion">
           <div class="staff-suggestion-name">{{ item.full_name }}</div>
@@ -35,92 +35,100 @@
     </p-autoComplete>
   </div>
 
-  <div class="flex flex-column gap-2">
-    <label class="form-label" for="id_month">Selecciona rango de dias</label>
-
+  <div class="attendance-search-range">
+    <label class="attendance-sr-only" for="id_month">Rango de días</label>
     <p-datePicker
+      name="dateRange"
+      inputId="id_month"
       [style]="{ width: '100%' }"
       [(ngModel)]="dateRange"
+      (onSelect)="activePreset = null"
       selectionMode="range"
       dateFormat="dd/mm/yy"
       showIcon
-      placeholder="Seleccionar rango"
+      placeholder="Rango de días"
       [maxDate]="today">
     </p-datePicker>
   </div>
 
-  <div class="flex flex-column gap-2 justify-content-end">
-    <button
-      pButton
-      type="button"
-      icon="pi pi-search"
-      label="Buscar"
-      class="w-full"
-      (click)="loadAttendances()">
-    </button>
-  </div>
+  <p-button type="submit" icon="pi pi-search" label="Consultar"></p-button>
+</form>
 
-  <div class="flex flex-column gap-2 justify-content-end">
-    <button
-      pButton
-      type="button"
-      icon="pi pi-file-excel"
-      label="Descargar Excel"
-      class="w-full"
-      (click)="downloadAttendancesExcel()">
-    </button>
-  </div>
+<div class="attendance-presets">
+  <p-selectButton
+    [options]="presetOptions"
+    optionLabel="label"
+    optionValue="value"
+    size="small"
+    [allowEmpty]="true"
+    [ngModel]="activePreset"
+    (ngModelChange)="applyPreset($event)"
+    ariaLabelledBy="attendance-presets-label"></p-selectButton>
 </div>
 
-<div *ngIf="consultedStaff" class="attendance-staff-context">
-  <div class="attendance-staff-summary">
-    <div>
-      <span class="block text-500 text-sm">DNI / Numero</span>
-      <strong>{{ consultedStaff.number }}</strong>
+<p-card *ngIf="consultedStaff" styleClass="attendance-profile-card">
+  <div class="profile-head">
+    <p-avatar [label]="initials(consultedStaff.full_name)" size="large" shape="square" styleClass="profile-avatar"></p-avatar>
+
+    <div class="profile-identity">
+      <h4 class="profile-name">{{ consultedStaff.full_name }}</h4>
+      <div class="profile-meta">
+        <span class="profile-dni">DNI {{ consultedStaff.number }}</span>
+        <p-tag
+          *ngIf="consultedStaff.profile_type_label"
+          [value]="consultedStaff.profile_type_label"
+          [severity]="consultedStaff.profile_type === 'teacher' ? 'info' : 'secondary'"
+          [rounded]="true"></p-tag>
+        <p-tag
+          *ngIf="consultedStaff.in_core !== false"
+          [value]="consultedStaff.is_active === false ? 'De baja' : 'Activo'"
+          [severity]="consultedStaff.is_active === false ? 'danger' : 'success'"
+          [rounded]="true"></p-tag>
+      </div>
     </div>
-    <div>
-      <span class="block text-500 text-sm">Persona</span>
-      <strong>{{ consultedStaff.full_name }}</strong>
-      <p-tag
-        *ngIf="consultedStaff.profile_type_label"
-        class="ml-2"
-        [value]="consultedStaff.profile_type_label"
-        [severity]="consultedStaff.profile_type === 'teacher' ? 'info' : 'secondary'"></p-tag>
-    </div>
-    <div>
-      <span class="block text-500 text-sm">Cargo</span>
-      <strong>{{ consultedStaff.position || 'Sin cargo' }}</strong>
-    </div>
-    <div>
-      <span class="block text-500 text-sm">Oficina</span>
-      <strong>{{ consultedStaff.dependency || 'Sin oficina' }}</strong>
-      <span *ngIf="consultedStaff.dependency_acronym" class="text-500"> ({{ consultedStaff.dependency_acronym }})</span>
-    </div>
-    <div>
-      <span class="block text-500 text-sm">Contrato o modalidad</span>
-      <strong>{{ consultedStaff.contract_type || 'Sin dato' }}</strong>
-    </div>
-    <div>
-      <span class="block text-500 text-sm">Estado</span>
-      <p-tag
-        *ngIf="consultedStaff.in_core !== false"
-        [value]="consultedStaff.is_active === false ? 'De baja' : 'Activo'"
-        [severity]="consultedStaff.is_active === false ? 'danger' : 'success'"></p-tag>
-      <span *ngIf="consultedStaff.in_core !== false && consultedStaff.end_date" class="text-500"> hasta {{ consultedStaff.end_date }}</span>
-      <span *ngIf="consultedStaff.in_core === false" class="text-500">Sin dato</span>
-    </div>
-    <div>
-      <span class="block text-500 text-sm">Rol en Academical</span>
-      <strong>{{ consultedStaff.role || 'Sin rol' }}</strong>
-    </div>
+
+    <p-button
+      icon="pi pi-file-excel"
+      label="Descargar Excel"
+      severity="secondary"
+      [outlined]="true"
+      size="small"
+      (onClick)="downloadAttendancesExcel()"></p-button>
   </div>
+
+  <dl class="profile-facts">
+    <div class="profile-fact">
+      <dt>Oficina</dt>
+      <dd>
+        {{ consultedStaff.dependency || 'Sin dato' }}
+        <p-tag *ngIf="consultedStaff.dependency_acronym" severity="secondary" [value]="consultedStaff.dependency_acronym"></p-tag>
+      </dd>
+    </div>
+    <div class="profile-fact">
+      <dt>Cargo</dt>
+      <dd>{{ consultedStaff.position || 'Sin dato' }}</dd>
+    </div>
+    <div class="profile-fact">
+      <dt>Contrato o modalidad</dt>
+      <dd>{{ consultedStaff.contract_type || 'Sin dato' }}</dd>
+    </div>
+    <div class="profile-fact" *ngIf="consultedStaff.hire_date">
+      <dt>Ingreso</dt>
+      <dd>{{ displayDate(consultedStaff.hire_date) }}</dd>
+    </div>
+    <div class="profile-fact" *ngIf="consultedStaff.end_date">
+      <dt>Cese</dt>
+      <dd>{{ displayDate(consultedStaff.end_date) }}</dd>
+    </div>
+  </dl>
+
   <p-message
     *ngIf="consultedStaff.in_core === false"
     severity="warn"
     styleClass="mt-3"
     text="Esta persona no figura como personal en Core: los datos vienen de la tabla local de Academical.">
   </p-message>
-</div>
+</p-card>
 
 <div *ngIf="loading" class="flex justify-content-center py-5">
   <p-progressSpinner></p-progressSpinner>
@@ -129,6 +137,7 @@
 <app-staff-attendance-cards
   *ngIf="!loading"
   [attendances]="attendances"
+  [emptyTitle]="searched ? 'Sin marcaciones' : 'Busque una persona'"
   [emptyMessage]="emptyMessage"
   [showDetails]="true">
 </app-staff-attendance-cards>

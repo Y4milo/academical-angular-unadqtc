@@ -1,0 +1,73 @@
+---
+name: academical-ui-primeng
+description: "Reglas de UI del front Academical (Angular 19 + PrimeNG 19 Aura): usar siempre componentes de PrimeNG antes que HTML/CSS propio, mapa de componentes por necesidad, temas claro/oscuro, iconos Lucide, textos en español. Activar al crear o rediseñar cualquier pantalla, tarjeta, formulario, tabla o filtro del front."
+---
+
+# UI de Academical: PrimeNG primero
+
+Front: Angular 19.2 standalone, PrimeNG 19 con tema Aura (`@primeng/themes`), primeflex, iconos Lucide. UI en español, código en inglés.
+
+## Regla principal
+
+**Siempre un componente de PrimeNG si existe uno que sirva.** Solo se escribe HTML/CSS propio para la disposición (grid, espaciados) y para lo que PrimeNG no cubre. No se reimplementan a mano botones, chips, etiquetas, líneas de tiempo, paginadores, selects, avisos ni avatares.
+
+| Necesidad | Componente PrimeNG |
+| --- | --- |
+| Contenedor / tarjeta | `p-card` (con `header`/`subtitle` o plantillas `pTemplate`) |
+| Línea de tiempo de un día | `p-timeline` (`[value]`, plantillas `marker`, `content`, `opposite`) |
+| Estado, método, tipo (Activo, Manual, Docente) | `p-tag` (`severity` success / warn / info / secondary / danger, `icon`) |
+| Filtro rápido de pocas opciones | `p-selectbutton` (`[multiple]` si aplica) o `p-chip` |
+| Filtro con muchas opciones | `p-select` (`[showClear]="true"`), `p-multiselect` |
+| Búsqueda de texto | `p-iconfield` + `p-inputicon` + `pInputText` |
+| Búsqueda con sugerencias (DNI o nombre) | `p-autoComplete` |
+| Rango de fechas | `p-datepicker` con `selectionMode="range"` |
+| Paginación | `p-paginator` (`rowsPerPageOptions`, `showCurrentPageReport`) |
+| Listado grande con paginación propia | `p-dataview` o `p-table` |
+| Persona / iniciales | `p-avatar` (`label` con iniciales, `shape="circle"`) |
+| Avisos, errores, vacíos con mensaje | `p-message` (`severity`, `icon`) |
+| Cargando | `p-skeleton`, `p-progressspinner` |
+| Confirmaciones y avisos efímeros | `p-confirmdialog`, `p-toast` |
+| Separadores | `p-divider` |
+| Ayudas | `pTooltip` |
+| Acciones | `pButton` / `p-button` (uno solo `primary` por vista; el resto `severity="secondary"`, `[text]="true"`) |
+
+Antes de escribir CSS para algo, revisa `node_modules/primeng` (carpeta del componente) o la documentación de PrimeNG 19.
+
+## Reglas de implementación
+
+- Componentes standalone: importar cada módulo de PrimeNG que se usa en `imports` (`TimelineModule`, `TagModule`, `SelectButtonModule`, etc.).
+- **Colores y tamaños con tokens del tema**, nunca hexadecimales: `var(--p-primary-color)`, `var(--p-green-500)`, `var(--text-color)`, `var(--text-color-secondary)`, `var(--surface-card)`, `var(--surface-border)`. Así funcionan en tema claro y oscuro sin código extra.
+- **Tema claro/oscuro: lo decide solo la clase `app-dark` de `<html>`** (`main.ts` la pone; PrimeNG usa `darkModeSelector: '.app-dark'`). Nunca usar `@media (prefers-color-scheme: dark)` en CSS: si el tema guardado no coincide con el del sistema, la página queda mitad clara y mitad oscura. Para algo específico del tema oscuro: `html.app-dark ...` o `:host-context(.app-dark)`.
+- Personalizar con **tokens de diseño** (`[dt]`, `--p-*`) o `styleClass`; evitar `::ng-deep` y `!important`. Si es imprescindible, acotarlo con `:host`.
+- Iconos de componentes PrimeNG: `pi pi-*`. Iconos propios del dominio (huella, rostro, lector, entrada/salida): `app-lucide-icon` con el nombre registrado en `src/app/core/utils/lucide-icon.util.ts`; si falta, agregarlo allí.
+- Disposición con primeflex (`grid`, `flex`, `gap-*`) o CSS grid del componente; responsive de una columna en móvil, sin scroll horizontal.
+- Estados siempre cubiertos: cargando, vacío (con mensaje que invite a actuar), error, sin resultados por filtros.
+- Textos en español, sentencia normal (no Title Case), verbo primero en botones, sin signos de exclamación en mensajes del sistema.
+- Accesibilidad: `label` asociado a cada campo, `aria-label` en botones solo con ícono, el color nunca es la única señal (acompañar con texto o ícono).
+
+## Escala y reglas compartidas con Events y Core
+
+Basado en el skill `primeng-ux-design` de `events-unadqtc-angular` y `core-angular` (ruta: `D:/Usuario/Documents/Angular/events-unadqtc-angular/.claude/skills/primeng-ux-design/SKILL.md`). Léelo cuando necesites el detalle (diálogos, tablas, paneles de reglas, pantallas en vivo); aquí queda lo que aplica a Academical. Si algo entra en conflicto, gana este skill para Academical y se avisa.
+
+- **Una sola escala, sin valores inventados.** Espaciado con `--space-1..6` de `src/styles.css` (4, 8, 12, 16, 24, 32 px; ojo: en Academical `--space-5` = 1.5rem y `--space-6` = 2rem, distinto de Events). Radios `--radius-md` (8 px) y `--radius-lg`; pastillas 999px. Tipografía: 0.75rem leyenda, 0.8rem metadatos, 0.85rem denso (tablas, listas), 1rem cuerpo, 1.125rem título de panel, 1.5rem título de página. Pesos solo 400 y 600. Nada de 0.35, 0.6 o 0.9 rem ni 7/10 px.
+- **Ritmo:** un contenedor separa a todos sus hijos con un único `gap` (no márgenes en los hijos). Las rejillas de formulario no se estiran (`align-items: start`) para que una ayuda no mueva al vecino.
+- **Puntos de quiebre únicos:** 640 px (teléfono), 900 px (tableta), 1200 px (escritorio). Base para teléfono. Sin 560, 720, 760, 980 ni 1100.
+- **Aire interior siempre:** ningún texto, fila, etiqueta o botón toca el borde de su tarjeta, panel, tabla o diálogo. Varias etiquetas en una celda van en un contenedor flex con `gap`.
+- **Botones:** `secondary`/`outlined` por defecto, a lo sumo uno primario por vista y por diálogo; destructivo con `severity="danger"` y confirmación. Con texto: acción principal, acciones de cabecera y de diálogo. Solo ícono: el vocabulario (ver, editar, quitar, copiar, descargar, actualizar) con `ariaLabel` y `pTooltip`; nunca un `<button>` a mano. Ícono + campo (buscar): `p-inputgroup` o `p-iconfield`.
+- **Tablas y listas largas:** `p-table size="small"`, cabecera 0.75rem en mayúsculas apagada, acciones al final, paginador nativo, esqueleto con `p-skeleton` que imita la forma de los datos.
+- **Diálogos:** `p-dialog` modal, ancho `min(94vw, X)` con 32rem (confirmar), 38rem (una entidad), 52rem (con pestañas), 64rem (tabla); acciones en `#footer`, «Cancelar» (outlined) y una sola primaria al final; en teléfono apiladas a todo el ancho.
+- **Estados, siempre los tres:** cargando (esqueleto con la forma real), vacío (centrado: ícono + título corto + una línea + la acción que lo arregla) y error (`p-message severity="error"` con qué pasó y qué hacer). Las notas bajo un campo van en `--p-text-muted-color` 0.8rem o `p-message variant="simple"`. No dejar silencios: lo que un total incluye y no se ve se avisa.
+- **Color por significado, no por color:** el mismo estado tiene el mismo `severity` en todas partes (ok = success, info, pendiente = warn, fallido = danger, neutro = secondary). Nunca un `--p-green-*` a mano para un estado que ya tiene etiqueta.
+- **Copia:** español, sentencia normal, sin punto final en etiquetas y botones, verbo primero («Agregar expositor»), errores que dicen qué pasó y qué hacer, nunca texto crudo de la API.
+- **Lista de revisión antes de dar una pantalla por terminada:** etiquetas ligadas a su campo (`for`/`id`), `aria-label` en botones de solo ícono, orden de foco lógico, contraste en claro y oscuro, funciona a 375 px y 1440 px, sin scroll horizontal de página (`scrollWidth === innerWidth`), acciones alcanzables con teclado, diálogos que cierran con Esc.
+- **Si el código existente se sale de la escala, no se copia:** se usa la escala en lo que se toca y se menciona la desviación grande sin reescribirla en silencio.
+
+## Pantallas de asistencias
+
+Una sola pieza compartida: `shared/staff-attendance-cards` la usan la lista de RRHH (`hr-admin/attendace-admin`) y «Mis asistencias» (`staff-user/attendance-user`). Cualquier cambio visual se hace ahí y aplica a ambas. El detalle del motivo y quién registró una marcación manual solo se muestra con `showDetails` (admin y RRHH).
+
+Convención de colores de la marcación: entrada → `success`, almuerzo → `warn`, salida → `info`, repetida/sin rol → `secondary`; método manual → `p-tag` `warn` con el ícono de registro manual.
+
+## Verificación
+
+Antes de dar un cambio de UI por terminado: probarlo en el navegador en tema claro y oscuro (quitando o poniendo la clase `app-dark` en `<html>`; emular `prefers-color-scheme` no sirve), a ancho de escritorio y de móvil (375 px), con datos reales o de prueba, y revisar la consola sin errores.
