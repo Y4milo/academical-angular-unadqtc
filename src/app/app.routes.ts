@@ -9,6 +9,7 @@ import {
   EventQuestionsWithCheckOutComponent
 } from './events/event-questions-with-check-out/event-questions-with-check-out.component';
 import {AttendanceListComponent} from './dashboard/staff/hr-admin/attendace-admin/attendance.component';
+import {AttendanceRegisterComponent} from './dashboard/staff/hr-admin/attendance-register/attendance-register.component';
 import {AttendanceUserComponent} from './dashboard/staff/staff-user/attendance-user/attendance-user.component';
 import {
   HrLayOutComponentComponent
@@ -93,6 +94,10 @@ export const routes: Routes = [
       {
         path: PATHS.hr.staff.attendance.list.path,
         component: AttendanceListComponent
+      },
+      {
+        path: PATHS.hr.staff.attendance.register.path,
+        component: AttendanceRegisterComponent
       },
       {
         path: PATHS.hr.staff.attendance.reports.path,
@@ -184,6 +189,10 @@ export const routes: Routes = [
       {
         path: PATHS.hr.staff.attendance.list.path,
         component: AttendanceListComponent
+      },
+      {
+        path: PATHS.hr.staff.attendance.register.path,
+        component: AttendanceRegisterComponent
       },
       {
         path: PATHS.hr.staff.attendance.reports.path,

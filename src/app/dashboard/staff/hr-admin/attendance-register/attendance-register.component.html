@@ -1,0 +1,135 @@
+<div class="flex flex-column align-items-center mb-4">
+  <h3 class="mb-1">Registrar asistencia</h3>
+  <span class="text-sm register-hint">Solo para casos especiales. Cada registro queda con su motivo y con quien lo hizo.</span>
+</div>
+
+<div class="register-setup">
+  <div class="flex flex-column gap-2">
+    <label class="form-label" for="campus">Sede</label>
+    <p-select
+      inputId="campus"
+      [options]="campuses"
+      [(ngModel)]="campusId"
+      optionLabel="label"
+      optionValue="id"
+      placeholder="Seleccione la sede"
+      styleClass="w-full"
+      (onChange)="onCampusChange()"/>
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label class="form-label" for="reason">Motivo del registro</label>
+    <textarea
+      pTextarea
+      id="reason"
+      rows="2"
+      maxlength="500"
+      class="w-full"
+      placeholder="Ej.: El reloj de Marqués estuvo fuera de servicio por la mañana"
+      [(ngModel)]="reason"
+      (ngModelChange)="onReasonChange()"
+      [attr.aria-invalid]="reason.length > 0 && !reasonValid"></textarea>
+    @if (reason.length > 0 && !reasonValid) {
+      <small class="register-error">Describa el motivo con al menos 10 caracteres.</small>
+    }
+  </div>
+</div>
+
+<div class="register-scan">
+  <label class="form-label" for="dni">Escanee el DNI o escríbalo y presione Enter</label>
+  <div class="register-scan-row">
+    <input
+      #dniInput
+      id="dni"
+      type="text"
+      pInputText
+      inputmode="numeric"
+      autocomplete="off"
+      maxlength="8"
+      class="register-dni"
+      placeholder="00000000"
+      [(ngModel)]="dni"
+      (input)="onDniInput()"
+      (keydown)="onDniKeydown($event)"
+      [disabled]="sending"/>
+    <p-button
+      label="Registrar"
+      icon="pi pi-check"
+      [loading]="sending"
+      [disabled]="dni.length !== 8"
+      (onClick)="submit()"/>
+  </div>
+  @if (!ready) {
+    <small class="register-hint">Seleccione la sede y escriba el motivo para empezar.</small>
+  } @else {
+    <small class="register-hint">El lector de barras escribe el DNI y envía Enter solo; el campo queda listo para la siguiente persona.</small>
+  }
+</div>
+
+@if (result) {
+  <div class="register-result" [class]="'register-result register-result-' + severity(result.slot.status)" aria-live="polite">
+    <div class="register-avatar" aria-hidden="true">{{ result.person.full_name.charAt(0) }}</div>
+    <div class="register-result-body">
+      <div class="register-result-name">{{ result.person.full_name }}</div>
+      <div class="register-hint">
+        {{ result.person.profile_type_label }}
+        @if (result.person.dependency) { · {{ result.person.dependency }} }
+        @if (result.person.contract_type) { · {{ result.person.contract_type }} }
+      </div>
+      <div class="register-slot">
+        <p-tag [value]="kindLabel(result.slot.kind)" [severity]="severity(result.slot.status)"/>
+        <span>{{ result.slot.label }}</span>
+        @if (result.slot.scheduled) {
+          <span class="register-hint">(horario: {{ result.slot.scheduled }})</span>
+        }
+      </div>
+      @for (warning of result.warnings; track warning) {
+        <small class="register-error">{{ warning }}</small>
+      }
+    </div>
+    <div class="register-time">
+      <div>{{ result.time }}</div>
+      <small>Registrada</small>
+    </div>
+  </div>
+}
+
+@if (notice) {
+  <div class="register-notice" role="alert">
+    <p-message [severity]="notice.reason === 'duplicate' ? 'warn' : 'error'" [text]="notice.title + ': ' + notice.message"/>
+    @if (notice.reason === 'duplicate') {
+      <p-button label="Registrar de todos modos" severity="secondary" icon="pi pi-replay" (onClick)="submit(true)"/>
+    }
+  </div>
+}
+
+<div class="register-today">
+  <h4>Últimas lecturas de hoy</h4>
+  <p-table [value]="today" [loading]="loadingToday" styleClass="p-datatable-sm" [tableStyle]="{ 'min-width': '40rem' }">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Hora</th>
+        <th>DNI</th>
+        <th>Nombre</th>
+        <th>Tipo</th>
+        <th>Marcación</th>
+        <th>Origen</th>
+        <th>Motivo</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.time }}</td>
+        <td>{{ row.dni }}</td>
+        <td>{{ row.full_name ?? '—' }}</td>
+        <td>{{ row.profile_type ?? '—' }}</td>
+        <td><p-tag [value]="kindLabel(row.punch_kind)" [severity]="severity(row.punch_status)"/></td>
+        <td>{{ sourceLabel(row.source) }}</td>
+        <td class="register-reason" [title]="row.reason">{{ row.reason }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="7" class="text-center register-hint">Todavía no hay registros manuales hoy.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
