@@ -1,0 +1,138 @@
+:host {
+  display: block;
+  min-height: 100%;
+  padding: 1rem;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+.register-hint {
+  color: var(--text-color-secondary, var(--p-text-muted-color, #71717a));
+}
+
+.register-error {
+  color: var(--p-red-400, #f87171);
+  display: block;
+}
+
+.register-setup {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(260px, 2fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.register-scan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--surface-border, var(--p-content-border-color, #3f3f46));
+  border-radius: 12px;
+}
+
+.register-scan-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.register-dni {
+  flex: 1;
+  min-width: 0;
+  height: 3.25rem;
+  font-size: 1.5rem;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+}
+
+.register-result {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--surface-border, var(--p-content-border-color, #3f3f46));
+  border-left-width: 4px;
+  border-radius: 12px;
+}
+
+.register-result-success { border-left-color: var(--p-green-500, #22c55e); }
+.register-result-warn { border-left-color: var(--p-amber-500, #f59e0b); }
+.register-result-danger { border-left-color: var(--p-red-500, #ef4444); }
+.register-result-info { border-left-color: var(--p-sky-500, #0ea5e9); }
+
+.register-avatar {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  background: var(--surface-card, var(--p-content-background, #18181b));
+  border: 1px solid var(--surface-border, var(--p-content-border-color, #3f3f46));
+}
+
+.register-result-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.register-result-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+
+.register-slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.register-time {
+  flex: none;
+  text-align: right;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.register-time small {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.register-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.register-today h4 {
+  margin: 1.5rem 0 0.5rem;
+}
+
+.register-reason {
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .register-setup {
+    grid-template-columns: 1fr;
+  }
+
+  .register-result {
+    flex-wrap: wrap;
+  }
+}

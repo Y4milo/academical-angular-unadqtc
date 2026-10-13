@@ -82,6 +82,10 @@ export const PATHS = {
           path:  `staff/attendance`,
           link:   `hr/staff/attendance`,
         },
+        register: {
+          path:  `staff/attendance/register`,
+          link:   `hr/staff/attendance/register`,
+        },
         reports: {
           path:  `staff/reports`,
           link:   `hr/staff/reports`,
