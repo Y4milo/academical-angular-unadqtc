@@ -1,0 +1,7 @@
+
+.report-hint {
+  max-width: 48rem;
+  margin: 0 auto 1.25rem;
+  color: var(--text-color-secondary, var(--p-text-muted-color, #71717a));
+  font-size: 0.9rem;
+}
