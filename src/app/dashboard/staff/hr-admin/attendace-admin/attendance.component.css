@@ -28,11 +28,9 @@
   padding: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :host {
+:host-context(.app-dark) {
     --attendance-page-bg: var(--surface-ground, var(--p-surface-950, #09090b));
     --attendance-card-border: var(--surface-border, var(--p-content-border-color, var(--p-surface-700, #3f3f46)));
-  }
 }
 
 @media (max-width: 1100px) {

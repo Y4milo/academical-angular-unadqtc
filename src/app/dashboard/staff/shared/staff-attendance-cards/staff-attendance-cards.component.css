@@ -135,6 +135,10 @@
   color: var(--p-text-muted-color);
 }
 
+:host ::ng-deep .day-campus .p-tag-icon {
+  margin-right: 0.35rem;
+}
+
 .day-campus {
   display: inline-block;
   margin-bottom: 0.6rem;

@@ -37,6 +37,7 @@ Antes de escribir CSS para algo, revisa `node_modules/primeng` (carpeta del comp
 
 - Componentes standalone: importar cada módulo de PrimeNG que se usa en `imports` (`TimelineModule`, `TagModule`, `SelectButtonModule`, etc.).
 - **Colores y tamaños con tokens del tema**, nunca hexadecimales: `var(--p-primary-color)`, `var(--p-green-500)`, `var(--text-color)`, `var(--text-color-secondary)`, `var(--surface-card)`, `var(--surface-border)`. Así funcionan en tema claro y oscuro sin código extra.
+- **Tema claro/oscuro: lo decide solo la clase `app-dark` de `<html>`** (`main.ts` la pone; PrimeNG usa `darkModeSelector: '.app-dark'`). Nunca usar `@media (prefers-color-scheme: dark)` en CSS: si el tema guardado no coincide con el del sistema, la página queda mitad clara y mitad oscura. Para algo específico del tema oscuro: `html.app-dark ...` o `:host-context(.app-dark)`.
 - Personalizar con **tokens de diseño** (`[dt]`, `--p-*`) o `styleClass`; evitar `::ng-deep` y `!important`. Si es imprescindible, acotarlo con `:host`.
 - Iconos de componentes PrimeNG: `pi pi-*`. Iconos propios del dominio (huella, rostro, lector, entrada/salida): `app-lucide-icon` con el nombre registrado en `src/app/core/utils/lucide-icon.util.ts`; si falta, agregarlo allí.
 - Disposición con primeflex (`grid`, `flex`, `gap-*`) o CSS grid del componente; responsive de una columna en móvil, sin scroll horizontal.
@@ -52,4 +53,4 @@ Convención de colores de la marcación: entrada → `success`, almuerzo → `wa
 
 ## Verificación
 
-Antes de dar un cambio de UI por terminado: probarlo en el navegador en tema claro y oscuro, a ancho de escritorio y de móvil (375 px), con datos reales o de prueba, y revisar la consola sin errores.
+Antes de dar un cambio de UI por terminado: probarlo en el navegador en tema claro y oscuro (quitando o poniendo la clase `app-dark` en `<html>`; emular `prefers-color-scheme` no sirve), a ancho de escritorio y de móvil (375 px), con datos reales o de prueba, y revisar la consola sin errores.

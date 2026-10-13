@@ -7,8 +7,6 @@
   padding: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :host {
+:host-context(.app-dark) {
     --attendance-page-bg: var(--surface-ground, var(--p-surface-950, #09090b));
-  }
 }
