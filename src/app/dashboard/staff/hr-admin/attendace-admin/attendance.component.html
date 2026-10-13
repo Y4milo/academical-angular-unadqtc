@@ -4,14 +4,35 @@
 
 <div class="attendance-filter-grid">
   <div class="flex flex-column gap-2">
-    <label class="form-label" for="id_employment_agreement">DNI</label>
-    <input
-      type="text"
-      pInputText
-      placeholder="Numero de empleado o DNI"
-      [(ngModel)]="number"
-      class="w-full"
-    />
+    <label class="form-label" for="staff-query">DNI o nombre</label>
+    <p-autoComplete
+      inputId="staff-query"
+      [(ngModel)]="query"
+      [suggestions]="suggestions"
+      (completeMethod)="searchStaff($event)"
+      (onSelect)="onStaffSelected($event)"
+      (ngModelChange)="onQueryChange($event)"
+      (keydown.enter)="loadAttendances()"
+      optionLabel="dni"
+      [minLength]="3"
+      [delay]="300"
+      [forceSelection]="false"
+      placeholder="Escriba un DNI o un nombre"
+      styleClass="w-full"
+      inputStyleClass="w-full">
+      <ng-template let-item pTemplate="item">
+        <div class="staff-suggestion">
+          <div class="staff-suggestion-name">{{ item.full_name }}</div>
+          <div class="staff-suggestion-meta">
+            <span>{{ item.dni }}</span>
+            <span *ngIf="item.profile_type_label">· {{ item.profile_type_label }}</span>
+            <span *ngIf="item.dependency_acronym">· {{ item.dependency_acronym }}</span>
+            <p-tag *ngIf="!item.in_core" value="No figura en Core" severity="warn"></p-tag>
+            <p-tag *ngIf="item.in_core && item.is_active === false" value="De baja" severity="danger"></p-tag>
+          </div>
+        </div>
+      </ng-template>
+    </p-autoComplete>
   </div>
 
   <div class="flex flex-column gap-2">
@@ -60,24 +81,45 @@
     <div>
       <span class="block text-500 text-sm">Persona</span>
       <strong>{{ consultedStaff.full_name }}</strong>
+      <p-tag
+        *ngIf="consultedStaff.profile_type_label"
+        class="ml-2"
+        [value]="consultedStaff.profile_type_label"
+        [severity]="consultedStaff.profile_type === 'teacher' ? 'info' : 'secondary'"></p-tag>
     </div>
     <div>
       <span class="block text-500 text-sm">Cargo</span>
       <strong>{{ consultedStaff.position || 'Sin cargo' }}</strong>
     </div>
     <div>
-      <span class="block text-500 text-sm">Dependencia</span>
-      <strong>{{ consultedStaff.dependency || 'Sin dependencia' }}</strong>
+      <span class="block text-500 text-sm">Oficina</span>
+      <strong>{{ consultedStaff.dependency || 'Sin oficina' }}</strong>
+      <span *ngIf="consultedStaff.dependency_acronym" class="text-500"> ({{ consultedStaff.dependency_acronym }})</span>
     </div>
     <div>
-      <span class="block text-500 text-sm">Tipo de contrato</span>
-      <strong>{{ consultedStaff.contract_type || 'Sin tipo' }}</strong>
+      <span class="block text-500 text-sm">Contrato o modalidad</span>
+      <strong>{{ consultedStaff.contract_type || 'Sin dato' }}</strong>
     </div>
     <div>
-      <span class="block text-500 text-sm">Rol</span>
+      <span class="block text-500 text-sm">Estado</span>
+      <p-tag
+        *ngIf="consultedStaff.in_core !== false"
+        [value]="consultedStaff.is_active === false ? 'De baja' : 'Activo'"
+        [severity]="consultedStaff.is_active === false ? 'danger' : 'success'"></p-tag>
+      <span *ngIf="consultedStaff.in_core !== false && consultedStaff.end_date" class="text-500"> hasta {{ consultedStaff.end_date }}</span>
+      <span *ngIf="consultedStaff.in_core === false" class="text-500">Sin dato</span>
+    </div>
+    <div>
+      <span class="block text-500 text-sm">Rol en Academical</span>
       <strong>{{ consultedStaff.role || 'Sin rol' }}</strong>
     </div>
   </div>
+  <p-message
+    *ngIf="consultedStaff.in_core === false"
+    severity="warn"
+    styleClass="mt-3"
+    text="Esta persona no figura como personal en Core: los datos vienen de la tabla local de Academical.">
+  </p-message>
 </div>
 
 <div *ngIf="loading" class="flex justify-content-center py-5">
@@ -86,5 +128,7 @@
 
 <app-staff-attendance-cards
   *ngIf="!loading"
-  [attendances]="attendances">
+  [attendances]="attendances"
+  [emptyMessage]="emptyMessage"
+  [showDetails]="true">
 </app-staff-attendance-cards>

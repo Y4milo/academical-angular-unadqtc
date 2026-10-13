@@ -60,3 +60,24 @@
     grid-template-columns: 1fr;
   }
 }
+
+.staff-suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.staff-suggestion-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.staff-suggestion-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+}

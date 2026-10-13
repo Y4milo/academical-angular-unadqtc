@@ -275,3 +275,26 @@
     column-gap: 0.9rem;
   }
 }
+
+.attendance-method-manual {
+  color: var(--p-amber-500, #f59e0b);
+}
+
+.attendance-mark-note {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  font-size: 0.72rem;
+  padding-bottom: 0.35rem;
+}
+
+.attendance-punch-ok { color: var(--p-green-500, #22c55e); }
+.attendance-punch-warn { color: var(--p-amber-500, #f59e0b); }
+.attendance-punch-bad { color: var(--p-red-400, #f87171); }
+
+.attendance-mark-reason {
+  color: var(--text-color-secondary);
+  overflow-wrap: anywhere;
+}

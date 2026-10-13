@@ -14,6 +14,25 @@ export interface StaffAttendancePerson {
   dependency?: string | null;
   contract_type?: string | null;
   role?: string | null;
+  /** false: la persona solo está en Academical, Core no la tiene como personal. */
+  in_core?: boolean;
+  profile_type?: 'teacher' | 'administrative' | null;
+  profile_type_label?: string | null;
+  dependency_acronym?: string | null;
+  is_active?: boolean | null;
+  hire_date?: string | null;
+  end_date?: string | null;
+  synced_at?: string | null;
+}
+
+export interface StaffSearchResult {
+  dni: string;
+  full_name: string;
+  profile_type_label: string | null;
+  dependency_acronym: string | null;
+  contract_type: string | null;
+  is_active: boolean | null;
+  in_core: boolean;
 }
 
 export interface StaffAttendanceByNumberResponse {
@@ -83,6 +102,11 @@ export class AttendanceService {
   storeAttendance(formData: FormData): Observable<ApiData<EventAttendance>> {
     return this.http.post<ApiData<EventAttendance>>(`${this.apiURL}/event/attendance/store`, formData);
   }
+  /** Busca personal por DNI o por nombre (solo admin y RRHH). */
+  searchStaff(q: string): Observable<ApiData<StaffSearchResult[]>> {
+    return this.http.post<ApiData<StaffSearchResult[]>>(`${this.apiURL}/staff-attendance/search-staff`, {q});
+  }
+
   listAttendancesByNumber(formData: FormData): Observable<ApiData<StaffAttendanceByNumberResponse>> {
     return this.http.post<ApiData<StaffAttendanceByNumberResponse>>(`${this.apiURL}/staff-attendance/list-by-number`, formData);
   }

@@ -16,6 +16,12 @@
               <app-lucide-icon [name]="getVerifyIconName(item.verify_type)" [size]="16"></app-lucide-icon>
               <span>{{ getVerifyName(item.verify_type) }}</span>
             </span>
+            <div *ngIf="item.punch_label || (showDetails && item.reason)" class="attendance-mark-note">
+              <span *ngIf="item.punch_label" [ngClass]="getPunchClass(item.punch_status)">{{ item.punch_label }}</span>
+              <span *ngIf="showDetails && item.reason" class="attendance-mark-reason">
+                Motivo: {{ item.reason }}<ng-container *ngIf="item.registered_by"> · Registró: {{ item.registered_by }}</ng-container>
+              </span>
+            </div>
           </div>
         </div>
 

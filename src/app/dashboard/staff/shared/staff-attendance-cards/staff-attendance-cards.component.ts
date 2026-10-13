@@ -30,6 +30,8 @@ interface AttendanceDayGroup {
 })
 export class StaffAttendanceCardsComponent {
   @Input() emptyMessage = 'Aun no hay asistencias';
+  /** Muestra el motivo y quién registró una marcación manual: solo para admin y RRHH. */
+  @Input() showDetails = false;
 
   attendanceDayGroups: AttendanceDayGroup[] = [];
 
@@ -46,6 +48,9 @@ export class StaffAttendanceCardsComponent {
       case 'mano': return 'hand';
       case 'face': return 'scan-face';
       case 'card': return 'id-card';
+      case 'barcode': return 'scan-barcode';
+      case 'keyboard': return 'keyboard';
+      case 'password': return 'lock';
       default: return 'circle-alert';
     }
   }
@@ -59,6 +64,9 @@ export class StaffAttendanceCardsComponent {
       case 'mano': return 'PALMA';
       case 'face': return 'ROSTRO';
       case 'card': return 'TARJETA';
+      case 'barcode': return 'LECTOR DE BARRAS';
+      case 'keyboard': return 'DNI DIGITADO';
+      case 'password': return 'CONTRASEÑA';
       default: return 'DESCONOCIDO';
     }
   }
@@ -72,7 +80,18 @@ export class StaffAttendanceCardsComponent {
       case 'mano': return 'attendance-method-palm';
       case 'face': return 'attendance-method-face';
       case 'card': return 'attendance-method-card';
+      case 'barcode':
+      case 'keyboard': return 'attendance-method-manual';
       default: return 'attendance-method-unknown';
+    }
+  }
+
+  /** Color del texto «qué marcación fue»: verde si fue puntual, ámbar si hay algo que mirar, rojo fuera de tolerancia. */
+  getPunchClass(status?: string | null): string {
+    switch (status) {
+      case 'on_time': return 'attendance-punch-ok';
+      case 'beyond_tolerance': return 'attendance-punch-bad';
+      default: return 'attendance-punch-warn';
     }
   }
 
