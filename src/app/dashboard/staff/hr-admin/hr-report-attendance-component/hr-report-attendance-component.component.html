@@ -1,61 +1,91 @@
-<script src="../../academic/student-ranking/student-ranking.component.ts"></script>
 <div class="text-center">
   <h2>Reporte mensual de asistencias</h2>
+  <p class="report-hint">
+    Un renglón por persona y un código por día: <strong>T</strong> tardanza, <strong>E</strong> exceso de más de 60 minutos,
+    <strong>F</strong> falta; vacío es puntual o día no laborable. Quien no tiene horario sale marcado «Sin horario asignado».
+  </p>
 </div>
 <form [formGroup]="reportForm">
   <div class="grid w-full">
-    <!-- COLUMNA 1 -->
-    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
-      <label class="form-label" for="id_employment_agreement">Régimen laboral</label>
+    <div class="col-12 md:col-6 lg:col-4 flex flex-column gap-2">
+      <label class="form-label" for="id_month">Mes</label>
       <p-select
-        id="id_employment_agreement"
-        name="id_employment_agreement"
-        [options]="employmentAgreementOptions"
-        optionLabel="label"
-        optionValue="id"
-        formControlName="id_employment_agreement"
-        placeholder="Seleccione el régimen laboral"
-      ></p-select>
-    </div>
-
-    <!-- COLUMNA 2 -->
-    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
-      <label class="form-label" for="id_month">Selecciona el mes</label>
-      <p-select
-        id="id_month"
-        name="id_month"
+        inputId="id_month"
         [options]="monthOptions"
         optionLabel="label"
         optionValue="id"
         formControlName="id_month"
         placeholder="Seleccione el mes"
+        styleClass="w-full"
       ></p-select>
     </div>
 
-    <!-- COLUMNA 3 -->
-    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
-      <label class="form-label" for="id_year">Selecciona el año</label>
+    <div class="col-12 md:col-6 lg:col-4 flex flex-column gap-2">
+      <label class="form-label" for="id_year">Año</label>
       <p-select
-        id="id_year"
-        name="id_year"
+        inputId="id_year"
         [options]="yearOptions"
         optionLabel="label"
         optionValue="id"
         formControlName="id_year"
         placeholder="Seleccione el año"
+        styleClass="w-full"
       ></p-select>
     </div>
 
-    <!-- COLUMNA 4 -->
-    <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2 justify-content-end">
+    <div class="col-12 lg:col-4 flex flex-column gap-2 justify-content-end">
       <button
         pButton
         type="button"
-        icon="pi pi-search"
-        label="Descargar excel"
+        icon="pi pi-file-excel"
+        label="Descargar Excel"
+        [loading]="downloading"
         (click)="downloadReportExcel()">
       </button>
     </div>
+
+    <div class="col-12 md:col-4 flex flex-column gap-2">
+      <label class="form-label" for="profile_type">Tipo de personal</label>
+      <p-select
+        inputId="profile_type"
+        [options]="profileTypeOptions"
+        optionLabel="text"
+        optionValue="code"
+        formControlName="profile_type"
+        placeholder="Todos"
+        [showClear]="true"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+
+    <div class="col-12 md:col-4 flex flex-column gap-2">
+      <label class="form-label" for="contract_code">Contrato o modalidad</label>
+      <p-select
+        inputId="contract_code"
+        [options]="contractOptions"
+        optionLabel="text"
+        optionValue="code"
+        formControlName="contract_code"
+        placeholder="Todos"
+        [showClear]="true"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+
+    <div class="col-12 md:col-4 flex flex-column gap-2">
+      <label class="form-label" for="dependency_code">Oficina</label>
+      <p-select
+        inputId="dependency_code"
+        [options]="dependencyOptions"
+        optionLabel="text"
+        optionValue="code"
+        formControlName="dependency_code"
+        placeholder="Todas"
+        [showClear]="true"
+        [filter]="true"
+        filterBy="text"
+        styleClass="w-full"
+      ></p-select>
+    </div>
   </div>
 </form>
-

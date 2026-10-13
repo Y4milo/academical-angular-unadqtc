@@ -22,6 +22,19 @@ export interface StaffAttendanceByNumberResponse {
   count: number;
 }
 
+export interface ReportFilterOption {
+  code: string;
+  label: string;
+  total: number;
+}
+
+/** Las opciones de los filtros de los reportes, con cuántas personas tiene cada una (vienen de Core). */
+export interface ReportFilterOptions {
+  profile_types: ReportFilterOption[];
+  contracts: ReportFilterOption[];
+  dependencies: ReportFilterOption[];
+}
+
 export type ManualAttendanceSource = 'barcode' | 'keyboard';
 
 export interface ManualAttendanceRequest {
@@ -95,6 +108,11 @@ export class AttendanceService {
   manualToday(campusId?: number): Observable<ApiData<ManualAttendanceRow[]>> {
     const query = campusId ? `?campus_id=${campusId}` : '';
     return this.http.get<ApiData<ManualAttendanceRow[]>>(`${this.apiURL}/staff-attendance/manual-today${query}`);
+  }
+
+  /** Tipo de personal, contrato o modalidad y oficina para los filtros de los reportes. */
+  reportFilters(): Observable<ApiData<ReportFilterOptions>> {
+    return this.http.get<ApiData<ReportFilterOptions>>(`${this.apiURL}/staff-attendance/report-filters`);
   }
 
   myAttendances(formData: FormData): Observable<ApiData<Attendance[]>> {
