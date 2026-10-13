@@ -4,21 +4,21 @@
 
 /* Resumen y filtros */
 :host ::ng-deep .attendance-panel {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .attendance-stats {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.5rem 1.5rem;
-  margin-bottom: 1rem;
+  gap: var(--space-2) var(--space-5);
+  margin-bottom: var(--space-4);
 }
 
 .attendance-stat {
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: var(--space-1);
 }
 
 .attendance-stat-value {
@@ -46,7 +46,7 @@
 .attendance-toolbar {
   display: grid;
   grid-template-columns: minmax(180px, 1.4fr) repeat(2, minmax(130px, 1fr));
-  gap: 0.75rem 1rem;
+  gap: var(--space-3) var(--space-4);
   align-items: end;
 }
 
@@ -57,20 +57,20 @@
 .attendance-toolbar-field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .attendance-label {
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--p-text-muted-color);
 }
 
 :host ::ng-deep .attendance-toolbar-roles .p-selectbutton {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: var(--space-1);
 }
 
 :host ::ng-deep .attendance-toolbar-roles .p-togglebutton {
@@ -81,7 +81,7 @@
 .attendance-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: start;
 }
 
@@ -94,8 +94,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   background: var(--p-content-hover-background);
   border-bottom: 1px solid var(--p-content-border-color);
 }
@@ -103,7 +103,7 @@
 .day-date {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--space-2);
 }
 
 .day-number {
@@ -136,22 +136,22 @@
 }
 
 :host ::ng-deep .day-campus .p-tag-icon {
-  margin-right: 0.35rem;
+  margin-right: var(--space-1);
 }
 
 .day-campus {
   display: inline-block;
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--space-2);
 }
 
 :host ::ng-deep .day-switch.p-divider {
-  margin: 0.9rem 0;
+  margin: var(--space-4) 0;
 }
 
 .day-switch-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-1);
   font-size: 0.75rem;
   color: var(--p-text-muted-color);
 }
@@ -166,7 +166,7 @@
 }
 
 :host ::ng-deep .attendance-timeline .p-timeline-event-content {
-  padding: 0 0 0.9rem 0.75rem;
+  padding: 0 0 var(--space-4) var(--space-3);
 }
 
 :host ::ng-deep .attendance-timeline .p-timeline-event:last-child .p-timeline-event-content {
@@ -192,7 +192,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem 0.6rem;
+  gap: var(--space-1) var(--space-2);
 }
 
 .tick-time {
@@ -208,17 +208,17 @@
 .method-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-1);
   font-size: 0.68rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .tick-note {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  margin-top: 0.25rem;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
   font-size: 0.75rem;
 }
 
@@ -239,11 +239,11 @@
 .attendance-role-none { color: var(--p-text-muted-color); }
 
 :host ::ng-deep .attendance-paginator {
-  margin-top: 1rem;
+  margin-top: var(--space-4);
   background: transparent;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 640px) {
   .attendance-toolbar {
     grid-template-columns: 1fr 1fr;
   }
@@ -255,4 +255,24 @@
   .attendance-clear {
     margin-left: 0;
   }
+}
+
+.attendance-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.attendance-empty strong {
+  color: var(--p-text-color);
+  font-weight: 600;
+}
+
+.attendance-empty p {
+  margin: 0;
+  font-size: 0.85rem;
 }

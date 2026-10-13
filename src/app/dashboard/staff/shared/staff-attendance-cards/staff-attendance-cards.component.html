@@ -1,6 +1,8 @@
-<p-message *ngIf="totalMarks === 0" severity="secondary" icon="pi pi-info-circle" styleClass="w-full">
-  {{ emptyMessage }}
-</p-message>
+<div *ngIf="totalMarks === 0" class="attendance-empty">
+  <app-lucide-icon name="clipboard-pen" [size]="28"></app-lucide-icon>
+  <strong>{{ emptyTitle }}</strong>
+  <p>{{ emptyMessage }}</p>
+</div>
 
 <p-card *ngIf="totalMarks > 0" styleClass="attendance-panel">
   <div class="attendance-stats">
@@ -86,13 +88,12 @@
   </div>
 </p-card>
 
-<p-message
-  *ngIf="totalMarks > 0 && filteredDays.length === 0"
-  severity="warn"
-  icon="pi pi-filter"
-  styleClass="w-full">
-  Ninguna marcación coincide con los filtros.
-</p-message>
+<div *ngIf="totalMarks > 0 && filteredDays.length === 0" class="attendance-empty">
+  <app-lucide-icon name="circle-alert" [size]="28"></app-lucide-icon>
+  <strong>Sin resultados</strong>
+  <p>Ninguna marcación coincide con los filtros.</p>
+  <p-button size="small" severity="secondary" [outlined]="true" label="Limpiar filtros" (onClick)="clearFilters()"></p-button>
+</div>
 
 <div
   *ngIf="pageDays.length > 0"

@@ -11,6 +11,9 @@ import {InputTextModule} from 'primeng/inputtext';
 import {AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent} from 'primeng/autocomplete';
 import {TagModule} from 'primeng/tag';
 import {MessageModule} from 'primeng/message';
+import {CardModule} from 'primeng/card';
+import {AvatarModule} from 'primeng/avatar';
+import {SelectButtonModule} from 'primeng/selectbutton';
 import {NgIf} from '@angular/common';
 import {STATUS} from '../../../../core/constants/api-status.constants';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
@@ -32,6 +35,9 @@ import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards
     AutoCompleteModule,
     TagModule,
     MessageModule,
+    CardModule,
+    AvatarModule,
+    SelectButtonModule,
     DatePicker,
     StaffAttendanceCardsComponent,
   ],
@@ -52,6 +58,14 @@ export class AttendanceListComponent implements OnInit {
   attendances: Attendance[] = [];
   loading = false;
 
+  readonly presetOptions = [
+    {label: 'Hoy', value: 'today'},
+    {label: 'Esta semana', value: 'week'},
+    {label: 'Este mes', value: 'month'},
+    {label: 'Mes anterior', value: 'previous_month'},
+  ];
+  activePreset: string | null = null;
+
   showCalendar = false; // ✅ Flag para renderizar calendario después del ciclo inicial
 
   constructor(
@@ -67,12 +81,49 @@ export class AttendanceListComponent implements OnInit {
   /** Qué decir cuando no hay marcaciones: no es lo mismo una persona que no existe que una sin marcaciones en esas fechas. */
   get emptyMessage(): string {
     if (!this.searched) {
-      return 'Busque una persona por DNI o por nombre';
+      return 'Escriba un DNI o un nombre y elija el rango de días.';
     }
 
     return this.consultedStaff
-      ? 'Sin marcaciones en esas fechas'
+      ? 'No hay marcaciones en el rango de días elegido.'
       : 'No se encontró personal con ese DNI';
+  }
+
+  /** Iniciales para el avatar: primer nombre y primer apellido de «NOMBRES APELLIDOS» o «APELLIDOS NOMBRES». */
+  initials(fullName: string | null | undefined): string {
+    const words = (fullName ?? '').trim().split(/\s+/).filter(Boolean);
+
+    return words.length === 0 ? '?' : (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+  }
+
+  /** Atajos de fechas: ponen el rango y, si ya hay una persona elegida, consultan. */
+  applyPreset(preset: string | null): void {
+    this.activePreset = preset;
+    if (!preset) {
+      return;
+    }
+
+    const now = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate());
+    const day = (y: number, m: number, d: number) => new Date(y, m, d);
+    const monday = now.getDate() - ((now.getDay() + 6) % 7);
+
+    switch (preset) {
+      case 'today': this.dateRange = [now, now]; break;
+      case 'week': this.dateRange = [day(now.getFullYear(), now.getMonth(), monday), now]; break;
+      case 'month': this.dateRange = [day(now.getFullYear(), now.getMonth(), 1), now]; break;
+      case 'previous_month': this.dateRange = [day(now.getFullYear(), now.getMonth() - 1, 1), day(now.getFullYear(), now.getMonth(), 0)]; break;
+    }
+
+    if (this.number.trim()) {
+      this.loadAttendances();
+    }
+  }
+
+  /** «2019-03-01» → «01/03/2019». */
+  displayDate(value: string): string {
+    const [year, month, day] = value.split('-');
+
+    return day && month && year ? `${day}/${month}/${year}` : value;
   }
 
   searchStaff(event: AutoCompleteCompleteEvent): void {

@@ -93,6 +93,7 @@ const ROLES: Record<string, { name: string; short: string; icon: string; cssClas
   styleUrl: './staff-attendance-cards.component.css'
 })
 export class StaffAttendanceCardsComponent {
+  @Input() emptyTitle = 'Sin marcaciones';
   @Input() emptyMessage = 'Aun no hay asistencias';
   /** Muestra el motivo y quién registró una marcación manual: solo para admin y RRHH. */
   @Input() showDetails = false;
