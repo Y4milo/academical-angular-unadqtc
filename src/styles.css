@@ -25,17 +25,15 @@ body {
   background: var(--surface-card, var(--p-content-background, var(--p-surface-0, #ffffff))) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  html,
-  body,
-  .surface-ground {
+html.app-dark,
+html.app-dark body,
+html.app-dark .surface-ground {
     background: var(--surface-ground, var(--p-surface-950, #09090b)) !important;
     color: var(--text-color, var(--p-text-color, #f9fafb));
-  }
+}
 
-  .surface-card {
+html.app-dark .surface-card {
     background: var(--surface-card, var(--p-content-background, var(--p-surface-900, #18181b))) !important;
-  }
 }
 
 
