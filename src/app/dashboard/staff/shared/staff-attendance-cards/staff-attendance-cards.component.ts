@@ -6,6 +6,13 @@ import {DividerModule} from 'primeng/divider';
 import {SelectModule} from 'primeng/select';
 import {InputTextModule} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
+import {MessageModule} from 'primeng/message';
+import {TagModule} from 'primeng/tag';
+import {TimelineModule} from 'primeng/timeline';
+import {SelectButtonModule} from 'primeng/selectbutton';
+import {IconFieldModule} from 'primeng/iconfield';
+import {InputIconModule} from 'primeng/inputicon';
+import {TooltipModule} from 'primeng/tooltip';
 import {PaginatorModule, PaginatorState} from 'primeng/paginator';
 import {Attendance} from '../../../../models/attendance.model';
 import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
@@ -17,8 +24,17 @@ interface AttendanceLocationGroup {
 
 interface AttendanceDayGroup {
   date: string;
+  day: string;
+  weekday: string;
+  month: string;
+  /** Primera y última marcación del día, «06:56 – 20:27». */
+  range: string;
+  count: number;
   locations: AttendanceLocationGroup[];
 }
+
+const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 interface Choice {
   label: string;
@@ -27,22 +43,24 @@ interface Choice {
 
 type MethodKey = 'fingerprint' | 'palm' | 'face' | 'card' | 'password' | 'manual' | 'unknown';
 
-const METHODS: Record<MethodKey, { name: string; icon: string; cssClass: string }> = {
-  fingerprint: {name: 'HUELLA DIGITAL', icon: 'fingerprint', cssClass: 'attendance-method-fingerprint'},
-  palm: {name: 'PALMA', icon: 'hand', cssClass: 'attendance-method-palm'},
-  face: {name: 'ROSTRO', icon: 'scan-face', cssClass: 'attendance-method-face'},
-  card: {name: 'TARJETA', icon: 'id-card', cssClass: 'attendance-method-card'},
-  password: {name: 'CONTRASEÑA', icon: 'lock', cssClass: 'attendance-method-card'},
-  manual: {name: 'MANUAL', icon: 'clipboard-pen', cssClass: 'attendance-method-manual'},
-  unknown: {name: 'DESCONOCIDO', icon: 'circle-alert', cssClass: 'attendance-method-unknown'},
+type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
+
+const METHODS: Record<MethodKey, { name: string; icon: string; severity: TagSeverity }> = {
+  fingerprint: {name: 'HUELLA DIGITAL', icon: 'fingerprint', severity: 'success'},
+  palm: {name: 'PALMA', icon: 'hand', severity: 'success'},
+  face: {name: 'ROSTRO', icon: 'scan-face', severity: 'info'},
+  card: {name: 'TARJETA', icon: 'id-card', severity: 'info'},
+  password: {name: 'CONTRASEÑA', icon: 'lock', severity: 'info'},
+  manual: {name: 'MANUAL', icon: 'clipboard-pen', severity: 'warn'},
+  unknown: {name: 'DESCONOCIDO', icon: 'circle-alert', severity: 'secondary'},
 };
 
-const ROLES: Record<string, { name: string; icon: string; cssClass: string }> = {
-  entry: {name: 'Entrada', icon: 'log-in', cssClass: 'attendance-role-entry'},
-  lunch_out: {name: 'Salida a almuerzo', icon: 'utensils', cssClass: 'attendance-role-lunch'},
-  lunch_in: {name: 'Regreso de almuerzo', icon: 'rotate-ccw', cssClass: 'attendance-role-lunch'},
-  exit: {name: 'Salida', icon: 'log-out', cssClass: 'attendance-role-exit'},
-  extra: {name: 'Repetida', icon: 'copy', cssClass: 'attendance-role-middle'},
+const ROLES: Record<string, { name: string; short: string; icon: string; cssClass: string }> = {
+  entry: {short: 'Entrada', name: 'Entrada', icon: 'log-in', cssClass: 'attendance-role-entry'},
+  lunch_out: {short: 'A almuerzo', name: 'Salida a almuerzo', icon: 'utensils', cssClass: 'attendance-role-lunch'},
+  lunch_in: {short: 'De almuerzo', name: 'Regreso de almuerzo', icon: 'rotate-ccw', cssClass: 'attendance-role-lunch'},
+  exit: {short: 'Salida', name: 'Salida', icon: 'log-out', cssClass: 'attendance-role-exit'},
+  extra: {short: 'Repetida', name: 'Repetida', icon: 'copy', cssClass: 'attendance-role-middle'},
 };
 
 /**
@@ -57,6 +75,13 @@ const ROLES: Record<string, { name: string; icon: string; cssClass: string }> = 
     SelectModule,
     InputTextModule,
     ButtonModule,
+    MessageModule,
+    TagModule,
+    TimelineModule,
+    SelectButtonModule,
+    IconFieldModule,
+    InputIconModule,
+    TooltipModule,
     PaginatorModule,
     FormsModule,
     NgClass,
@@ -79,7 +104,7 @@ export class StaffAttendanceCardsComponent {
     this.clearFilters();
   }
 
-  readonly roleOptions: Choice[] = Object.entries(ROLES).map(([value, role]) => ({label: role.name, value}));
+  readonly roleOptions: Choice[] = Object.entries(ROLES).map(([value, role]) => ({label: role.short, value}));
   readonly pageSizes = [6, 12, 24];
 
   campusOptions: Choice[] = [];
@@ -97,6 +122,7 @@ export class StaffAttendanceCardsComponent {
   filteredDays: AttendanceDayGroup[] = [];
   pageDays: AttendanceDayGroup[] = [];
   matchingMarks = 0;
+  manualMarks = 0;
 
   private all: Attendance[] = [];
 
@@ -118,6 +144,7 @@ export class StaffAttendanceCardsComponent {
       && (query === '' || this.searchableText(item).includes(query)));
 
     this.matchingMarks = matching.length;
+    this.manualMarks = matching.filter((item) => this.methodKey(item) === 'manual').length;
     this.filteredDays = this.groupAttendancesByDayAndCampus(matching);
     this.first = 0;
     this.updatePage();
@@ -214,10 +241,22 @@ export class StaffAttendanceCardsComponent {
       dayMap.set(date, dayAttendances);
     });
 
-    return Array.from(dayMap.entries()).map(([date, dayAttendances]) => ({
-      date,
-      locations: this.buildOrderedLocationGroups(dayAttendances),
-    }));
+    return Array.from(dayMap.entries()).map(([date, dayAttendances]) => {
+      const [dd, mm, yyyy] = date.split('/').map(Number);
+      const weekday = WEEKDAYS[new Date(yyyy, mm - 1, dd).getDay()] ?? '';
+      const times = dayAttendances.map((item) => item.punch_time.split(' ')[1].slice(0, 5)).sort();
+      const range = times.length > 1 && times[0] !== times[times.length - 1] ? `${times[0]} – ${times[times.length - 1]}` : times[0];
+
+      return {
+        date,
+        day: String(dd).padStart(2, '0'),
+        weekday,
+        month: `${MONTHS[mm - 1] ?? ''} ${yyyy}`,
+        range,
+        count: dayAttendances.length,
+        locations: this.buildOrderedLocationGroups(dayAttendances),
+      };
+    });
   }
 
   private buildOrderedLocationGroups(attendances: Attendance[]): AttendanceLocationGroup[] {
