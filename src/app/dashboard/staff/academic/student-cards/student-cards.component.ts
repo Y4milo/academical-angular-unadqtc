@@ -33,6 +33,7 @@ import {validatePhotoCardStudent} from '../../../../helper/helper.util';
 import {StepsModule} from 'primeng/steps';
 import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 import {finalize} from 'rxjs';
+import {SkeletonModule} from 'primeng/skeleton';
 
 @Component({
   selector: 'app-student-cards',
@@ -56,6 +57,7 @@ import {finalize} from 'rxjs';
     InputTextModule,
     Select,
     TagModule,
+    SkeletonModule,
     ImageModule,
     ToolbarModule,
     StepsModule,
@@ -117,6 +119,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   semesterOptions: Dictionary[] = [];
   selectedSemesterId?: number;
   isLoadingSemesters = false;
+  /** Cada lista (pendientes, validados, observados, sin registro) carga por separado: mientras tanto se muestran esqueletos. */
+  loadingLists = {pending: false, validated: false, flagged: false, unmatched: false};
   private loadingPhotoIds = new Set<number>();
   private observationsMultiSelectTimer?: ReturnType<typeof setTimeout>;
   constructor(
@@ -185,8 +189,16 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
   loadSemesters(): void {
     this.isLoadingSemesters = true;
+    // Las listas dependen del semestre: mientras este carga también se muestran sus esqueletos.
+    this.loadingLists = {pending: true, validated: true, flagged: true, unmatched: true};
     this.dictionaryService.getSemesters()
-      .pipe(finalize(() => this.isLoadingSemesters = false))
+      .pipe(finalize(() => {
+        this.isLoadingSemesters = false;
+        // Si no hubo semestre (error o ninguno registrado) no se pidió ninguna lista: se quitan los esqueletos.
+        if (!this.selectedSemesterId) {
+          this.loadingLists = {pending: false, validated: false, flagged: false, unmatched: false};
+        }
+      }))
       .subscribe({
         next: response => {
           if (response.status !== STATUS.success) {
@@ -250,7 +262,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.flaggedStudents = [];
     this.activeTabIndex = 0;
 
-    this.studentCardService.listPendingStudentCards(semesterId).subscribe({
+    this.loadingLists = {pending: true, validated: true, flagged: true, unmatched: true};
+
+    this.studentCardService.listPendingStudentCards(semesterId).pipe(finalize(() => this.loadingLists.pending = false)).subscribe({
       next: response => {
         if (response.status === STATUS.success) {
           this.pendingStudents = response.payload.data;
@@ -260,7 +274,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       },
       error: error => this.notificationService.notifyApiData(error),
     });
-    this.studentCardService.listUnmatchedStudentCards(semesterId).subscribe({
+    this.studentCardService.listUnmatchedStudentCards(semesterId).pipe(finalize(() => this.loadingLists.unmatched = false)).subscribe({
       next: response => {
         if (response.status === STATUS.success) {
           this.unmatchedStudent = response.payload.data;
@@ -270,7 +284,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       },
       error: error => this.notificationService.notifyApiData(error),
     });
-    this.studentCardService.listValidatedStudentCards(semesterId).subscribe({
+    this.studentCardService.listValidatedStudentCards(semesterId).pipe(finalize(() => this.loadingLists.validated = false)).subscribe({
       next: response => {
         if (response.status === STATUS.success) {
           this.validatedStudents = response.payload.data;
@@ -280,7 +294,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       },
       error: error => this.notificationService.notifyApiData(error),
     });
-    this.studentCardService.listFlaggedStudentCards(semesterId).subscribe({
+    this.studentCardService.listFlaggedStudentCards(semesterId).pipe(finalize(() => this.loadingLists.flagged = false)).subscribe({
       next: response => {
         if (response.status === STATUS.success) {
           this.flaggedStudents = response.payload.data;
@@ -374,6 +388,11 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       },
       error: e => console.error(e),
     });
+  }
+
+  /** La foto se está descargando: se muestra un esqueleto del mismo tamaño en lugar del hueco. */
+  isPhotoLoading(student: StudentCard): boolean {
+    return !!student?.id && !this.photoPreviewUrls[student.id] && this.loadingPhotoIds.has(student.id);
   }
 
   getStudentPhotoUrl(student: StudentCard): string {

@@ -1,3 +1,73 @@
+<ng-template #skeletonRows4>
+  @for (item of [1, 2, 3]; track item) {
+    <tr class="student-skeleton-row" aria-hidden="true">
+          <td>
+            <div class="student-skeleton-who">
+              <p-skeleton width="60px" height="75px" borderRadius="6px" />
+              <div class="student-skeleton-lines">
+                <p-skeleton width="14rem" height="1.1rem" />
+                <p-skeleton width="9rem" height="0.8rem" />
+                <p-skeleton width="10rem" height="0.8rem" />
+                <p-skeleton width="7rem" height="0.8rem" />
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="student-skeleton-tags">
+              <p-skeleton width="4.5rem" height="1.4rem" borderRadius="999px" />
+              <p-skeleton width="4rem" height="1.4rem" borderRadius="999px" />
+            </div>
+          </td>
+          <td><p-skeleton width="5rem" height="0.9rem" /></td>
+          <td>
+            <div class="student-skeleton-tags">
+              <p-skeleton shape="circle" size="1.8rem" />
+              <p-skeleton shape="circle" size="1.8rem" />
+              <p-skeleton shape="circle" size="1.8rem" />
+            </div>
+          </td>
+    </tr>
+  }
+</ng-template>
+
+<ng-template #skeletonRows5>
+  @for (item of [1, 2, 3]; track item) {
+    <tr class="student-skeleton-row" aria-hidden="true">
+          <td>
+            <div class="student-skeleton-who">
+              <p-skeleton width="60px" height="75px" borderRadius="6px" />
+              <div class="student-skeleton-lines">
+                <p-skeleton width="14rem" height="1.1rem" />
+                <p-skeleton width="9rem" height="0.8rem" />
+                <p-skeleton width="10rem" height="0.8rem" />
+                <p-skeleton width="7rem" height="0.8rem" />
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="student-skeleton-tags">
+              <p-skeleton width="4.5rem" height="1.4rem" borderRadius="999px" />
+              <p-skeleton width="4rem" height="1.4rem" borderRadius="999px" />
+            </div>
+          </td>
+          <td>
+            <div class="student-skeleton-tags">
+              <p-skeleton width="4.5rem" height="1.4rem" borderRadius="999px" />
+              <p-skeleton width="4rem" height="1.4rem" borderRadius="999px" />
+            </div>
+          </td>
+          <td><p-skeleton width="5rem" height="0.9rem" /></td>
+          <td>
+            <div class="student-skeleton-tags">
+              <p-skeleton shape="circle" size="1.8rem" />
+              <p-skeleton shape="circle" size="1.8rem" />
+              <p-skeleton shape="circle" size="1.8rem" />
+            </div>
+          </td>
+    </tr>
+  }
+</ng-template>
+
 <div class="p-container mt-4">
   <p-card header="Gestión de Fotos de Carné" class="p-shadow-4">
     <div class="semester-context">
@@ -39,7 +109,11 @@
       <p-tabPanel>
         <ng-template pTemplate="header">
           Pendientes de validar
-          <p-badge [value]="pendingStudents.length" severity="info" />
+          @if (loadingLists.pending) {
+            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
+          } @else {
+            <p-badge [value]="pendingStudents.length" severity="info" />
+          }
         </ng-template>
         <p-toolbar styleClass="student-card-toolbar mb-3">
           <ng-template pTemplate="start">
@@ -62,7 +136,7 @@
         </p-toolbar>
         <p-table
           #pendingTable
-          [value]="pendingStudents"
+          [value]="loadingLists.pending ? [] : pendingStudents"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -87,16 +161,20 @@
                 <div class="flex gap-3 items-center">
 
                   <!-- FOTO -->
-                  <p-image
-                    [src]="getStudentPhotoUrl(student)"
-                    alt="foto"
-                    width="60"
-                    height="75"
-                    imageClass="student-card-photo"
-                    [preview]="true"
-                    appendTo="body"
-                    (onImageError)="onStudentPhotoError(student)"
-                  ></p-image>
+                  @if (isPhotoLoading(student)) {
+                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
+                  } @else {
+                    <p-image
+                      [src]="getStudentPhotoUrl(student)"
+                      alt="foto"
+                      width="60"
+                      height="75"
+                      imageClass="student-card-photo"
+                      [preview]="true"
+                      appendTo="body"
+                      (onImageError)="onStudentPhotoError(student)"
+                    ></p-image>
+                  }
 
                   <!-- DATOS -->
                   <div class="flex flex-column gap-1">
@@ -193,13 +271,22 @@
 
             </tr>
           </ng-template>
+          <ng-template pTemplate="emptymessage">
+            @if (loadingLists.pending) {
+              <ng-container *ngTemplateOutlet="skeletonRows4"></ng-container>
+            }
+          </ng-template>
         </p-table>
       </p-tabPanel>
 
       <p-tabPanel>
         <ng-template pTemplate="header">
           Validados
-          <p-badge [value]="validatedStudents.length" severity="success" />
+          @if (loadingLists.validated) {
+            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
+          } @else {
+            <p-badge [value]="validatedStudents.length" severity="success" />
+          }
         </ng-template>
         <div class="w-full mb-3 text-center">
           <!-- Botón centrado -->
@@ -268,7 +355,7 @@
         <!-- Tabla para validados -->
         <p-table
           #validatedTable
-          [value]="validatedStudents"
+          [value]="loadingLists.validated ? [] : validatedStudents"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -290,16 +377,20 @@
             <tr>
               <td>
                 <div class="flex gap-3 items-center">
-                  <p-image
-                    [src]="getStudentPhotoUrl(student)"
-                    alt="foto"
-                    width="60"
-                    height="75"
-                    imageClass="student-card-photo"
-                    [preview]="true"
-                    appendTo="body"
-                    (onImageError)="onStudentPhotoError(student)"
-                  ></p-image>
+                  @if (isPhotoLoading(student)) {
+                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
+                  } @else {
+                    <p-image
+                      [src]="getStudentPhotoUrl(student)"
+                      alt="foto"
+                      width="60"
+                      height="75"
+                      imageClass="student-card-photo"
+                      [preview]="true"
+                      appendTo="body"
+                      (onImageError)="onStudentPhotoError(student)"
+                    ></p-image>
+                  }
 
                   <div class="flex flex-column gap-1">
                     <span class="font-bold text-lg">
@@ -388,13 +479,22 @@
               </td>
             </tr>
           </ng-template>
+          <ng-template pTemplate="emptymessage">
+            @if (loadingLists.validated) {
+              <ng-container *ngTemplateOutlet="skeletonRows4"></ng-container>
+            }
+          </ng-template>
         </p-table>
       </p-tabPanel>
 
       <p-tabPanel>
         <ng-template pTemplate="header">
           Observados
-          <p-badge [value]="flaggedStudents.length" severity="warn" />
+          @if (loadingLists.flagged) {
+            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
+          } @else {
+            <p-badge [value]="flaggedStudents.length" severity="warn" />
+          }
         </ng-template>
         <p-toolbar styleClass="student-card-toolbar mb-3">
           <ng-template pTemplate="start">
@@ -417,7 +517,7 @@
         </p-toolbar>
         <p-table
           #flaggedTable
-          [value]="flaggedStudents"
+          [value]="loadingLists.flagged ? [] : flaggedStudents"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -440,16 +540,20 @@
             <tr>
               <td>
                 <div class="flex gap-3 items-center">
-                  <p-image
-                    [src]="getStudentPhotoUrl(student)"
-                    alt="foto"
-                    width="60"
-                    height="75"
-                    imageClass="student-card-photo"
-                    [preview]="true"
-                    appendTo="body"
-                    (onImageError)="onStudentPhotoError(student)"
-                  ></p-image>
+                  @if (isPhotoLoading(student)) {
+                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
+                  } @else {
+                    <p-image
+                      [src]="getStudentPhotoUrl(student)"
+                      alt="foto"
+                      width="60"
+                      height="75"
+                      imageClass="student-card-photo"
+                      [preview]="true"
+                      appendTo="body"
+                      (onImageError)="onStudentPhotoError(student)"
+                    ></p-image>
+                  }
 
                   <div class="flex flex-column gap-1">
                     <span class="font-bold text-lg">
@@ -552,13 +656,22 @@
               </td>
             </tr>
           </ng-template>
+          <ng-template pTemplate="emptymessage">
+            @if (loadingLists.flagged) {
+              <ng-container *ngTemplateOutlet="skeletonRows5"></ng-container>
+            }
+          </ng-template>
         </p-table>
       </p-tabPanel>
 
       <p-tabPanel>
         <ng-template pTemplate="header">
           Sin registro
-          <p-badge [value]="unmatchedStudent.length" severity="danger" />
+          @if (loadingLists.unmatched) {
+            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
+          } @else {
+            <p-badge [value]="unmatchedStudent.length" severity="danger" />
+          }
         </ng-template>
         <p-toolbar styleClass="student-card-toolbar mb-3">
           <ng-template pTemplate="start">
@@ -581,7 +694,7 @@
         </p-toolbar>
         <p-table
           #unmatchedTable
-          [value]="unmatchedStudent"
+          [value]="loadingLists.unmatched ? [] : unmatchedStudent"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -603,16 +716,20 @@
             <tr>
               <td>
                 <div class="flex gap-3 items-center">
-                  <p-image
-                    [src]="getStudentPhotoUrl(student)"
-                    alt="foto"
-                    width="60"
-                    height="75"
-                    imageClass="student-card-photo"
-                    [preview]="true"
-                    appendTo="body"
-                    (onImageError)="onStudentPhotoError(student)"
-                  ></p-image>
+                  @if (isPhotoLoading(student)) {
+                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
+                  } @else {
+                    <p-image
+                      [src]="getStudentPhotoUrl(student)"
+                      alt="foto"
+                      width="60"
+                      height="75"
+                      imageClass="student-card-photo"
+                      [preview]="true"
+                      appendTo="body"
+                      (onImageError)="onStudentPhotoError(student)"
+                    ></p-image>
+                  }
 
                   <div class="flex flex-column gap-1">
                     <span class="font-bold text-lg">
@@ -685,6 +802,11 @@
                 </div>
               </td>
             </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            @if (loadingLists.unmatched) {
+              <ng-container *ngTemplateOutlet="skeletonRows4"></ng-container>
+            }
           </ng-template>
         </p-table>
       </p-tabPanel>

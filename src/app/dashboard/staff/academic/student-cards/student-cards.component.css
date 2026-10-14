@@ -562,3 +562,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Esqueletos de carga de las listas (misma forma que una fila real) */
+.student-skeleton-who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.student-skeleton-lines {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.student-skeleton-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
