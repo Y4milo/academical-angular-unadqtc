@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {StudentCard} from '../../../../models/student/student-card.model';
 import {AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {TableModule} from 'primeng/table';
@@ -34,6 +34,12 @@ import {StepsModule} from 'primeng/steps';
 import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 import {finalize} from 'rxjs';
 import {SkeletonModule} from 'primeng/skeleton';
+import {MenuModule, Menu} from 'primeng/menu';
+import {ProgressBarModule} from 'primeng/progressbar';
+import {IconFieldModule} from 'primeng/iconfield';
+import {InputIconModule} from 'primeng/inputicon';
+import {SelectButtonModule} from 'primeng/selectbutton';
+import {MenuItem} from 'primeng/api';
 
 @Component({
   selector: 'app-student-cards',
@@ -58,6 +64,11 @@ import {SkeletonModule} from 'primeng/skeleton';
     Select,
     TagModule,
     SkeletonModule,
+    MenuModule,
+    ProgressBarModule,
+    IconFieldModule,
+    InputIconModule,
+    SelectButtonModule,
     ImageModule,
     ToolbarModule,
     StepsModule,
@@ -119,6 +130,24 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   semesterOptions: Dictionary[] = [];
   selectedSemesterId?: number;
   isLoadingSemesters = false;
+  // ---- Filtros comunes a las cuatro listas
+  searchText = '';
+  campusFilter: string | null = null;
+  fileFilter: 'no-photo' | 'no-dni' | null = null;
+  readonly fileFilterOptions = [
+    {label: 'Falta foto', value: 'no-photo'},
+    {label: 'Falta DNI', value: 'no-dni'},
+  ];
+  private campusOptionsCache: {key: string; value: string[]} = {key: '', value: []};
+  private readonly filterCache = new WeakMap<StudentCard[], {key: string; result: StudentCard[]}>();
+
+  // ---- Menú de acciones por fila
+  @ViewChild('rowMenu') private rowMenu?: Menu;
+  rowMenuItems: MenuItem[] = [];
+
+  // ---- Cola de revisión: los estudiantes visibles de la lista desde la que se abrió la revisión
+  private reviewQueue: StudentCard[] = [];
+
   /** Cada lista (pendientes, validados, observados, sin registro) carga por separado: mientras tanto se muestran esqueletos. */
   loadingLists = {pending: false, validated: false, flagged: false, unmatched: false};
   private loadingPhotoIds = new Set<number>();
@@ -462,7 +491,136 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     }
   }
 
-  openReviewDialog(student: StudentCard): void {
+
+  // ================= Indicadores, filtros y menú de acciones =================
+
+  /** Los indicadores de arriba hacen de pestañas: el orden coincide con el de los paneles del `p-tabView`. */
+  get kpiCards(): Array<{index: number; list: 'pending' | 'validated' | 'flagged' | 'unmatched'; label: string; icon: string; tone: string; count: number; hint: string}> {
+    return [
+      {index: 0, list: 'pending', label: 'Pendientes de validar', icon: 'pi pi-clock', tone: 'info', count: this.pendingStudents.length, hint: 'Requieren su revisión'},
+      {index: 1, list: 'validated', label: 'Validados', icon: 'pi pi-check-circle', tone: 'success', count: this.validatedStudents.length, hint: ''},
+      {index: 2, list: 'flagged', label: 'Observados', icon: 'pi pi-exclamation-triangle', tone: 'warn', count: this.flaggedStudents.length, hint: 'Esperan corrección'},
+      {index: 3, list: 'unmatched', label: 'Sin registro', icon: 'pi pi-user-minus', tone: 'danger', count: this.unmatchedStudent.length, hint: 'No subieron foto ni DNI'},
+    ];
+  }
+
+  get validatedPercent(): number {
+    const total = this.pendingStudents.length + this.validatedStudents.length + this.flaggedStudents.length + this.unmatchedStudent.length;
+    return total === 0 ? 0 : Math.round((this.validatedStudents.length / total) * 100);
+  }
+
+  /** Las sedes que aparecen en las listas. Se recuerda según el tamaño de las listas para no crear un arreglo nuevo en cada ciclo. */
+  get campusFilterOptions(): string[] {
+    const key = [this.pendingStudents.length, this.validatedStudents.length, this.flaggedStudents.length, this.unmatchedStudent.length].join('|');
+
+    if (this.campusOptionsCache.key !== key) {
+      const labels = [...this.pendingStudents, ...this.validatedStudents, ...this.flaggedStudents, ...this.unmatchedStudent]
+        .map(student => this.getCampusLabel(student))
+        .filter(label => !!label);
+      this.campusOptionsCache = {key, value: Array.from(new Set(labels)).sort((a, b) => a.localeCompare(b))};
+    }
+
+    return this.campusOptionsCache.value;
+  }
+
+  /** La lista con los filtros (texto, sede y archivos) aplicados. Se recuerda para no crear un arreglo nuevo en cada ciclo de detección. */
+  filtered(list: StudentCard[]): StudentCard[] {
+    const text = this.searchText.trim().toLowerCase();
+    const key = `${list.length}|${text}|${this.campusFilter}|${this.fileFilter}`;
+    const cached = this.filterCache.get(list);
+
+    if (cached?.key === key) {
+      return cached.result;
+    }
+
+    const result = (!text && !this.campusFilter && !this.fileFilter)
+      ? list
+      : list.filter(student =>
+        (!text || [student.fullName, student.code, student.number, student.id_student, student.cellphone].some(value => String(value ?? '').toLowerCase().includes(text)))
+        && (!this.campusFilter || this.getCampusLabel(student) === this.campusFilter)
+        && (this.fileFilter !== 'no-photo' || !student.photo)
+        && (this.fileFilter !== 'no-dni' || !student.dni));
+
+    this.filterCache.set(list, {key, result});
+    return result;
+  }
+
+  openRowMenu(event: Event, student: StudentCard, kind: 'pending' | 'flagged' | 'validated'): void {
+    const items: MenuItem[] = [];
+
+    if (kind !== 'validated') {
+      items.push({label: 'Editar datos del estudiante', icon: 'pi pi-pencil', command: () => this.openEditStudentDialog(student)});
+    }
+    if (kind === 'pending') {
+      items.push({label: 'Descargar foto', icon: 'pi pi-download', command: () => this.downloadStudentPhoto(student)});
+    }
+    if (kind !== 'pending') {
+      items.push({label: 'Excluir estudiante', icon: 'pi pi-times', command: () => this.pendingCardStudent(student, kind)});
+    }
+
+    this.rowMenuItems = items;
+    this.rowMenu?.toggle(event);
+  }
+
+  // ================= Navegación de la revisión =================
+
+  get reviewPosition(): number {
+    return this.reviewQueue.findIndex(item => item.id === this.reviewStudent?.id) + 1;
+  }
+
+  get reviewTotal(): number {
+    return this.reviewQueue.length;
+  }
+
+  get hasPrevReview(): boolean {
+    return this.reviewPosition > 1;
+  }
+
+  get hasNextReview(): boolean {
+    return this.reviewPosition > 0 && this.reviewPosition < this.reviewQueue.length;
+  }
+
+  goToReview(delta: number): void {
+    const target = this.reviewQueue[this.reviewPosition - 1 + delta];
+    if (target) {
+      this.openReviewDialog(target, this.reviewQueue);
+    }
+  }
+
+  /** Tras validar u observar se pasa al siguiente estudiante de la cola (o al anterior si era el último); si no queda ninguno, se cierra. */
+  private advanceReview(done: StudentCard): void {
+    const index = this.reviewQueue.findIndex(item => item.id === done.id);
+    const remaining = this.reviewQueue.filter(item => item.id !== done.id);
+    const next = remaining[index] ?? remaining[index - 1];
+
+    this.reviewQueue = remaining;
+
+    if (next) {
+      this.openReviewDialog(next, remaining);
+    } else {
+      this.closeReviewDialog();
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onReviewKeydown(event: KeyboardEvent): void {
+    if (!this.reviewDialogVisible || event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+
+    const active = document.activeElement;
+    const typing = active instanceof HTMLElement && active.matches('input, textarea, select, [contenteditable="true"], .p-multiselect, .p-select');
+
+    if (typing || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) {
+      return;
+    }
+
+    event.preventDefault();
+    this.goToReview(event.key === 'ArrowLeft' ? -1 : 1);
+  }
+
+  openReviewDialog(student: StudentCard, queue?: StudentCard[]): void {
+    this.reviewQueue = [...(queue ?? this.reviewQueueFor(student))];
     this.reviewStudent = student;
     this.reviewDialogVisible = true;
     this.selectedFlags = [];
@@ -474,9 +632,17 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.loadReviewDni(student);
   }
 
+  /** La cola de la revisión es la lista (con sus filtros) desde la que se abrió: pendientes u observados. */
+  private reviewQueueFor(student: StudentCard): StudentCard[] {
+    const lists = [this.pendingStudents, this.flaggedStudents];
+    const source = lists.find(list => list.some(item => item.id === student.id));
+    return source ? this.filtered(source) : [student];
+  }
+
   closeReviewDialog(): void {
     this.reviewDialogVisible = false;
     this.reviewStudent = undefined;
+    this.reviewQueue = [];
     this.selectedFlags = [];
     this.selectedPhotoFlags = [];
     this.selectedDniFlags = [];
@@ -1017,7 +1183,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         if (data.status === STATUS.success) {
           this.validatedStudents.push(student);
           this.pendingStudents = this.pendingStudents.filter(s => s.id !== student.id);
-          this.closeReviewDialog();
+          this.advanceReview(student);
         }
         this.notificationService.notifyApiData(data);
       },
@@ -1081,7 +1247,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           }
           this.pendingStudents = this.pendingStudents.filter(s => s.id !== student.id);
           this.flaggedStudents.push(student);
-          this.closeReviewDialog();
+          this.advanceReview(student);
         }
         this.notificationService.notifyApiData(data);
       },
