@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {DropdownModule} from 'primeng/dropdown';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {NgIf} from '@angular/common';
 import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
@@ -13,19 +12,20 @@ import {DatePicker} from 'primeng/datepicker';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {STATUS} from '../../../../core/constants/api-status.constants';
 import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards/staff-attendance-cards.component';
+import {StaffAttendanceSkeletonComponent} from '../../shared/staff-attendance-skeleton/staff-attendance-skeleton.component';
 
 @Component({
   selector: 'app-attendance-user',
   imports: [
     DropdownModule,
     ReactiveFormsModule,
-    ProgressSpinnerModule,
     NgIf,
     FormsModule,
     CalendarModule,
     ButtonModule,
     DatePicker,
     StaffAttendanceCardsComponent,
+    StaffAttendanceSkeletonComponent,
   ],
   templateUrl: './attendance-user.component.html',
   styleUrl: './attendance-user.component.css'

@@ -130,9 +130,7 @@
   </p-message>
 </p-card>
 
-<div *ngIf="loading" class="flex justify-content-center py-5">
-  <p-progressSpinner></p-progressSpinner>
-</div>
+<app-staff-attendance-skeleton *ngIf="loading"></app-staff-attendance-skeleton>
 
 <app-staff-attendance-cards
   *ngIf="!loading"

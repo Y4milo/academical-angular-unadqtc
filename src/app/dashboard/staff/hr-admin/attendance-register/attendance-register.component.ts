@@ -7,6 +7,7 @@ import {SelectModule} from 'primeng/select';
 import {TagModule} from 'primeng/tag';
 import {TableModule} from 'primeng/table';
 import {MessageModule} from 'primeng/message';
+import {SkeletonModule} from 'primeng/skeleton';
 import {
   AttendanceService,
   ManualAttendanceResult,
@@ -33,7 +34,7 @@ const SCANNER_MAX_MS_PER_KEY = 35;
 @Component({
   selector: 'app-attendance-register',
   standalone: true,
-  imports: [FormsModule, ButtonModule, InputTextModule, TextareaModule, SelectModule, TagModule, TableModule, MessageModule],
+  imports: [FormsModule, ButtonModule, InputTextModule, TextareaModule, SelectModule, TagModule, TableModule, MessageModule, SkeletonModule],
   templateUrl: './attendance-register.component.html',
   styleUrl: './attendance-register.component.css',
 })

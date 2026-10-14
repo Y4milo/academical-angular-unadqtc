@@ -3,7 +3,6 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {AttendanceService, StaffAttendancePerson, StaffSearchResult} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {Attendance} from '../../../../models/attendance.model';
-import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
 import {TableModule} from 'primeng/table';
@@ -19,6 +18,7 @@ import {STATUS} from '../../../../core/constants/api-status.constants';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {DatePicker} from 'primeng/datepicker';
 import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards/staff-attendance-cards.component';
+import {StaffAttendanceSkeletonComponent} from '../../shared/staff-attendance-skeleton/staff-attendance-skeleton.component';
 
 // @ts-ignore
 @Component({
@@ -26,7 +26,6 @@ import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards
   imports: [
     ReactiveFormsModule,
     TableModule,
-    ProgressSpinnerModule,
     NgIf,
     FormsModule,
     CalendarModule,
@@ -40,6 +39,7 @@ import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards
     SelectButtonModule,
     DatePicker,
     StaffAttendanceCardsComponent,
+    StaffAttendanceSkeletonComponent,
   ],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
