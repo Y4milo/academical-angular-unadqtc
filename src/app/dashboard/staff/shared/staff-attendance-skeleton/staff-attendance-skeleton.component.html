@@ -1,0 +1,29 @@
+<div class="skeleton-grid" role="status" aria-live="polite" aria-label="Cargando asistencias">
+  @for (item of items; track item) {
+    <p-card styleClass="skeleton-card">
+      <ng-template pTemplate="header">
+        <div class="skeleton-head">
+          <div class="skeleton-date">
+            <p-skeleton width="2rem" height="1.8rem"></p-skeleton>
+            <div class="skeleton-stack">
+              <p-skeleton width="4rem" height="0.8rem"></p-skeleton>
+              <p-skeleton width="3rem" height="0.7rem"></p-skeleton>
+            </div>
+          </div>
+          <p-skeleton width="5rem" height="0.9rem"></p-skeleton>
+        </div>
+      </ng-template>
+
+      <p-skeleton width="6rem" height="1.4rem" borderRadius="999px" styleClass="skeleton-campus"></p-skeleton>
+
+      @for (row of [0, 1]; track row) {
+        <div class="skeleton-tick">
+          <p-skeleton shape="circle" size="1.7rem"></p-skeleton>
+          <p-skeleton width="4rem" height="1rem"></p-skeleton>
+          <p-skeleton width="3.5rem" height="0.9rem"></p-skeleton>
+          <p-skeleton width="5.5rem" height="1.2rem" borderRadius="999px"></p-skeleton>
+        </div>
+      }
+    </p-card>
+  }
+</div>

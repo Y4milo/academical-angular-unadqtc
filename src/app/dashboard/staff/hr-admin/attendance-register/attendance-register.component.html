@@ -68,7 +68,17 @@
   }
 </div>
 
-@if (result) {
+@if (sending) {
+  <div class="register-result register-result-loading" role="status" aria-live="polite" aria-label="Registrando asistencia">
+    <p-skeleton shape="circle" size="2.75rem"></p-skeleton>
+    <div class="register-result-body">
+      <p-skeleton width="60%" height="1.1rem"></p-skeleton>
+      <p-skeleton width="40%" height="0.8rem" styleClass="register-skeleton-line"></p-skeleton>
+      <p-skeleton width="9rem" height="1.4rem" borderRadius="999px" styleClass="register-skeleton-line"></p-skeleton>
+    </div>
+    <p-skeleton width="3rem" height="1.6rem"></p-skeleton>
+  </div>
+} @else if (result) {
   <div class="register-result" [class]="'register-result register-result-' + severity(result.slot.status)" aria-live="polite">
     <div class="register-avatar" aria-hidden="true">{{ result.person.full_name.charAt(0) }}</div>
     <div class="register-result-body">
@@ -107,7 +117,7 @@
 
 <div class="register-today">
   <h4>Últimas lecturas de hoy</h4>
-  <p-table [value]="today" [loading]="loadingToday" styleClass="p-datatable-sm" [tableStyle]="{ 'min-width': '40rem' }">
+  <p-table [value]="loadingToday ? [] : today" styleClass="p-datatable-sm" [tableStyle]="{ 'min-width': '40rem' }">
     <ng-template pTemplate="header">
       <tr>
         <th>Hora</th>
@@ -131,7 +141,21 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr><td colspan="7" class="text-center register-hint">Todavía no hay registros manuales hoy.</td></tr>
+      @if (loadingToday) {
+        @for (item of [1, 2, 3]; track item) {
+          <tr>
+            <td><p-skeleton width="2.5rem"></p-skeleton></td>
+            <td><p-skeleton width="4.5rem"></p-skeleton></td>
+            <td><p-skeleton width="10rem"></p-skeleton></td>
+            <td><p-skeleton width="5rem"></p-skeleton></td>
+            <td><p-skeleton width="5.5rem" borderRadius="999px"></p-skeleton></td>
+            <td><p-skeleton width="3.5rem"></p-skeleton></td>
+            <td><p-skeleton width="12rem"></p-skeleton></td>
+          </tr>
+        }
+      } @else {
+        <tr><td colspan="7" class="text-center register-hint">Todavía no hay registros manuales hoy.</td></tr>
+      }
     </ng-template>
   </p-table>
 </div>

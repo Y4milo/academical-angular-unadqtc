@@ -57,6 +57,14 @@
   border-radius: 12px;
 }
 
+.register-result-loading {
+  border-left-color: var(--p-content-border-color);
+}
+
+:host ::ng-deep .register-skeleton-line {
+  margin-top: 0.5rem;
+}
+
 .register-result-success { border-left-color: var(--p-green-500, #22c55e); }
 .register-result-warn { border-left-color: var(--p-amber-500, #f59e0b); }
 .register-result-danger { border-left-color: var(--p-red-500, #ef4444); }
