@@ -7,6 +7,13 @@
     <p-tag value="Solo lectura" severity="info"></p-tag>
   </div>
 
+  <p-message *ngIf="ipNotVerified" severity="warn" styleClass="ip-warning">
+    <span class="ip-warning-text">
+      <app-lucide-icon name="triangle-alert" [size]="18"></app-lucide-icon>
+      <span><strong>IP de origen sin verificar.</strong> Las ultimas llamadas figuran como 127.0.0.1 porque el servidor esta detras de un proxy. Revisa la configuracion de proxy de confianza.</span>
+    </span>
+  </p-message>
+
   <div class="summary-grid" *ngIf="summary && !summaryLoading">
     <p-card styleClass="summary-card">
       <span>Total operaciones</span>
@@ -23,6 +30,14 @@
     <p-card styleClass="summary-card">
       <span>Ultima operacion</span>
       <strong>{{ summary.latest_transaction?.display_date || 'Sin registros' }}</strong>
+    </p-card>
+    <p-card styleClass="summary-card">
+      <span>IP distintas</span>
+      <strong>{{ summary.ips.distinct }}</strong>
+    </p-card>
+    <p-card styleClass="summary-card" [ngClass]="{ warn: summary.ips.unknown > 0 }">
+      <span>IP desconocidas</span>
+      <strong>{{ summary.ips.unknown }}</strong>
     </p-card>
   </div>
 
@@ -66,13 +81,24 @@
         </p-select>
       </div>
 
+      <div class="field">
+        <label>Origen</label>
+        <p-select
+          [(ngModel)]="origin"
+          [options]="originOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body">
+        </p-select>
+      </div>
+
       <div class="field search-field">
         <label>Busqueda</label>
         <input
           pInputText
           type="text"
           [(ngModel)]="search"
-          placeholder="Buscar por mensaje, archivo o ruta" />
+          placeholder="Buscar por mensaje, archivo, ruta o IP" />
       </div>
 
       <div class="filter-actions">
@@ -112,16 +138,17 @@
         <tr>
           <th style="width: 8rem">Hora</th>
           <th>Operacion y archivo</th>
-          <th style="width: 13rem">Fechas</th>
+          <th style="width: 13rem">Origen</th>
           <th>Estado y mensaje</th>
           <th>Usuario</th>
           <th style="width: 14rem">Archivo local</th>
+          <th style="width: 4rem"></th>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="groupheader" let-row>
         <tr pRowGroupHeader>
-          <td colspan="6">
+          <td colspan="7">
             <div class="day-group">
               <strong>Operaciones del {{ row.day_label }}</strong>
               <span>{{ getDayCountLabel(row) }}</span>
@@ -158,15 +185,14 @@
             </div>
           </td>
           <td>
-            <div class="dates-cell">
-              <div>
-                <span>Operacion</span>
-                <strong>{{ getOperationDateLabel(row) }}</strong>
-              </div>
-              <div>
-                <span>Solicitada</span>
-                <strong>{{ getRequestedDateLabel(row) }}</strong>
-              </div>
+            <div class="origin-cell">
+              <span class="origin-ip">{{ row.ip_address || 'Sin IP' }}</span>
+              <p-tag [severity]="getOriginSeverity(row.ip_status)">
+                <span class="tag-content">
+                  <app-lucide-icon [name]="getOriginIcon(row.ip_status)" [size]="14"></app-lucide-icon>
+                  {{ getOriginLabel(row.ip_status) }}
+                </span>
+              </p-tag>
             </div>
           </td>
           <td>
@@ -198,14 +224,70 @@
               <span>{{ row.file_path ? getFileBasename(row.file_path) : 'Sin archivo local' }}</span>
             </div>
           </td>
+          <td>
+            <button
+              pButton
+              type="button"
+              class="detail-button"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              aria-label="Ver detalle"
+              (click)="openDetail(row)">
+              <app-lucide-icon name="chevron-right" [size]="18"></app-lucide-icon>
+            </button>
+          </td>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="6" class="empty-message">No hay registros para los filtros seleccionados.</td>
+          <td colspan="7" class="empty-message">No hay registros para los filtros seleccionados.</td>
         </tr>
       </ng-template>
     </p-table>
   </p-card>
+
+  <p-drawer [(visible)]="detailVisible" position="right" header="Detalle del intento" styleClass="bn-detail-drawer">
+    <div class="detail-body" *ngIf="selected as t">
+      <div class="detail-status">
+        <p-tag [value]="t.status.label || t.status.value || 'Sin estado'" [severity]="getSeverity(t.status.value)"></p-tag>
+        <p-tag [severity]="getOriginSeverity(t.ip_status)">
+          <span class="tag-content">
+            <app-lucide-icon [name]="getOriginIcon(t.ip_status)" [size]="14"></app-lucide-icon>
+            {{ getOriginLabel(t.ip_status) }}
+          </span>
+        </p-tag>
+      </div>
+      <p class="detail-message">{{ t.message || 'Sin mensaje' }}</p>
+
+      <dl class="detail-list">
+        <div><dt>Operacion</dt><dd>{{ t.operation.label || t.operation.value || '-' }}</dd></div>
+        <div><dt>Registrado</dt><dd>{{ getOperationDateLabel(t) }}</dd></div>
+        <div><dt>Fecha solicitada</dt><dd>{{ getRequestedDateLabel(t) }}</dd></div>
+        <div><dt>IP de origen</dt><dd class="mono">{{ t.ip_address || 'Sin IP' }}</dd></div>
+        <div><dt>Cliente</dt><dd class="mono">{{ t.user_agent || '-' }}</dd></div>
+        <div><dt>Usuario del sistema</dt><dd>{{ t.user.full_name || 'Sistema' }} {{ t.user.number }}</dd></div>
+        <div><dt>Archivo</dt><dd>{{ t.file_name || 'Sin archivo' }}</dd></div>
+        <div><dt>Intento</dt><dd>{{ t.attempt }}</dd></div>
+      </dl>
+
+      <div class="detail-extra" *ngIf="getExtraPretty(t)">
+        <span>Datos adicionales</span>
+        <pre>{{ getExtraPretty(t) }}</pre>
+      </div>
+
+      <div class="detail-actions">
+        <button
+          pButton
+          type="button"
+          class="icon-label-button"
+          [disabled]="!t.has_local_file || downloadingId === t.id"
+          (click)="downloadFile(t)">
+          <app-lucide-icon name="download" [size]="16"></app-lucide-icon>
+          <span>{{ downloadingId === t.id ? 'Descargando' : 'Descargar archivo' }}</span>
+        </button>
+      </div>
+    </div>
+  </p-drawer>
 </div>

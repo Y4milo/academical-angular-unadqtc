@@ -1,18 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIf } from '@angular/common';
+import { NgClass, NgIf } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DatePicker } from 'primeng/datepicker';
+import { Drawer } from 'primeng/drawer';
 import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { AppLucideIconComponent } from '../../../../core/components/lucide-icon/lucide-icon.component';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import {
   AccountingBnFilter,
+  AccountingBnIpStatus,
   AccountingBnListResponse,
   AccountingBnService,
   AccountingBnSummary,
@@ -34,9 +38,13 @@ type AccountingBnTransactionView = AccountingBnTransaction & {
   imports: [
     ButtonModule,
     CardModule,
+    AppLucideIconComponent,
     DatePicker,
+    Drawer,
     FormsModule,
     InputTextModule,
+    MessageModule,
+    NgClass,
     NgIf,
     ProgressSpinnerModule,
     Select,
@@ -55,6 +63,12 @@ export class BnIncidentsComponent implements OnInit {
     { label: 'Validacion REP', value: 'process-result' },
     { label: 'Duplicados DUP', value: 'duplicate' },
   ];
+  readonly originOptions: SelectOption[] = [
+    { label: 'Todos', value: '' },
+    { label: 'Autorizadas', value: 'allowed' },
+    { label: 'Desconocidas', value: 'unknown' },
+    { label: 'Sin verificar', value: 'unverified' },
+  ];
   readonly statusOptions: SelectOption[] = [
     { label: 'Todos', value: '' },
     { label: 'Exitosos', value: 'success' },
@@ -63,12 +77,15 @@ export class BnIncidentsComponent implements OnInit {
   dateRange: Date[] = [];
   operation = '';
   status = '';
+  origin = '';
   search = '';
   page = 1;
   perPage = 20;
   loading = false;
   summaryLoading = false;
   downloadingId: number | null = null;
+  detailVisible = false;
+  selected: AccountingBnTransaction | null = null;
   summary: AccountingBnSummary | null = null;
   list: AccountingBnListResponse = {
     items: [],
@@ -132,6 +149,7 @@ export class BnIncidentsComponent implements OnInit {
     this.dateRange = [];
     this.operation = '';
     this.status = '';
+    this.origin = '';
     this.search = '';
     this.loadData(1);
   }
@@ -179,6 +197,46 @@ export class BnIncidentsComponent implements OnInit {
     }
 
     return 'secondary';
+  }
+
+  openDetail(transaction: AccountingBnTransaction): void {
+    this.selected = transaction;
+    this.detailVisible = true;
+  }
+
+  getOriginLabel(status: AccountingBnIpStatus | null | undefined): string {
+    switch (status) {
+      case 'allowed':
+        return 'Autorizada';
+      case 'unknown':
+        return 'Desconocida';
+      default:
+        return 'Sin verificar';
+    }
+  }
+
+  getOriginSeverity(status: AccountingBnIpStatus | null | undefined): 'success' | 'warn' | 'secondary' {
+    if (status === 'allowed') {
+      return 'success';
+    }
+
+    return status === 'unknown' ? 'warn' : 'secondary';
+  }
+
+  getOriginIcon(status: AccountingBnIpStatus | null | undefined): string {
+    if (status === 'allowed') {
+      return 'shield-check';
+    }
+
+    return status === 'unknown' ? 'shield-alert' : 'shield-question';
+  }
+
+  get ipNotVerified(): boolean {
+    return this.summary?.latest_transaction?.ip_status === 'unverified';
+  }
+
+  getExtraPretty(transaction: AccountingBnTransaction): string {
+    return transaction.extra_data ? JSON.stringify(transaction.extra_data, null, 2) : '';
   }
 
   getFileType(transaction: AccountingBnTransaction): string {
@@ -302,6 +360,7 @@ export class BnIncidentsComponent implements OnInit {
       end_date: range.endDate,
       operation: this.operation,
       status: this.status,
+      ip_status: this.origin,
       search: this.search,
       page: this.page,
       per_page: this.perPage,

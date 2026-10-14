@@ -10,6 +10,7 @@ export interface AccountingBnFilter {
   operation?: string;
   status?: string;
   file_type?: string;
+  ip_status?: string;
   search?: string;
   page?: number;
   per_page?: number;
@@ -20,6 +21,24 @@ export interface AccountingBnOptionTotal {
   label?: string;
   file_type?: string;
   total: number;
+}
+
+export type AccountingBnIpStatus = 'allowed' | 'unknown' | 'unverified';
+
+export interface AccountingBnIpItem {
+  ip_address: string;
+  status: AccountingBnIpStatus;
+  total: number;
+  last_seen: string | null;
+}
+
+export interface AccountingBnIpSummary {
+  items: AccountingBnIpItem[];
+  distinct: number;
+  unknown: number;
+  unverified_total: number;
+  allowed_ips: string[];
+  blocks_unknown: boolean;
 }
 
 export interface AccountingBnTransaction {
@@ -44,6 +63,9 @@ export interface AccountingBnTransaction {
   message: string | null;
   attempt: number;
   extra_data: Record<string, unknown> | null;
+  ip_address: string | null;
+  ip_status: AccountingBnIpStatus;
+  user_agent: string | null;
   user: {
     id: number | null;
     number: string | null;
@@ -59,6 +81,42 @@ export interface AccountingBnSummary {
   latest_incident: AccountingBnTransaction | null;
   by_operation: AccountingBnOptionTotal[];
   by_file_type: AccountingBnOptionTotal[];
+  ips: AccountingBnIpSummary;
+}
+
+export interface AccountingBnOrigin {
+  id: number;
+  ip_address: string;
+  label: string | null;
+  notes: string | null;
+  is_active: boolean;
+  total: number;
+  last_seen: string | null;
+}
+
+export interface AccountingBnDetectedIp {
+  ip_address: string;
+  total: number;
+  last_seen: string | null;
+}
+
+export interface AccountingBnConfigLog {
+  action: string;
+  subject: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string | null;
+  staff: string | null;
+}
+
+export interface AccountingBnConfig {
+  block_unknown_ips: boolean;
+  origins: AccountingBnOrigin[];
+  detected: AccountingBnDetectedIp[];
+  logs: AccountingBnConfigLog[];
+  connection: {
+    sftp_host: string | null;
+    upload_cutoff: string;
+  };
 }
 
 export interface AccountingBnPagination {
@@ -95,6 +153,35 @@ export class AccountingBnService {
       `${this.apiURL}/accounting/bn/transactions`,
       { params: this.toParams(filters) }
     );
+  }
+
+  config(): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.get<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config`);
+  }
+
+  addOrigin(body: { ip_address: string; label?: string; notes?: string }): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.post<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/origins`, body);
+  }
+
+  updateOrigin(
+    id: number,
+    body: { label?: string | null; notes?: string | null; is_active?: boolean },
+  ): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.patch<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/origins/${id}`, body);
+  }
+
+  removeOrigin(id: number): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.delete<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/origins/${id}`);
+  }
+
+  ignoreIp(ipAddress: string): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.post<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/ignore`, { ip_address: ipAddress });
+  }
+
+  setMode(blockUnknownIps: boolean): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.patch<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/mode`, {
+      block_unknown_ips: blockUnknownIps,
+    });
   }
 
   download(transactionId: number): Observable<Blob> {

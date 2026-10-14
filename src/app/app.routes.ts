@@ -43,6 +43,7 @@ import {
 import {
   BnIncidentsComponent
 } from './dashboard/staff/accounting/bn-incidents/bn-incidents.component';
+import {BnConfigComponent} from './dashboard/staff/accounting/bn-config/bn-config.component';
 import {
   AccountingLayOutComponentComponent
 } from './dashboard/staff/accounting/accounting-lay-out-component/accounting-lay-out-component.component';
@@ -127,6 +128,10 @@ export const routes: Routes = [
       {
         path: PATHS.admin.accounting.bank.incidents.path,
         component: BnIncidentsComponent
+      },
+      {
+        path: PATHS.admin.accounting.bank.config.path,
+        component: BnConfigComponent
       },
       {
         path: PATHS.admin.degreesTitles.generalData.path,

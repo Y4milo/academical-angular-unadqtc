@@ -1,0 +1,188 @@
+<div class="bn-config">
+  <div class="page-heading">
+    <div>
+      <h2>Configuración del Banco de la Nación</h2>
+      <p>Quién puede usar la API y qué pasa con los orígenes desconocidos.</p>
+    </div>
+    <button pButton type="button" class="icon-label-button" (click)="openAdd()">
+      <app-lucide-icon name="plus" [size]="16"></app-lucide-icon>
+      <span>Agregar origen</span>
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="skeletons">
+    <p-skeleton height="5rem"></p-skeleton>
+    <p-skeleton height="10rem"></p-skeleton>
+  </div>
+
+  <ng-container *ngIf="config as c">
+    <p-card styleClass="config-card">
+      <div class="mode-row">
+        <div>
+          <strong>Cuando llega una IP desconocida</strong>
+          <p>
+            <ng-container *ngIf="!blocking">Hoy solo se marca en Incidencias; la petición se procesa igual.</ng-container>
+            <ng-container *ngIf="blocking">Se rechaza con error 403 y queda registrada en Incidencias.</ng-container>
+          </p>
+        </div>
+        <p-selectButton
+          [options]="modeOptions"
+          [ngModel]="blocking"
+          (ngModelChange)="onModeChange($event)"
+          optionLabel="label"
+          optionValue="value"
+          [allowEmpty]="false"
+          [disabled]="saving">
+        </p-selectButton>
+      </div>
+    </p-card>
+
+    <p-card styleClass="config-card">
+      <div class="section-title">
+        <strong>Orígenes autorizados</strong>
+        <span>{{ c.origins.length }} registrados</span>
+      </div>
+
+      <div class="empty-block" *ngIf="!c.origins.length">
+        <p>Aún no hay orígenes autorizados. Agrega el servidor del sistema Recaudación.</p>
+      </div>
+
+      <div class="origin-list">
+        <div class="origin-item" *ngFor="let origin of c.origins" [class.inactive]="!origin.is_active">
+          <div class="origin-main">
+            <span class="origin-ip">{{ origin.ip_address }}</span>
+            <strong>{{ origin.label || 'Sin nombre' }}</strong>
+            <small>
+              {{ origin.last_seen ? 'Última actividad ' + origin.last_seen : 'Sin actividad registrada' }}
+              <ng-container *ngIf="origin.total"> · {{ origin.total }} registros</ng-container>
+            </small>
+          </div>
+          <div class="origin-state">
+            <p-tag [severity]="origin.is_active ? 'success' : 'secondary'">
+              <span class="tag-content">
+                <app-lucide-icon [name]="origin.is_active ? 'shield-check' : 'ban'" [size]="14"></app-lucide-icon>
+                {{ origin.is_active ? 'Autorizada' : 'Desactivada' }}
+              </span>
+            </p-tag>
+            <p-toggleswitch
+              [ngModel]="origin.is_active"
+              (ngModelChange)="toggleActive(origin, $event)"
+              [disabled]="saving"
+              [attr.aria-label]="'Activar ' + origin.ip_address">
+            </p-toggleswitch>
+          </div>
+          <div class="origin-actions">
+            <button pButton type="button" severity="secondary" [text]="true" [rounded]="true" aria-label="Editar" (click)="openEdit(origin)">
+              <app-lucide-icon name="pencil" [size]="16"></app-lucide-icon>
+            </button>
+            <button pButton type="button" severity="danger" [text]="true" [rounded]="true" aria-label="Eliminar" (click)="askDelete(origin)">
+              <app-lucide-icon name="trash" [size]="16"></app-lucide-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card styleClass="config-card">
+      <div class="section-title">
+        <strong>Detectadas sin autorizar</strong>
+        <p-tag *ngIf="c.detected.length" severity="warn" [value]="'' + c.detected.length"></p-tag>
+      </div>
+
+      <div class="empty-block" *ngIf="!c.detected.length">
+        <p>No hay IP nuevas. Todas las llamadas vienen de orígenes conocidos.</p>
+      </div>
+
+      <div class="detected-item" *ngFor="let ip of c.detected">
+        <div class="origin-main">
+          <span class="origin-ip">{{ ip.ip_address }}</span>
+          <small>{{ ip.total }} intentos · última vez {{ ip.last_seen }}</small>
+        </div>
+        <div class="detected-actions">
+          <button pButton type="button" class="icon-label-button" size="small" (click)="openAdd(ip.ip_address)">
+            <app-lucide-icon name="check" [size]="16"></app-lucide-icon>
+            <span>Autorizar</span>
+          </button>
+          <button pButton type="button" class="icon-label-button" size="small" severity="secondary" [outlined]="true" [disabled]="saving" (click)="ignore(ip)">
+            <app-lucide-icon name="eye-off" [size]="16"></app-lucide-icon>
+            <span>Ignorar</span>
+          </button>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card styleClass="config-card">
+      <div class="section-title"><strong>Conexión con el banco</strong><span>Solo lectura</span></div>
+      <dl class="info-grid">
+        <div><dt>Servidor SFTP</dt><dd class="mono">{{ c.connection.sftp_host || 'No configurado' }}</dd></div>
+        <div><dt>Horario de recepción</dt><dd>Hasta las {{ c.connection.upload_cutoff }}</dd></div>
+      </dl>
+    </p-card>
+
+    <p-card styleClass="config-card" *ngIf="c.logs.length">
+      <div class="section-title"><strong>Cambios recientes</strong><span>Últimos {{ c.logs.length }}</span></div>
+      <ul class="log-list">
+        <li *ngFor="let log of c.logs">
+          <span>{{ describe(log) }}</span>
+          <small>{{ log.staff || 'Sistema' }} · {{ log.created_at }}</small>
+        </li>
+      </ul>
+    </p-card>
+  </ng-container>
+
+  <p-dialog
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '28rem', maxWidth: '95vw' }"
+    [header]="editing ? 'Editar origen' : 'Agregar origen'">
+    <div class="form">
+      <div class="field">
+        <label for="bn-ip">IP</label>
+        <input pInputText id="bn-ip" [(ngModel)]="form.ip_address" [disabled]="!!editing" placeholder="172.16.100.13" />
+      </div>
+      <div class="field">
+        <label for="bn-label">Nombre</label>
+        <input pInputText id="bn-label" [(ngModel)]="form.label" maxlength="120" placeholder="Sistema Recaudación" />
+      </div>
+      <div class="field">
+        <label for="bn-notes">Notas</label>
+        <input pInputText id="bn-notes" [(ngModel)]="form.notes" maxlength="500" placeholder="Opcional" />
+      </div>
+      <small class="form-error" *ngIf="formError">{{ formError }}</small>
+    </div>
+    <ng-template pTemplate="footer">
+      <button pButton type="button" severity="secondary" [text]="true" (click)="dialogVisible = false">Cancelar</button>
+      <button pButton type="button" [disabled]="saving" (click)="save()">Guardar</button>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [visible]="!!deleteTarget"
+    (visibleChange)="!$event && (deleteTarget = null)"
+    [modal]="true"
+    header="Eliminar origen"
+    [style]="{ width: '26rem', maxWidth: '95vw' }">
+    <p>¿Eliminar <strong class="mono">{{ deleteTarget?.ip_address }}</strong>? Sus próximas llamadas se marcarán como desconocidas.</p>
+    <ng-template pTemplate="footer">
+      <button pButton type="button" severity="secondary" [text]="true" (click)="deleteTarget = null">Cancelar</button>
+      <button pButton type="button" severity="danger" (click)="confirmDelete()">Eliminar</button>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [(visible)]="blockConfirmVisible"
+    [modal]="true"
+    header="Activar el modo Bloquear"
+    [style]="{ width: '30rem', maxWidth: '95vw' }">
+    <p-message severity="warn" styleClass="block-warning">
+      <span class="warning-text">
+        <app-lucide-icon name="triangle-alert" [size]="18"></app-lucide-icon>
+        <span>Las llamadas desde cualquier IP que no esté autorizada recibirán un error 403. Confirma antes con el equipo de Recaudación que su IP está en la lista.</span>
+      </span>
+    </p-message>
+    <ng-template pTemplate="footer">
+      <button pButton type="button" severity="secondary" [text]="true" (click)="blockConfirmVisible = false">Cancelar</button>
+      <button pButton type="button" severity="danger" (click)="confirmBlock()">Activar Bloquear</button>
+    </ng-template>
+  </p-dialog>
+</div>
