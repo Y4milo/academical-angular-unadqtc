@@ -4,6 +4,7 @@ import {Router} from '@angular/router';
 import {catchError, throwError} from 'rxjs';
 import {PATHS} from '../core/constants/app-paths.constants';
 import {ROLE} from '../core/constants/app-roles.constants';
+import {safeReturnUrl} from '../core/utils/return-url.util';
 import {LoginService} from '../services/login.service';
 
 const SESSION_EXPIRED_STATUSES = [401, 419];
@@ -26,8 +27,11 @@ export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
           ? PATHS.login.student
           : PATHS.login.staff;
 
+        // Sesión vencida: tras volver a entrar se regresa a la página donde estaba.
+        const returnUrl = safeReturnUrl(router.url);
+
         loginService.removeUser();
-        router.navigateByUrl(loginPath);
+        router.navigate([loginPath], returnUrl ? {queryParams: {returnUrl}} : {});
       }
 
       return throwError(() => error);

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
+import {navigateAfterLogin} from '../../../core/utils/return-url.util';
 import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {UsersService} from '../../../services/users.service';
@@ -30,6 +31,7 @@ export class LoginStaffComponent {
   constructor(
     private notificationService: NotificationService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private usersService: UsersService,
     private loginService: LoginService
   ) {}
@@ -51,7 +53,7 @@ export class LoginStaffComponent {
           setTimeout(() => {
             // console.log('route after: ' + route)
             // console.log('staff_user.role.value: ' + staff_user.role.value);
-            this.router.navigate([route]);
+            navigateAfterLogin(this.router, this.activatedRoute.snapshot.queryParamMap.get('returnUrl'), route);
           }, 2000);
         }
         this.notificationService.notifyApiData(loginUserData);
