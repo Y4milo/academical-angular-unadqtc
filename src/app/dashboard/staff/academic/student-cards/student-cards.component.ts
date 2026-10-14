@@ -1,4 +1,4 @@
-import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {StudentCard} from '../../../../models/student/student-card.model';
 import {AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {TableModule} from 'primeng/table';
@@ -35,6 +35,7 @@ import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lu
 import {finalize} from 'rxjs';
 import {SkeletonModule} from 'primeng/skeleton';
 import {MenuModule, Menu} from 'primeng/menu';
+import {PaginatorModule, PaginatorState} from 'primeng/paginator';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
@@ -65,6 +66,7 @@ import {MenuItem} from 'primeng/api';
     TagModule,
     SkeletonModule,
     MenuModule,
+    PaginatorModule,
     ProgressBarModule,
     IconFieldModule,
     InputIconModule,
@@ -141,6 +143,15 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   private campusOptionsCache: {key: string; value: string[]} = {key: '', value: []};
   private readonly filterCache = new WeakMap<StudentCard[], {key: string; result: StudentCard[]}>();
 
+  // ---- Paginación de las listas en tarjetas
+  private readonly ngZone = inject(NgZone);
+  readonly pageSizes = [12, 24, 48];
+  pages: Record<'pending' | 'flagged' | 'unmatched', {first: number; rows: number}> = {
+    pending: {first: 0, rows: 12},
+    flagged: {first: 0, rows: 12},
+    unmatched: {first: 0, rows: 12},
+  };
+
   // ---- Menú de acciones por fila
   @ViewChild('rowMenu') private rowMenu?: Menu;
   rowMenuItems: MenuItem[] = [];
@@ -151,6 +162,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   /** Cada lista (pendientes, validados, observados, sin registro) carga por separado: mientras tanto se muestran esqueletos. */
   loadingLists = {pending: false, validated: false, flagged: false, unmatched: false};
   private loadingPhotoIds = new Set<number>();
+  /** Fotos cuya imagen no cargó: se muestra el recuadro neutro en lugar del texto alternativo. */
+  private brokenPhotoIds = new Set<number>();
   private observationsMultiSelectTimer?: ReturnType<typeof setTimeout>;
   constructor(
     private studentCardService: StudentCardService,
@@ -424,11 +437,17 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     return !!student?.id && !this.photoPreviewUrls[student.id] && this.loadingPhotoIds.has(student.id);
   }
 
+  /** Hay una foto para mostrar: la descargada o la de un semestre anterior. */
+  hasStudentPhoto(student: StudentCard): boolean {
+    return !this.brokenPhotoIds.has(student.id) && !!(this.photoPreviewUrls[student.id] ?? student.previous_photo_url);
+  }
+
   getStudentPhotoUrl(student: StudentCard): string {
     return this.photoPreviewUrls[student.id] ?? student.previous_photo_url ?? this.fallbackPhotoUrl;
   }
 
   onStudentPhotoError(student: StudentCard): void {
+    this.brokenPhotoIds.add(student.id);
     this.revokeStudentPhotoPreview(student.id);
   }
 
@@ -543,6 +562,39 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
     this.filterCache.set(list, {key, result});
     return result;
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!this.searchText.trim() || !!this.campusFilter || !!this.fileFilter;
+  }
+
+  /** Cualquier cambio de filtro vuelve a la primera página de cada lista. */
+  resetPages(): void {
+    for (const page of Object.values(this.pages)) {
+      page.first = 0;
+    }
+  }
+
+  clearCardFilters(): void {
+    this.searchText = '';
+    this.campusFilter = null;
+    this.fileFilter = null;
+    this.resetPages();
+  }
+
+  /** La página que se muestra de una lista (ya con los filtros aplicados). */
+  pageOf(key: 'pending' | 'flagged' | 'unmatched', list: StudentCard[]): StudentCard[] {
+    const all = this.filtered(list);
+    const page = this.pages[key];
+    const first = page.first >= all.length ? 0 : page.first;
+    return all.slice(first, first + page.rows);
+  }
+
+  /** Los botones del paginador dentro de las pestañas no disparan la detección de cambios por sí solos: se entra a la zona de Angular. */
+  onPage(key: 'pending' | 'flagged' | 'unmatched', event: PaginatorState): void {
+    this.ngZone.run(() => {
+      this.pages[key] = {first: event.first ?? 0, rows: event.rows ?? this.pages[key].rows};
+    });
   }
 
   openRowMenu(event: Event, student: StudentCard, kind: 'pending' | 'flagged' | 'validated'): void {

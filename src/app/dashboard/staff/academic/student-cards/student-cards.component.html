@@ -30,42 +30,127 @@
   }
 </ng-template>
 
-<ng-template #skeletonRows5>
-  @for (item of [1, 2, 3]; track item) {
-    <tr class="student-skeleton-row" aria-hidden="true">
-          <td>
-            <div class="student-skeleton-who">
-              <p-skeleton width="60px" height="75px" borderRadius="6px" />
-              <div class="student-skeleton-lines">
-                <p-skeleton width="14rem" height="1.1rem" />
-                <p-skeleton width="9rem" height="0.8rem" />
-                <p-skeleton width="10rem" height="0.8rem" />
-                <p-skeleton width="7rem" height="0.8rem" />
+<ng-template #skeletonCard>
+  <article class="sc-student sc-student-loading" aria-hidden="true">
+    <div class="sc-student-top">
+      <p-skeleton width="72px" height="90px" borderRadius="8px" />
+      <div class="sc-student-info">
+        <p-skeleton width="80%" height="1.1rem" />
+        <p-skeleton width="95%" height="0.8rem" />
+        <p-skeleton width="45%" height="0.8rem" />
+      </div>
+    </div>
+    <div class="sc-files">
+      <p-skeleton width="4.5rem" height="1.4rem" borderRadius="999px" />
+      <p-skeleton width="4rem" height="1.4rem" borderRadius="999px" />
+    </div>
+    <div class="sc-student-actions">
+      <p-skeleton width="5rem" height="1.4rem" borderRadius="999px" />
+      <p-skeleton width="6rem" height="2rem" borderRadius="8px" />
+    </div>
+  </article>
+</ng-template>
+
+<ng-template #studentCard let-student let-kind="kind">
+  <article class="sc-student">
+    <div class="sc-student-top">
+      @if (isPhotoLoading(student)) {
+        <p-skeleton width="72px" height="90px" borderRadius="8px" />
+      } @else if (!hasStudentPhoto(student)) {
+        <div class="sc-photo-placeholder" role="img" aria-label="Sin foto">
+          <i class="pi pi-user" aria-hidden="true"></i>
+        </div>
+      } @else {
+        <p-image
+          [src]="getStudentPhotoUrl(student)"
+          [alt]="'Foto de ' + student.fullName"
+          width="72"
+          height="90"
+          imageClass="student-card-photo"
+          [preview]="true"
+          appendTo="body"
+          (onImageError)="onStudentPhotoError(student)"
+        ></p-image>
+      }
+
+      <div class="sc-student-info">
+        @if (isManualRegistration(student)) {
+          <p-tag value="Registro manual" severity="info" styleClass="sc-manual-tag" />
+        }
+        <h4 class="sc-student-name">{{ student.fullName }}</h4>
+        <div class="sc-student-meta">
+          <span [class.student-data-warning]="isCodeSameAsDocument(student)">Código <b>{{ student.code }}</b></span>
+          <span>DNI <b>{{ student.number || student.id_student }}</b></span>
+          <span [class.student-data-warning]="hasMissingCampus(student)"><i class="pi pi-map-marker" aria-hidden="true"></i> <b>{{ getCampusLabel(student) }}</b></span>
+        </div>
+        @if (student.cellphone) {
+          <span class="sc-student-cell"><i class="pi pi-phone" aria-hidden="true"></i> {{ student.cellphone }}</span>
+        }
+      </div>
+    </div>
+
+    @if (kind === 'flagged') {
+      <div class="sc-observations">
+        <span class="sc-observations-title">Observaciones</span>
+        @for (type of ['photo', 'dni']; track type) {
+          <div class="sc-observations-row">
+            <span class="sc-observations-label">{{ type === 'photo' ? 'Foto' : 'DNI' }}</span>
+            @if (getStudentFileFlags(student, type === 'photo' ? 'photo' : 'dni').length > 0) {
+              <div class="sc-observations-tags">
+                @for (flag of getStudentFileFlags(student, type === 'photo' ? 'photo' : 'dni'); track flag.code || flag.id || flag.name || flag.label) {
+                  <p-tag [value]="flag.name || flag.label" severity="warn" icon="pi pi-exclamation-triangle" />
+                }
               </div>
-            </div>
-          </td>
-          <td>
-            <div class="student-skeleton-tags">
-              <p-skeleton width="4.5rem" height="1.4rem" borderRadius="999px" />
-              <p-skeleton width="4rem" height="1.4rem" borderRadius="999px" />
-            </div>
-          </td>
-          <td>
-            <div class="student-skeleton-tags">
-              <p-skeleton width="4.5rem" height="1.4rem" borderRadius="999px" />
-              <p-skeleton width="4rem" height="1.4rem" borderRadius="999px" />
-            </div>
-          </td>
-          <td><p-skeleton width="5rem" height="0.9rem" /></td>
-          <td>
-            <div class="student-skeleton-tags">
-              <p-skeleton shape="circle" size="1.8rem" />
-              <p-skeleton shape="circle" size="1.8rem" />
-              <p-skeleton shape="circle" size="1.8rem" />
-            </div>
-          </td>
-    </tr>
-  }
+            } @else {
+              <span class="student-no-observations">Sin observaciones</span>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="sc-files">
+        <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
+        <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
+      </div>
+    }
+
+    <div class="sc-student-actions">
+      <p-tag
+        [value]="kind === 'pending' ? 'Pendiente' : kind === 'flagged' ? 'Observado' : 'Sin registro'"
+        [severity]="kind === 'pending' ? 'info' : kind === 'flagged' ? 'warn' : 'danger'"
+        [rounded]="true"
+      />
+      <div class="sc-actions">
+        @if (kind === 'unmatched') {
+          <p-button label="Registrar manualmente" icon="pi pi-pencil" size="small" severity="secondary" [outlined]="true" (onClick)="openManualRegistrationDialog(student)" />
+        } @else {
+          <p-button label="Revisar" icon="pi pi-search" size="small" (onClick)="openReviewDialog(student)" />
+          <p-button
+            icon="pi pi-ellipsis-v"
+            size="small"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            ariaLabel="Más acciones"
+            pTooltip="Más acciones"
+            tooltipPosition="top"
+            (onClick)="openRowMenu($event, student, kind)"
+          />
+        }
+      </div>
+    </div>
+  </article>
+</ng-template>
+
+<ng-template #emptyCards>
+  <div class="sc-empty">
+    <i class="pi pi-inbox" aria-hidden="true"></i>
+    <strong>{{ hasActiveFilters ? 'Sin resultados' : 'No hay estudiantes en esta lista' }}</strong>
+    <p>{{ hasActiveFilters ? 'Ningún estudiante coincide con los filtros.' : 'Cuando haya estudiantes en este estado aparecerán aquí.' }}</p>
+    @if (hasActiveFilters) {
+      <p-button label="Limpiar filtros" size="small" severity="secondary" [outlined]="true" (onClick)="clearCardFilters()" />
+    }
+  </div>
 </ng-template>
 
 <div class="p-container mt-4">
@@ -153,12 +238,14 @@
           placeholder="Nombre, código o documento"
           aria-label="Buscar estudiante"
           [(ngModel)]="searchText"
+          (ngModelChange)="resetPages()"
         />
       </p-iconfield>
       <p-select
         class="sc-bar-select"
         [options]="campusFilterOptions"
         [(ngModel)]="campusFilter"
+        (ngModelChange)="resetPages()"
         placeholder="Sede"
         [showClear]="true"
         styleClass="w-full"
@@ -171,6 +258,7 @@
         size="small"
         [allowEmpty]="true"
         [(ngModel)]="fileFilter"
+        (ngModelChange)="resetPages()"
         styleClass="sc-file-filter"
       />
       @if (activeTabIndex === 1) {
@@ -221,120 +309,31 @@
             <p-badge [value]="pendingStudents.length" severity="info" />
           }
         </ng-template>
-        <p-table
-          #pendingTable
-          [value]="loadingLists.pending ? [] : filtered(pendingStudents)"
-          class="p-datatable-sm student-card-table"
-          responsiveLayout="scroll"
-          [paginator]="true"
-          [rows]="10"
-          [rowsPerPageOptions]="[10, 25, 50]"
-          [rowHover]="true"
-          [stripedRows]="true"
-          [globalFilterFields]="['fullName', 'code', 'number', 'cellphone']"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="student-table-header-label">ALUMNO</th>
-              <th class="student-table-header-label">ESTADO ARCHIVOS</th>
-              <th class="student-table-header-label">CELULAR</th>
-              <th class="student-table-header-label">OPCIONES</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-student>
-            <tr>
-              <!-- ALUMNO -->
-              <td>
-                <div class="flex gap-3 items-center">
-
-                  <!-- FOTO -->
-                  @if (isPhotoLoading(student)) {
-                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
-                  } @else {
-                    <p-image
-                      [src]="getStudentPhotoUrl(student)"
-                      alt="foto"
-                      width="60"
-                      height="75"
-                      imageClass="student-card-photo"
-                      [preview]="true"
-                      appendTo="body"
-                      (onImageError)="onStudentPhotoError(student)"
-                    ></p-image>
-                  }
-
-                  <!-- DATOS -->
-                  <div class="flex flex-column gap-1">
-                    <span class="font-bold text-lg">
-                      {{ student.fullName }}
-                    </span>
-                    @if (isManualRegistration(student)) {
-                      <span class="student-unregistered-mark">
-                        Registro manual
-                      </span>
-                    }
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="isCodeSameAsDocument(student)"
-                    >
-                      <span class="student-meta-label">Codigo</span>
-                      <span class="student-meta-value">{{ student.code }}</span>
-                    </span>
-                    <span class="student-meta-row text-sm">
-                      <span class="student-meta-label">Documento</span>
-                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
-                    </span>
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="hasMissingCampus(student)"
-                    >
-                      <span class="student-meta-label">Sede</span>
-                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
-                    </span>
-
-                  </div>
-
-                </div>
-              </td>
-
-              <td>
-                <div class="sc-files">
-                  <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
-                  <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
-                </div>
-              </td>
-
-              <!-- CELULAR -->
-              <td>
-                {{ student.cellphone }}
-              </td>
-
-              <!-- OPCIONES -->
-              <td>
-                <div class="sc-actions">
-                  <p-button label="Revisar" icon="pi pi-search" size="small" (onClick)="openReviewDialog(student)" />
-                  <p-button
-                    icon="pi pi-ellipsis-v"
-                    size="small"
-                    [text]="true"
-                    [rounded]="true"
-                    severity="secondary"
-                    ariaLabel="Más acciones"
-                    pTooltip="Más acciones"
-                    tooltipPosition="top"
-                    (onClick)="openRowMenu($event, student, 'pending')"
-                  />
-                </div>
-              </td>
-
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            @if (loadingLists.pending) {
-              <ng-container *ngTemplateOutlet="skeletonRows4"></ng-container>
+        <div class="sc-grid">
+          @if (loadingLists.pending) {
+            @for (item of [1, 2, 3, 4]; track item) {
+              <ng-container *ngTemplateOutlet="skeletonCard"></ng-container>
             }
-          </ng-template>
-        </p-table>
+          } @else {
+            @for (student of pageOf('pending', pendingStudents); track student.id) {
+              <ng-container *ngTemplateOutlet="studentCard; context: { $implicit: student, kind: 'pending' }"></ng-container>
+            } @empty {
+              <ng-container *ngTemplateOutlet="emptyCards"></ng-container>
+            }
+          }
+        </div>
+        @if (!loadingLists.pending && filtered(pendingStudents).length > pageSizes[0]) {
+          <p-paginator
+            styleClass="sc-paginator"
+            [first]="pages.pending.first"
+            [rows]="pages.pending.rows"
+            [totalRecords]="filtered(pendingStudents).length"
+            [rowsPerPageOptions]="pageSizes"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="{first} a {last} de {totalRecords}"
+            (onPageChange)="onPage('pending', $event)"
+          ></p-paginator>
+        }
       </p-tabPanel>
 
       <p-tabPanel>
@@ -350,7 +349,7 @@
         <p-table
           #validatedTable
           [value]="loadingLists.validated ? [] : filtered(validatedStudents)"
-          class="p-datatable-sm student-card-table"
+          class="p-datatable-sm student-card-table sc-validated-table"
           responsiveLayout="scroll"
           [paginator]="true"
           [rows]="10"
@@ -372,13 +371,13 @@
               <td>
                 <div class="flex gap-3 items-center">
                   @if (isPhotoLoading(student)) {
-                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
+                    <p-skeleton width="40px" height="50px" borderRadius="6px" />
                   } @else {
                     <p-image
                       [src]="getStudentPhotoUrl(student)"
                       alt="foto"
-                      width="60"
-                      height="75"
+                      width="40"
+                      height="50"
                       imageClass="student-card-photo"
                       [preview]="true"
                       appendTo="body"
@@ -386,33 +385,13 @@
                     ></p-image>
                   }
 
-                  <div class="flex flex-column gap-1">
-                    <span class="font-bold text-lg">
-                      {{ student.fullName }}
-                    </span>
+                  <div class="sc-compact">
+                    <span class="font-bold">{{ student.fullName }}</span>
                     @if (isManualRegistration(student)) {
-                      <span class="student-unregistered-mark">
-                        Registro manual
-                      </span>
+                      <p-tag value="Registro manual" severity="info" styleClass="sc-manual-tag" />
                     }
-
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="isCodeSameAsDocument(student)"
-                    >
-                      <span class="student-meta-label">Codigo</span>
-                      <span class="student-meta-value">{{ student.code }}</span>
-                    </span>
-                    <span class="student-meta-row text-sm">
-                      <span class="student-meta-label">Documento</span>
-                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
-                    </span>
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="hasMissingCampus(student)"
-                    >
-                      <span class="student-meta-label">Sede</span>
-                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
+                    <span class="sc-compact-meta">
+                      {{ student.code }} · DNI {{ student.number || student.id_student }} · {{ getCampusLabel(student) }}
                     </span>
                   </div>
                 </div>
@@ -461,136 +440,31 @@
             <p-badge [value]="flaggedStudents.length" severity="warn" />
           }
         </ng-template>
-        <p-table
-          #flaggedTable
-          [value]="loadingLists.flagged ? [] : filtered(flaggedStudents)"
-          class="p-datatable-sm student-card-table"
-          responsiveLayout="scroll"
-          [paginator]="true"
-          [rows]="10"
-          [rowsPerPageOptions]="[10, 25, 50]"
-          [rowHover]="true"
-          [stripedRows]="true"
-          [globalFilterFields]="['fullName', 'code', 'id_student', 'cellphone']"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="student-table-header-label">ALUMNO</th>
-              <th class="student-table-header-label">OBSERVACIONES CARNET</th>
-              <th class="student-table-header-label">OBSERVACIONES DNI</th>
-              <th class="student-table-header-label">CELULAR</th>
-              <th class="student-table-header-label">OPCIONES</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-student>
-            <tr>
-              <td>
-                <div class="flex gap-3 items-center">
-                  @if (isPhotoLoading(student)) {
-                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
-                  } @else {
-                    <p-image
-                      [src]="getStudentPhotoUrl(student)"
-                      alt="foto"
-                      width="60"
-                      height="75"
-                      imageClass="student-card-photo"
-                      [preview]="true"
-                      appendTo="body"
-                      (onImageError)="onStudentPhotoError(student)"
-                    ></p-image>
-                  }
-
-                  <div class="flex flex-column gap-1">
-                    <span class="font-bold text-lg">
-                      {{ student.fullName }}
-                    </span>
-                    @if (isManualRegistration(student)) {
-                      <span class="student-unregistered-mark">
-                        Registro manual
-                      </span>
-                    }
-
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="isCodeSameAsDocument(student)"
-                    >
-                      <span class="student-meta-label">Codigo</span>
-                      <span class="student-meta-value">{{ student.code }}</span>
-                    </span>
-                    <span class="student-meta-row text-sm">
-                      <span class="student-meta-label">Documento</span>
-                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
-                    </span>
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="hasMissingCampus(student)"
-                    >
-                      <span class="student-meta-label">Sede</span>
-                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
-                    </span>
-                  </div>
-                </div>
-              </td>
-
-              <td>
-                @if (getStudentFileFlags(student, 'photo').length > 0) {
-                  <div class="student-observation-list">
-                    @for (flag of getStudentFileFlags(student, 'photo'); track flag.code || flag.id || flag.name || flag.label) {
-                      <p-tag
-                        [value]="flag.name || flag.label"
-                        severity="warn"
-                        icon="pi pi-exclamation-triangle"
-                      ></p-tag>
-                    }
-                  </div>
-                } @else {
-                  <span class="student-no-observations">Sin observaciones</span>
-                }
-              </td>
-
-              <td>
-                @if (getStudentFileFlags(student, 'dni').length > 0) {
-                  <div class="student-observation-list">
-                    @for (flag of getStudentFileFlags(student, 'dni'); track flag.code || flag.id || flag.name || flag.label) {
-                      <p-tag
-                        [value]="flag.name || flag.label"
-                        severity="warn"
-                        icon="pi pi-exclamation-triangle"
-                      ></p-tag>
-                    }
-                  </div>
-                } @else {
-                  <span class="student-no-observations">Sin observaciones</span>
-                }
-              </td>
-
-              <td>{{ student.cellphone }}</td>
-
-              <td>
-                <div class="sc-actions">
-                  <p-button label="Revisar" icon="pi pi-search" size="small" (onClick)="openReviewDialog(student)" />
-                  <p-button
-                    icon="pi pi-ellipsis-v"
-                    size="small"
-                    [text]="true"
-                    [rounded]="true"
-                    severity="secondary"
-                    ariaLabel="Más acciones"
-                    pTooltip="Más acciones"
-                    tooltipPosition="top"
-                    (onClick)="openRowMenu($event, student, 'flagged')"
-                  />
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            @if (loadingLists.flagged) {
-              <ng-container *ngTemplateOutlet="skeletonRows5"></ng-container>
+        <div class="sc-grid">
+          @if (loadingLists.flagged) {
+            @for (item of [1, 2, 3, 4]; track item) {
+              <ng-container *ngTemplateOutlet="skeletonCard"></ng-container>
             }
-          </ng-template>
-        </p-table>
+          } @else {
+            @for (student of pageOf('flagged', flaggedStudents); track student.id) {
+              <ng-container *ngTemplateOutlet="studentCard; context: { $implicit: student, kind: 'flagged' }"></ng-container>
+            } @empty {
+              <ng-container *ngTemplateOutlet="emptyCards"></ng-container>
+            }
+          }
+        </div>
+        @if (!loadingLists.flagged && filtered(flaggedStudents).length > pageSizes[0]) {
+          <p-paginator
+            styleClass="sc-paginator"
+            [first]="pages.flagged.first"
+            [rows]="pages.flagged.rows"
+            [totalRecords]="filtered(flaggedStudents).length"
+            [rowsPerPageOptions]="pageSizes"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="{first} a {last} de {totalRecords}"
+            (onPageChange)="onPage('flagged', $event)"
+          ></p-paginator>
+        }
       </p-tabPanel>
 
       <p-tabPanel>
@@ -602,93 +476,31 @@
             <p-badge [value]="unmatchedStudent.length" severity="danger" />
           }
         </ng-template>
-        <p-table
-          #unmatchedTable
-          [value]="loadingLists.unmatched ? [] : filtered(unmatchedStudent)"
-          class="p-datatable-sm student-card-table"
-          responsiveLayout="scroll"
-          [paginator]="true"
-          [rows]="10"
-          [rowsPerPageOptions]="[10, 25, 50]"
-          [rowHover]="true"
-          [stripedRows]="true"
-          [globalFilterFields]="['fullName', 'code', 'cellphone']"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="student-table-header-label">ALUMNO</th>
-              <th class="student-table-header-label">ESTADO ARCHIVOS</th>
-              <th class="student-table-header-label">CELULAR</th>
-              <th class="student-table-header-label">OPCIONES</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-student>
-            <tr>
-              <td>
-                <div class="flex gap-3 items-center">
-                  @if (isPhotoLoading(student)) {
-                    <p-skeleton width="60px" height="75px" borderRadius="6px" />
-                  } @else {
-                    <p-image
-                      [src]="getStudentPhotoUrl(student)"
-                      alt="foto"
-                      width="60"
-                      height="75"
-                      imageClass="student-card-photo"
-                      [preview]="true"
-                      appendTo="body"
-                      (onImageError)="onStudentPhotoError(student)"
-                    ></p-image>
-                  }
-
-                  <div class="flex flex-column gap-1">
-                    <span class="font-bold text-lg">
-                      {{ student.fullName }}
-                    </span>
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="isCodeSameAsDocument(student)"
-                    >
-                      <span class="student-meta-label">Codigo</span>
-                      <span class="student-meta-value">{{ student.code }}</span>
-                    </span>
-                    <span class="student-meta-row text-sm">
-                      <span class="student-meta-label">Documento</span>
-                      <span class="student-meta-value">{{ student.number || student.id_student }}</span>
-                    </span>
-                    <span
-                      class="student-meta-row text-sm"
-                      [class.student-data-warning]="hasMissingCampus(student)"
-                    >
-                      <span class="student-meta-label">Sede</span>
-                      <span class="student-meta-value">{{ getCampusLabel(student) }}</span>
-                    </span>
-                  </div>
-                </div>
-              </td>
-
-              <td>
-                <div class="sc-files">
-                  <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
-                  <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
-                </div>
-              </td>
-
-              <td>{{ student.cellphone }}</td>
-
-              <td>
-                <div class="sc-actions">
-                  <p-button label="Registrar manualmente" icon="pi pi-pencil" size="small" severity="warn" (onClick)="openManualRegistrationDialog(student)" />
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            @if (loadingLists.unmatched) {
-              <ng-container *ngTemplateOutlet="skeletonRows4"></ng-container>
+        <div class="sc-grid">
+          @if (loadingLists.unmatched) {
+            @for (item of [1, 2, 3, 4]; track item) {
+              <ng-container *ngTemplateOutlet="skeletonCard"></ng-container>
             }
-          </ng-template>
-        </p-table>
+          } @else {
+            @for (student of pageOf('unmatched', unmatchedStudent); track student.id) {
+              <ng-container *ngTemplateOutlet="studentCard; context: { $implicit: student, kind: 'unmatched' }"></ng-container>
+            } @empty {
+              <ng-container *ngTemplateOutlet="emptyCards"></ng-container>
+            }
+          }
+        </div>
+        @if (!loadingLists.unmatched && filtered(unmatchedStudent).length > pageSizes[0]) {
+          <p-paginator
+            styleClass="sc-paginator"
+            [first]="pages.unmatched.first"
+            [rows]="pages.unmatched.rows"
+            [totalRecords]="filtered(unmatchedStudent).length"
+            [rowsPerPageOptions]="pageSizes"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="{first} a {last} de {totalRecords}"
+            (onPageChange)="onPage('unmatched', $event)"
+          ></p-paginator>
+        }
       </p-tabPanel>
     </p-tabView>
     <p-menu #rowMenu [popup]="true" [model]="rowMenuItems" appendTo="body" />
