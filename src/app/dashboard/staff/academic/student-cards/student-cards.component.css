@@ -620,7 +620,7 @@
 
 .sc-kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
@@ -774,4 +774,186 @@
 
 .sc-review-hint {
   color: var(--p-text-muted-color);
+}
+
+/* ===== Tarjetas de estudiante (pendientes, observados y sin registro) ===== */
+.sc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
+  gap: var(--space-3);
+}
+
+.sc-student {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-lg);
+  background: var(--p-content-background);
+}
+
+.sc-student-top {
+  display: flex;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.sc-student-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+
+.sc-student-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.sc-student-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-student-meta b {
+  color: var(--p-text-color);
+  font-weight: 600;
+}
+
+.sc-student-cell {
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-student-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+:host ::ng-deep .sc-student .student-card-photo,
+:host ::ng-deep .sc-student p-image img {
+  width: 72px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+:host ::ng-deep .sc-manual-tag {
+  align-self: flex-start;
+  font-size: 0.7rem;
+}
+
+.sc-observations {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--p-orange-500) 12%, transparent);
+}
+
+.sc-observations-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--p-orange-500);
+}
+
+.sc-observations-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sc-observations-label {
+  min-width: 2rem;
+  font-size: 0.78rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-observations-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.sc-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.sc-empty i {
+  font-size: 1.8rem;
+}
+
+.sc-empty strong {
+  color: var(--p-text-color);
+  font-weight: 600;
+}
+
+.sc-empty p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+:host ::ng-deep .sc-paginator {
+  margin-top: var(--space-3);
+  background: transparent;
+}
+
+/* Validados: lista compacta */
+.sc-compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.sc-compact-meta {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+:host ::ng-deep .sc-validated-table .student-card-photo {
+  width: 40px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.sc-photo-placeholder {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 90px;
+  border-radius: var(--radius-md);
+  background: var(--p-content-hover-background);
+  color: var(--p-text-muted-color);
+  font-size: 1.6rem;
+}
+
+:host ::ng-deep .sc-actions .p-button {
+  white-space: nowrap;
 }
