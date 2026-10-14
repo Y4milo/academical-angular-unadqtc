@@ -27,6 +27,8 @@ export interface StudentCardFile {
 }
 
 export interface StudentCard {
+  /** Fecha (AAAA-MM-DD) en que el carné llegó a su estado actual; en validados, la de la validación. */
+  validated_at?: string | null;
   id: number;
   id_student: string,
   number?: string,

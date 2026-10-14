@@ -36,6 +36,7 @@ import {finalize} from 'rxjs';
 import {SkeletonModule} from 'primeng/skeleton';
 import {MenuModule, Menu} from 'primeng/menu';
 import {PaginatorModule, PaginatorState} from 'primeng/paginator';
+import {DrawerModule} from 'primeng/drawer';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
@@ -67,6 +68,7 @@ import {MenuItem} from 'primeng/api';
     SkeletonModule,
     MenuModule,
     PaginatorModule,
+    DrawerModule,
     ProgressBarModule,
     IconFieldModule,
     InputIconModule,
@@ -146,11 +148,34 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   // ---- Paginación de las listas en tarjetas
   private readonly ngZone = inject(NgZone);
   readonly pageSizes = [12, 24, 48];
-  pages: Record<'pending' | 'flagged' | 'unmatched', {first: number; rows: number}> = {
+  readonly validatedPageSizes = [25, 50, 100];
+  pages: Record<'pending' | 'flagged' | 'unmatched' | 'validated', {first: number; rows: number}> = {
     pending: {first: 0, rows: 12},
     flagged: {first: 0, rows: 12},
     unmatched: {first: 0, rows: 12},
+    validated: {first: 0, rows: 25},
   };
+
+  // ---- Lista de validados: orden, densidad y detalle
+  validatedSort: {field: 'name' | 'campus' | 'validated'; order: 1 | -1} = {field: 'name', order: 1};
+  readonly validatedSortOptions = [
+    {label: 'Apellidos A–Z', value: 'name:1'},
+    {label: 'Apellidos Z–A', value: 'name:-1'},
+    {label: 'Sede', value: 'campus:1'},
+    {label: 'Validación más reciente', value: 'validated:-1'},
+    {label: 'Validación más antigua', value: 'validated:1'},
+  ];
+  readonly densityOptions = [
+    {label: 'Cómoda', value: 'comfortable'},
+    {label: 'Compacta', value: 'compact'},
+  ];
+  validatedDensity: 'comfortable' | 'compact' = 'comfortable';
+  detailVisible = false;
+  detailStudent?: StudentCard;
+  isPhone = typeof window !== 'undefined' && window.innerWidth <= 640;
+  /** Con poco ancho la lista de validados pasa de tabla a tarjetas (la tabla obligaría a desplazarse de lado). */
+  validatedAsCards = typeof window !== 'undefined' && window.innerWidth <= 1150;
+  private readonly sortCache = new WeakMap<StudentCard[], {key: string; result: StudentCard[]}>();
 
   // ---- Menú de acciones por fila
   @ViewChild('rowMenu') private rowMenu?: Menu;
@@ -583,17 +608,27 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   }
 
   /** La página que se muestra de una lista (ya con los filtros aplicados). */
-  pageOf(key: 'pending' | 'flagged' | 'unmatched', list: StudentCard[]): StudentCard[] {
-    const all = this.filtered(list);
+  pageOf(key: 'pending' | 'flagged' | 'unmatched' | 'validated', list: StudentCard[]): StudentCard[] {
+    const all = key === 'validated' ? this.sortedValidated(this.filtered(list)) : this.filtered(list);
     const page = this.pages[key];
     const first = page.first >= all.length ? 0 : page.first;
     return all.slice(first, first + page.rows);
   }
 
   /** Los botones del paginador dentro de las pestañas no disparan la detección de cambios por sí solos: se entra a la zona de Angular. */
-  onPage(key: 'pending' | 'flagged' | 'unmatched', event: PaginatorState): void {
+  pageFirst(key: string): number {
+    return this.pages[key as keyof typeof this.pages].first;
+  }
+
+  pageRows(key: string): number {
+    return this.pages[key as keyof typeof this.pages].rows;
+  }
+
+  onPage(key: string, event: PaginatorState): void {
+    const page = key as keyof typeof this.pages;
+
     this.ngZone.run(() => {
-      this.pages[key] = {first: event.first ?? 0, rows: event.rows ?? this.pages[key].rows};
+      this.pages[page] = {first: event.first ?? 0, rows: event.rows ?? this.pages[page].rows};
     });
   }
 
@@ -607,11 +642,111 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       items.push({label: 'Descargar foto', icon: 'pi pi-download', command: () => this.downloadStudentPhoto(student)});
     }
     if (kind !== 'pending') {
-      items.push({label: 'Excluir estudiante', icon: 'pi pi-times', command: () => this.pendingCardStudent(student, kind)});
+      items.push({label: kind === 'validated' ? 'Volver a pendiente' : 'Excluir estudiante', icon: kind === 'validated' ? 'pi pi-undo' : 'pi pi-times', command: () => this.pendingCardStudent(student, kind)});
     }
 
     this.rowMenuItems = items;
     this.rowMenu?.toggle(event);
+  }
+
+
+  // ================= Lista de validados =================
+
+  get totalStudents(): number {
+    return this.pendingStudents.length + this.validatedStudents.length + this.flaggedStudents.length + this.unmatchedStudent.length;
+  }
+
+  get validatedSortKey(): string {
+    return `${this.validatedSort.field}:${this.validatedSort.order}`;
+  }
+
+  set validatedSortKey(value: string) {
+    const [field, order] = value.split(':');
+    this.validatedSort = {field: field as 'name' | 'campus' | 'validated', order: order === '-1' ? -1 : 1};
+    this.pages.validated.first = 0;
+  }
+
+  /** Un clic en el encabezado ordena por esa columna; otro clic invierte el orden. */
+  sortValidatedBy(field: 'name' | 'campus' | 'validated'): void {
+    const order = this.validatedSort.field === field && this.validatedSort.order === 1 ? -1 : 1;
+    this.validatedSort = {field, order};
+    this.pages.validated.first = 0;
+  }
+
+  ariaSort(field: 'name' | 'campus' | 'validated'): 'ascending' | 'descending' | 'none' {
+    if (this.validatedSort.field !== field) {
+      return 'none';
+    }
+    return this.validatedSort.order === 1 ? 'ascending' : 'descending';
+  }
+
+  sortIcon(field: 'name' | 'campus' | 'validated'): string {
+    if (this.validatedSort.field !== field) {
+      return 'pi pi-sort-alt sc-sort-idle';
+    }
+    return this.validatedSort.order === 1 ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down';
+  }
+
+  /** La lista de validados ya filtrada, en el orden elegido. Se recuerda para no ordenar en cada ciclo de detección. */
+  private sortedValidated(list: StudentCard[]): StudentCard[] {
+    const key = `${list.length}|${this.validatedSortKey}|${list[0]?.id}|${list[list.length - 1]?.id}`;
+    const cached = this.sortCache.get(list);
+
+    if (cached?.key === key) {
+      return cached.result;
+    }
+
+    const {field, order} = this.validatedSort;
+    const collator = new Intl.Collator('es', {sensitivity: 'base', numeric: true});
+    const text = (student: StudentCard): string => field === 'campus' ? this.getCampusLabel(student) : this.surnameFirst(student);
+    const result = [...list].sort((a, b) => {
+      const primary = field === 'validated'
+        ? (a.validated_at ?? '').localeCompare(b.validated_at ?? '')
+        : collator.compare(text(a), text(b));
+      return (primary || collator.compare(this.surnameFirst(a), this.surnameFirst(b))) * order;
+    });
+
+    this.sortCache.set(list, {key, result});
+    return result;
+  }
+
+  /** «APELLIDO PATERNO MATERNO, NOMBRES»; si faltan los apellidos, el nombre completo tal como viene. */
+  surnameFirst(student: StudentCard): string {
+    const surnames = [student.father_last_name, student.mother_last_name].filter(Boolean).join(' ').trim();
+    return surnames && student.names ? `${surnames}, ${student.names}` : student.fullName;
+  }
+
+  /** «2026-05-12» → «12/05/2026». */
+  displayDate(value?: string | null): string {
+    const [year, month, day] = (value ?? '').split('-');
+    return year && month && day ? `${day}/${month}/${year}` : '—';
+  }
+
+  openValidatedDetail(student: StudentCard): void {
+    this.detailStudent = student;
+    this.detailVisible = true;
+    this.loadReviewDni(student);
+  }
+
+  closeValidatedDetail(): void {
+    this.detailVisible = false;
+    this.detailStudent = undefined;
+    this.revokeReviewDniUrl();
+  }
+
+  downloadStudentDni(student: StudentCard): void {
+    this.downloadStudentFile(student, 'dni');
+  }
+
+  returnToPending(student: StudentCard): void {
+    this.pendingCardStudent(student, 'validated');
+    this.closeValidatedDetail();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.isPhone = window.innerWidth <= 640;
+    this.validatedAsCards = window.innerWidth <= 1150;
   }
 
   // ================= Navegación de la revisión =================
