@@ -51,7 +51,7 @@
       [(ngModel)]="dni"
       (input)="onDniInput()"
       (keydown)="onDniKeydown($event)"
-      [disabled]="sending"/>
+      [readOnly]="sending"/>
     <p-button
       label="Registrar"
       icon="pi pi-check"

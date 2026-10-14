@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, ViewChild, inject} from '@angular/core';
+import {Component, ElementRef, HostListener, OnInit, ViewChild, inject} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
@@ -224,8 +224,35 @@ export class AttendanceRegisterComponent implements OnInit {
     });
   }
 
+  /**
+   * El campo no se deshabilita mientras se envía (un campo deshabilitado pierde el foco y el lector ya no puede escribir): queda de
+   * solo lectura. Se reenfoca dos veces porque la pantalla puede volver a dibujarse justo después de la respuesta.
+   */
   private focusDni(): void {
-    setTimeout(() => this.dniInput?.nativeElement.focus(), 0);
+    const focus = () => this.dniInput?.nativeElement.focus({preventScroll: true});
+
+    setTimeout(focus, 0);
+    setTimeout(() => {
+      if (document.activeElement !== this.dniInput?.nativeElement) {
+        focus();
+      }
+    }, 150);
+  }
+
+  /** Si el foco quedó fuera de un campo (se hizo clic en la página) y el lector escribe un dígito, el dígito va al campo del DNI. */
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    const active = document.activeElement;
+    const typing = active instanceof HTMLElement && (active.matches('input, textarea, select, [contenteditable="true"]') || active.closest('[role="dialog"]'));
+
+    if (typing || event.ctrlKey || event.metaKey || event.altKey || !/^\d$/.test(event.key) || this.sending) {
+      return;
+    }
+
+    event.preventDefault();
+    this.dni = (this.dni + event.key).slice(0, DNI_LENGTH);
+    this.keyTimes.push(performance.now());
+    this.focusDni();
   }
 
   private read(key: string): string | null {
