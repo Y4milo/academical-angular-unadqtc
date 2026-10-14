@@ -22,6 +22,10 @@ export const PATHS = {
           path: `accounting/bank/incidents`,
           link: `admin/accounting/bank/incidents`,
         },
+        config: {
+          path: `accounting/bank/config`,
+          link: `admin/accounting/bank/config`,
+        },
       },
     },
     degreesTitles: {
