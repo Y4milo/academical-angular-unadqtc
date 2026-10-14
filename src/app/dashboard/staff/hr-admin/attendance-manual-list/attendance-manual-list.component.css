@@ -1,0 +1,175 @@
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.manual-head {
+  text-align: center;
+}
+
+.manual-head h3,
+.manual-head p {
+  margin: 0;
+}
+
+.manual-head p {
+  margin-top: var(--space-1);
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.manual-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.manual-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-lg);
+  background: var(--p-content-background);
+}
+
+.manual-bar-search {
+  flex: 2 1 220px;
+  min-width: 0;
+}
+
+.manual-bar-range {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
+.manual-bar-select {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.manual-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+:host ::ng-deep .manual-presets .p-selectbutton {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+:host ::ng-deep .manual-presets .p-togglebutton {
+  border-radius: 999px;
+  border: 1px solid var(--p-content-border-color);
+}
+
+:host ::ng-deep .manual-presets .p-togglebutton::before {
+  display: none;
+}
+
+.manual-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-3);
+}
+
+:host ::ng-deep .manual-kpi .p-card-body {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+}
+
+.manual-kpi-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.manual-kpi-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.manual-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.manual-sub {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.manual-person {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.manual-name {
+  font-weight: 600;
+}
+
+.manual-nowrap {
+  white-space: nowrap;
+}
+
+.manual-method {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.manual-reason {
+  max-width: 22rem;
+  overflow-wrap: anywhere;
+}
+
+.manual-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.manual-empty strong {
+  color: var(--p-text-color);
+  font-weight: 600;
+}
+
+.manual-empty p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* En teléfono la tabla se desplaza dentro de su caja en vez de comprimir las columnas. */
+:host ::ng-deep .manual-table .p-datatable-table {
+  min-width: 56rem;
+}
+
+@media (max-width: 640px) {
+  :host {
+    padding: var(--space-3);
+  }
+
+  .manual-caption {
+    flex-wrap: wrap;
+  }
+}

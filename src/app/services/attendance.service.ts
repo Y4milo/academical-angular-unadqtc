@@ -25,6 +25,41 @@ export interface StaffAttendancePerson {
   synced_at?: string | null;
 }
 
+export interface ManualAttendanceListFilters {
+  start_date: string;
+  end_date: string;
+  campus_id?: number | null;
+  registered_by?: number | null;
+  source?: 'barcode' | 'keyboard' | null;
+  search?: string | null;
+  page?: number;
+  per_page?: number;
+}
+
+export interface ManualAttendanceListRow {
+  id: number;
+  date: string;
+  time: string;
+  dni: string;
+  full_name: string | null;
+  profile_type: 'teacher' | 'administrative' | null;
+  profile_type_label: string | null;
+  campus: string | null;
+  source: 'barcode' | 'keyboard';
+  source_label: string;
+  punch_kind: string | null;
+  punch_status: string | null;
+  punch_label: string | null;
+  reason: string | null;
+  registered_by: string | null;
+}
+
+export interface ManualAttendanceListResponse {
+  rows: ManualAttendanceListRow[];
+  meta: {total: number; per_page: number; current_page: number; last_page: number};
+  summary: {total: number; people: number; barcode: number; keyboard: number};
+}
+
 export interface StaffSearchResult {
   dni: string;
   full_name: string;
@@ -132,6 +167,25 @@ export class AttendanceService {
   manualToday(campusId?: number): Observable<ApiData<ManualAttendanceRow[]>> {
     const query = campusId ? `?campus_id=${campusId}` : '';
     return this.http.get<ApiData<ManualAttendanceRow[]>>(`${this.apiURL}/staff-attendance/manual-today${query}`);
+  }
+
+  /** Asistencias registradas a mano de todo el personal, paginadas y con filtros (solo admin y RRHH). */
+  manualList(filters: ManualAttendanceListFilters): Observable<ApiData<ManualAttendanceListResponse>> {
+    return this.http.get<ApiData<ManualAttendanceListResponse>>(`${this.apiURL}/staff-attendance/manual`, {params: this.manualParams(filters)});
+  }
+
+  manualRegistrars(): Observable<ApiData<{id: number; name: string}[]>> {
+    return this.http.get<ApiData<{id: number; name: string}[]>>(`${this.apiURL}/staff-attendance/manual/registrars`);
+  }
+
+  downloadManualExcel(filters: ManualAttendanceListFilters): Observable<Blob> {
+    return this.http.get(`${this.apiURL}/staff-attendance/manual/export`, {params: this.manualParams(filters), responseType: 'blob'});
+  }
+
+  private manualParams(filters: ManualAttendanceListFilters): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(filters).filter(([, value]) => value !== null && value !== undefined && value !== '').map(([key, value]) => [key, String(value)]),
+    );
   }
 
   /** Tipo de personal, contrato o modalidad y oficina para los filtros de los reportes. */

@@ -1,0 +1,208 @@
+<header class="manual-head">
+  <h3>Registros manuales</h3>
+  <p>Asistencias registradas por DNI con lector o teclado: quién, cuándo, dónde y por qué.</p>
+</header>
+
+<form class="manual-bar" (ngSubmit)="search()">
+  <div class="manual-bar-search">
+    <label class="manual-sr-only" for="manual-query">Buscar</label>
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search"></p-inputicon>
+      <input
+        id="manual-query"
+        name="query"
+        type="text"
+        pInputText
+        class="w-full"
+        placeholder="DNI, nombre o motivo"
+        [(ngModel)]="query"
+        (ngModelChange)="onQueryInput()"/>
+    </p-iconfield>
+  </div>
+
+  <p-datepicker
+    name="dateRange"
+    inputId="manual-range"
+    class="manual-bar-range"
+    [(ngModel)]="dateRange"
+    (onSelect)="onRangeSelect()"
+    selectionMode="range"
+    dateFormat="dd/mm/yy"
+    showIcon
+    placeholder="Rango de días"
+    [maxDate]="today"
+    [style]="{ width: '100%' }"></p-datepicker>
+
+  <p-select
+    name="campus"
+    class="manual-bar-select"
+    [options]="campuses"
+    optionLabel="value"
+    optionValue="id"
+    [(ngModel)]="campusId"
+    (ngModelChange)="search()"
+    placeholder="Sede"
+    [showClear]="true"
+    styleClass="w-full"></p-select>
+
+  <p-select
+    name="registeredBy"
+    class="manual-bar-select"
+    [options]="registrars"
+    optionLabel="name"
+    optionValue="id"
+    [(ngModel)]="registeredBy"
+    (ngModelChange)="search()"
+    placeholder="Registró"
+    [showClear]="true"
+    styleClass="w-full"></p-select>
+
+  <p-select
+    name="source"
+    class="manual-bar-select"
+    [options]="sourceOptions"
+    optionLabel="label"
+    optionValue="value"
+    [(ngModel)]="source"
+    (ngModelChange)="search()"
+    placeholder="Método"
+    [showClear]="true"
+    styleClass="w-full"></p-select>
+</form>
+
+<div class="manual-presets">
+  <p-selectButton
+    [options]="presetOptions"
+    optionLabel="label"
+    optionValue="value"
+    size="small"
+    [allowEmpty]="true"
+    [ngModel]="activePreset"
+    (ngModelChange)="applyPreset($event)"></p-selectButton>
+  @if (hasFilters) {
+    <p-button
+      size="small"
+      severity="secondary"
+      [text]="true"
+      icon="pi pi-filter-slash"
+      label="Limpiar filtros"
+      (onClick)="clearFilters()"></p-button>
+  }
+</div>
+
+<div class="manual-kpis">
+  <p-card styleClass="manual-kpi"><span class="manual-kpi-label">Registros</span><span class="manual-kpi-value">{{ summary.total }}</span></p-card>
+  <p-card styleClass="manual-kpi"><span class="manual-kpi-label">Personas</span><span class="manual-kpi-value">{{ summary.people }}</span></p-card>
+  <p-card styleClass="manual-kpi"><span class="manual-kpi-label">Con lector</span><span class="manual-kpi-value">{{ summary.barcode }}</span></p-card>
+  <p-card styleClass="manual-kpi"><span class="manual-kpi-label">Digitados</span><span class="manual-kpi-value">{{ summary.keyboard }}</span></p-card>
+</div>
+
+@if (failed) {
+  <p-message severity="error" styleClass="w-full">
+    No se pudo cargar el listado. Revise su conexión e intente de nuevo.
+    <p-button size="small" severity="secondary" [outlined]="true" label="Reintentar" (onClick)="fetch()"></p-button>
+  </p-message>
+}
+
+<p-table
+  [value]="loading ? [] : rows"
+  [lazy]="true"
+  (onLazyLoad)="onLazyLoad($event)"
+  [paginator]="true"
+  [rows]="perPage"
+  [first]="first"
+  [totalRecords]="total"
+  [rowsPerPageOptions]="pageSizes"
+  [showCurrentPageReport]="true"
+  currentPageReportTemplate="{first} a {last} de {totalRecords}"
+  size="small"
+  [scrollable]="true"
+  styleClass="manual-table">
+  <ng-template #caption>
+    <div class="manual-caption">
+      <span>{{ total }} {{ total === 1 ? 'registro' : 'registros' }}</span>
+      <p-button
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        icon="pi pi-file-excel"
+        label="Descargar Excel"
+        [loading]="downloading"
+        (onClick)="downloadExcel()"></p-button>
+    </div>
+  </ng-template>
+
+  <ng-template #header>
+    <tr>
+      <th>Fecha y hora</th>
+      <th>Persona</th>
+      <th>Sede</th>
+      <th>Marcación</th>
+      <th>Método</th>
+      <th>Motivo</th>
+      <th>Registró</th>
+    </tr>
+  </ng-template>
+
+  <ng-template #body let-row>
+    <tr>
+      <td class="manual-nowrap">{{ row.date }}<span class="manual-sub">{{ row.time }}</span></td>
+      <td>
+        <span class="manual-name">{{ row.full_name || 'Sin ficha en Core' }}</span>
+        <span class="manual-sub manual-person">
+          DNI {{ row.dni }}
+          @if (row.profile_type_label) {
+            <p-tag [value]="row.profile_type_label" [severity]="typeSeverity(row.profile_type)" [rounded]="true"></p-tag>
+          }
+        </span>
+      </td>
+      <td>{{ row.campus || '—' }}</td>
+      <td>
+        @if (row.punch_label) {
+          <p-tag [value]="row.punch_label" [severity]="statusSeverity(row.punch_status)" [rounded]="true"></p-tag>
+        } @else {
+          <span class="manual-sub">—</span>
+        }
+      </td>
+      <td>
+        <p-tag [severity]="row.source === 'barcode' ? 'info' : 'warn'" [rounded]="true">
+          <span class="manual-method">
+            <app-lucide-icon [name]="row.source === 'barcode' ? 'scan-barcode' : 'keyboard'" [size]="12"></app-lucide-icon>
+            {{ row.source_label }}
+          </span>
+        </p-tag>
+      </td>
+      <td class="manual-reason" [pTooltip]="row.reason">{{ row.reason }}</td>
+      <td>{{ row.registered_by || '—' }}</td>
+    </tr>
+  </ng-template>
+
+  <ng-template #emptymessage>
+    @if (loading) {
+      @for (item of [1, 2, 3, 4, 5]; track item) {
+        <tr class="manual-skeleton-row">
+          <td><p-skeleton width="5rem"></p-skeleton></td>
+          <td><p-skeleton width="12rem"></p-skeleton></td>
+          <td><p-skeleton width="5rem"></p-skeleton></td>
+          <td><p-skeleton width="6rem"></p-skeleton></td>
+          <td><p-skeleton width="7rem"></p-skeleton></td>
+          <td><p-skeleton width="14rem"></p-skeleton></td>
+          <td><p-skeleton width="8rem"></p-skeleton></td>
+        </tr>
+      }
+    } @else if (!failed) {
+      <tr>
+        <td colspan="7">
+          <div class="manual-empty">
+            <app-lucide-icon name="clipboard-pen" [size]="28"></app-lucide-icon>
+            <strong>{{ hasFilters ? 'Sin resultados' : 'Sin registros manuales' }}</strong>
+            <p>{{ hasFilters ? 'Ningún registro coincide con los filtros.' : 'No hay asistencias registradas a mano en este rango de días.' }}</p>
+            @if (hasFilters) {
+              <p-button size="small" severity="secondary" [outlined]="true" label="Limpiar filtros" (onClick)="clearFilters()"></p-button>
+            }
+          </div>
+        </td>
+      </tr>
+    }
+  </ng-template>
+</p-table>
