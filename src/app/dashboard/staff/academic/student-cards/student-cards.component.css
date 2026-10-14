@@ -580,3 +580,198 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* ===== Rediseño: cabecera, indicadores, filtros y acciones por fila ===== */
+.sc-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.sc-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.sc-subtitle {
+  margin: var(--space-1) 0 0;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-semester {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.sc-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.sc-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+:host ::ng-deep .sc-kpi {
+  cursor: pointer;
+  border: 1px solid var(--p-content-border-color);
+  transition: border-color 0.15s ease;
+}
+
+:host ::ng-deep .sc-kpi:hover,
+:host ::ng-deep .sc-kpi-active .sc-kpi,
+:host ::ng-deep .sc-kpi:focus-visible {
+  border-color: var(--p-primary-color);
+}
+
+:host ::ng-deep .sc-kpi .p-card-body {
+  padding: var(--space-3) var(--space-4);
+}
+
+:host ::ng-deep .sc-kpi .p-card-content {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.sc-kpi-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-kpi-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.sc-kpi-hint {
+  min-height: 1rem;
+  font-size: 0.78rem;
+  color: var(--p-text-muted-color);
+}
+
+:host ::ng-deep .sc-progress {
+  height: 0.4rem;
+}
+
+.sc-kpi-icon-info { color: var(--p-sky-500); }
+.sc-kpi-icon-success { color: var(--p-green-500); }
+.sc-kpi-icon-warn { color: var(--p-orange-500); }
+.sc-kpi-icon-danger { color: var(--p-red-500); }
+
+.sc-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.sc-bar-search {
+  flex: 2 1 14rem;
+  min-width: 0;
+}
+
+.sc-bar-select {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.sc-bar-downloads {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+:host ::ng-deep .sc-file-filter .p-togglebutton {
+  border-radius: 999px;
+}
+
+/* El filtro por indicadores reemplaza las pestañas: se oculta su barra y quedan solo los paneles. */
+:host ::ng-deep .sc-tabs .p-tablist,
+:host ::ng-deep .sc-tabs .p-tabview-nav-container,
+:host ::ng-deep .sc-tabs .p-tabview-nav {
+  display: none;
+}
+
+.sc-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sc-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* Revisión de identidad */
+.sc-review-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.sc-review-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.sc-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-1);
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-review-meta b {
+  color: var(--p-text-color);
+  font-weight: 600;
+}
+
+.sc-review-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sc-review-count {
+  margin-right: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-review-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.sc-review-hint {
+  color: var(--p-text-muted-color);
+}

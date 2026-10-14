@@ -69,10 +69,15 @@
 </ng-template>
 
 <div class="p-container mt-4">
-  <p-card header="Gestión de Fotos de Carné" class="p-shadow-4">
-    <div class="semester-context">
-      <div class="semester-selector">
-        <label for="student-card-semester">Semestre</label>
+  <p-card styleClass="sc-card">
+    <header class="sc-head">
+      <div>
+        <h2 class="sc-title">Fotos de carné</h2>
+        <p class="sc-subtitle">Revise y valide las fotos y el DNI de cada estudiante para emitir su carné.</p>
+      </div>
+
+      <div class="sc-semester">
+        <label class="sc-sr-only" for="student-card-semester">Semestre</label>
         <p-select
           inputId="student-card-semester"
           [options]="semesterOptions"
@@ -93,17 +98,118 @@
             </div>
           </ng-template>
         </p-select>
+        @if (selectedSemester?.is_current) {
+          <p-tag value="Semestre vigente" severity="success" icon="pi pi-check-circle" [rounded]="true" />
+        } @else if (selectedSemester) {
+          <p-tag
+            value="Solo consulta"
+            severity="warn"
+            icon="pi pi-eye"
+            [rounded]="true"
+            [pTooltip]="'Está consultando ' + selectedSemester.label + '. Las modificaciones solo se permiten en el semestre vigente.'"
+          />
+        }
       </div>
-      @if (selectedSemester?.is_current) {
-        <p-tag value="Semestre vigente" severity="success" />
-      } @else if (selectedSemester) {
-        <div class="semester-warning" role="status">
-          <i class="pi pi-info-circle"></i>
-          <span>Está consultando {{ selectedSemester.label }}. Las modificaciones solo se permiten en el semestre vigente.</span>
+    </header>
+
+    <div class="sc-kpis" role="tablist" aria-label="Estado de las fotos del carné">
+      @for (kpi of kpiCards; track kpi.index) {
+        <p-card
+          styleClass="sc-kpi"
+          [class.sc-kpi-active]="activeTabIndex === kpi.index"
+          role="tab"
+          tabindex="0"
+          [attr.aria-selected]="activeTabIndex === kpi.index"
+          (click)="activeTabIndex = kpi.index"
+          (keydown.enter)="activeTabIndex = kpi.index"
+          (keydown.space)="activeTabIndex = kpi.index; $event.preventDefault()"
+        >
+          <span class="sc-kpi-label">
+            <i [class]="kpi.icon" [ngClass]="'sc-kpi-icon-' + kpi.tone" aria-hidden="true"></i>
+            {{ kpi.label }}
+          </span>
+          @if (loadingLists[kpi.list]) {
+            <p-skeleton width="3rem" height="1.8rem" styleClass="sc-kpi-skeleton" />
+          } @else {
+            <span class="sc-kpi-value">{{ kpi.count }}</span>
+          }
+          @if (kpi.list === 'validated' && !loadingLists.validated) {
+            <p-progressBar [value]="validatedPercent" [showValue]="false" styleClass="sc-progress" />
+            <span class="sc-kpi-hint">{{ validatedPercent }} % del semestre</span>
+          } @else {
+            <span class="sc-kpi-hint">{{ kpi.hint }}</span>
+          }
+        </p-card>
+      }
+    </div>
+
+    <div class="sc-bar">
+      <p-iconfield class="sc-bar-search">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          class="w-full"
+          placeholder="Nombre, código o documento"
+          aria-label="Buscar estudiante"
+          [(ngModel)]="searchText"
+        />
+      </p-iconfield>
+      <p-select
+        class="sc-bar-select"
+        [options]="campusFilterOptions"
+        [(ngModel)]="campusFilter"
+        placeholder="Sede"
+        [showClear]="true"
+        styleClass="w-full"
+        ariaLabel="Filtrar por sede"
+      />
+      <p-selectButton
+        [options]="fileFilterOptions"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        [allowEmpty]="true"
+        [(ngModel)]="fileFilter"
+        styleClass="sc-file-filter"
+      />
+      @if (activeTabIndex === 1) {
+        <div class="sc-bar-downloads">
+          <p-button
+            class="semester-read-only-allowed"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="downloadActionInProgress || !selectedSemesterId"
+            (onClick)="downloadStudentCardsPDF()"
+          >
+            <app-lucide-icon
+              [name]="activeDownloadAction === 'pdf' ? 'loader-circle' : 'cloud-download'"
+              [size]="16"
+              [class.student-download-action-spin]="activeDownloadAction === 'pdf'"
+            ></app-lucide-icon>
+            <span>Lista PDF</span>
+          </p-button>
+          <p-button
+            class="semester-read-only-allowed"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="downloadActionInProgress || !selectedSemesterId"
+            (onClick)="downloadStudentCardsExcel()"
+          >
+            <app-lucide-icon
+              [name]="activeDownloadAction === 'excel' ? 'loader-circle' : 'cloud-download'"
+              [size]="16"
+              [class.student-download-action-spin]="activeDownloadAction === 'excel'"
+            ></app-lucide-icon>
+            <span>Lista Excel</span>
+          </p-button>
         </div>
       }
     </div>
     <p-tabView
+      styleClass="sc-tabs"
       [(activeIndex)]="activeTabIndex"
       [class.semester-read-only]="isHistoricalSemester">
       <p-tabPanel>
@@ -115,28 +221,9 @@
             <p-badge [value]="pendingStudents.length" severity="info" />
           }
         </ng-template>
-        <p-toolbar styleClass="student-card-toolbar mb-3">
-          <ng-template pTemplate="start">
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-id-card text-primary"></i>
-              <span class="font-semibold">Revisión de identidad</span>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="end">
-            <span class="student-card-search">
-              <i class="pi pi-search"></i>
-              <input
-                pInputText
-                type="text"
-                placeholder="Buscar estudiante"
-                (input)="onGlobalFilter(pendingTable, $event)"
-              />
-            </span>
-          </ng-template>
-        </p-toolbar>
         <p-table
           #pendingTable
-          [value]="loadingLists.pending ? [] : pendingStudents"
+          [value]="loadingLists.pending ? [] : filtered(pendingStudents)"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -211,31 +298,9 @@
               </td>
 
               <td>
-                <div class="student-file-status-list">
-                  <div
-                    class="student-file-status-chip"
-                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'photo')"
-                  >
-                    <span class="student-file-status-label">Foto :</span>
-                    <i
-                      [class]="getFileStatusIcon(student, 'photo')"
-                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'photo')"
-                      [pTooltip]="getFileStatusLabel(student, 'photo')"
-                      tooltipPosition="top"
-                    ></i>
-                  </div>
-                  <div
-                    class="student-file-status-chip"
-                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'dni')"
-                  >
-                    <span class="student-file-status-label">DNI :</span>
-                    <i
-                      [class]="getFileStatusIcon(student, 'dni')"
-                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'dni')"
-                      [pTooltip]="getFileStatusLabel(student, 'dni')"
-                      tooltipPosition="top"
-                    ></i>
-                  </div>
+                <div class="sc-files">
+                  <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
+                  <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
                 </div>
               </td>
 
@@ -246,26 +311,19 @@
 
               <!-- OPCIONES -->
               <td>
-                <div class="flex justify-center align-items-center gap-2">
-
+                <div class="sc-actions">
+                  <p-button label="Revisar" icon="pi pi-search" size="small" (onClick)="openReviewDialog(student)" />
                   <p-button
-                    icon="pi pi-search"
-                    [rounded]="true"
+                    icon="pi pi-ellipsis-v"
+                    size="small"
                     [text]="true"
-                    severity="info"
-                    (onClick)="openReviewDialog(student)"
-                    pTooltip="Comparar foto y DNI"
-                  ></p-button>
-
-                  <p-button
-                    icon="pi pi-pencil"
                     [rounded]="true"
-                    [text]="true"
-                    severity="warn"
-                    (onClick)="openEditStudentDialog(student)"
-                    pTooltip="Editar datos del estudiante"
-                  ></p-button>
-
+                    severity="secondary"
+                    ariaLabel="Más acciones"
+                    pTooltip="Más acciones"
+                    tooltipPosition="top"
+                    (onClick)="openRowMenu($event, student, 'pending')"
+                  />
                 </div>
               </td>
 
@@ -288,74 +346,10 @@
             <p-badge [value]="validatedStudents.length" severity="success" />
           }
         </ng-template>
-        <div class="w-full mb-3 text-center">
-          <!-- Botón centrado -->
-          <p-button
-            class="mx-2 semester-read-only-allowed"
-            [disabled]="downloadActionInProgress || !selectedSemesterId"
-            variant="outlined"
-            severity="success"
-            (click)="downloadStudentCardsPDF()"
-          >
-            <app-lucide-icon
-              [name]="activeDownloadAction === 'pdf' ? 'loader-circle' : 'cloud-download'"
-              [size]="16"
-              [class.student-download-action-spin]="activeDownloadAction === 'pdf'"
-            ></app-lucide-icon>
-            <span>Descargar Lista PDF</span>
-          </p-button>
-          <p-button
-            class="mx-2 semester-read-only-allowed"
-            [disabled]="downloadActionInProgress || !selectedSemesterId"
-            variant="outlined"
-            severity="success"
-            (click)="downloadStudentCardsExcel()"
-          >
-            <app-lucide-icon
-              [name]="activeDownloadAction === 'excel' ? 'loader-circle' : 'cloud-download'"
-              [size]="16"
-              [class.student-download-action-spin]="activeDownloadAction === 'excel'"
-            ></app-lucide-icon>
-            <span>Descargar Lista Excel</span>
-          </p-button>
-          <p-button
-            class="mx-2 semester-read-only-allowed"
-            [disabled]="downloadActionInProgress || !selectedSemesterId"
-            variant="outlined"
-            severity="success"
-            (click)="downloadPhotosZip()"
-          >
-            <app-lucide-icon
-              [name]="activeDownloadAction === 'photos' ? 'loader-circle' : 'cloud-download'"
-              [size]="16"
-              [class.student-download-action-spin]="activeDownloadAction === 'photos'"
-            ></app-lucide-icon>
-            <span>Descargar Fotos</span>
-          </p-button>
-        </div>
-        <p-toolbar styleClass="student-card-toolbar mb-3">
-          <ng-template pTemplate="start">
-            <span class="student-card-search">
-              <i class="pi pi-search"></i>
-              <input
-                pInputText
-                type="text"
-                placeholder="Buscar validado"
-                (input)="onGlobalFilter(validatedTable, $event)"
-              />
-            </span>
-          </ng-template>
-          <ng-template pTemplate="end">
-            <div class="flex align-items-center gap-2 text-sm text-600">
-              <i class="pi pi-check-circle text-green-500"></i>
-              <span>Registros confirmados</span>
-            </div>
-          </ng-template>
-        </p-toolbar>
         <!-- Tabla para validados -->
         <p-table
           #validatedTable
-          [value]="loadingLists.validated ? [] : validatedStudents"
+          [value]="loadingLists.validated ? [] : filtered(validatedStudents)"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -425,56 +419,27 @@
               </td>
 
               <td>
-                <div class="student-file-status-list">
-                  <div
-                    class="student-file-status-chip"
-                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'photo')"
-                  >
-                    <span class="student-file-status-label">Foto :</span>
-                    <i
-                      [class]="getFileStatusIcon(student, 'photo')"
-                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'photo')"
-                      [pTooltip]="getFileStatusLabel(student, 'photo')"
-                      tooltipPosition="top"
-                    ></i>
-                  </div>
-                  <div
-                    class="student-file-status-chip"
-                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'dni')"
-                  >
-                    <span class="student-file-status-label">DNI :</span>
-                    <i
-                      [class]="getFileStatusIcon(student, 'dni')"
-                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'dni')"
-                      [pTooltip]="getFileStatusLabel(student, 'dni')"
-                      tooltipPosition="top"
-                    ></i>
-                  </div>
+                <div class="sc-files">
+                  <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
+                  <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
                 </div>
               </td>
 
               <td>{{ student.cellphone }}</td>
               <td class="align-content-center">
-                <div class="validated-actions-column">
+                <div class="sc-actions">
+                  <p-button class="semester-read-only-allowed" label="Descargar foto" icon="pi pi-download" size="small" severity="secondary" [outlined]="true" (onClick)="downloadStudentPhoto(student)" />
                   <p-button
-                    icon="pi pi-download"
-                    [rounded]="true"
+                    icon="pi pi-ellipsis-v"
+                    size="small"
                     [text]="true"
+                    [rounded]="true"
                     severity="secondary"
-                    (onClick)="downloadStudentPhoto(student)"
-                    pTooltip="Descargar foto"
+                    ariaLabel="Más acciones"
+                    pTooltip="Más acciones"
                     tooltipPosition="top"
-                  ></p-button>
-
-                  <p-button
-                    icon="pi pi-times"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="info"
-                    (onClick)="pendingCardStudent(student, 'validated')"
-                    pTooltip="Excluir estudiante"
-                    tooltipPosition="top"
-                  ></p-button>
+                    (onClick)="openRowMenu($event, student, 'validated')"
+                  />
                 </div>
               </td>
             </tr>
@@ -496,28 +461,9 @@
             <p-badge [value]="flaggedStudents.length" severity="warn" />
           }
         </ng-template>
-        <p-toolbar styleClass="student-card-toolbar mb-3">
-          <ng-template pTemplate="start">
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-flag text-orange-400"></i>
-              <span class="font-semibold">Registros observados</span>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="end">
-            <span class="student-card-search">
-              <i class="pi pi-search"></i>
-              <input
-                pInputText
-                type="text"
-                placeholder="Buscar observado"
-                (input)="onGlobalFilter(flaggedTable, $event)"
-              />
-            </span>
-          </ng-template>
-        </p-toolbar>
         <p-table
           #flaggedTable
-          [value]="loadingLists.flagged ? [] : flaggedStudents"
+          [value]="loadingLists.flagged ? [] : filtered(flaggedStudents)"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -622,36 +568,19 @@
               <td>{{ student.cellphone }}</td>
 
               <td>
-                <div class="flex justify-center align-items-center gap-2">
+                <div class="sc-actions">
+                  <p-button label="Revisar" icon="pi pi-search" size="small" (onClick)="openReviewDialog(student)" />
                   <p-button
-                    icon="pi pi-search"
-                    [rounded]="true"
+                    icon="pi pi-ellipsis-v"
+                    size="small"
                     [text]="true"
-                    severity="info"
-                    (onClick)="openReviewDialog(student)"
-                    pTooltip="Comparar foto y DNI"
-                    tooltipPosition="top"
-                  ></p-button>
-
-                  <p-button
-                    icon="pi pi-pencil"
                     [rounded]="true"
-                    [text]="true"
-                    severity="warn"
-                    (onClick)="openEditStudentDialog(student)"
-                    pTooltip="Editar datos del estudiante"
+                    severity="secondary"
+                    ariaLabel="Más acciones"
+                    pTooltip="Más acciones"
                     tooltipPosition="top"
-                  ></p-button>
-
-                  <p-button
-                    icon="pi pi-times"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="info"
-                    (onClick)="pendingCardStudent(student, 'flagged')"
-                    pTooltip="Excluir estudiante"
-                    tooltipPosition="top"
-                  ></p-button>
+                    (onClick)="openRowMenu($event, student, 'flagged')"
+                  />
                 </div>
               </td>
             </tr>
@@ -673,28 +602,9 @@
             <p-badge [value]="unmatchedStudent.length" severity="danger" />
           }
         </ng-template>
-        <p-toolbar styleClass="student-card-toolbar mb-3">
-          <ng-template pTemplate="start">
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-user-minus text-red-400"></i>
-              <span class="font-semibold">Pagos o alumnos sin registro</span>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="end">
-            <span class="student-card-search">
-              <i class="pi pi-search"></i>
-              <input
-                pInputText
-                type="text"
-                placeholder="Buscar sin registro"
-                (input)="onGlobalFilter(unmatchedTable, $event)"
-              />
-            </span>
-          </ng-template>
-        </p-toolbar>
         <p-table
           #unmatchedTable
-          [value]="loadingLists.unmatched ? [] : unmatchedStudent"
+          [value]="loadingLists.unmatched ? [] : filtered(unmatchedStudent)"
           class="p-datatable-sm student-card-table"
           responsiveLayout="scroll"
           [paginator]="true"
@@ -758,47 +668,17 @@
               </td>
 
               <td>
-                <div class="student-file-status-list">
-                  <div
-                    class="student-file-status-chip"
-                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'photo')"
-                  >
-                    <span class="student-file-status-label">Foto :</span>
-                    <i
-                      [class]="getFileStatusIcon(student, 'photo')"
-                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'photo')"
-                      [pTooltip]="getFileStatusLabel(student, 'photo')"
-                      tooltipPosition="top"
-                    ></i>
-                  </div>
-                  <div
-                    class="student-file-status-chip"
-                    [ngClass]="'student-file-status-chip-' + getFileStatusSeverity(student, 'dni')"
-                  >
-                    <span class="student-file-status-label">DNI :</span>
-                    <i
-                      [class]="getFileStatusIcon(student, 'dni')"
-                      [ngClass]="'student-file-status-icon-' + getFileStatusSeverity(student, 'dni')"
-                      [pTooltip]="getFileStatusLabel(student, 'dni')"
-                      tooltipPosition="top"
-                    ></i>
-                  </div>
+                <div class="sc-files">
+                  <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
+                  <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
                 </div>
               </td>
 
               <td>{{ student.cellphone }}</td>
 
               <td>
-                <div class="flex justify-center align-items-center gap-2">
-                  <p-button
-                    icon="pi pi-pencil"
-                    [rounded]="true"
-                    [text]="true"
-                    severity="warn"
-                    (onClick)="openManualRegistrationDialog(student)"
-                    pTooltip="Registrar manualmente"
-                    tooltipPosition="top"
-                  ></p-button>
+                <div class="sc-actions">
+                  <p-button label="Registrar manualmente" icon="pi pi-pencil" size="small" severity="warn" (onClick)="openManualRegistrationDialog(student)" />
                 </div>
               </td>
             </tr>
@@ -811,6 +691,7 @@
         </p-table>
       </p-tabPanel>
     </p-tabView>
+    <p-menu #rowMenu [popup]="true" [model]="rowMenuItems" appendTo="body" />
 
     <p-dialog
       header="Revisión de identidad"
@@ -824,78 +705,29 @@
     >
       @if (reviewStudent) {
         <div class="flex flex-column gap-4">
-          <div class="flex flex-wrap justify-content-between gap-3">
-            <div class="review-student-summary">
-              <div class="review-name-column">
-                <span class="review-name-chip">{{ reviewStudent.names || getNamePart(reviewStudent.fullName, 0) }}</span>
-                <span class="review-name-chip">{{ reviewStudent.father_last_name || getNamePart(reviewStudent.fullName, 1) }}</span>
-                <span class="review-name-chip">{{ reviewStudent.mother_last_name || getNamePart(reviewStudent.fullName, 2) }}</span>
-              </div>
-
-              <div class="review-info-column">
-                <div class="review-data-field">
-                  <span class="review-data-label">Codigo</span>
-                  <span
-                    class="review-data-value"
-                    [class.student-data-warning]="isCodeSameAsDocument(reviewStudent)"
-                  >
-                    {{ reviewStudent.code }}
-                  </span>
-                </div>
-                <div class="review-data-field">
-                  <span class="review-data-label">Documento</span>
-                  <span class="review-data-value">{{ reviewStudent.number || reviewStudent.id_student }}</span>
-                </div>
-                <div class="review-data-field">
-                  <span class="review-data-label">Sede</span>
-                  <span
-                    class="review-data-value"
-                    [class.review-data-value-danger]="hasMissingCampus(reviewStudent)"
-                  >
-                    {{ getCampusLabel(reviewStudent) }}
-                  </span>
-                </div>
-                <div class="review-data-field">
-                  <span class="review-data-label">Celular</span>
-                  <span class="review-data-value">{{ reviewStudent.cellphone }}</span>
-                </div>
-              </div>
-
-              <div class="text-xl font-bold">{{ reviewStudent.fullName }}</div>
-              <div class="review-data-field">
-                <span class="review-data-label">Código:</span>
-                <span
-                  class="review-data-value"
-                  [class.student-data-warning]="isCodeSameAsDocument(reviewStudent)"
-                >
-                  {{ reviewStudent.code }}
-                </span>
+          <div class="sc-review-head">
+            <div class="sc-review-student">
+              <div class="sc-review-name">{{ reviewStudent.fullName }}</div>
+              <div class="sc-review-meta">
+                <span>Código <b [class.student-data-warning]="isCodeSameAsDocument(reviewStudent)">{{ reviewStudent.code }}</b></span>
+                <span>Documento <b>{{ reviewStudent.number || reviewStudent.id_student }}</b></span>
+                <span>Sede <b [class.review-data-value-danger]="hasMissingCampus(reviewStudent)">{{ getCampusLabel(reviewStudent) }}</b></span>
+                <span>Celular <b>{{ reviewStudent.cellphone }}</b></span>
               </div>
               @if (isCodeSameAsDocument(reviewStudent)) {
                 <small class="p-error">El código del alumno no puede ser igual al documento.</small>
               }
-              <div class="review-data-field">
-                <span class="review-data-label">Documento:</span>
-                <span class="review-data-value">{{ reviewStudent.number || reviewStudent.id_student }}</span>
-              </div>
-              <div class="review-data-field">
-                <span class="review-data-label">Sede:</span>
-                <span
-                  class="review-data-value"
-                  [class.review-data-value-danger]="hasMissingCampus(reviewStudent)"
-                >
-                  {{ getCampusLabel(reviewStudent) }}
-                </span>
-              </div>
               @if (hasMissingCampus(reviewStudent)) {
                 <small class="p-error">El estudiante no tiene sede asignada.</small>
               }
-              <div class="review-data-field">
-                <span class="review-data-label">Celular:</span>
-                <span class="review-data-value">{{ reviewStudent.cellphone }}</span>
-              </div>
             </div>
-
+            @if (reviewTotal > 1) {
+              <div class="sc-review-nav" role="group" aria-label="Moverse entre estudiantes">
+                <span class="sc-review-count">{{ reviewPosition }} de {{ reviewTotal }}</span>
+                <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Estudiante anterior" pTooltip="Anterior (←)" [disabled]="!hasPrevReview" (onClick)="goToReview(-1)" />
+                <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Estudiante siguiente" pTooltip="Siguiente (→)" [disabled]="!hasNextReview" (onClick)="goToReview(1)" />
+              </div>
+            }
           </div>
 
           <div class="grid">
@@ -1036,7 +868,7 @@
 
               <div class="review-decision-action">
                 <p-button
-                  label="Validar estudiante"
+                  [label]="hasNextReview ? 'Validar y pasar al siguiente' : 'Validar estudiante'"
                   icon="pi pi-check"
                   severity="success"
                   [disabled]="!canValidateReview()"
@@ -1075,7 +907,7 @@
 
               <div class="review-decision-action">
                 <p-button
-                  label="Observar estudiante"
+                  [label]="hasNextReview ? 'Observar y pasar al siguiente' : 'Observar estudiante'"
                   icon="pi pi-flag"
                   severity="warn"
                   [disabled]="isReviewSubmitting"
@@ -1088,7 +920,10 @@
       }
 
       <ng-template pTemplate="footer">
-        <div class="flex justify-content-end">
+        <div class="sc-review-footer">
+          @if (reviewTotal > 1) {
+            <small class="sc-review-hint">Use las flechas ← → del teclado para moverse entre estudiantes.</small>
+          }
           <p-button
             label="Cancelar"
             severity="secondary"
