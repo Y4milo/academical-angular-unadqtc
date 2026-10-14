@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
-import {CanActivate, Router, UrlTree} from '@angular/router';
+import {CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {PATHS} from '../core/constants/app-paths.constants';
+import {safeReturnUrl} from '../core/utils/return-url.util';
 import {LoginService} from '../services/login.service';
 
 @Injectable({
@@ -12,9 +13,13 @@ export class AuthStudentGuard implements CanActivate {
     private router: Router,
   ) {}
 
-  canActivate(): boolean | UrlTree {
-    return this.loginService.isStudentLoggedIn()
-      ? true
-      : this.router.parseUrl(PATHS.login.student);
+  canActivate(_route: unknown, state: RouterStateSnapshot): boolean | UrlTree {
+    if (this.loginService.isStudentLoggedIn()) {
+      return true;
+    }
+
+    const returnUrl = safeReturnUrl(state.url);
+
+    return this.router.createUrlTree([PATHS.login.student], returnUrl ? {queryParams: {returnUrl}} : {});
   }
 }

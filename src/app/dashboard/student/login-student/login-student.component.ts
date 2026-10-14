@@ -1,7 +1,8 @@
 import {Component} from '@angular/core';
 import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
+import {navigateAfterLogin} from '../../../core/utils/return-url.util';
 import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constants';
 import {STATUS} from '../../../core/constants/api-status.constants';
 import {LoginService} from '../../../services/login.service';
@@ -31,6 +32,7 @@ export class LoginStudentComponent {
   constructor(
     private notificationService: NotificationService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private studentService: StudentService,
     private loginService: LoginService,
   ) {}
@@ -60,7 +62,7 @@ export class LoginStudentComponent {
             }
 
             setTimeout(() => {
-              this.router.navigate([route]);
+              navigateAfterLogin(this.router, this.activatedRoute.snapshot.queryParamMap.get('returnUrl'), route);
             }, 2000);
           }
           this.notificationService.notifyApiData(loginStudentData);
