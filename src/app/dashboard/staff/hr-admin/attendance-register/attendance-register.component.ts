@@ -57,6 +57,7 @@ export class AttendanceRegisterComponent implements OnInit {
   today: ManualAttendanceRow[] = [];
 
   private keyTimes: number[] = [];
+  private reasonDigitTimes: number[] = [];
 
   get reasonValid(): boolean {
     return this.reason.trim().length >= 10;
@@ -92,6 +93,48 @@ export class AttendanceRegisterComponent implements OnInit {
 
   onReasonChange(): void {
     this.write(REASON_KEY, this.reason);
+  }
+
+  /**
+   * Enter en el motivo pasa al campo del DNI. Si el cursor se quedó en el motivo y llegan dígitos a ráfaga (lo que hace el lector), esos
+   * dígitos se sacan del motivo y se mueven al campo del DNI, para que la primera lectura no se pierda ahí.
+   */
+  onReasonKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.focusDniNow();
+      return;
+    }
+
+    if (!/^\d$/.test(event.key) || event.ctrlKey || event.metaKey || event.altKey) {
+      if (event.key.length === 1) {
+        this.reasonDigitTimes = [];
+      }
+      return;
+    }
+
+    const now = performance.now();
+    this.reasonDigitTimes = [...this.reasonDigitTimes, now].slice(-3);
+
+    if (this.reasonDigitTimes.length < 3 || now - this.reasonDigitTimes[0] > SCANNER_MAX_MS_PER_KEY * 2) {
+      return;
+    }
+
+    const typed = this.reason.match(/\d{0,2}$/)?.[0] ?? '';
+    this.reason = this.reason.slice(0, this.reason.length - typed.length);
+    this.onReasonChange();
+    this.dni = (typed + event.key).slice(0, DNI_LENGTH);
+    this.keyTimes = [...this.reasonDigitTimes];
+    this.reasonDigitTimes = [];
+    event.preventDefault();
+    this.focusDniNow();
+  }
+
+  /** Al salir del motivo sin ir a otro campo (clic en la página), el cursor pasa al DNI para el siguiente escaneo. */
+  onReasonBlur(event: FocusEvent): void {
+    if (event.relatedTarget === null && this.ready) {
+      this.focusDni();
+    }
   }
 
   onDniInput(): void {
@@ -228,6 +271,10 @@ export class AttendanceRegisterComponent implements OnInit {
    * El campo no se deshabilita mientras se envía (un campo deshabilitado pierde el foco y el lector ya no puede escribir): queda de
    * solo lectura. Se reenfoca dos veces porque la pantalla puede volver a dibujarse justo después de la respuesta.
    */
+  private focusDniNow(): void {
+    this.dniInput?.nativeElement.focus({preventScroll: true});
+  }
+
   private focusDni(): void {
     const focus = () => this.dniInput?.nativeElement.focus({preventScroll: true});
 

@@ -28,6 +28,8 @@
       placeholder="Ej.: El reloj de Marqués estuvo fuera de servicio por la mañana"
       [(ngModel)]="reason"
       (ngModelChange)="onReasonChange()"
+      (keydown)="onReasonKeydown($event)"
+      (blur)="onReasonBlur($event)"
       [attr.aria-invalid]="reason.length > 0 && !reasonValid"></textarea>
     @if (reason.length > 0 && !reasonValid) {
       <small class="register-error">Describa el motivo con al menos 10 caracteres.</small>
