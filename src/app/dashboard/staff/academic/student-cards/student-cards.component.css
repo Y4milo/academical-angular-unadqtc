@@ -823,12 +823,21 @@
   color: var(--p-text-muted-color);
 }
 
+.sc-student-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .sc-student-meta b {
   color: var(--p-text-color);
   font-weight: 600;
 }
 
 .sc-student-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 0.8rem;
   color: var(--p-text-muted-color);
 }
@@ -956,4 +965,215 @@
 
 :host ::ng-deep .sc-actions .p-button {
   white-space: nowrap;
+}
+
+/* ===== Validados: barra, ordenación, densidad, detalle y paginación ===== */
+.sc-validated-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.sc-validated-count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.sc-validated-count span {
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.sc-validated-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sc-sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sc-sortable:focus-visible {
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: -2px;
+}
+
+.sc-sortable i {
+  margin-left: var(--space-1);
+  font-size: 0.75rem;
+}
+
+.sc-sort-idle {
+  opacity: 0.4;
+}
+
+.sc-actions-header {
+  text-align: right;
+}
+
+:host ::ng-deep .sc-validated-table tr.sc-row-selected > td {
+  background: color-mix(in srgb, var(--p-primary-color) 12%, transparent);
+}
+
+.sc-photo-mini {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 50px;
+  border-radius: var(--radius-md);
+  background: var(--p-content-hover-background);
+  color: var(--p-text-muted-color);
+}
+
+/* Densidad compacta: filas más bajas y foto más pequeña */
+:host ::ng-deep .sc-density-compact .sc-validated-table td {
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+:host ::ng-deep .sc-density-compact .sc-validated-table .student-card-photo {
+  width: 28px;
+  height: 35px;
+}
+
+:host ::ng-deep .sc-density-compact .sc-photo-mini {
+  width: 28px;
+  height: 35px;
+}
+
+/* Panel de detalle */
+.sc-detail {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.sc-detail-imgs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.sc-detail-fig {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.sc-detail-fig figcaption {
+  font-size: 0.78rem;
+  color: var(--p-text-muted-color);
+}
+
+::ng-deep .sc-detail-img {
+  width: 100%;
+  max-height: 11rem;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: var(--p-content-hover-background);
+}
+
+.sc-detail-pdf {
+  width: 100%;
+  height: 11rem;
+  border: 0;
+  border-radius: var(--radius-md);
+}
+
+.sc-detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  height: 9rem;
+  border-radius: var(--radius-md);
+  background: var(--p-content-hover-background);
+  color: var(--p-text-muted-color);
+  font-size: 0.8rem;
+}
+
+.sc-detail-data {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.sc-detail-data dt {
+  color: var(--p-text-muted-color);
+  font-size: 0.78rem;
+}
+
+.sc-detail-data dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sc-detail-actions {
+  display: grid;
+  gap: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .sc-validated-toolbar {
+    align-items: stretch;
+  }
+}
+
+:host ::ng-deep .sc-validated-table .sc-files {
+  flex-wrap: nowrap;
+}
+
+:host ::ng-deep .sc-validated-table td {
+  white-space: nowrap;
+}
+
+:host ::ng-deep .sc-validated-table td .sc-compact {
+  white-space: normal;
+}
+
+.sc-detail-fig {
+  min-width: 0;
+}
+
+::ng-deep .sc-detail-fig p-image,
+::ng-deep .sc-detail-fig .p-image {
+  display: block;
+  width: 100%;
+}
+
+::ng-deep .sc-detail-fig img {
+  display: block;
+  width: 100%;
+  height: 11rem;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: var(--p-content-hover-background);
+}
+
+:host ::ng-deep .sc-validated-table .p-datatable-table-container {
+  overflow-y: hidden;
+}
+
+/* El nombre del estudiante no se parte en muchas líneas en pantallas estrechas: la tabla se desplaza dentro de su caja. */
+:host ::ng-deep .sc-validated-table td:first-child .sc-compact {
+  min-width: 14rem;
+}
+
+@media (max-width: 640px) {
+  .sc-student {
+    padding: var(--space-3);
+  }
 }

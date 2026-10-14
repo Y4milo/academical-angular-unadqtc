@@ -19,6 +19,7 @@
             </div>
           </td>
           <td><p-skeleton width="5rem" height="0.9rem" /></td>
+          <td><p-skeleton width="5rem" height="0.9rem" /></td>
           <td>
             <div class="student-skeleton-tags">
               <p-skeleton shape="circle" size="1.8rem" />
@@ -77,7 +78,7 @@
         @if (isManualRegistration(student)) {
           <p-tag value="Registro manual" severity="info" styleClass="sc-manual-tag" />
         }
-        <h4 class="sc-student-name">{{ student.fullName }}</h4>
+        <h4 class="sc-student-name">{{ kind === 'validated' ? surnameFirst(student) : student.fullName }}</h4>
         <div class="sc-student-meta">
           <span [class.student-data-warning]="isCodeSameAsDocument(student)">Código <b>{{ student.code }}</b></span>
           <span>DNI <b>{{ student.number || student.id_student }}</b></span>
@@ -116,13 +117,26 @@
 
     <div class="sc-student-actions">
       <p-tag
-        [value]="kind === 'pending' ? 'Pendiente' : kind === 'flagged' ? 'Observado' : 'Sin registro'"
-        [severity]="kind === 'pending' ? 'info' : kind === 'flagged' ? 'warn' : 'danger'"
+        [value]="kind === 'pending' ? 'Pendiente' : kind === 'flagged' ? 'Observado' : kind === 'validated' ? 'Validado ' + displayDate(student.validated_at) : 'Sin registro'"
+        [severity]="kind === 'pending' ? 'info' : kind === 'flagged' ? 'warn' : kind === 'validated' ? 'success' : 'danger'"
         [rounded]="true"
       />
       <div class="sc-actions">
         @if (kind === 'unmatched') {
           <p-button label="Registrar manualmente" icon="pi pi-pencil" size="small" severity="secondary" [outlined]="true" (onClick)="openManualRegistrationDialog(student)" />
+        } @else if (kind === 'validated') {
+          <p-button class="semester-read-only-allowed" label="Ver" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true" (onClick)="openValidatedDetail(student)" />
+          <p-button
+            icon="pi pi-ellipsis-v"
+            size="small"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            ariaLabel="Más acciones"
+            pTooltip="Más acciones"
+            tooltipPosition="top"
+            (onClick)="openRowMenu($event, student, 'validated')"
+          />
         } @else {
           <p-button label="Revisar" icon="pi pi-search" size="small" (onClick)="openReviewDialog(student)" />
           <p-button
@@ -151,6 +165,21 @@
       <p-button label="Limpiar filtros" size="small" severity="secondary" [outlined]="true" (onClick)="clearCardFilters()" />
     }
   </div>
+</ng-template>
+
+<ng-template #resultsBar let-key="key" let-total="total" let-sizes="sizes">
+  @if (total > 0) {
+    <p-paginator
+      styleClass="sc-paginator"
+      [first]="pageFirst(key)"
+      [rows]="pageRows(key)"
+      [totalRecords]="total"
+      [rowsPerPageOptions]="sizes"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first}–{last} de {totalRecords}"
+      (onPageChange)="onPage(key, $event)"
+    ></p-paginator>
+  }
 </ng-template>
 
 <div class="p-container mt-4">
@@ -322,17 +351,8 @@
             }
           }
         </div>
-        @if (!loadingLists.pending && filtered(pendingStudents).length > pageSizes[0]) {
-          <p-paginator
-            styleClass="sc-paginator"
-            [first]="pages.pending.first"
-            [rows]="pages.pending.rows"
-            [totalRecords]="filtered(pendingStudents).length"
-            [rowsPerPageOptions]="pageSizes"
-            [showCurrentPageReport]="true"
-            currentPageReportTemplate="{first} a {last} de {totalRecords}"
-            (onPageChange)="onPage('pending', $event)"
-          ></p-paginator>
+        @if (!loadingLists.pending) {
+          <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'pending', total: filtered(pendingStudents).length, sizes: pageSizes }"></ng-container>
         }
       </p-tabPanel>
 
@@ -345,90 +365,151 @@
             <p-badge [value]="validatedStudents.length" severity="success" />
           }
         </ng-template>
-        <!-- Tabla para validados -->
-        <p-table
-          #validatedTable
-          [value]="loadingLists.validated ? [] : filtered(validatedStudents)"
-          class="p-datatable-sm student-card-table sc-validated-table"
-          responsiveLayout="scroll"
-          [paginator]="true"
-          [rows]="10"
-          [rowsPerPageOptions]="[10, 25, 50]"
-          [rowHover]="true"
-          [stripedRows]="true"
-          [globalFilterFields]="['fullName', 'code', 'id_student', 'cellphone']"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="student-table-header-label">ALUMNO</th>
-              <th class="student-table-header-label">ESTADO ARCHIVOS</th>
-              <th class="student-table-header-label">CELULAR</th>
-              <th class="student-table-header-label">OPCIONES</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-student>
-            <tr>
-              <td>
-                <div class="flex gap-3 items-center">
-                  @if (isPhotoLoading(student)) {
-                    <p-skeleton width="40px" height="50px" borderRadius="6px" />
-                  } @else {
-                    <p-image
-                      [src]="getStudentPhotoUrl(student)"
-                      alt="foto"
-                      width="40"
-                      height="50"
-                      imageClass="student-card-photo"
-                      [preview]="true"
-                      appendTo="body"
-                      (onImageError)="onStudentPhotoError(student)"
-                    ></p-image>
-                  }
-
-                  <div class="sc-compact">
-                    <span class="font-bold">{{ student.fullName }}</span>
-                    @if (isManualRegistration(student)) {
-                      <p-tag value="Registro manual" severity="info" styleClass="sc-manual-tag" />
-                    }
-                    <span class="sc-compact-meta">
-                      {{ student.code }} · DNI {{ student.number || student.id_student }} · {{ getCampusLabel(student) }}
-                    </span>
-                  </div>
-                </div>
-              </td>
-
-              <td>
-                <div class="sc-files">
-                  <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
-                  <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
-                </div>
-              </td>
-
-              <td>{{ student.cellphone }}</td>
-              <td class="align-content-center">
-                <div class="sc-actions">
-                  <p-button class="semester-read-only-allowed" label="Descargar foto" icon="pi pi-download" size="small" severity="secondary" [outlined]="true" (onClick)="downloadStudentPhoto(student)" />
-                  <p-button
-                    icon="pi pi-ellipsis-v"
-                    size="small"
-                    [text]="true"
-                    [rounded]="true"
-                    severity="secondary"
-                    ariaLabel="Más acciones"
-                    pTooltip="Más acciones"
-                    tooltipPosition="top"
-                    (onClick)="openRowMenu($event, student, 'validated')"
-                  />
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            @if (loadingLists.validated) {
-              <ng-container *ngTemplateOutlet="skeletonRows4"></ng-container>
+        <!-- Lista de validados -->
+        <div class="sc-validated-toolbar">
+          <div class="sc-validated-count">
+            <strong>{{ filtered(validatedStudents).length }} {{ filtered(validatedStudents).length === 1 ? 'validado' : 'validados' }}</strong>
+            <span>de {{ totalStudents }} estudiantes</span>
+          </div>
+          <div class="sc-validated-controls">
+            <p-select
+              class="sc-validated-sort"
+              [options]="validatedSortOptions"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="validatedSortKey"
+              ariaLabel="Ordenar validados"
+            />
+            @if (!validatedAsCards) {
+              <p-selectButton
+              [options]="densityOptions"
+              optionLabel="label"
+              optionValue="value"
+              size="small"
+              [allowEmpty]="false"
+              [(ngModel)]="validatedDensity"
+            />
             }
-          </ng-template>
-        </p-table>
+          </div>
+        </div>
+
+        @if (validatedAsCards) {
+          <div class="sc-grid">
+            @if (loadingLists.validated) {
+              @for (item of [1, 2, 3, 4]; track item) {
+                <ng-container *ngTemplateOutlet="skeletonCard"></ng-container>
+              }
+            } @else {
+              @for (student of pageOf('validated', validatedStudents); track student.id) {
+                <ng-container *ngTemplateOutlet="studentCard; context: { $implicit: student, kind: 'validated' }"></ng-container>
+              } @empty {
+                <ng-container *ngTemplateOutlet="emptyCards"></ng-container>
+              }
+            }
+          </div>
+        } @else {
+          <div [class.sc-density-compact]="validatedDensity === 'compact'">
+          <p-table
+            #validatedTable
+            [value]="loadingLists.validated ? [] : pageOf('validated', validatedStudents)"
+            class="p-datatable-sm student-card-table sc-validated-table"
+            responsiveLayout="scroll"
+            [rowHover]="true"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="student-table-header-label sc-sortable" tabindex="0" [attr.aria-sort]="ariaSort('name')" (click)="sortValidatedBy('name')" (keydown.enter)="sortValidatedBy('name')">
+                  Estudiante <i [class]="sortIcon('name')" aria-hidden="true"></i>
+                </th>
+                <th class="student-table-header-label sc-sortable" tabindex="0" [attr.aria-sort]="ariaSort('campus')" (click)="sortValidatedBy('campus')" (keydown.enter)="sortValidatedBy('campus')">
+                  Sede <i [class]="sortIcon('campus')" aria-hidden="true"></i>
+                </th>
+                <th class="student-table-header-label">Archivos</th>
+                <th class="student-table-header-label sc-sortable" tabindex="0" [attr.aria-sort]="ariaSort('validated')" (click)="sortValidatedBy('validated')" (keydown.enter)="sortValidatedBy('validated')">
+                  Validado <i [class]="sortIcon('validated')" aria-hidden="true"></i>
+                </th>
+                <th class="student-table-header-label sc-actions-header">Acciones</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-student>
+              <tr [class.sc-row-selected]="detailStudent?.id === student.id">
+                <td>
+                  <div class="flex gap-3 items-center">
+                    @if (isPhotoLoading(student)) {
+                      <p-skeleton width="40px" height="50px" borderRadius="6px" />
+                    } @else if (!hasStudentPhoto(student)) {
+                      <div class="sc-photo-mini" role="img" aria-label="Sin foto"><i class="pi pi-user" aria-hidden="true"></i></div>
+                    } @else {
+                      <p-image
+                        [src]="getStudentPhotoUrl(student)"
+                        [alt]="'Foto de ' + student.fullName"
+                        width="40"
+                        height="50"
+                        imageClass="student-card-photo"
+                        [preview]="true"
+                        appendTo="body"
+                        (onImageError)="onStudentPhotoError(student)"
+                      ></p-image>
+                    }
+                    <div class="sc-compact">
+                      <span class="font-bold">{{ surnameFirst(student) }}</span>
+                      @if (isManualRegistration(student)) {
+                        <p-tag value="Registro manual" severity="info" styleClass="sc-manual-tag" />
+                      }
+                      <span class="sc-compact-meta">{{ student.code }} · DNI {{ student.number || student.id_student }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ getCampusLabel(student) }}</td>
+                <td>
+                  <div class="sc-files">
+                    <p-tag value="Foto" [severity]="getFileStatusSeverity(student, 'photo')" [icon]="getFileStatusIcon(student, 'photo')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'photo')" tooltipPosition="top" />
+                    <p-tag value="DNI" [severity]="getFileStatusSeverity(student, 'dni')" [icon]="getFileStatusIcon(student, 'dni')" [rounded]="true" [pTooltip]="getFileStatusLabel(student, 'dni')" tooltipPosition="top" />
+                  </div>
+                </td>
+                <td>{{ displayDate(student.validated_at) }}</td>
+                <td class="align-content-center">
+                  <div class="sc-actions">
+                    <p-button class="semester-read-only-allowed" label="Ver" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true" (onClick)="openValidatedDetail(student)" />
+                    <p-button
+                      icon="pi pi-ellipsis-v"
+                      size="small"
+                      [text]="true"
+                      [rounded]="true"
+                      severity="secondary"
+                      ariaLabel="Más acciones"
+                      pTooltip="Más acciones"
+                      tooltipPosition="top"
+                      (onClick)="openRowMenu($event, student, 'validated')"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              @if (loadingLists.validated) {
+                <ng-container *ngTemplateOutlet="skeletonRows4"></ng-container>
+              } @else {
+                <tr>
+                  <td colspan="5">
+                    <div class="sc-empty">
+                      <i class="pi pi-inbox" aria-hidden="true"></i>
+                      <strong>{{ hasActiveFilters ? 'Sin resultados' : 'Aún no hay estudiantes validados' }}</strong>
+                      <p>{{ hasActiveFilters ? 'Ningún estudiante coincide con los filtros.' : 'Los estudiantes validados aparecerán aquí.' }}</p>
+                      @if (hasActiveFilters) {
+                        <p-button label="Limpiar filtros" size="small" severity="secondary" [outlined]="true" (onClick)="clearCardFilters()" />
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </ng-template>
+          </p-table>
+        </div>
+        }
+        @if (!loadingLists.validated) {
+          <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'validated', total: filtered(validatedStudents).length, sizes: validatedPageSizes }"></ng-container>
+        }
       </p-tabPanel>
 
       <p-tabPanel>
@@ -453,17 +534,8 @@
             }
           }
         </div>
-        @if (!loadingLists.flagged && filtered(flaggedStudents).length > pageSizes[0]) {
-          <p-paginator
-            styleClass="sc-paginator"
-            [first]="pages.flagged.first"
-            [rows]="pages.flagged.rows"
-            [totalRecords]="filtered(flaggedStudents).length"
-            [rowsPerPageOptions]="pageSizes"
-            [showCurrentPageReport]="true"
-            currentPageReportTemplate="{first} a {last} de {totalRecords}"
-            (onPageChange)="onPage('flagged', $event)"
-          ></p-paginator>
+        @if (!loadingLists.flagged) {
+          <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'flagged', total: filtered(flaggedStudents).length, sizes: pageSizes }"></ng-container>
         }
       </p-tabPanel>
 
@@ -489,21 +561,65 @@
             }
           }
         </div>
-        @if (!loadingLists.unmatched && filtered(unmatchedStudent).length > pageSizes[0]) {
-          <p-paginator
-            styleClass="sc-paginator"
-            [first]="pages.unmatched.first"
-            [rows]="pages.unmatched.rows"
-            [totalRecords]="filtered(unmatchedStudent).length"
-            [rowsPerPageOptions]="pageSizes"
-            [showCurrentPageReport]="true"
-            currentPageReportTemplate="{first} a {last} de {totalRecords}"
-            (onPageChange)="onPage('unmatched', $event)"
-          ></p-paginator>
+        @if (!loadingLists.unmatched) {
+          <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'unmatched', total: filtered(unmatchedStudent).length, sizes: pageSizes }"></ng-container>
         }
       </p-tabPanel>
     </p-tabView>
     <p-menu #rowMenu [popup]="true" [model]="rowMenuItems" appendTo="body" />
+    <p-drawer
+      [(visible)]="detailVisible"
+      [position]="isPhone ? 'bottom' : 'right'"
+      [style]="isPhone ? { height: '88vh' } : { width: '26rem' }"
+      header="Detalle del estudiante"
+      (onHide)="closeValidatedDetail()"
+    >
+      @if (detailStudent) {
+        <div class="sc-detail">
+          <div class="sc-detail-imgs">
+            <figure class="sc-detail-fig">
+              <figcaption>Foto</figcaption>
+              @if (hasStudentPhoto(detailStudent)) {
+                <p-image
+                  [src]="getStudentPhotoUrl(detailStudent)"
+                  [alt]="'Foto de ' + detailStudent.fullName"
+                  imageClass="sc-detail-img"
+                  [preview]="true"
+                  appendTo="body"
+                  (onImageError)="onStudentPhotoError(detailStudent)"
+                ></p-image>
+              } @else {
+                <div class="sc-detail-empty"><i class="pi pi-user" aria-hidden="true"></i><span>Sin foto</span></div>
+              }
+            </figure>
+            <figure class="sc-detail-fig">
+              <figcaption>DNI</figcaption>
+              @if (reviewDniSafeUrl && reviewDniIsPdf) {
+                <iframe [src]="reviewDniSafeUrl" title="DNI del estudiante" class="sc-detail-pdf"></iframe>
+              } @else if (reviewDniObjectUrl) {
+                <p-image [src]="reviewDniObjectUrl" alt="DNI del estudiante" imageClass="sc-detail-img" [preview]="true" appendTo="body"></p-image>
+              } @else {
+                <p-skeleton width="100%" height="9rem" borderRadius="8px" />
+              }
+            </figure>
+          </div>
+
+          <dl class="sc-detail-data">
+            <div><dt>Estudiante</dt><dd>{{ surnameFirst(detailStudent) }}</dd></div>
+            <div><dt>Código · DNI</dt><dd>{{ detailStudent.code }} · {{ detailStudent.number || detailStudent.id_student }}</dd></div>
+            <div><dt>Sede</dt><dd>{{ getCampusLabel(detailStudent) }}</dd></div>
+            <div><dt>Celular</dt><dd>{{ detailStudent.cellphone || 'Sin dato' }}</dd></div>
+            <div><dt>Validado</dt><dd>{{ displayDate(detailStudent.validated_at) }}</dd></div>
+          </dl>
+
+          <div class="sc-detail-actions">
+            <p-button class="semester-read-only-allowed" label="Descargar foto" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="downloadStudentPhoto(detailStudent)" />
+            <p-button class="semester-read-only-allowed" label="Descargar DNI" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="downloadStudentDni(detailStudent)" />
+            <p-button label="Volver a pendiente" icon="pi pi-undo" severity="danger" [text]="true" [disabled]="isHistoricalSemester" (onClick)="returnToPending(detailStudent)" />
+          </div>
+        </div>
+      }
+    </p-drawer>
 
     <p-dialog
       header="Revisión de identidad"
