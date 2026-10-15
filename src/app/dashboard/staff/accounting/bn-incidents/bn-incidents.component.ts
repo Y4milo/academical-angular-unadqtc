@@ -290,6 +290,61 @@ export class BnIncidentsComponent implements OnInit, OnDestroy {
     return client ? [client.label, client.version].filter(Boolean).join(' ') : 'Sin información';
   }
 
+  /**
+   * Tipo de origen para el color: system = el propio sistema (descarga automática, sin IP ni cliente externo),
+   * authorized = origen autorizado (Recaudación), unknown = IP desconocida, unverified = IP sin verificar.
+   */
+  originKind(row: AccountingBnTransaction): 'system' | 'authorized' | 'unknown' | 'unverified' {
+    if (row.client?.family === 'sync') {
+      return 'system';
+    }
+
+    if (row.ip_status === 'allowed') {
+      return 'authorized';
+    }
+
+    return row.ip_status === 'unknown' ? 'unknown' : 'unverified';
+  }
+
+  originName(row: AccountingBnTransaction): string {
+    switch (this.originKind(row)) {
+      case 'system':
+        return 'Descarga automática';
+      case 'authorized':
+        return row.origin_label || 'Autorizada';
+      case 'unknown':
+        return 'IP desconocida';
+      default:
+        return 'Sin verificar';
+    }
+  }
+
+  originIcon(row: AccountingBnTransaction): string {
+    switch (this.originKind(row)) {
+      case 'system':
+        return 'refresh-cw';
+      case 'authorized':
+        return 'shield-check';
+      case 'unknown':
+        return 'shield-alert';
+      default:
+        return 'shield-question';
+    }
+  }
+
+  originSeverity(row: AccountingBnTransaction): 'info' | 'success' | 'warn' | 'secondary' {
+    switch (this.originKind(row)) {
+      case 'system':
+        return 'info';
+      case 'authorized':
+        return 'success';
+      case 'unknown':
+        return 'warn';
+      default:
+        return 'secondary';
+    }
+  }
+
   originStatusSeverity(status: AccountingBnIpStatus | null | undefined): Severity {
     if (status === 'allowed') {
       return 'success';
