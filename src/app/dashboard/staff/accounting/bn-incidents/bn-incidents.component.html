@@ -45,6 +45,23 @@
     <p-progressSpinner></p-progressSpinner>
   </div>
 
+  <p-card styleClass="rejections-card" *ngIf="rejections && rejections.total">
+    <div class="rejections-head">
+      <div>
+        <strong>Rechazos de las últimas 24 horas</strong>
+        <span>{{ rejections.total }} rechazos · {{ rejections.ips }} IP</span>
+      </div>
+      <p-tag *ngIf="rejections.over_limit" severity="warn" [value]="rejections.over_limit + (rejections.over_limit === 1 ? ' IP superó el límite' : ' IP superaron el límite')"></p-tag>
+    </div>
+    <div class="rejection-row" *ngFor="let item of rejections.items">
+      <span class="origin-ip">{{ item.ip_address }}</span>
+      <span class="rejection-reason">{{ item.main_reason || 'Sin motivo' }}</span>
+      <span class="rejection-count">{{ item.total }} intentos</span>
+      <p-tag [severity]="rejectionSeverity(item.state)" [value]="rejectionLabel(item.state)"></p-tag>
+      <a class="rejection-link" routerLink="../traces" [queryParams]="{ ip: item.ip_address }">Ver trazabilidad</a>
+    </div>
+  </p-card>
+
   <p-card styleClass="filter-card">
     <div class="filter-grid">
       <div class="field">

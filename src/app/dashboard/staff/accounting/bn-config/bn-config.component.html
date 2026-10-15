@@ -112,6 +112,88 @@
     </p-card>
 
     <p-card styleClass="config-card">
+      <div class="section-title">
+        <strong>Seguridad de la API</strong>
+        <span>Límite de intentos y avisos</span>
+      </div>
+
+      <ng-container *ngIf="security as sec">
+        <div class="set-row">
+          <div>
+            <strong>Limitar intentos fallidos por IP</strong>
+            <p>Al superar el límite, la IP recibe error 429 durante el tiempo de espera.</p>
+          </div>
+          <p-toggleswitch [(ngModel)]="sec.rate_limit_enabled" aria-label="Limitar intentos fallidos"></p-toggleswitch>
+        </div>
+        <div class="set-row sub" *ngIf="sec.rate_limit_enabled">
+          <label for="bn-rate-max">Máximo de intentos fallidos por minuto</label>
+          <p-inputnumber inputId="bn-rate-max" [(ngModel)]="sec.rate_limit_max" [min]="1" [max]="1000" [showButtons]="true" [useGrouping]="false"></p-inputnumber>
+        </div>
+        <div class="set-row sub" *ngIf="sec.rate_limit_enabled">
+          <label for="bn-rate-cool">Tiempo de espera (minutos)</label>
+          <p-inputnumber inputId="bn-rate-cool" [(ngModel)]="sec.rate_limit_cooldown_minutes" [min]="1" [max]="1440" [showButtons]="true" [useGrouping]="false"></p-inputnumber>
+        </div>
+        <p class="note">
+          <app-lucide-icon name="shield-check" [size]="16"></app-lucide-icon>
+          <span>Los orígenes autorizados nunca se limitan.</span>
+        </p>
+
+        <div class="set-row">
+          <div>
+            <strong>Avisar cuando una IP acumula rechazos</strong>
+            <p>Se marca en Incidencias; el correo es opcional.</p>
+          </div>
+          <p-toggleswitch [(ngModel)]="sec.alert_enabled" aria-label="Avisar rechazos"></p-toggleswitch>
+        </div>
+        <ng-container *ngIf="sec.alert_enabled">
+          <div class="set-row sub">
+            <label for="bn-alert-th">Avisar desde (rechazos)</label>
+            <p-inputnumber inputId="bn-alert-th" [(ngModel)]="sec.alert_threshold" [min]="1" [max]="1000" [showButtons]="true" [useGrouping]="false"></p-inputnumber>
+          </div>
+          <div class="set-row sub">
+            <label for="bn-alert-win">En una ventana de (minutos)</label>
+            <p-inputnumber inputId="bn-alert-win" [(ngModel)]="sec.alert_window_minutes" [min]="1" [max]="1440" [showButtons]="true" [useGrouping]="false"></p-inputnumber>
+          </div>
+          <div class="set-row sub">
+            <label for="bn-alert-mail-on">Enviar también por correo</label>
+            <p-toggleswitch inputId="bn-alert-mail-on" [(ngModel)]="sec.alert_email_enabled"></p-toggleswitch>
+          </div>
+          <div class="set-row sub" *ngIf="sec.alert_email_enabled">
+            <label for="bn-alert-mail">Correo para avisos</label>
+            <input pInputText id="bn-alert-mail" type="email" [(ngModel)]="sec.alert_email" placeholder="seguridad@unadqtc.edu.pe" />
+          </div>
+        </ng-container>
+
+        <small class="form-error" *ngIf="securityError">{{ securityError }}</small>
+        <div class="section-actions">
+          <button pButton type="button" class="icon-label-button" [disabled]="saving || !securityDirty" (click)="saveSecurity()">
+            <app-lucide-icon name="check" [size]="16"></app-lucide-icon>
+            <span>Guardar seguridad</span>
+          </button>
+        </div>
+      </ng-container>
+    </p-card>
+
+    <p-card styleClass="config-card" *ngIf="c.blocked.length">
+      <div class="section-title">
+        <strong>IP bloqueadas</strong>
+        <span>{{ c.blocked.length }}</span>
+      </div>
+      <div class="detected-item" *ngFor="let blocked of c.blocked">
+        <div class="origin-main">
+          <span class="origin-ip">{{ blocked.ip_address }}</span>
+          <small>Bloqueada {{ blocked.blocked_at }}</small>
+        </div>
+        <div class="detected-actions">
+          <button pButton type="button" class="icon-label-button" size="small" severity="secondary" [outlined]="true" [disabled]="saving" (click)="unblock(blocked)">
+            <app-lucide-icon name="check" [size]="16"></app-lucide-icon>
+            <span>Desbloquear</span>
+          </button>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card styleClass="config-card">
       <div class="section-title"><strong>Conexión con el banco</strong><span>Solo lectura</span></div>
       <dl class="info-grid">
         <div><dt>Servidor SFTP</dt><dd class="mono">{{ c.connection.sftp_host || 'No configurado' }}</dd></div>

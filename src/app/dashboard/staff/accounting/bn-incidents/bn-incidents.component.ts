@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgClass, NgIf } from '@angular/common';
+import { NgClass, NgFor, NgIf } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DatePicker } from 'primeng/datepicker';
 import { Drawer } from 'primeng/drawer';
+import { RouterLink } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -16,7 +17,9 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import {
   AccountingBnFilter,
+  AccountingBnIpState,
   AccountingBnIpStatus,
+  AccountingBnSecuritySummary,
   AccountingBnListResponse,
   AccountingBnService,
   AccountingBnSummary,
@@ -45,7 +48,9 @@ type AccountingBnTransactionView = AccountingBnTransaction & {
     InputTextModule,
     MessageModule,
     NgClass,
+    NgFor,
     NgIf,
+    RouterLink,
     ProgressSpinnerModule,
     Select,
     TableModule,
@@ -87,6 +92,7 @@ export class BnIncidentsComponent implements OnInit {
   detailVisible = false;
   selected: AccountingBnTransaction | null = null;
   summary: AccountingBnSummary | null = null;
+  rejections: AccountingBnSecuritySummary | null = null;
   list: AccountingBnListResponse = {
     items: [],
     pagination: {
@@ -106,6 +112,34 @@ export class BnIncidentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.accountingBnService.securitySummary().subscribe({
+      next: (response) => {
+        if (response.status === STATUS.success) {
+          this.rejections = response.payload.data;
+        }
+      },
+    });
+  }
+
+  rejectionLabel(state: AccountingBnIpState): string {
+    switch (state) {
+      case 'blocked':
+        return 'Bloqueada';
+      case 'limited':
+        return 'Limitada';
+      case 'watch':
+        return 'Vigilar';
+      default:
+        return 'Registrada';
+    }
+  }
+
+  rejectionSeverity(state: AccountingBnIpState): 'danger' | 'warn' | 'secondary' {
+    if (state === 'blocked' || state === 'limited') {
+      return 'danger';
+    }
+
+    return state === 'watch' ? 'warn' : 'secondary';
   }
 
   loadData(page = 1): void {

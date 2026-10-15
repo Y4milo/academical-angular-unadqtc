@@ -5,6 +5,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
@@ -20,6 +21,7 @@ import {
   AccountingBnConfigLog,
   AccountingBnDetectedIp,
   AccountingBnOrigin,
+  AccountingBnSecuritySettings,
   AccountingBnService,
 } from '../../../../services/accounting-bn.service';
 
@@ -36,6 +38,7 @@ interface ModeOption {
     CardModule,
     DialogModule,
     FormsModule,
+    InputNumberModule,
     InputTextModule,
     MessageModule,
     NgFor,
@@ -60,6 +63,8 @@ export class BnConfigComponent implements OnInit {
     ip_ignored: 'IP ignorada',
     ignore_removed: 'IP ignorada restaurada',
     mode_changed: 'Modo cambiado',
+    security_changed: 'Seguridad modificada',
+    ip_blocked: 'IP bloqueada',
   };
 
   config: AccountingBnConfig | null = null;
@@ -70,6 +75,9 @@ export class BnConfigComponent implements OnInit {
   editing: AccountingBnOrigin | null = null;
   form = { ip_address: '', label: '', notes: '' };
   formError = '';
+
+  security: AccountingBnSecuritySettings | null = null;
+  securityError = '';
 
   deleteTarget: AccountingBnOrigin | null = null;
   blockConfirmVisible = false;
@@ -85,6 +93,7 @@ export class BnConfigComponent implements OnInit {
         this.loading = false;
         if (response.status === STATUS.success) {
           this.config = response.payload.data;
+          this.security = { ...response.payload.data.security };
         } else {
           this.notificationService.notifyApiData(response);
         }
@@ -116,6 +125,29 @@ export class BnConfigComponent implements OnInit {
   confirmBlock(): void {
     this.blockConfirmVisible = false;
     this.run(this.accountingBnService.setMode(true));
+  }
+
+  saveSecurity(): void {
+    if (!this.security) {
+      return;
+    }
+
+    this.securityError = '';
+
+    if (this.security.alert_email_enabled && !this.security.alert_email?.trim()) {
+      this.securityError = 'Escribe un correo para activar los avisos por correo.';
+      return;
+    }
+
+    this.run(this.accountingBnService.updateSecurity({ ...this.security, alert_email: this.security.alert_email?.trim() ?? '' }));
+  }
+
+  get securityDirty(): boolean {
+    return !!this.security && !!this.config && JSON.stringify(this.security) !== JSON.stringify(this.config.security);
+  }
+
+  unblock(ip: { id: number; ip_address: string }): void {
+    this.run(this.accountingBnService.removeOrigin(ip.id));
   }
 
   openAdd(ip = ''): void {
@@ -186,6 +218,7 @@ export class BnConfigComponent implements OnInit {
         this.saving = false;
         if (response.status === STATUS.success) {
           this.config = response.payload.data;
+          this.security = { ...response.payload.data.security };
           done?.();
           if (response.payload.title) {
             this.notificationService.success(response.payload.title, '');
