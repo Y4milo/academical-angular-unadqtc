@@ -202,6 +202,7 @@
                 [severity]="getSeverity(row.status.value)">
               </p-tag>
               <span>{{ row.message || '-' }}</span>
+              <p-tag *ngIf="row.error_origin" severity="secondary" [value]="row.error_origin.label"></p-tag>
             </div>
           </td>
           <td>
@@ -262,6 +263,7 @@
       <p class="detail-message">{{ t.message || 'Sin mensaje' }}</p>
 
       <dl class="detail-list">
+        <div *ngIf="t.error_origin"><dt>Origen del error</dt><dd>{{ t.error_origin.label }}</dd></div>
         <div><dt>Operacion</dt><dd>{{ t.operation.label || t.operation.value || '-' }}</dd></div>
         <div><dt>Registrado</dt><dd>{{ getOperationDateLabel(t) }}</dd></div>
         <div><dt>Fecha solicitada</dt><dd>{{ getRequestedDateLabel(t) }}</dd></div>
