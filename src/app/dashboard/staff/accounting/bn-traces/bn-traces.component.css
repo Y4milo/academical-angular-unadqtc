@@ -211,6 +211,63 @@
   gap: .4rem;
 }
 
+.clients {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.client-row {
+  align-items: center;
+  display: grid;
+  gap: .6rem;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 2.2rem;
+}
+
+.client-name {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, .5rem);
+  overflow-wrap: anywhere;
+}
+
+.client-bar {
+  background: var(--surface-ground);
+  border-radius: 4px;
+  display: block;
+  height: .5rem;
+  overflow: hidden;
+}
+
+.client-bar span {
+  background: var(--primary-color);
+  display: block;
+  height: 100%;
+}
+
+.client-total {
+  text-align: right;
+}
+
+.tag-new,
+.tag-manual {
+  border-radius: 999px;
+  font-size: .65rem;
+  font-weight: 600;
+  padding: 0 .4rem;
+}
+
+.tag-new {
+  background: color-mix(in srgb, var(--primary-color) 18%, transparent);
+  color: var(--primary-color);
+}
+
+.tag-manual {
+  background: color-mix(in srgb, var(--p-orange-500, #f97316) 18%, transparent);
+  color: var(--p-orange-500, #f97316);
+}
+
 .chip {
   background: var(--surface-ground);
   border-radius: 6px;

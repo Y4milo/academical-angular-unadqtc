@@ -97,10 +97,20 @@
       </div>
       <p class="muted" *ngIf="d.label">{{ d.label }}</p>
 
-      <div class="chips" *ngIf="d.user_agents.length">
-        <span class="muted">Clientes</span>
-        <span class="chip mono" *ngFor="let agent of d.user_agents">{{ agent }}</span>
-      </div>
+      <section class="clients" *ngIf="d.clients.length">
+        <span class="muted">Clientes vistos desde esta IP</span>
+        <div class="client-row" *ngFor="let item of d.clients" [title]="item.client.raw || ''">
+          <span class="client-name">
+            <app-lucide-icon [name]="clientIcon(item.client)" [size]="15"></app-lucide-icon>
+            {{ clientText(item.client) }}
+            <span class="tag-new" *ngIf="item.is_new">Cliente nuevo</span>
+            <span class="tag-manual" *ngIf="item.client.is_manual">Manual</span>
+          </span>
+          <span class="client-bar"><span [style.width.%]="clientShare(item.total)"></span></span>
+          <span class="mono client-total">{{ item.total }}</span>
+        </div>
+        <small class="muted">Cada cambio de versión de Java indica una actualización del sistema que llama.</small>
+      </section>
       <div class="chips" *ngIf="d.paths.length">
         <span class="muted">Rutas</span>
         <span class="chip mono" *ngFor="let path of d.paths">{{ path }}</span>

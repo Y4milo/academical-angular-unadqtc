@@ -9,6 +9,11 @@ import {
   LucideChevronsRight,
   LucideCheck,
   LucideCircle,
+  LucideCoffee,
+  LucideGlobe,
+  LucideMonitor,
+  LucideTerminal,
+  LucideWrench,
   LucideCircleCheck,
   LucideClock,
   LucideCircleDot,
@@ -56,6 +61,11 @@ import {
 
 const LUCIDE_ICONS: Record<string, LucideIcon> = {
   ban: LucideBan,
+  coffee: LucideCoffee,
+  globe: LucideGlobe,
+  monitor: LucideMonitor,
+  terminal: LucideTerminal,
+  wrench: LucideWrench,
   'circle-check': LucideCircleCheck,
   clock: LucideClock,
   'plug-zap': LucidePlugZap,

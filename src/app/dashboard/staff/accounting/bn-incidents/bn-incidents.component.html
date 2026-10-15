@@ -115,6 +115,11 @@
           <span class="from">
             <span class="mono">{{ row.ip_address || 'Sin IP' }}</span>
             <small [ngClass]="row.ip_status">{{ row.origin_label || originStatusLabel(row.ip_status) }}</small>
+            <small class="client" [title]="row.client.raw || ''">
+              <app-lucide-icon [name]="clientIcon(row.client)" [size]="13"></app-lucide-icon>
+              {{ clientText(row.client) }}
+              <span class="manual-tag" *ngIf="row.client.is_manual">Manual</span>
+            </small>
           </span>
           <p-tag class="state" [value]="rowStatus(row).label" [severity]="rowStatus(row).severity"></p-tag>
           <span class="actions">
@@ -169,10 +174,22 @@
             <p-tag [severity]="originStatusSeverity(t.ip_status)" [value]="t.origin_label || originStatusLabel(t.ip_status)"></p-tag>
           </dd>
         </div>
-        <div><dt>Cliente</dt><dd class="mono">{{ t.user_agent || '-' }}</dd></div>
         <div><dt>Usuario del sistema</dt><dd>{{ t.user.full_name || 'Sistema' }} {{ t.user.number }}</dd></div>
         <div><dt>Intento</dt><dd>{{ t.attempt }}</dd></div>
       </dl>
+
+      <section class="client-box">
+        <div class="client-head">
+          <strong>Cliente que hizo la llamada</strong>
+          <p-tag [severity]="t.client.kind === 'manual' ? 'warn' : t.client.kind === 'integration' ? 'info' : 'secondary'" [value]="t.client.kind_label"></p-tag>
+        </div>
+        <dl class="facts compact">
+          <div><dt>Plataforma</dt><dd><app-lucide-icon [name]="clientIcon(t.client)" [size]="15"></app-lucide-icon>{{ t.client.label }}</dd></div>
+          <div><dt>Versión</dt><dd>{{ t.client.version || 'No informada' }}</dd></div>
+          <div><dt>Sistema operativo</dt><dd>{{ t.client.os || 'No informado por el cliente' }}</dd></div>
+        </dl>
+        <small class="mono raw" *ngIf="t.client.raw">User agent: {{ t.client.raw }}</small>
+      </section>
 
       <section class="file-box" *ngIf="t.has_local_file || t.file_name">
         <div class="file-head">

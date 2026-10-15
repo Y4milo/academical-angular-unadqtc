@@ -42,6 +42,25 @@ export interface AccountingBnIpSummary {
   blocks_unknown: boolean;
 }
 
+export interface AccountingBnClient {
+  family: string;
+  label: string;
+  version: string | null;
+  kind: 'integration' | 'manual' | 'browser' | 'script' | 'unknown';
+  kind_label: string;
+  os: string | null;
+  is_manual: boolean;
+  raw: string | null;
+}
+
+export interface AccountingBnClientSeen {
+  client: AccountingBnClient;
+  total: number;
+  first_seen: string | null;
+  last_seen: string | null;
+  is_new: boolean;
+}
+
 export interface AccountingBnTransaction {
   id: number;
   request_date: string | null;
@@ -70,6 +89,7 @@ export interface AccountingBnTransaction {
   ip_address: string | null;
   ip_status: AccountingBnIpStatus;
   user_agent: string | null;
+  client: AccountingBnClient;
   user: {
     id: number | null;
     number: string | null;
@@ -207,6 +227,7 @@ export interface AccountingBnTraceDetail {
   origin_id: number | null;
   limited_until: number | null;
   user_agents: string[];
+  clients: AccountingBnClientSeen[];
   paths: string[];
   events: AccountingBnTraceEvent[];
 }
