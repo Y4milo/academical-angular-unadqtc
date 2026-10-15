@@ -10,6 +10,7 @@ import {
   LucideCheck,
   LucideChevronLeft,
   LucideCircle,
+  LucideShieldHalf,
   LucideRefreshCw,
   LucideCircleX,
   LucideMinus,
@@ -65,6 +66,7 @@ import {
 
 const LUCIDE_ICONS: Record<string, LucideIcon> = {
   ban: LucideBan,
+  'shield-half': LucideShieldHalf,
   'refresh-cw': LucideRefreshCw,
   'chevron-left': LucideChevronLeft,
   'circle-x': LucideCircleX,

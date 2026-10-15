@@ -89,6 +89,7 @@ export interface AccountingBnTransaction {
   origin_label: string | null;
   ip_address: string | null;
   ip_status: AccountingBnIpStatus;
+  origin_probable: boolean;
   user_agent: string | null;
   client: AccountingBnClient;
   user: {

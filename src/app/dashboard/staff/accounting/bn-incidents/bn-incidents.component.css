@@ -378,14 +378,34 @@ small,
   color: var(--p-green-500, #22c55e);
 }
 
+.origin-chip.probable {
+  background: transparent;
+  border: 1px dashed color-mix(in srgb, var(--p-green-500, #22c55e) 60%, transparent);
+  color: var(--p-green-500, #22c55e);
+}
+
 .origin-chip.unknown {
-  background: color-mix(in srgb, var(--p-orange-500, #f97316) 16%, transparent);
-  color: var(--p-orange-500, #f97316);
+  background: color-mix(in srgb, var(--p-red-500, #ef4444) 16%, transparent);
+  color: var(--p-red-500, #ef4444);
 }
 
 .origin-chip.unverified {
-  background: var(--surface-ground);
+  background: color-mix(in srgb, var(--p-yellow-500, #eab308) 18%, transparent);
+  color: var(--p-yellow-500, #eab308);
+}
+
+.origin-hint {
+  align-items: flex-start;
   color: var(--text-color-secondary);
+  display: flex;
+  font-size: .8rem;
+  gap: var(--space-2, .5rem);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.origin-hint.warn {
+  color: var(--p-yellow-500, #eab308);
 }
 
 .from-meta {
