@@ -109,7 +109,7 @@ export interface AccountingBnSummary {
   ips: AccountingBnIpSummary;
 }
 
-export type AccountingBnFileState = 'downloaded' | 'received' | 'waiting' | 'missing' | 'failed' | 'not_applicable';
+export type AccountingBnFileState = 'downloaded' | 'received' | 'waiting' | 'missing' | 'failed' | 'not_applicable' | 'no_data';
 
 export interface AccountingBnFileEntry {
   type: 'ING' | 'PAGOS' | 'REP' | 'DUP';

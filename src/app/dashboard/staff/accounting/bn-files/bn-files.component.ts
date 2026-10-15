@@ -124,6 +124,8 @@ export class BnFilesComponent implements OnInit {
         return 'No llegó';
       case 'failed':
         return 'Con error';
+      case 'no_data':
+        return 'Sin registro';
       default:
         return 'No corresponde';
     }
@@ -200,6 +202,8 @@ export class BnFilesComponent implements OnInit {
         return 'No llegó en el horario esperado';
       case 'failed':
         return file.error ? `No se pudo descargar: ${file.error}` : 'No se pudo descargar';
+      case 'no_data':
+        return 'Sin registro: el día es anterior a la descarga automática y el banco ya no conserva el archivo';
       default:
         return 'Feriado: el banco no genera archivos';
     }

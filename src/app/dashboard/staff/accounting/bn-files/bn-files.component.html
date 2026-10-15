@@ -28,7 +28,8 @@
     <li><app-lucide-icon class="ok" name="circle-check" [size]="15"></app-lucide-icon> Descargado</li>
     <li><app-lucide-icon class="wait" name="clock" [size]="15"></app-lucide-icon> Esperando</li>
     <li><app-lucide-icon class="bad" name="circle-x" [size]="15"></app-lucide-icon> No llegó</li>
-    <li><app-lucide-icon class="muted" name="minus" [size]="15"></app-lucide-icon> No corresponde</li>
+    <li><app-lucide-icon class="muted" name="minus" [size]="15"></app-lucide-icon> No corresponde (feriado)</li>
+    <li><app-lucide-icon class="muted" name="minus" [size]="15"></app-lucide-icon> Sin registro (anterior a la descarga automática)</li>
   </ul>
 
   <p-skeleton *ngIf="loading" height="14rem" borderRadius="10px"></p-skeleton>
