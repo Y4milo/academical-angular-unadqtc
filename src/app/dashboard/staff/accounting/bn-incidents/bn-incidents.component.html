@@ -113,9 +113,13 @@
             </span>
           </span>
           <span class="from">
-            <span class="mono">{{ row.ip_address || 'Sin IP' }}</span>
-            <small [ngClass]="row.ip_status">{{ row.origin_label || originStatusLabel(row.ip_status) }}</small>
-            <small class="client" [title]="row.client.raw || ''">
+            <span class="origin-chip" [ngClass]="originKind(row)">
+              <app-lucide-icon [name]="originIcon(row)" [size]="14"></app-lucide-icon>
+              {{ originName(row) }}
+            </span>
+            <small class="from-meta" *ngIf="originKind(row) !== 'system'" [title]="row.client.raw || ''">
+              <span class="mono">{{ row.ip_address || 'Sin IP' }}</span>
+              <span class="dot">·</span>
               <app-lucide-icon [name]="clientIcon(row.client)" [size]="13"></app-lucide-icon>
               {{ clientText(row.client) }}
               <span class="manual-tag" *ngIf="row.client.is_manual">Manual</span>
@@ -170,8 +174,8 @@
         <div>
           <dt>Solicitado desde</dt>
           <dd>
-            <span class="mono">{{ t.ip_address || 'Sin IP' }}</span>
-            <p-tag [severity]="originStatusSeverity(t.ip_status)" [value]="t.origin_label || originStatusLabel(t.ip_status)"></p-tag>
+            <span class="mono">{{ t.ip_address || (originKind(t) === 'system' ? '—' : 'Sin IP') }}</span>
+            <p-tag [severity]="originSeverity(t)" [value]="originName(t)"></p-tag>
           </dd>
         </div>
         <div><dt>Usuario del sistema</dt><dd>{{ t.user.full_name || 'Sistema' }} {{ t.user.number }}</dd></div>

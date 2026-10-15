@@ -357,6 +357,50 @@ small,
   color: var(--p-orange-500, #f97316);
 }
 
+.origin-chip {
+  align-items: center;
+  align-self: flex-start;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: .78rem;
+  font-weight: 600;
+  gap: var(--space-1, .25rem);
+  padding: .1rem .6rem;
+}
+
+.origin-chip.system {
+  background: color-mix(in srgb, var(--p-blue-500, #3b82f6) 16%, transparent);
+  color: var(--p-blue-500, #3b82f6);
+}
+
+.origin-chip.authorized {
+  background: color-mix(in srgb, var(--p-green-500, #22c55e) 16%, transparent);
+  color: var(--p-green-500, #22c55e);
+}
+
+.origin-chip.unknown {
+  background: color-mix(in srgb, var(--p-orange-500, #f97316) 16%, transparent);
+  color: var(--p-orange-500, #f97316);
+}
+
+.origin-chip.unverified {
+  background: var(--surface-ground);
+  color: var(--text-color-secondary);
+}
+
+.from-meta {
+  align-items: center;
+  color: var(--text-color-secondary);
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-size: .75rem;
+  gap: var(--space-1, .25rem);
+}
+
+.from-meta .dot {
+  opacity: .6;
+}
+
 .from small.client {
   align-items: center;
   display: inline-flex;
