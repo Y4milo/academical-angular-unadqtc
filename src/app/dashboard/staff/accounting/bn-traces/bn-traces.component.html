@@ -1,0 +1,140 @@
+<div class="bn-traces">
+  <div class="page-heading">
+    <div>
+      <h2>Trazabilidad de IP</h2>
+      <p>Todas las IP que llamaron a la API del Banco de la Nación, con su actividad completa.</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="skeletons">
+    <p-skeleton height="3rem"></p-skeleton>
+    <p-skeleton height="12rem"></p-skeleton>
+  </div>
+
+  <ng-container *ngIf="list as l">
+    <p-card styleClass="trace-card">
+      <div class="coverage">
+        <app-lucide-icon name="shield-question" [size]="18"></app-lucide-icon>
+        <span>
+          La IP real se registra desde el 15 de octubre de 2026.
+          <ng-container *ngIf="l.history_range.from">Historial reconstruido desde los logs de nginx: {{ l.history_range.from }} a {{ l.history_range.to }}.</ng-container>
+          Lo anterior figura como 127.0.0.1 y no se puede recuperar sin logs externos.
+        </span>
+      </div>
+
+      <div class="predefined" *ngIf="predefined.length">
+        <span class="predefined-title">
+          <app-lucide-icon name="shield-check" [size]="16"></app-lucide-icon>
+          IP predeterminadas
+        </span>
+        <span class="predefined-item" *ngFor="let item of predefined">
+          <span class="ip-address">{{ item.ip_address }}</span>
+          <small>{{ item.label || 'Sin nombre' }} · {{ item.total }} llamadas</small>
+        </span>
+      </div>
+
+      <p-selectButton
+        class="type-filter"
+        [options]="typeOptions"
+        [(ngModel)]="typeFilter"
+        optionLabel="label"
+        optionValue="value"
+        [allowEmpty]="false"
+        aria-label="Tipo de IP">
+      </p-selectButton>
+
+      <div class="toolbar">
+        <input pInputText type="text" [(ngModel)]="search" placeholder="Buscar por IP o nombre" aria-label="Buscar IP" />
+        <span class="count">{{ filtered.length }} IP</span>
+      </div>
+
+      <div class="empty-block" *ngIf="!filtered.length">
+        <p>No hay IP registradas para ese filtro.</p>
+      </div>
+
+      <div class="ip-list">
+        <button type="button" class="ip-row" *ngFor="let item of filtered" (click)="open(item.ip_address)">
+          <span class="ip-main">
+            <span class="ip-address">{{ item.ip_address }}</span>
+            <small>{{ item.label || 'Sin nombre' }}</small>
+          </span>
+          <span class="ip-state">
+            <p-tag [severity]="statusSeverity(item.status)">
+              <span class="tag-content">
+                <app-lucide-icon [name]="statusIcon(item.status)" [size]="14"></app-lucide-icon>
+                {{ statusLabel(item.status) }}
+              </span>
+            </p-tag>
+            <p-tag *ngIf="isLimited(item.limited_until)" severity="danger" [value]="'Limitada hasta ' + limitedUntilLabel(item.limited_until)"></p-tag>
+          </span>
+          <span class="ip-activity">
+            <span class="bar" [attr.aria-label]="rejectedShare(item) + '% rechazadas'">
+              <span class="bar-ok" [style.width.%]="100 - rejectedShare(item)"></span>
+              <span class="bar-bad" [style.width.%]="rejectedShare(item)"></span>
+            </span>
+            <small>1.ª vez {{ item.first_seen }} · última {{ item.last_seen }}</small>
+          </span>
+          <span class="ip-total"><strong>{{ item.total }}</strong><small>{{ item.rejected }} rechaz.</small></span>
+          <app-lucide-icon name="chevron-right" [size]="18"></app-lucide-icon>
+        </button>
+      </div>
+    </p-card>
+  </ng-container>
+
+  <p-drawer [(visible)]="detailVisible" position="right" header="Detalle de la IP" styleClass="trace-drawer">
+    <div *ngIf="detailLoading" class="skeletons"><p-skeleton height="2rem"></p-skeleton><p-skeleton height="10rem"></p-skeleton></div>
+
+    <div class="detail" *ngIf="detail as d">
+      <div class="detail-head">
+        <span class="ip-address big">{{ d.ip_address }}</span>
+        <p-tag [severity]="statusSeverity(d.status)">
+          <span class="tag-content">
+            <app-lucide-icon [name]="statusIcon(d.status)" [size]="14"></app-lucide-icon>
+            {{ statusLabel(d.status) }}
+          </span>
+        </p-tag>
+        <p-tag *ngIf="isLimited(d.limited_until)" severity="danger" [value]="'Limitada hasta ' + limitedUntilLabel(d.limited_until)"></p-tag>
+      </div>
+      <p class="muted" *ngIf="d.label">{{ d.label }}</p>
+
+      <div class="chips" *ngIf="d.user_agents.length">
+        <span class="muted">Clientes</span>
+        <span class="chip mono" *ngFor="let agent of d.user_agents">{{ agent }}</span>
+      </div>
+      <div class="chips" *ngIf="d.paths.length">
+        <span class="muted">Rutas</span>
+        <span class="chip mono" *ngFor="let path of d.paths">{{ path }}</span>
+      </div>
+
+      <div class="detail-actions" *ngIf="canBlock && d.status !== 'blocked' && d.status !== 'allowed'">
+        <button pButton type="button" severity="danger" [outlined]="true" class="icon-label-button" [disabled]="saving" (click)="blockConfirm = true">
+          <app-lucide-icon name="ban" [size]="16"></app-lucide-icon>
+          <span>Bloquear IP</span>
+        </button>
+      </div>
+
+      <h4>Línea de tiempo</h4>
+      <div class="empty-block" *ngIf="!d.events.length"><p>No hay llamadas registradas para esta IP.</p></div>
+      <ul class="timeline">
+        <li *ngFor="let event of d.events" [ngClass]="event.kind">
+          <span class="time">{{ event.at }}</span>
+          <span class="dot"></span>
+          <span class="event">
+            <strong>{{ event.title }}</strong>
+            <small *ngIf="event.detail" class="mono">{{ event.detail }}</small>
+            <small *ngIf="event.chain" class="mono">Proxies: {{ event.chain }}</small>
+            <small class="source">{{ event.source === 'nginx' ? 'Reconstruido desde nginx' : 'Registrado por la aplicación' }}</small>
+          </span>
+        </li>
+      </ul>
+    </div>
+  </p-drawer>
+
+  <p-dialog [(visible)]="blockConfirm" [modal]="true" header="Bloquear IP" [style]="{ width: '28rem', maxWidth: '95vw' }">
+    <p>La IP <strong class="mono">{{ detail?.ip_address }}</strong> recibirá un error 403 en todas sus llamadas, aunque use la clave correcta. Puedes quitar el bloqueo desde Configuración.</p>
+    <ng-template pTemplate="footer">
+      <button pButton type="button" severity="secondary" [text]="true" (click)="blockConfirm = false">Cancelar</button>
+      <button pButton type="button" severity="danger" (click)="block()">Bloquear</button>
+    </ng-template>
+  </p-dialog>
+</div>

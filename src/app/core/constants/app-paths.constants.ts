@@ -26,6 +26,10 @@ export const PATHS = {
           path: `accounting/bank/config`,
           link: `admin/accounting/bank/config`,
         },
+        traces: {
+          path: `accounting/bank/traces`,
+          link: `admin/accounting/bank/traces`,
+        },
       },
     },
     degreesTitles: {
@@ -141,6 +145,10 @@ export const PATHS = {
       incidents: {
         path:  `bank/incidents`,
         link:   `accounting/bank/incidents`,
+      },
+      traces: {
+        path:  `bank/traces`,
+        link:   `accounting/bank/traces`,
       },
     },
     payments: `accounting/student/payments`,

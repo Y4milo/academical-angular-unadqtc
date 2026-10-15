@@ -101,6 +101,81 @@ export interface AccountingBnDetectedIp {
   last_seen: string | null;
 }
 
+export interface AccountingBnSecuritySettings {
+  rate_limit_enabled: boolean;
+  rate_limit_max: number;
+  rate_limit_cooldown_minutes: number;
+  alert_enabled: boolean;
+  alert_threshold: number;
+  alert_window_minutes: number;
+  alert_email_enabled: boolean;
+  alert_email: string;
+}
+
+export interface AccountingBnBlockedIp {
+  id: number;
+  ip_address: string;
+  label: string | null;
+  blocked_at: string | null;
+}
+
+export type AccountingBnIpState = 'blocked' | 'limited' | 'watch' | 'info';
+
+export interface AccountingBnSecurityItem {
+  ip_address: string;
+  total: number;
+  main_reason: string | null;
+  last_seen: string | null;
+  state: AccountingBnIpState;
+  limited_until: number | null;
+}
+
+export interface AccountingBnSecuritySummary {
+  total: number;
+  ips: number;
+  over_limit: number;
+  items: AccountingBnSecurityItem[];
+}
+
+export interface AccountingBnTraceItem {
+  ip_address: string;
+  label: string | null;
+  status: AccountingBnIpStatus | 'blocked';
+  total: number;
+  rejected: number;
+  first_seen: string | null;
+  last_seen: string | null;
+  limited_until: number | null;
+  from_history: boolean;
+}
+
+export interface AccountingBnTraceList {
+  items: AccountingBnTraceItem[];
+  history_range: { from: string | null; to: string | null };
+  rate_limit: { enabled: boolean; max: number };
+}
+
+export interface AccountingBnTraceEvent {
+  at: string | null;
+  source: 'app' | 'nginx';
+  kind: 'ok' | 'error' | 'rejected';
+  title: string;
+  detail: string | null;
+  chain: string | null;
+  user_agent: string | null;
+}
+
+export interface AccountingBnTraceDetail {
+  ip_address: string;
+  label: string | null;
+  status: AccountingBnIpStatus | 'blocked';
+  origin_id: number | null;
+  limited_until: number | null;
+  user_agents: string[];
+  paths: string[];
+  events: AccountingBnTraceEvent[];
+}
+
 export interface AccountingBnConfigLog {
   action: string;
   subject: string | null;
@@ -111,6 +186,8 @@ export interface AccountingBnConfigLog {
 
 export interface AccountingBnConfig {
   block_unknown_ips: boolean;
+  security: AccountingBnSecuritySettings;
+  blocked: AccountingBnBlockedIp[];
   origins: AccountingBnOrigin[];
   detected: AccountingBnDetectedIp[];
   logs: AccountingBnConfigLog[];
@@ -183,6 +260,26 @@ export class AccountingBnService {
     return this.http.patch<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/mode`, {
       block_unknown_ips: blockUnknownIps,
     });
+  }
+
+  securitySummary(): Observable<ApiData<AccountingBnSecuritySummary>> {
+    return this.http.get<ApiData<AccountingBnSecuritySummary>>(`${this.apiURL}/accounting/bn/security`);
+  }
+
+  traces(): Observable<ApiData<AccountingBnTraceList>> {
+    return this.http.get<ApiData<AccountingBnTraceList>>(`${this.apiURL}/accounting/bn/traces`);
+  }
+
+  trace(ip: string): Observable<ApiData<AccountingBnTraceDetail>> {
+    return this.http.get<ApiData<AccountingBnTraceDetail>>(`${this.apiURL}/accounting/bn/traces/${encodeURIComponent(ip)}`);
+  }
+
+  updateSecurity(body: Partial<AccountingBnSecuritySettings>): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.patch<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/security`, body);
+  }
+
+  blockIp(ipAddress: string, label?: string): Observable<ApiData<AccountingBnConfig>> {
+    return this.http.post<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/block`, { ip_address: ipAddress, label });
   }
 
   download(transactionId: number): Observable<Blob> {
