@@ -38,11 +38,11 @@
               </div>
               <div class="row">
                 <div><strong>Hora de inicio</strong></div>
-                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="toDate(f.day_start)" (ngModelChange)="setTime('day_start', $event)" appendTo="body"></p-datepicker>
+                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="times.day_start" (ngModelChange)="setTime('day_start', $event)" appendTo="body"></p-datepicker>
               </div>
               <div class="row">
                 <div><strong>Hora de cierre</strong><p class="hint">La última sesión debe terminar a esta hora.</p></div>
-                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="toDate(f.day_end)" (ngModelChange)="setTime('day_end', $event)" appendTo="body"></p-datepicker>
+                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="times.day_end" (ngModelChange)="setTime('day_end', $event)" appendTo="body"></p-datepicker>
               </div>
               <div class="row">
                 <div><strong>Duración de cada sesión</strong><p class="hint">En minutos.</p></div>
@@ -58,7 +58,7 @@
               </div>
               <div class="row">
                 <div><strong>Los cupos nuevos se abren a las</strong><p class="hint">Todos los días hábiles, hora de Lima.</p></div>
-                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="toDate(f.open_time)" (ngModelChange)="setTime('open_time', $event)" appendTo="body"></p-datepicker>
+                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="times.open_time" (ngModelChange)="setTime('open_time', $event)" appendTo="body"></p-datepicker>
               </div>
               <div class="row">
                 <div><strong>Días hábiles hacia adelante</strong><p class="hint">Hasta dónde puede reservar el alumno.</p></div>
