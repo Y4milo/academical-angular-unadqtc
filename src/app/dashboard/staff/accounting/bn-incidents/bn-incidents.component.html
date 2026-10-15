@@ -168,6 +168,15 @@
         {{ t.error_origin.label }}
       </p>
 
+      <p class="origin-hint" *ngIf="originKind(t) === 'probable'">
+        <app-lucide-icon name="shield-half" [size]="14"></app-lucide-icon>
+        Registro anterior al 15/10/2026: la IP no se guardó. Por el cliente (Java) y la hora habitual, coincide con Recaudación; no está demostrado.
+      </p>
+      <p class="origin-hint warn" *ngIf="originKind(t) === 'unverified'">
+        <app-lucide-icon name="triangle-alert" [size]="14"></app-lucide-icon>
+        Sin IP real: el registro es anterior al 15/10/2026 y no se puede atribuir a un origen.
+      </p>
+
       <dl class="facts">
         <div><dt>Registrado</dt><dd>{{ dateTimeOf(t.created_at_lima || t.created_at) }}</dd></div>
         <div><dt>Fecha solicitada</dt><dd>{{ dateTimeOf(t.request_date) }}</dd></div>

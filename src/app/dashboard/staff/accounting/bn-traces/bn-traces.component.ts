@@ -206,7 +206,7 @@ export class BnTracesComponent implements OnInit {
       case 'blocked':
         return 'danger';
       case 'unknown':
-        return 'warn';
+        return 'danger';
       default:
         return 'secondary';
     }

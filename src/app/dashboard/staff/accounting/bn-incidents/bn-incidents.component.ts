@@ -294,13 +294,17 @@ export class BnIncidentsComponent implements OnInit, OnDestroy {
    * Tipo de origen para el color: system = el propio sistema (descarga automática, sin IP ni cliente externo),
    * authorized = origen autorizado (Recaudación), unknown = IP desconocida, unverified = IP sin verificar.
    */
-  originKind(row: AccountingBnTransaction): 'system' | 'authorized' | 'unknown' | 'unverified' {
+  originKind(row: AccountingBnTransaction): 'system' | 'authorized' | 'probable' | 'unknown' | 'unverified' {
     if (row.client?.family === 'sync') {
       return 'system';
     }
 
     if (row.ip_status === 'allowed') {
       return 'authorized';
+    }
+
+    if (row.ip_status === 'unverified' && row.origin_probable) {
+      return 'probable';
     }
 
     return row.ip_status === 'unknown' ? 'unknown' : 'unverified';
@@ -312,6 +316,8 @@ export class BnIncidentsComponent implements OnInit, OnDestroy {
         return 'Descarga automática';
       case 'authorized':
         return row.origin_label || 'Autorizada';
+      case 'probable':
+        return 'Recaudación (probable)';
       case 'unknown':
         return 'IP desconocida';
       default:
@@ -325,23 +331,26 @@ export class BnIncidentsComponent implements OnInit, OnDestroy {
         return 'refresh-cw';
       case 'authorized':
         return 'shield-check';
+      case 'probable':
+        return 'shield-half';
       case 'unknown':
         return 'shield-alert';
       default:
-        return 'shield-question';
+        return 'triangle-alert';
     }
   }
 
-  originSeverity(row: AccountingBnTransaction): 'info' | 'success' | 'warn' | 'secondary' {
+  originSeverity(row: AccountingBnTransaction): 'info' | 'success' | 'warn' | 'danger' | 'secondary' {
     switch (this.originKind(row)) {
       case 'system':
         return 'info';
       case 'authorized':
+      case 'probable':
         return 'success';
       case 'unknown':
-        return 'warn';
+        return 'danger';
       default:
-        return 'secondary';
+        return 'warn';
     }
   }
 
