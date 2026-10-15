@@ -69,6 +69,18 @@ Una sola pieza compartida: `shared/staff-attendance-cards` la usan la lista de R
 
 Convención de colores de la marcación: entrada → `success`, almuerzo → `warn`, salida → `info`, repetida/sin rol → `secondary`; método manual → `p-tag` `warn` con el ícono de registro manual.
 
+## Patrones de las pantallas del banco
+
+Referencia en `dashboard/staff/accounting/{bn-incidents,bn-files,bn-traces,bn-config}`.
+
+- **Pantalla limpia:** estado general en una insignia, solo lo accionable en alertas delgadas (`alert` por severidad), pestañas simples (`role="tablist"`), una búsqueda más un botón «Filtros» que abre `p-popover` (fecha, operación, origen), filas agrupadas por día y detalle en `p-drawer`. Sin tarjetas de cifras repetidas.
+- **Listas propias en vez de `p-table`** cuando la fila es compuesta: `div.row` en grid + `p-paginator`; en teléfono (≤ 640 px) la fila pasa a tarjeta con `grid-template-areas`.
+- **Detalle (`p-drawer`) a la derecha** con `styleClass` y ancho `34rem` (`100vw` en teléfono); reutiliza endpoints de descarga y vista previa por id de transacción.
+- **Origen con color:** azul = el propio sistema, verde = autorizado, verde punteado = probable, naranja = desconocida (roja en trazabilidad), gris/ámbar = sin verificar; siempre con texto o ícono además del color.
+- **Íconos de estado** con Lucide registrados en `core/utils/lucide-icon.util.ts` (`circle-check`, `clock`, `circle-x`, `triangle-alert`, `minus`, `shield-*`, `plug-zap`, `key-round`, `coffee`, `wrench`, `terminal`, `globe`, `route`, `sliders-horizontal`); al usar uno nuevo, importarlo y registrarlo allí.
+- **Rutas:** agregar la ruta en `app-paths.constants.ts` y `app.routes.ts` (admin y, si aplica, accounting) y la entrada de menú en el backend (`MenuRoutes`/`RoleMenus`).
+- **Sesión:** el usuario vive en `sessionStorage` (por pestaña); abrir una URL en otra pestaña manda al login con `returnUrl`, que vuelve a la página pedida. Para revisar en el navegador integrado sin perder la sesión, navegar con `history.pushState` + `popstate`; `ng.getComponent` sirve en desarrollo. Si `ng serve` deja de reaccionar a los cambios, reiniciarlo (`npm start`).
+
 ## Verificación
 
 Antes de dar un cambio de UI por terminado: probarlo en el navegador en tema claro y oscuro (quitando o poniendo la clase `app-dark` en `<html>`; emular `prefers-color-scheme` no sirve), a ancho de escritorio y de móvil (375 px), con datos reales o de prueba, y revisar la consola sin errores.
