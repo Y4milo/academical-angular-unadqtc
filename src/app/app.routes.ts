@@ -45,6 +45,7 @@ import {
 } from './dashboard/staff/accounting/bn-incidents/bn-incidents.component';
 import {BnConfigComponent} from './dashboard/staff/accounting/bn-config/bn-config.component';
 import {BnTracesComponent} from './dashboard/staff/accounting/bn-traces/bn-traces.component';
+import {BnFilesComponent} from './dashboard/staff/accounting/bn-files/bn-files.component';
 import {
   AccountingLayOutComponentComponent
 } from './dashboard/staff/accounting/accounting-lay-out-component/accounting-lay-out-component.component';
@@ -137,6 +138,10 @@ export const routes: Routes = [
       {
         path: PATHS.admin.accounting.bank.traces.path,
         component: BnTracesComponent
+      },
+      {
+        path: PATHS.admin.accounting.bank.files.path,
+        component: BnFilesComponent
       },
       {
         path: PATHS.admin.degreesTitles.generalData.path,
@@ -249,6 +254,10 @@ export const routes: Routes = [
       {
         path: PATHS.accounting.bank.traces.path,
         component: BnTracesComponent
+      },
+      {
+        path: PATHS.accounting.bank.files.path,
+        component: BnFilesComponent
       },
     ]
   },
