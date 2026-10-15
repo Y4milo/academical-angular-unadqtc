@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { ApiData } from '../models/api/api-data.model';
 
 export interface AccountingBnFilter {
+  month?: string;
   start_date?: string;
   end_date?: string;
   operation?: string;
@@ -106,6 +107,40 @@ export interface AccountingBnSummary {
   by_operation: AccountingBnOptionTotal[];
   by_file_type: AccountingBnOptionTotal[];
   ips: AccountingBnIpSummary;
+}
+
+export type AccountingBnFileState = 'downloaded' | 'received' | 'waiting' | 'missing' | 'failed' | 'not_applicable';
+
+export interface AccountingBnFileEntry {
+  type: 'ING' | 'PAGOS' | 'REP' | 'DUP';
+  state: AccountingBnFileState;
+  name?: string;
+  size?: number;
+  published_at?: string | null;
+  downloaded_at?: string | null;
+  delivered_at?: string | null;
+  transaction_id?: number | null;
+  sha256?: string | null;
+  attempts?: number;
+  error?: string;
+}
+
+export interface AccountingBnFilesDay {
+  date: string;
+  weekday: string;
+  is_today: boolean;
+  holiday: string | null;
+  files: Record<'ING' | 'PAGOS' | 'REP' | 'DUP', AccountingBnFileEntry>;
+  has_problem: boolean;
+  all_received: boolean;
+  pagos_delivered: boolean;
+}
+
+export interface AccountingBnFilesMonth {
+  month: string;
+  is_current_month: boolean;
+  days: AccountingBnFilesDay[];
+  problems: number;
 }
 
 export interface AccountingBnCycleStep {
@@ -336,6 +371,14 @@ export class AccountingBnService {
 
   blockIp(ipAddress: string, label?: string): Observable<ApiData<AccountingBnConfig>> {
     return this.http.post<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/block`, { ip_address: ipAddress, label });
+  }
+
+  files(month?: string): Observable<ApiData<AccountingBnFilesMonth>> {
+    return this.http.get<ApiData<AccountingBnFilesMonth>>(`${this.apiURL}/accounting/bn/files`, { params: this.toParams({ month } as AccountingBnFilter) });
+  }
+
+  filesDay(date: string): Observable<ApiData<AccountingBnFilesDay>> {
+    return this.http.get<ApiData<AccountingBnFilesDay>>(`${this.apiURL}/accounting/bn/files/${date}`);
   }
 
   overview(): Observable<ApiData<AccountingBnOverview>> {

@@ -1,0 +1,98 @@
+<div class="bn-files">
+  <header class="page-head">
+    <div class="title-block">
+      <h2>Archivos del banco</h2>
+      <p>Qué archivos llegaron cada día, cuándo se descargaron y si se entregaron a Recaudación.</p>
+    </div>
+    <p-tag value="Solo lectura" severity="secondary"></p-tag>
+  </header>
+
+  <section class="controls">
+    <div class="month-nav">
+      <button pButton type="button" severity="secondary" [text]="true" [rounded]="true" aria-label="Mes anterior" (click)="shiftMonth(-1)">
+        <app-lucide-icon name="chevron-left" [size]="18"></app-lucide-icon>
+      </button>
+      <strong class="month-label">{{ monthLabel }}</strong>
+      <button pButton type="button" severity="secondary" [text]="true" [rounded]="true" aria-label="Mes siguiente" [disabled]="!!month?.is_current_month" (click)="shiftMonth(1)">
+        <app-lucide-icon name="chevron-right" [size]="18"></app-lucide-icon>
+      </button>
+    </div>
+
+    <label class="only-problems">
+      <p-toggleswitch [(ngModel)]="onlyProblems" aria-label="Solo con problemas"></p-toggleswitch>
+      <span>Solo con problemas <span class="count" *ngIf="month?.problems">{{ month?.problems }}</span></span>
+    </label>
+  </section>
+
+  <ul class="legend" aria-label="Significado de los iconos">
+    <li><app-lucide-icon class="ok" name="circle-check" [size]="15"></app-lucide-icon> Descargado</li>
+    <li><app-lucide-icon class="wait" name="clock" [size]="15"></app-lucide-icon> Esperando</li>
+    <li><app-lucide-icon class="bad" name="circle-x" [size]="15"></app-lucide-icon> No llegó</li>
+    <li><app-lucide-icon class="muted" name="minus" [size]="15"></app-lucide-icon> No corresponde</li>
+  </ul>
+
+  <p-skeleton *ngIf="loading" height="14rem" borderRadius="10px"></p-skeleton>
+
+  <section class="table" *ngIf="!loading">
+    <div class="row head" aria-hidden="true">
+      <span>Día</span><span>.ING</span><span>.PAGOS</span><span>.REP</span><span>.DUP</span><span>Recaudación</span>
+    </div>
+
+    <div class="empty" *ngIf="!days.length">
+      <app-lucide-icon name="circle-check" [size]="22"></app-lucide-icon>
+      <p>{{ onlyProblems ? 'No hay días con problemas en este mes.' : 'No hay datos para este mes.' }}</p>
+    </div>
+
+    <div class="row day" *ngFor="let day of days" tabindex="0" [ngClass]="{ problem: day.has_problem, holiday: day.holiday }" (click)="open(day)" (keydown.enter)="open(day)">
+      <span class="date">
+        <strong>{{ dayLabel(day) }}</strong>
+        <small>{{ day.holiday || (day.is_today ? 'hoy' : '') }}</small>
+        <p-tag *ngIf="rowTag(day) as tag" [value]="tag.label" [severity]="tag.severity"></p-tag>
+      </span>
+
+      <span class="cell" *ngFor="let type of types" [ngClass]="day.files[type].state">
+        <span class="cell-type">{{ type === 'ING' ? '.ING' : '.' + type }}</span>
+        <app-lucide-icon [name]="stateIcon(day.files[type].state)" [size]="16"></app-lucide-icon>
+        <span class="cell-text">{{ stateText(day.files[type]) }}</span>
+      </span>
+
+      <span class="delivery">
+        <span class="chip" [ngClass]="deliveryText(day).css">{{ deliveryText(day).label }}</span>
+        <app-lucide-icon class="chev" name="chevron-right" [size]="18"></app-lucide-icon>
+      </span>
+    </div>
+  </section>
+
+  <p-drawer [(visible)]="detailVisible" position="right" header="Archivos del día" styleClass="bn-files-drawer">
+    <div class="detail" *ngIf="selected as d">
+      <div class="detail-head">
+        <strong>{{ d.weekday }} {{ d.date.slice(8) }}/{{ d.date.slice(5, 7) }}/{{ d.date.slice(0, 4) }}</strong>
+        <p-tag [value]="d.holiday ? 'Feriado' : d.has_problem ? 'Revisar' : 'Todo recibido'" [severity]="d.holiday ? 'secondary' : d.has_problem ? 'danger' : 'success'"></p-tag>
+      </div>
+      <p class="muted" *ngIf="d.holiday">{{ d.holiday }} · el banco no genera archivos.</p>
+
+      <p-skeleton *ngIf="detailLoading" height="8rem"></p-skeleton>
+
+      <article class="file" *ngFor="let file of fileList(d)">
+        <div class="file-head">
+          <span class="file-name">
+            <app-lucide-icon [name]="stateIcon(file.state)" [size]="17" [ngClass]="file.state"></app-lucide-icon>
+            <strong>{{ file.type === 'ING' ? '.ING' : '.' + file.type }}</strong>
+            <small class="mono" *ngIf="file.name">{{ file.name }}</small>
+            <small *ngIf="file.size !== undefined">{{ formatSize(file.size) }}</small>
+          </span>
+          <button pButton type="button" size="small" severity="secondary" [outlined]="true" class="icon-label-button" *ngIf="canDownload(file)" [disabled]="downloadingId === file.transaction_id" (click)="download(file)">
+            <app-lucide-icon name="download" [size]="15"></app-lucide-icon>
+            <span>Descargar</span>
+          </button>
+        </div>
+        <p class="life">{{ lifecycle(file) }}</p>
+        <p class="life" *ngIf="file.state === 'downloaded'">
+          <ng-container *ngIf="file.delivered_at; else notDelivered">Entregado a Recaudación {{ dateTime(file.delivered_at) }}</ng-container>
+          <ng-template #notDelivered><span class="chip wa">Aún no entregado a Recaudación</span></ng-template>
+        </p>
+        <p class="life mono sha" *ngIf="file.sha256">SHA-256 {{ file.sha256 }}</p>
+      </article>
+    </div>
+  </p-drawer>
+</div>
