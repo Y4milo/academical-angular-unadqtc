@@ -112,7 +112,8 @@
 }
 
 .muted,
-.not_applicable {
+.not_applicable,
+.no_data {
   color: var(--text-color-secondary);
 }
 
@@ -180,7 +181,8 @@
   display: none;
 }
 
-.cell.not_applicable .cell-text {
+.cell.not_applicable .cell-text,
+.cell.no_data .cell-text {
   color: var(--text-color-secondary);
 }
 
