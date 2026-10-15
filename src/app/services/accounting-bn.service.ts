@@ -63,6 +63,7 @@ export interface AccountingBnTransaction {
   message: string | null;
   attempt: number;
   extra_data: Record<string, unknown> | null;
+  error_origin: { value: string; label: string } | null;
   ip_address: string | null;
   ip_status: AccountingBnIpStatus;
   user_agent: string | null;
