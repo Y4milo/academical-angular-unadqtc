@@ -1,0 +1,28 @@
+.dbu-config { display: block; padding: var(--space-4, 16px); }
+.page-heading { margin-bottom: 1rem; }
+.page-heading h2 { margin: 0 0 .25rem; }
+.page-heading p, .hint { margin: 0; color: var(--text-color-secondary, #64748b); font-size: .875rem; }
+.dbu-layout { display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: 1rem; align-items: start; }
+.dbu-skeletons { display: grid; gap: .75rem; }
+.dbu-panel { border: 1px solid var(--surface-border, #e2e8f0); border-radius: 12px; padding: 1rem 1.25rem; background: var(--surface-card, #fff); }
+.dbu-panel h3 { margin: 0 0 .25rem; font-size: 1.1rem; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--surface-border, #e2e8f0); }
+.row:last-of-type { border-bottom: none; }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--surface-border, #e2e8f0); }
+.actions__buttons { display: flex; gap: .5rem; }
+.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.capacity { margin-top: 1.5rem; }
+.matrix { border-collapse: collapse; width: 100%; font-size: .875rem; table-layout: fixed; margin: .5rem 0; }
+.matrix th, .matrix td { border: 1px solid var(--surface-border, #e2e8f0); padding: .4rem; text-align: center; }
+.matrix th { font-weight: 500; color: var(--text-color-secondary, #64748b); }
+.matrix td.has { background: var(--p-primary-50, #eff6ff); color: var(--p-primary-700, #1d4ed8); font-weight: 500; }
+.dialog-form { display: grid; gap: .5rem; }
+.dialog-times { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.dialog-times > div { display: grid; gap: .25rem; }
+.empty { padding: 1rem; text-align: center; color: var(--text-color-secondary, #64748b); }
+
+@media (max-width: 900px) {
+  .dbu-layout { grid-template-columns: minmax(0, 1fr); }
+  .row { flex-direction: column; align-items: flex-start; }
+  .dialog-times { grid-template-columns: 1fr; }
+}

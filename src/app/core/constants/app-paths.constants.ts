@@ -16,6 +16,12 @@ export const PATHS = {
         link: `admin/events/certificates`,
       },
     },
+    dbu: {
+      config: {
+        path: `dbu/config`,
+        link: `admin/dbu/config`,
+      },
+    },
     accounting: {
       bank: {
         incidents: {
@@ -141,6 +147,17 @@ export const PATHS = {
       path:  `home`,
       link:   `staff/home`,
       // link:   `staff/attendance/user`,
+    },
+  },
+  dbu: {
+    path: `dbu`,
+    config: {
+      path:  `config`,
+      link:   `dbu/config`,
+    },
+    home: {
+      path:  `config`,
+      link:   `dbu/config`,
     },
   },
   accounting: {
