@@ -357,6 +357,52 @@ small,
   color: var(--p-orange-500, #f97316);
 }
 
+.from small.client {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, .25rem);
+}
+
+.manual-tag {
+  background: color-mix(in srgb, var(--p-orange-500, #f97316) 18%, transparent);
+  border-radius: 999px;
+  color: var(--p-orange-500, #f97316);
+  font-size: .65rem;
+  font-weight: 600;
+  padding: 0 .4rem;
+}
+
+.client-box {
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  padding: .85rem;
+}
+
+.client-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: space-between;
+}
+
+.facts.compact {
+  gap: .5rem;
+}
+
+.facts.compact dd app-lucide-icon {
+  color: var(--text-color-secondary);
+}
+
+.client-box .raw {
+  color: var(--text-color-secondary);
+  overflow-wrap: anywhere;
+}
+
 .actions {
   align-items: center;
   display: flex;

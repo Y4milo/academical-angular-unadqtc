@@ -17,6 +17,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import {
   AccountingBnAttention,
+  AccountingBnClient,
   AccountingBnCycleStep,
   AccountingBnFilePreview,
   AccountingBnFilter,
@@ -267,6 +268,26 @@ export class BnIncidentsComponent implements OnInit, OnDestroy {
     const name = row.file_path ? this.basename(row.file_path) : row.file_name;
 
     return name && row.file_size ? `${name} · ${this.formatSize(row.file_size)}` : row.message || '-';
+  }
+
+  clientIcon(client: AccountingBnClient | null | undefined): string {
+    switch (client?.kind) {
+      case 'integration':
+        return client.family === 'java' ? 'coffee' : 'plug-zap';
+      case 'manual':
+        return 'wrench';
+      case 'browser':
+        return 'globe';
+      case 'script':
+        return 'terminal';
+      default:
+        return 'shield-question';
+    }
+  }
+
+  /** «Aplicación Java 17.0.20» / «Postman 7.51» */
+  clientText(client: AccountingBnClient | null | undefined): string {
+    return client ? [client.label, client.version].filter(Boolean).join(' ') : 'Sin información';
   }
 
   originStatusSeverity(status: AccountingBnIpStatus | null | undefined): Severity {

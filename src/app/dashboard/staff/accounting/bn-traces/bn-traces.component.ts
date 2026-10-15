@@ -16,6 +16,7 @@ import { NotificationService } from '../../../../services/notification.service';
 import { LoginService } from '../../../../services/login.service';
 import { ROLE } from '../../../../core/constants/app-roles.constants';
 import {
+  AccountingBnClient,
   AccountingBnService,
   AccountingBnTraceDetail,
   AccountingBnTraceItem,
@@ -158,6 +159,31 @@ export class BnTracesComponent implements OnInit {
         this.notificationService.notifyApiData(error);
       },
     });
+  }
+
+  clientIcon(client: AccountingBnClient): string {
+    switch (client.kind) {
+      case 'integration':
+        return client.family === 'java' ? 'coffee' : 'plug-zap';
+      case 'manual':
+        return 'wrench';
+      case 'browser':
+        return 'globe';
+      case 'script':
+        return 'terminal';
+      default:
+        return 'shield-question';
+    }
+  }
+
+  clientText(client: AccountingBnClient): string {
+    return [client.label, client.version].filter(Boolean).join(' ');
+  }
+
+  clientShare(total: number): number {
+    const max = Math.max(...(this.detail?.clients ?? []).map((item) => item.total), 1);
+
+    return Math.max(2, Math.round((total / max) * 100));
   }
 
   statusLabel(status: string): string {
