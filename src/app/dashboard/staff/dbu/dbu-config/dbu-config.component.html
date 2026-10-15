@@ -1,0 +1,272 @@
+<div class="dbu-config">
+  <div class="page-heading">
+    <div>
+      <h2>Configuración de citas</h2>
+      <p>Bienestar Universitario: horarios, reservas, lista de espera, encargados y tipos de atención.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="dbu-layout" aria-busy="true">
+      <p-skeleton height="18rem"></p-skeleton>
+      <div class="dbu-skeletons">
+        <p-skeleton height="3rem"></p-skeleton>
+        <p-skeleton height="3rem"></p-skeleton>
+        <p-skeleton height="3rem"></p-skeleton>
+        <p-skeleton height="3rem"></p-skeleton>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" styleClass="mb-3">No se pudo cargar la configuración.</p-message>
+    <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button>
+  } @else {
+    @if (config(); as c) {
+    <div class="dbu-layout">
+      <nav class="dbu-nav" aria-label="Secciones de la configuración">
+        <p-listbox [options]="sections" optionLabel="label" optionValue="value" [ngModel]="section()" (ngModelChange)="selectSection($event)" [listStyle]="{ 'max-height': 'none' }"></p-listbox>
+      </nav>
+
+      <section class="dbu-panel" [attr.aria-label]="'Sección ' + section()">
+        @if (form; as f) {
+          @switch (section()) {
+            @case ('schedule') {
+              <h3>Horario y días</h3>
+              <p class="hint">Los días y horas en que se atiende. Los domingos nunca se atienden.</p>
+              <div class="row">
+                <div><strong>Días de atención</strong><p class="hint">Por defecto, de lunes a viernes.</p></div>
+                <p-selectButton [options]="weekdayOptions" optionLabel="label" optionValue="value" [multiple]="true" [(ngModel)]="f.weekdays" [allowEmpty]="false"></p-selectButton>
+              </div>
+              <div class="row">
+                <div><strong>Hora de inicio</strong></div>
+                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="toDate(f.day_start)" (ngModelChange)="setTime('day_start', $event)" appendTo="body"></p-datepicker>
+              </div>
+              <div class="row">
+                <div><strong>Hora de cierre</strong><p class="hint">La última sesión debe terminar a esta hora.</p></div>
+                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="toDate(f.day_end)" (ngModelChange)="setTime('day_end', $event)" appendTo="body"></p-datepicker>
+              </div>
+              <div class="row">
+                <div><strong>Duración de cada sesión</strong><p class="hint">En minutos.</p></div>
+                <p-inputNumber [(ngModel)]="f.session_minutes" [min]="15" [max]="240" [showButtons]="true" suffix=" min"></p-inputNumber>
+              </div>
+            }
+            @case ('booking') {
+              <h3>Reservas</h3>
+              <p class="hint">Cómo y cuándo los alumnos consiguen su cupo.</p>
+              <div class="row">
+                <div><strong>Reserva instantánea</strong><p class="hint">Apagada: DBU aprueba cada solicitud.</p></div>
+                <p-toggleSwitch [(ngModel)]="f.instant_booking"></p-toggleSwitch>
+              </div>
+              <div class="row">
+                <div><strong>Los cupos nuevos se abren a las</strong><p class="hint">Todos los días hábiles, hora de Lima.</p></div>
+                <p-datepicker [timeOnly]="true" hourFormat="24" [ngModel]="toDate(f.open_time)" (ngModelChange)="setTime('open_time', $event)" appendTo="body"></p-datepicker>
+              </div>
+              <div class="row">
+                <div><strong>Días hábiles hacia adelante</strong><p class="hint">Hasta dónde puede reservar el alumno.</p></div>
+                <p-inputNumber [(ngModel)]="f.window_business_days" [min]="1" [max]="30" [showButtons]="true"></p-inputNumber>
+              </div>
+              <div class="row">
+                <div><strong>Citas futuras activas por alumno</strong><p class="hint">Además de una sola cita por día.</p></div>
+                <p-inputNumber [(ngModel)]="f.max_active_per_student" [min]="1" [max]="10" [showButtons]="true"></p-inputNumber>
+              </div>
+              <div class="row">
+                <div><strong>Permitir cancelar hasta</strong><p class="hint">Horas antes de la cita.</p></div>
+                <p-inputNumber [(ngModel)]="f.cancel_hours_before" [min]="0" [max]="72" [showButtons]="true" suffix=" h"></p-inputNumber>
+              </div>
+            }
+            @case ('waitlist') {
+              <h3>Lista de espera</h3>
+              <p class="hint">Cuando no hay cupos, el alumno se anota y recibe una oferta al liberarse uno.</p>
+              <div class="row">
+                <div><strong>Lista de espera activa</strong></div>
+                <p-toggleSwitch [(ngModel)]="f.waitlist_enabled"></p-toggleSwitch>
+              </div>
+              <div class="row">
+                <div><strong>Tiempo para aceptar una oferta</strong><p class="hint">Minutos que se guarda el cupo.</p></div>
+                <p-inputNumber [(ngModel)]="f.offer_minutes" [min]="5" [max]="240" [showButtons]="true" suffix=" min"></p-inputNumber>
+              </div>
+              <div class="row">
+                <div><strong>Botón “Es urgente”</strong><p class="hint">Pasa a DBU sin ocupar un cupo.</p></div>
+                <p-toggleSwitch [(ngModel)]="f.urgent_enabled"></p-toggleSwitch>
+              </div>
+            }
+            @case ('attendance') {
+              <h3>Asistencia</h3>
+              <p class="hint">Recordatorios, confirmación e inasistencias.</p>
+              <div class="row">
+                <div><strong>Pedir confirmar asistencia</strong><p class="hint">El alumno confirma desde el correo o desde su cita.</p></div>
+                <p-toggleSwitch [(ngModel)]="f.confirm_attendance_enabled"></p-toggleSwitch>
+              </div>
+              <div class="row">
+                <div><strong>Recordatorio</strong><p class="hint">Horas antes de la cita.</p></div>
+                <p-inputNumber [(ngModel)]="f.reminder_hours_before" [min]="1" [max]="72" [showButtons]="true" suffix=" h"></p-inputNumber>
+              </div>
+              <div class="row">
+                <div><strong>Liberar el cupo si no confirma</strong><p class="hint">Apagado: solo se recuerda.</p></div>
+                <p-toggleSwitch [(ngModel)]="f.release_unconfirmed"></p-toggleSwitch>
+              </div>
+              <div class="row">
+                <div><strong>Liberar a las</strong><p class="hint">Horas antes de la cita.</p></div>
+                <p-inputNumber [(ngModel)]="f.release_hours_before" [min]="1" [max]="24" [showButtons]="true" suffix=" h" [disabled]="!f.release_unconfirmed"></p-inputNumber>
+              </div>
+              <div class="row">
+                <div><strong>Bloquear tras inasistencias</strong><p class="hint">Cantidad de inasistencias que activa el bloqueo.</p></div>
+                <p-inputNumber [(ngModel)]="f.noshow_threshold" [min]="1" [max]="10" [showButtons]="true"></p-inputNumber>
+              </div>
+              <div class="row">
+                <div><strong>Dentro de los últimos</strong><p class="hint">Días que se cuentan.</p></div>
+                <p-inputNumber [(ngModel)]="f.noshow_window_days" [min]="1" [max]="365" [showButtons]="true" suffix=" días"></p-inputNumber>
+              </div>
+              <div class="row">
+                <div><strong>Duración del bloqueo</strong><p class="hint">Días sin poder reservar.</p></div>
+                <p-inputNumber [(ngModel)]="f.noshow_block_days" [min]="1" [max]="90" [showButtons]="true" suffix=" días"></p-inputNumber>
+              </div>
+            }
+          }
+
+          @if (section() === 'schedule' || section() === 'booking' || section() === 'waitlist' || section() === 'attendance') {
+            <div class="actions">
+              <span class="hint">Los cambios aplican hacia adelante; las citas ya reservadas no se mueven.</span>
+              <div class="actions__buttons">
+                <p-button label="Descartar" severity="secondary" [outlined]="true" [disabled]="!dirty || saving()" (onClick)="discard()"></p-button>
+                <p-button label="Guardar cambios" [disabled]="!dirty" [loading]="saving()" (onClick)="saveSettings()"></p-button>
+              </div>
+            </div>
+          }
+        }
+
+        @if (section() === 'attendants') {
+          <div class="section-heading">
+            <div><h3>Encargados</h3><p class="hint">Quién atiende, qué tipos y en qué horario. Define los cupos por hora.</p></div>
+            <p-button label="Agregar encargado" (onClick)="openAddAttendant()">
+              <ng-template #icon><app-lucide-icon name="plus" [size]="16"></app-lucide-icon></ng-template>
+            </p-button>
+          </div>
+
+          <p-table [value]="c.attendants" [tableStyle]="{ 'min-width': '36rem' }">
+            <ng-template #header><tr><th>Encargado</th><th>Tipos</th><th>Horario</th><th>Estado</th><th></th></tr></ng-template>
+            <ng-template #body let-attendant>
+              <tr>
+                <td>{{ attendant.name }}</td>
+                <td>{{ typeNames(attendant.type_ids) }}</td>
+                <td>{{ attendant.start_time }} a {{ attendant.end_time }}</td>
+                <td><p-toggleSwitch [ngModel]="attendant.is_active" (ngModelChange)="toggleAttendant(attendant, $event)" [attr.aria-label]="'Activo: ' + attendant.name"></p-toggleSwitch></td>
+                <td><p-button severity="secondary" [text]="true" size="small" label="Editar" (onClick)="openEditAttendant(attendant)"></p-button></td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="5"><div class="empty">Aún no hay encargados. Agrega a quien atenderá las citas para tener cupos.</div></td></tr>
+            </ng-template>
+          </p-table>
+
+          @if (c.types.length) {
+            <div class="capacity">
+              <div class="section-heading">
+                <strong>Cupos por hora</strong>
+                <p-select [options]="c.types" optionLabel="name" optionValue="id" [ngModel]="selectedTypeId()" (ngModelChange)="selectedTypeId.set($event)" aria-label="Tipo de atención"></p-select>
+              </div>
+              @if (capacity(); as cap) {
+                <table class="matrix">
+                  <thead><tr><th></th>@for (day of cap.weekdays; track day) { <th>{{ weekdayLabels[day] }}</th> }</tr></thead>
+                  <tbody>
+                    @for (slot of cap.slots; track slot) {
+                      <tr>
+                        <th>{{ slot }}</th>
+                        @for (day of cap.weekdays; track day) {
+                          <td [class.has]="cap.matrix[slot][day] > 0">{{ cap.matrix[slot][day] }}</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+                <p class="hint">{{ cap.weekly_total }} cupos por semana. Un encargado inactivo o con otro horario reduce el número.</p>
+              }
+            </div>
+          }
+        }
+
+        @if (section() === 'types') {
+          <div class="section-heading">
+            <div><h3>Tipos de atención</h3><p class="hint">Lo que el alumno puede pedir. Un tipo desactivado deja de ofrecerse.</p></div>
+            <p-button label="Agregar tipo" (onClick)="openAddType()">
+              <ng-template #icon><app-lucide-icon name="plus" [size]="16"></app-lucide-icon></ng-template>
+            </p-button>
+          </div>
+          <p-table [value]="c.types" [tableStyle]="{ 'min-width': '28rem' }">
+            <ng-template #header><tr><th>Nombre</th><th>Código</th><th>Activo</th></tr></ng-template>
+            <ng-template #body let-type>
+              <tr>
+                <td>{{ type.name }}</td>
+                <td><code>{{ type.code }}</code></td>
+                <td><p-toggleSwitch [ngModel]="type.is_active" (ngModelChange)="toggleType(type, $event)" [attr.aria-label]="'Activo: ' + type.name"></p-toggleSwitch></td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+
+        @if (section() === 'history') {
+          <h3>Historial de cambios</h3>
+          <p class="hint">Quién cambió qué y cuándo. No se edita ni se borra.</p>
+          @if (logs() === null) {
+            <p-skeleton height="12rem"></p-skeleton>
+          } @else {
+            <p-table [value]="logs()!" [tableStyle]="{ 'min-width': '36rem' }">
+              <ng-template #header><tr><th>Fecha</th><th>Usuario</th><th>Cambio</th><th>Detalle</th></tr></ng-template>
+              <ng-template #body let-log>
+                <tr>
+                  <td>{{ log.created_at }}</td>
+                  <td>{{ log.user || 'Sistema' }}</td>
+                  <td>{{ actionLabel(log.action) }}</td>
+                  <td>{{ log.subject }}</td>
+                </tr>
+              </ng-template>
+              <ng-template #emptymessage><tr><td colspan="4"><div class="empty">Todavía no hay cambios registrados.</div></td></tr></ng-template>
+            </p-table>
+          }
+        }
+      </section>
+    </div>
+
+    <p-dialog [(visible)]="attendantDialog" [modal]="true" [style]="{ width: '32rem' }" [header]="attendantEditing ? 'Editar encargado' : 'Agregar encargado'">
+      <div class="dialog-form">
+        @if (!attendantEditing) {
+          <label for="dbu-attendant-user">Persona</label>
+          <p-select inputId="dbu-attendant-user" [options]="candidateOptions()" optionLabel="name" optionValue="id" [(ngModel)]="attendantForm.user_id" placeholder="Elige a la persona" [filter]="true" appendTo="body"></p-select>
+          @if (!candidateOptions().length) {
+            <small class="hint">No hay usuarios con rol de Bienestar sin asignar. Crea el usuario con el rol “Encargado de Bienestar Universitario”.</small>
+          }
+        } @else {
+          <strong>{{ attendantEditing.name }}</strong>
+        }
+        <label>Días</label>
+        <p-selectButton [options]="weekdayOptions" optionLabel="label" optionValue="value" [multiple]="true" [(ngModel)]="attendantForm.weekdays" [allowEmpty]="false"></p-selectButton>
+        <div class="dialog-times">
+          <div><label for="dbu-attendant-start">Entrada</label><p-datepicker inputId="dbu-attendant-start" [timeOnly]="true" hourFormat="24" [(ngModel)]="attendantForm.start" appendTo="body"></p-datepicker></div>
+          <div><label for="dbu-attendant-end">Salida</label><p-datepicker inputId="dbu-attendant-end" [timeOnly]="true" hourFormat="24" [(ngModel)]="attendantForm.end" appendTo="body"></p-datepicker></div>
+        </div>
+        <label for="dbu-attendant-types">Tipos de atención</label>
+        <p-multiselect inputId="dbu-attendant-types" [options]="c.types" optionLabel="name" optionValue="id" [(ngModel)]="attendantForm.type_ids" placeholder="Elige al menos uno" appendTo="body"></p-multiselect>
+        @if (attendantError) { <p-message severity="error">{{ attendantError }}</p-message> }
+      </div>
+      <ng-template #footer>
+        <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="attendantDialog = false"></p-button>
+        <p-button [label]="attendantEditing ? 'Guardar cambios' : 'Agregar encargado'" [loading]="saving()" (onClick)="saveAttendant()"></p-button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog [(visible)]="typeDialog" [modal]="true" [style]="{ width: '28rem' }" header="Agregar tipo de atención">
+      <div class="dialog-form">
+        <label for="dbu-type-name">Nombre</label>
+        <input pInputText id="dbu-type-name" [(ngModel)]="typeForm.name" maxlength="80" autocomplete="off" placeholder="Ej. Orientación vocacional" />
+        <label for="dbu-type-code">Código</label>
+        <input pInputText id="dbu-type-code" [(ngModel)]="typeForm.code" maxlength="40" autocomplete="off" placeholder="Ej. vocational" />
+        <small class="hint">Minúsculas, números y guion bajo. No se puede cambiar después.</small>
+        @if (typeError) { <p-message severity="error">{{ typeError }}</p-message> }
+      </div>
+      <ng-template #footer>
+        <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="typeDialog = false"></p-button>
+        <p-button label="Agregar tipo" [loading]="saving()" (onClick)="saveType()"></p-button>
+      </ng-template>
+    </p-dialog>
+    }
+  }
+</div>

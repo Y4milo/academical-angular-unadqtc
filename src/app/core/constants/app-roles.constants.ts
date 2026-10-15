@@ -7,4 +7,6 @@ export const ROLE = {
   academic: 'academic',
   degrees_titles: 'degrees_titles',
   hr: 'hr',
+  dbu_admin: 'dbu_admin',
+  dbu: 'dbu',
 }

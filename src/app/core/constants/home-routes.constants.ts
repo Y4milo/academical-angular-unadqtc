@@ -9,6 +9,8 @@ export const home_link = {
   academic:         PATHS.academic.home.link,
   degrees_titles:   PATHS.degreesTitles.home.link,
   hr:               PATHS.hr.home.link,
+  dbu_admin:        PATHS.dbu.home.link,
+  dbu:              PATHS.dbu.home.link,
 }as const;
 
 export type HomeKey = keyof typeof home_link;

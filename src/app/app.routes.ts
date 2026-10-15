@@ -44,6 +44,8 @@ import {
   BnIncidentsComponent
 } from './dashboard/staff/accounting/bn-incidents/bn-incidents.component';
 import {BnConfigComponent} from './dashboard/staff/accounting/bn-config/bn-config.component';
+import {DbuConfigComponent} from './dashboard/staff/dbu/dbu-config/dbu-config.component';
+import {DbuLayOutComponent} from './dashboard/staff/dbu/dbu-lay-out-component/dbu-lay-out.component';
 import {BnTracesComponent} from './dashboard/staff/accounting/bn-traces/bn-traces.component';
 import {BnFilesComponent} from './dashboard/staff/accounting/bn-files/bn-files.component';
 import {
@@ -126,6 +128,10 @@ export const routes: Routes = [
       {
         path: PATHS.admin.events.certificates.path,
         component: EventCertificatesAdminComponent
+      },
+      {
+        path: PATHS.admin.dbu.config.path,
+        component: DbuConfigComponent
       },
       {
         path: PATHS.admin.accounting.bank.incidents.path,
@@ -233,6 +239,25 @@ export const routes: Routes = [
       {
         path: PATHS.staff.home.path,
         component: AttendanceUserComponent
+      },
+    ]
+  },
+  {
+    path: PATHS.dbu.path,
+    component: DbuLayOutComponent,
+    canActivate: [AuthRoleGuard],
+    data: {roles: [ROLE.dbu_admin, ROLE.dbu, ROLE.admin]},
+    children: [
+      {
+        path: '',
+        redirectTo: PATHS.dbu.home.path,
+        pathMatch: 'full'
+      },
+      {
+        path: PATHS.dbu.config.path,
+        component: DbuConfigComponent,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.dbu_admin, ROLE.admin]},
       },
     ]
   },
