@@ -72,6 +72,12 @@ export class DbuConfigComponent implements OnInit {
   /** Copia de trabajo de los ajustes: se compara con la guardada para saber si hay cambios. */
   form: DbuSettings | null = null;
 
+  /**
+   * Las horas del formulario como `Date` para el selector de hora. Se guardan aquí y no se calculan en la plantilla:
+   * un `Date` nuevo en cada revisión hace que Angular lo vea cambiar y deje la pantalla sin dibujar.
+   */
+  times: Record<'day_start' | 'day_end' | 'open_time', Date | null> = { day_start: null, day_end: null, open_time: null };
+
   readonly weekdayLabels = Object.fromEntries(WEEKDAY_OPTIONS.map(option => [option.value, option.label])) as Record<DbuWeekday, string>;
 
   readonly capacity = computed(() => {
@@ -141,6 +147,7 @@ export class DbuConfigComponent implements OnInit {
     const config = this.config();
     if (config) {
       this.form = { ...config.settings, weekdays: [...config.settings.weekdays] };
+      this.syncTimes();
     }
   }
 
@@ -169,6 +176,7 @@ export class DbuConfigComponent implements OnInit {
   setTime(key: 'day_start' | 'day_end' | 'open_time', date: Date | null): void {
     if (this.form && date) {
       this.form[key] = this.fromDate(date);
+      this.times[key] = date;
     }
   }
 
@@ -271,6 +279,12 @@ export class DbuConfigComponent implements OnInit {
     return this.config()?.candidates ?? [];
   }
 
+  private syncTimes(): void {
+    if (this.form) {
+      this.times = { day_start: this.toDate(this.form.day_start), day_end: this.toDate(this.form.day_end), open_time: this.toDate(this.form.open_time) };
+    }
+  }
+
   private emptyAttendant() {
     return { user_id: null as number | null, weekdays: ['mon', 'tue', 'wed', 'thu', 'fri'] as DbuWeekday[], start: this.toDate('08:00'), end: this.toDate('15:00'), type_ids: [] as number[], is_active: true };
   }
@@ -278,6 +292,7 @@ export class DbuConfigComponent implements OnInit {
   private apply(config: DbuConfig): void {
     this.config.set(config);
     this.form = { ...config.settings, weekdays: [...config.settings.weekdays] };
+    this.syncTimes();
     this.logs.set(null);
     if (this.selectedTypeId() === null || !config.types.some(type => type.id === this.selectedTypeId())) {
       this.selectedTypeId.set(config.types[0]?.id ?? null);
