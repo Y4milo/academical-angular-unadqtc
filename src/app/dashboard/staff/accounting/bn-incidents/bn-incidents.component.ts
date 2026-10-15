@@ -1,28 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { DatePicker } from 'primeng/datepicker';
-import { Drawer } from 'primeng/drawer';
 import { RouterLink } from '@angular/router';
+import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
+import { ButtonModule } from 'primeng/button';
+import { DatePicker } from 'primeng/datepicker';
+import { DrawerModule } from 'primeng/drawer';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { PaginatorModule } from 'primeng/paginator';
+import { PopoverModule } from 'primeng/popover';
 import { Select } from 'primeng/select';
-import { TableModule } from 'primeng/table';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { AppLucideIconComponent } from '../../../../core/components/lucide-icon/lucide-icon.component';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import {
+  AccountingBnAttention,
+  AccountingBnCycleStep,
+  AccountingBnFilePreview,
   AccountingBnFilter,
-  AccountingBnIpState,
   AccountingBnIpStatus,
-  AccountingBnSecuritySummary,
   AccountingBnListResponse,
+  AccountingBnOverview,
   AccountingBnService,
-  AccountingBnSummary,
   AccountingBnTransaction,
 } from '../../../../services/accounting-bn.service';
 
@@ -31,42 +32,46 @@ interface SelectOption {
   value: string;
 }
 
-type AccountingBnTransactionView = AccountingBnTransaction & {
-  day_key: string;
-  day_label: string;
-};
+interface DayGroup {
+  key: string;
+  label: string;
+  items: AccountingBnTransaction[];
+}
+
+type View = 'all' | 'incidents' | 'rejections';
+type Severity = 'success' | 'warn' | 'danger' | 'secondary';
 
 @Component({
   selector: 'app-bn-incidents',
   imports: [
-    ButtonModule,
-    CardModule,
     AppLucideIconComponent,
+    ButtonModule,
     DatePicker,
-    Drawer,
+    DrawerModule,
     FormsModule,
     InputTextModule,
-    MessageModule,
     NgClass,
     NgFor,
     NgIf,
+    PaginatorModule,
+    PopoverModule,
     RouterLink,
-    ProgressSpinnerModule,
     Select,
-    TableModule,
+    SkeletonModule,
     TagModule,
   ],
   templateUrl: './bn-incidents.component.html',
-  styleUrl: './bn-incidents.component.css'
+  styleUrl: './bn-incidents.component.css',
 })
-export class BnIncidentsComponent implements OnInit {
+export class BnIncidentsComponent implements OnInit, OnDestroy {
   readonly today = new Date();
   readonly operationOptions: SelectOption[] = [
     { label: 'Todas', value: '' },
-    { label: 'Subida ING', value: 'upload' },
-    { label: 'Pagos', value: 'payments' },
-    { label: 'Validacion REP', value: 'process-result' },
-    { label: 'Duplicados DUP', value: 'duplicate' },
+    { label: 'Subida .ING', value: 'upload' },
+    { label: 'Pagos .PAGOS', value: 'payments' },
+    { label: 'Validación .REP', value: 'process-result' },
+    { label: 'Duplicados .DUP', value: 'duplicate' },
+    { label: 'Acceso rechazado', value: 'access' },
   ];
   readonly originOptions: SelectOption[] = [
     { label: 'Todos', value: '' },
@@ -74,36 +79,32 @@ export class BnIncidentsComponent implements OnInit {
     { label: 'Desconocidas', value: 'unknown' },
     { label: 'Sin verificar', value: 'unverified' },
   ];
-  readonly statusOptions: SelectOption[] = [
-    { label: 'Todos', value: '' },
-    { label: 'Exitosos', value: 'success' },
-    { label: 'Incidencias', value: 'error' },
-  ];
+
+  view: View = 'all';
+  search = '';
   dateRange: Date[] = [];
   operation = '';
-  status = '';
   origin = '';
-  search = '';
   page = 1;
   perPage = 20;
-  loading = false;
-  summaryLoading = false;
-  downloadingId: number | null = null;
-  detailVisible = false;
-  selected: AccountingBnTransaction | null = null;
-  summary: AccountingBnSummary | null = null;
-  rejections: AccountingBnSecuritySummary | null = null;
+
   list: AccountingBnListResponse = {
     items: [],
-    pagination: {
-      current_page: 1,
-      last_page: 1,
-      per_page: 20,
-      total: 0,
-      from: null,
-      to: null,
-    },
+    pagination: { current_page: 1, last_page: 1, per_page: 20, total: 0, from: null, to: null },
   };
+  groups: DayGroup[] = [];
+  overview: AccountingBnOverview | null = null;
+  loading = true;
+  overviewLoading = true;
+
+  selected: AccountingBnTransaction | null = null;
+  detailVisible = false;
+  preview: AccountingBnFilePreview | null = null;
+  previewLoading = false;
+  downloadingId: number | null = null;
+
+  private readonly search$ = new Subject<string>();
+  private searchSub?: Subscription;
 
   constructor(
     private accountingBnService: AccountingBnService,
@@ -111,145 +112,164 @@ export class BnIncidentsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadData();
-    this.accountingBnService.securitySummary().subscribe({
+    this.loadOverview();
+    this.loadList(1);
+    this.searchSub = this.search$.pipe(debounceTime(400), distinctUntilChanged()).subscribe(() => this.loadList(1));
+  }
+
+  ngOnDestroy(): void {
+    this.searchSub?.unsubscribe();
+  }
+
+  // ------------------------------------------------------------------ datos
+
+  loadOverview(): void {
+    this.overviewLoading = true;
+    this.accountingBnService.overview().subscribe({
       next: (response) => {
+        this.overviewLoading = false;
         if (response.status === STATUS.success) {
-          this.rejections = response.payload.data;
-        }
-      },
-    });
-  }
-
-  rejectionLabel(state: AccountingBnIpState): string {
-    switch (state) {
-      case 'blocked':
-        return 'Bloqueada';
-      case 'limited':
-        return 'Limitada';
-      case 'watch':
-        return 'Vigilar';
-      default:
-        return 'Registrada';
-    }
-  }
-
-  rejectionSeverity(state: AccountingBnIpState): 'danger' | 'warn' | 'secondary' {
-    if (state === 'blocked' || state === 'limited') {
-      return 'danger';
-    }
-
-    return state === 'watch' ? 'warn' : 'secondary';
-  }
-
-  loadData(page = 1): void {
-    this.page = page;
-    const filters = this.buildFilters();
-
-    this.summaryLoading = true;
-    this.accountingBnService.summary(filters).subscribe({
-      next: (response) => {
-        this.summaryLoading = false;
-        if (response.status === STATUS.success) {
-          this.summary = response.payload.data;
-        } else {
-          this.notificationService.notifyApiData(response);
+          this.overview = response.payload.data;
         }
       },
       error: () => {
-        this.summaryLoading = false;
-        this.notificationService.error('Error', 'No se pudo cargar el resumen del Banco Nacion.');
-      }
+        this.overviewLoading = false;
+      },
     });
+  }
 
+  loadList(page = 1): void {
+    this.page = page;
     this.loading = true;
-    this.accountingBnService.transactions(filters).subscribe({
+    this.accountingBnService.transactions(this.buildFilters()).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.status === STATUS.success) {
           this.list = response.payload.data;
+          this.groups = this.buildGroups(this.list.items);
         } else {
           this.notificationService.notifyApiData(response);
         }
       },
       error: () => {
         this.loading = false;
-        this.notificationService.error('Error', 'No se pudo cargar el historial del Banco Nacion.');
-      }
+        this.notificationService.error('Error', 'No se pudo cargar el historial del Banco Nación.');
+      },
     });
   }
 
-  clearFilters(): void {
+  setView(view: View): void {
+    if (this.view !== view) {
+      this.view = view;
+      this.loadList(1);
+    }
+  }
+
+  onSearch(value: string): void {
+    this.search = value;
+    this.search$.next(value.trim());
+  }
+
+  applyFilters(popover: { hide: () => void }): void {
+    popover.hide();
+    this.loadList(1);
+  }
+
+  clearFilters(popover?: { hide: () => void }): void {
     this.dateRange = [];
     this.operation = '';
-    this.status = '';
     this.origin = '';
-    this.search = '';
-    this.loadData(1);
+    popover?.hide();
+    this.loadList(1);
   }
 
-  onPageChange(event: { first?: number; rows?: number }): void {
+  get activeFilters(): number {
+    return [this.dateRange?.[0], this.operation, this.origin].filter(Boolean).length;
+  }
+
+  onPage(event: { page?: number; rows?: number }): void {
     this.perPage = event.rows ?? this.perPage;
-    const first = event.first ?? 0;
-    const nextPage = Math.floor(first / this.perPage) + 1;
-    this.loadData(nextPage);
+    this.loadList((event.page ?? 0) + 1);
   }
 
-  displayTransactions(): AccountingBnTransactionView[] {
-    return this.list.items.map((item) => ({
-      ...item,
-      day_key: this.getDayKey(item),
-      day_label: this.getDayLabel(item),
-    }));
+  // ------------------------------------------------------------------ vista general
+
+  get needsAttention(): number {
+    return this.overview?.attention.length ?? 0;
   }
 
-  getSeverity(status: string | null | undefined): 'success' | 'danger' | 'secondary' {
-    if (status === 'success') {
-      return 'success';
-    }
-
-    if (status === 'error') {
-      return 'danger';
-    }
-
-    return 'secondary';
-  }
-
-  getFileSeverity(fileType: string | null | undefined): 'success' | 'info' | 'warn' | 'secondary' {
-    const normalized = this.normalizeFileType(fileType);
-
-    if (normalized === 'ING') {
-      return 'success';
-    }
-
-    if (normalized === 'PAGOS') {
-      return 'info';
-    }
-
-    if (normalized === 'REP') {
-      return 'warn';
-    }
-
-    return 'secondary';
-  }
-
-  openDetail(transaction: AccountingBnTransaction): void {
-    this.selected = transaction;
-    this.detailVisible = true;
-  }
-
-  getOriginLabel(status: AccountingBnIpStatus | null | undefined): string {
-    switch (status) {
-      case 'allowed':
-        return 'Autorizada';
-      case 'unknown':
-        return 'Desconocida';
+  stepIcon(step: AccountingBnCycleStep): string {
+    switch (step.state) {
+      case 'ok':
+        return 'circle-check';
+      case 'error':
+        return 'triangle-alert';
+      case 'missing':
+        return 'circle-alert';
       default:
-        return 'Sin verificar';
+        return 'clock';
     }
   }
 
-  getOriginSeverity(status: AccountingBnIpStatus | null | undefined): 'success' | 'warn' | 'secondary' {
+  stepText(step: AccountingBnCycleStep): string {
+    switch (step.state) {
+      case 'ok':
+        return `Recibido ${this.hourOf(step.at)}`;
+      case 'error':
+        return `Con error ${this.hourOf(step.at)}`;
+      case 'missing':
+        return 'Aún sin archivo hoy';
+      default:
+        return step.window;
+    }
+  }
+
+  attentionIcon(item: AccountingBnAttention): string {
+    if (item.kind === 'security') {
+      return 'shield-alert';
+    }
+
+    return item.origin === 'connection' ? 'plug-zap' : item.origin === 'credentials' ? 'key-round' : 'triangle-alert';
+  }
+
+  reviewIncidents(): void {
+    this.setView('incidents');
+  }
+
+  // ------------------------------------------------------------------ filas
+
+  rowStatus(row: AccountingBnTransaction): { label: string; severity: Severity } {
+    if (row.operation.value === 'access') {
+      return { label: 'Rechazado', severity: 'danger' };
+    }
+
+    if (row.is_expected) {
+      return { label: 'Esperado', severity: 'secondary' };
+    }
+
+    return row.status.value === 'error'
+      ? { label: 'Error', severity: 'danger' }
+      : { label: row.status.label || 'Correcto', severity: 'success' };
+  }
+
+  opIcon(row: AccountingBnTransaction): string {
+    switch (row.operation.value) {
+      case 'upload':
+        return 'upload';
+      case 'access':
+        return 'key-round';
+      default:
+        return 'download';
+    }
+  }
+
+  fileLine(row: AccountingBnTransaction): string {
+    const name = row.file_path ? this.basename(row.file_path) : row.file_name;
+
+    return name && row.file_size ? `${name} · ${this.formatSize(row.file_size)}` : row.message || '-';
+  }
+
+  originStatusSeverity(status: AccountingBnIpStatus | null | undefined): Severity {
     if (status === 'allowed') {
       return 'success';
     }
@@ -257,235 +277,162 @@ export class BnIncidentsComponent implements OnInit {
     return status === 'unknown' ? 'warn' : 'secondary';
   }
 
-  getOriginIcon(status: AccountingBnIpStatus | null | undefined): string {
+  originStatusLabel(status: AccountingBnIpStatus | null | undefined): string {
     if (status === 'allowed') {
-      return 'shield-check';
+      return 'Autorizada';
     }
 
-    return status === 'unknown' ? 'shield-alert' : 'shield-question';
+    return status === 'unknown' ? 'Desconocida' : 'Sin verificar';
   }
 
-  get ipNotVerified(): boolean {
-    return this.summary?.latest_transaction?.ip_status === 'unverified';
+  // ------------------------------------------------------------------ detalle y archivos
+
+  openDetail(row: AccountingBnTransaction): void {
+    this.selected = row;
+    this.preview = null;
+    this.detailVisible = true;
+
+    if (row.has_local_file) {
+      this.previewLoading = true;
+      this.accountingBnService.preview(row.id).subscribe({
+        next: (response) => {
+          this.previewLoading = false;
+          if (response.status === STATUS.success && this.selected?.id === row.id) {
+            this.preview = response.payload.data;
+          }
+        },
+        error: () => {
+          this.previewLoading = false;
+        },
+      });
+    }
   }
 
-  getExtraPretty(transaction: AccountingBnTransaction): string {
-    return transaction.extra_data ? JSON.stringify(transaction.extra_data, null, 2) : '';
-  }
+  downloadFile(row: AccountingBnTransaction, event?: Event): void {
+    event?.stopPropagation();
 
-  getFileType(transaction: AccountingBnTransaction): string {
-    return this.normalizeFileType(transaction.file_type) || '-';
-  }
-
-  getFileBasename(path: string): string {
-    return path.split('/').pop() || path;
-  }
-
-  downloadFile(transaction: AccountingBnTransaction): void {
-    if (!transaction.has_local_file) {
-      this.notificationService.warning('Archivo no disponible', 'No hay un archivo local para descargar.');
+    if (!row.has_local_file) {
+      this.notificationService.warning('Archivo no disponible', 'No hay un archivo guardado para descargar.');
       return;
     }
 
-    this.downloadingId = transaction.id;
-    this.accountingBnService.download(transaction.id).subscribe({
+    this.downloadingId = row.id;
+    this.accountingBnService.download(row.id).subscribe({
       next: (blob) => {
         this.downloadingId = null;
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = this.getDownloadName(transaction);
+        link.download = this.downloadName(row);
         link.click();
         URL.revokeObjectURL(url);
       },
       error: (error) => {
         this.downloadingId = null;
         this.notificationService.notifyApiData(error);
-      }
+      },
     });
   }
 
-  getExtraData(transaction: AccountingBnTransaction): string {
-    return transaction.extra_data
-      ? JSON.stringify(transaction.extra_data)
-      : '';
+  copy(text: string | null): void {
+    if (text) {
+      navigator.clipboard?.writeText(text).then(() => this.notificationService.success('Copiado', 'Huella SHA-256 copiada.'));
+    }
   }
 
-  getSecondaryDate(transaction: AccountingBnTransaction): string {
-    if (transaction.request_date && !transaction.request_date.endsWith('00:00:00')) {
-      return `Fecha solicitada: ${transaction.request_date}`;
+  extraPretty(row: AccountingBnTransaction): string {
+    return row.extra_data ? JSON.stringify(row.extra_data, null, 2) : '';
+  }
+
+  // ------------------------------------------------------------------ utilidades
+
+  formatSize(bytes: number | null | undefined): string {
+    if (!bytes) {
+      return '0 B';
     }
 
-    if (transaction.created_at_lima) {
-      return `Registrado: ${transaction.created_at_lima}`;
-    }
-
-    return 'Sin fecha registrada';
+    return bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
   }
 
-  isFirstRowOfDay(transaction: AccountingBnTransaction, rowIndex: number): boolean {
-    if (rowIndex === 0) {
-      return true;
-    }
+  hourOf(date: string | null | undefined): string {
+    const parsed = this.parse(date);
 
-    const previous = this.list.items[rowIndex - 1];
-
-    return this.getDayKey(transaction) !== this.getDayKey(previous);
+    return parsed ? new Intl.DateTimeFormat('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false }).format(parsed) : '--:--';
   }
 
-  getDayLabel(transaction: AccountingBnTransaction): string {
-    const date = this.getTransactionDate(transaction);
-
-    if (!date) {
-      return 'Sin fecha';
-    }
-
-    return new Intl.DateTimeFormat('es-PE', {
-      weekday: 'long',
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    }).format(date);
+  timeOf(row: AccountingBnTransaction): string {
+    return this.hourOf(row.created_at_lima || row.created_at || row.display_date);
   }
 
-  getDayCount(transaction: AccountingBnTransaction): number {
-    const dayKey = this.getDayKey(transaction);
+  dateTimeOf(date: string | null | undefined): string {
+    const parsed = this.parse(date);
 
-    return this.list.items.filter((item) => this.getDayKey(item) === dayKey).length;
+    return parsed
+      ? new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(parsed)
+      : 'No registrada';
   }
 
-  getDayCountLabel(transaction: AccountingBnTransaction): string {
-    const count = this.getDayCount(transaction);
-
-    return count === 1 ? '1 registro' : `${count} registros`;
-  }
-
-  getTimeLabel(transaction: AccountingBnTransaction): string {
-    const date = this.getTransactionDate(transaction);
-
-    if (!date) {
-      return '--:--';
-    }
-
-    return new Intl.DateTimeFormat('es-PE', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }).format(date);
-  }
-
-  getOperationDateLabel(transaction: AccountingBnTransaction): string {
-    const date = this.getTransactionDate(transaction);
-
-    return date ? this.formatDisplayDateTime(date) : 'No registrada';
-  }
-
-  getRequestedDateLabel(transaction: AccountingBnTransaction): string {
-    const date = this.parseDate(transaction.request_date);
-
-    return date ? this.formatDisplayDate(date) : 'No registrada';
+  basename(path: string): string {
+    return path.split('/').pop() || path;
   }
 
   private buildFilters(): AccountingBnFilter {
-    const range = this.getSelectedDateRange();
+    const start = this.dateRange?.[0];
+    const end = this.dateRange?.[1] ?? start;
 
     return {
-      start_date: range.startDate,
-      end_date: range.endDate,
+      start_date: start ? this.isoDate(start) : undefined,
+      end_date: end ? this.isoDate(end) : undefined,
       operation: this.operation,
-      status: this.status,
       ip_status: this.origin,
-      search: this.search,
+      view: this.view === 'all' ? undefined : this.view,
+      search: this.search.trim(),
       page: this.page,
       per_page: this.perPage,
     };
   }
 
-  private getSelectedDateRange(): { startDate?: string; endDate?: string } {
-    const start = this.dateRange?.[0];
-    const end = this.dateRange?.[1] ?? start;
+  private buildGroups(items: AccountingBnTransaction[]): DayGroup[] {
+    const groups: DayGroup[] = [];
+    const formatter = new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 
-    return {
-      startDate: start ? this.formatDate(start) : undefined,
-      endDate: end ? this.formatDate(end) : undefined,
-    };
-  }
+    for (const item of items) {
+      const date = this.parse(item.created_at_lima || item.created_at || item.display_date);
+      const key = date ? this.isoDate(date) : 'sin-fecha';
+      let group = groups.find((entry) => entry.key === key);
 
-  private formatDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
+      if (!group) {
+        group = { key, label: date ? formatter.format(date) : 'Sin fecha', items: [] };
+        groups.push(group);
+      }
 
-    return `${year}-${month}-${day}`;
-  }
-
-  private normalizeFileType(fileType: string | null | undefined): string {
-    return (fileType ?? '').trim().toUpperCase();
-  }
-
-  private getDayKey(transaction: AccountingBnTransaction): string {
-    const date = this.getTransactionDate(transaction);
-
-    if (!date) {
-      return 'sin-fecha';
+      group.items.push(item);
     }
 
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+    return groups;
   }
 
-  private getTransactionDate(transaction: AccountingBnTransaction): Date | null {
-    const rawDate = transaction.created_at_lima || transaction.created_at || transaction.display_date;
+  private downloadName(row: AccountingBnTransaction): string {
+    if (row.file_path) {
+      return this.basename(row.file_path);
+    }
 
-    return this.parseDate(rawDate);
+    const type = (row.file_type ?? '').trim().toLowerCase();
+
+    return row.file_name && type ? `${row.file_name}.${type}` : row.file_name || `bn-transaction-${row.id}`;
   }
 
-  private parseDate(rawDate: string | null | undefined): Date | null {
-    if (!rawDate) {
+  private isoDate(date: Date): string {
+    return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}`;
+  }
+
+  private parse(raw: string | null | undefined): Date | null {
+    if (!raw) {
       return null;
     }
 
-    const normalized = rawDate.replace(' ', 'T');
-    const date = new Date(normalized);
+    const date = new Date(raw.replace(' ', 'T'));
 
     return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  private formatDisplayDate(date: Date): string {
-    return new Intl.DateTimeFormat('es-PE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(date);
-  }
-
-  private formatDisplayDateTime(date: Date): string {
-    return new Intl.DateTimeFormat('es-PE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }).format(date);
-  }
-
-  private getDownloadName(transaction: AccountingBnTransaction): string {
-    const pathName = transaction.file_path
-      ? this.getFileBasename(transaction.file_path)
-      : null;
-
-    if (pathName) {
-      return pathName;
-    }
-
-    const type = this.normalizeFileType(transaction.file_type).toLowerCase();
-
-    return transaction.file_name && type
-      ? `${transaction.file_name}.${type}`
-      : transaction.file_name || `bn-transaction-${transaction.id}`;
   }
 }

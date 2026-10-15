@@ -11,6 +11,7 @@ export interface AccountingBnFilter {
   status?: string;
   file_type?: string;
   ip_status?: string;
+  view?: string;
   search?: string;
   page?: number;
   per_page?: number;
@@ -64,6 +65,8 @@ export interface AccountingBnTransaction {
   attempt: number;
   extra_data: Record<string, unknown> | null;
   error_origin: { value: string; label: string } | null;
+  is_expected: boolean;
+  origin_label: string | null;
   ip_address: string | null;
   ip_status: AccountingBnIpStatus;
   user_agent: string | null;
@@ -83,6 +86,38 @@ export interface AccountingBnSummary {
   by_operation: AccountingBnOptionTotal[];
   by_file_type: AccountingBnOptionTotal[];
   ips: AccountingBnIpSummary;
+}
+
+export interface AccountingBnCycleStep {
+  label: string;
+  window: string;
+  state: 'ok' | 'pending' | 'missing' | 'error';
+  at: string | null;
+}
+
+export interface AccountingBnAttention {
+  kind: 'incident' | 'security';
+  origin: string;
+  title: string;
+  count: number;
+  detail: string | null;
+  last_seen: string | null;
+  ip_address?: string;
+}
+
+export interface AccountingBnOverview {
+  cycle: AccountingBnCycleStep[];
+  attention: AccountingBnAttention[];
+  counters: { operations_7d: number; incidents_7d: number; rejections_24h: number };
+}
+
+export interface AccountingBnFilePreview {
+  file_name: string;
+  size: number;
+  previewable: boolean;
+  total_lines: number | null;
+  lines: string[];
+  sha256: string | null;
 }
 
 export interface AccountingBnOrigin {
@@ -280,6 +315,14 @@ export class AccountingBnService {
 
   blockIp(ipAddress: string, label?: string): Observable<ApiData<AccountingBnConfig>> {
     return this.http.post<ApiData<AccountingBnConfig>>(`${this.apiURL}/accounting/bn/config/block`, { ip_address: ipAddress, label });
+  }
+
+  overview(): Observable<ApiData<AccountingBnOverview>> {
+    return this.http.get<ApiData<AccountingBnOverview>>(`${this.apiURL}/accounting/bn/overview`);
+  }
+
+  preview(transactionId: number): Observable<ApiData<AccountingBnFilePreview>> {
+    return this.http.get<ApiData<AccountingBnFilePreview>>(`${this.apiURL}/accounting/bn/transactions/${transactionId}/preview`);
   }
 
   download(transactionId: number): Observable<Blob> {
