@@ -132,6 +132,48 @@
   gap: .35rem;
 }
 
+.set-row {
+  align-items: center;
+  border-top: 1px solid var(--surface-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: .75rem 0;
+}
+
+.set-row:first-of-type {
+  border-top: 0;
+}
+
+.set-row p {
+  color: var(--text-color-secondary);
+  margin: .2rem 0 0;
+}
+
+.set-row.sub {
+  padding-left: 1rem;
+}
+
+.set-row.sub input {
+  max-width: 16rem;
+  width: 100%;
+}
+
+.note {
+  align-items: center;
+  color: var(--text-color-secondary);
+  display: flex;
+  font-size: .85rem;
+  gap: var(--space-2, .5rem);
+  margin: 0 0 .5rem;
+}
+
+.section-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .75rem;
+}
+
 .info-grid {
   display: grid;
   gap: .75rem 1.5rem;

@@ -404,3 +404,47 @@
     gap: .25rem;
   }
 }
+
+.rejections-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  justify-content: space-between;
+  margin-bottom: .5rem;
+}
+
+.rejections-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.rejections-head span {
+  color: var(--text-color-secondary);
+  font-size: .85rem;
+}
+
+.rejection-row {
+  align-items: center;
+  border-top: 1px solid var(--surface-border);
+  display: grid;
+  gap: .75rem;
+  grid-template-columns: 10rem minmax(0, 1fr) 6.5rem 6rem auto;
+  padding: .6rem 0;
+}
+
+.rejection-reason {
+  overflow-wrap: anywhere;
+}
+
+.rejection-count {
+  color: var(--text-color-secondary);
+  font-size: .85rem;
+}
+
+@media (max-width: 760px) {
+  .rejection-row {
+    grid-template-columns: 1fr auto;
+  }
+}
