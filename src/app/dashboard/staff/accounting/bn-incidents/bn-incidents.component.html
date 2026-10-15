@@ -1,312 +1,213 @@
 <div class="bn-incidents">
-  <div class="page-heading">
-    <div>
-      <h2>Incidencias Banco Nacion</h2>
-      <p>Seguimiento de transferencias y respuestas registradas en el flujo BN.</p>
+  <header class="page-head">
+    <div class="title-block">
+      <h2>Incidencias Banco de la Nación</h2>
+      <span class="status-pill" [ngClass]="needsAttention ? 'warn' : 'ok'" *ngIf="overview">
+        <app-lucide-icon [name]="needsAttention ? 'triangle-alert' : 'circle-check'" [size]="14"></app-lucide-icon>
+        {{ needsAttention ? needsAttention + (needsAttention === 1 ? ' requiere atención' : ' requieren atención') : 'Todo en orden' }}
+      </span>
+      <p-skeleton *ngIf="overviewLoading && !overview" width="9rem" height="1.5rem" borderRadius="999px"></p-skeleton>
     </div>
-    <p-tag value="Solo lectura" severity="info"></p-tag>
-  </div>
-
-  <p-message *ngIf="ipNotVerified" severity="warn" styleClass="ip-warning">
-    <span class="ip-warning-text">
-      <app-lucide-icon name="triangle-alert" [size]="18"></app-lucide-icon>
-      <span><strong>IP de origen sin verificar.</strong> Las ultimas llamadas figuran como 127.0.0.1 porque el servidor esta detras de un proxy. Revisa la configuracion de proxy de confianza.</span>
-    </span>
-  </p-message>
-
-  <div class="summary-grid" *ngIf="summary && !summaryLoading">
-    <p-card styleClass="summary-card">
-      <span>Total operaciones</span>
-      <strong>{{ summary.total }}</strong>
-    </p-card>
-    <p-card styleClass="summary-card success">
-      <span>Exitosas</span>
-      <strong>{{ summary.success }}</strong>
-    </p-card>
-    <p-card styleClass="summary-card danger">
-      <span>Incidencias</span>
-      <strong>{{ summary.errors }}</strong>
-    </p-card>
-    <p-card styleClass="summary-card">
-      <span>Ultima operacion</span>
-      <strong>{{ summary.latest_transaction?.display_date || 'Sin registros' }}</strong>
-    </p-card>
-    <p-card styleClass="summary-card">
-      <span>IP distintas</span>
-      <strong>{{ summary.ips.distinct }}</strong>
-    </p-card>
-    <p-card styleClass="summary-card" [ngClass]="{ warn: summary.ips.unknown > 0 }">
-      <span>IP desconocidas</span>
-      <strong>{{ summary.ips.unknown }}</strong>
-    </p-card>
-  </div>
-
-  <div *ngIf="summaryLoading" class="loading-block">
-    <p-progressSpinner></p-progressSpinner>
-  </div>
-
-  <p-card styleClass="rejections-card" *ngIf="rejections && rejections.total">
-    <div class="rejections-head">
-      <div>
-        <strong>Rechazos de las últimas 24 horas</strong>
-        <span>{{ rejections.total }} rechazos · {{ rejections.ips }} IP</span>
-      </div>
-      <p-tag *ngIf="rejections.over_limit" severity="warn" [value]="rejections.over_limit + (rejections.over_limit === 1 ? ' IP superó el límite' : ' IP superaron el límite')"></p-tag>
+    <div class="head-actions">
+      <p-tag value="Solo lectura" severity="secondary"></p-tag>
+      <a pButton routerLink="../traces" severity="secondary" [outlined]="true" class="icon-label-button">
+        <app-lucide-icon name="route" [size]="16"></app-lucide-icon>
+        <span>Trazabilidad de IP</span>
+      </a>
     </div>
-    <div class="rejection-row" *ngFor="let item of rejections.items">
-      <span class="origin-ip">{{ item.ip_address }}</span>
-      <span class="rejection-reason">{{ item.main_reason || 'Sin motivo' }}</span>
-      <span class="rejection-count">{{ item.total }} intentos</span>
-      <p-tag [severity]="rejectionSeverity(item.state)" [value]="rejectionLabel(item.state)"></p-tag>
-      <a class="rejection-link" routerLink="../traces" [queryParams]="{ ip: item.ip_address }">Ver trazabilidad</a>
+  </header>
+
+  <section class="today" aria-label="Ciclo de hoy" *ngIf="overview as ov">
+    <div class="step" *ngFor="let step of ov.cycle" [ngClass]="step.state">
+      <span class="step-name">
+        <app-lucide-icon [name]="stepIcon(step)" [size]="16"></app-lucide-icon>
+        {{ step.label }}
+      </span>
+      <small>{{ stepText(step) }}</small>
     </div>
-  </p-card>
+    <div class="step count">
+      <span class="step-name"><strong>{{ ov.counters.operations_7d }}</strong> operaciones</span>
+      <small>últimos 7 días</small>
+    </div>
+  </section>
+  <p-skeleton *ngIf="overviewLoading && !overview" height="4rem" borderRadius="10px"></p-skeleton>
 
-  <p-card styleClass="filter-card">
-    <div class="filter-grid">
-      <div class="field">
-        <label>Fecha de operacion</label>
-        <p-datePicker
-          [(ngModel)]="dateRange"
-          selectionMode="range"
-          dateFormat="dd/mm/yy"
-          showIcon
-          [maxDate]="today"
-          placeholder="Seleccionar rango">
-        </p-datePicker>
+  <section class="attention" aria-label="Requiere atención" *ngIf="overview?.attention?.length">
+    <div class="alert" *ngFor="let item of overview?.attention" [ngClass]="item.kind === 'security' ? 'warn' : 'danger'">
+      <app-lucide-icon [name]="attentionIcon(item)" [size]="18"></app-lucide-icon>
+      <span class="alert-text">
+        <strong>{{ item.title }}</strong>
+        <small>
+          <ng-container *ngIf="item.ip_address"><span class="mono">{{ item.ip_address }}</span> · </ng-container>{{ item.count }}
+          {{ item.count === 1 ? 'vez' : 'veces' }}<ng-container *ngIf="item.detail"> · {{ item.detail }}</ng-container>
+        </small>
+      </span>
+      <a *ngIf="item.kind === 'security'" pButton size="small" severity="secondary" routerLink="../traces" [queryParams]="{ ip: item.ip_address }" label="Ver trazabilidad"></a>
+      <button *ngIf="item.kind === 'incident'" pButton type="button" size="small" severity="secondary" label="Revisar" (click)="reviewIncidents()"></button>
+    </div>
+  </section>
+
+  <section class="history">
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="Vista del historial">
+        <button type="button" role="tab" [attr.aria-selected]="view === 'all'" [class.on]="view === 'all'" (click)="setView('all')">Todo</button>
+        <button type="button" role="tab" [attr.aria-selected]="view === 'incidents'" [class.on]="view === 'incidents'" (click)="setView('incidents')">
+          Incidencias
+          <span class="count danger" *ngIf="overview?.counters?.incidents_7d">{{ overview?.counters?.incidents_7d }}</span>
+        </button>
+        <button type="button" role="tab" [attr.aria-selected]="view === 'rejections'" [class.on]="view === 'rejections'" (click)="setView('rejections')">
+          Rechazos
+          <span class="count" *ngIf="overview?.counters?.rejections_24h">{{ overview?.counters?.rejections_24h }}</span>
+        </button>
       </div>
 
-      <div class="field">
-        <label>Operacion</label>
-        <p-select
-          [(ngModel)]="operation"
-          [options]="operationOptions"
-          optionLabel="label"
-          optionValue="value"
-          appendTo="body">
-        </p-select>
-      </div>
-
-      <div class="field">
-        <label>Estado</label>
-        <p-select
-          [(ngModel)]="status"
-          [options]="statusOptions"
-          optionLabel="label"
-          optionValue="value"
-          appendTo="body">
-        </p-select>
-      </div>
-
-      <div class="field">
-        <label>Origen</label>
-        <p-select
-          [(ngModel)]="origin"
-          [options]="originOptions"
-          optionLabel="label"
-          optionValue="value"
-          appendTo="body">
-        </p-select>
-      </div>
-
-      <div class="field search-field">
-        <label>Busqueda</label>
-        <input
-          pInputText
-          type="text"
-          [(ngModel)]="search"
-          placeholder="Buscar por mensaje, archivo, ruta o IP" />
-      </div>
-
-      <div class="filter-actions">
-        <button pButton type="button" icon="pi pi-search" label="Buscar" (click)="loadData(1)"></button>
-        <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" severity="secondary" (click)="clearFilters()"></button>
+      <div class="tools">
+        <span class="search">
+          <app-lucide-icon name="search" [size]="16"></app-lucide-icon>
+          <input pInputText type="text" [ngModel]="search" (ngModelChange)="onSearch($event)" placeholder="Buscar archivo, mensaje o IP" aria-label="Buscar" />
+        </span>
+        <button pButton type="button" severity="secondary" [outlined]="true" class="icon-label-button" (click)="filters.toggle($event)">
+          <app-lucide-icon name="sliders-horizontal" [size]="16"></app-lucide-icon>
+          <span>Filtros</span>
+          <span class="count" *ngIf="activeFilters">{{ activeFilters }}</span>
+        </button>
       </div>
     </div>
-  </p-card>
 
-  <div *ngIf="summary?.latest_incident" class="latest-incident">
-    <span>Ultima incidencia</span>
-    <strong>{{ summary?.latest_incident?.display_date }}</strong>
-    <p>{{ summary?.latest_incident?.message }}</p>
-  </div>
+    <p-popover #filters>
+      <div class="filters-panel">
+        <div class="field">
+          <label>Fecha</label>
+          <p-datePicker [(ngModel)]="dateRange" selectionMode="range" dateFormat="dd/mm/yy" [maxDate]="today" placeholder="Seleccionar rango" appendTo="body" [showIcon]="true"></p-datePicker>
+        </div>
+        <div class="field">
+          <label>Operación</label>
+          <p-select [(ngModel)]="operation" [options]="operationOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+        </div>
+        <div class="field">
+          <label>Origen</label>
+          <p-select [(ngModel)]="origin" [options]="originOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
+        </div>
+        <div class="filters-actions">
+          <button pButton type="button" severity="secondary" [text]="true" label="Limpiar" (click)="clearFilters(filters)"></button>
+          <button pButton type="button" label="Aplicar" (click)="applyFilters(filters)"></button>
+        </div>
+      </div>
+    </p-popover>
 
-  <p-card styleClass="table-card">
-    <div class="history-caption">
-      <strong>Historial de operaciones</strong>
-      <span>Agrupado por fecha de operacion registrada en Lima. Mas recientes primero.</span>
-    </div>
+    <div class="list" [class.busy]="loading">
+      <div class="empty" *ngIf="!loading && !groups.length">
+        <app-lucide-icon name="search" [size]="22"></app-lucide-icon>
+        <p>No hay registros para esta vista y estos filtros.</p>
+      </div>
 
-    <p-table
-      [value]="displayTransactions()"
-      [loading]="loading"
-      [paginator]="true"
-      [rows]="perPage"
-      [totalRecords]="list.pagination.total"
-      [lazy]="true"
-      [first]="(list.pagination.current_page - 1) * perPage"
-      [rowsPerPageOptions]="[10, 20, 50, 100]"
-      rowGroupMode="subheader"
-      groupRowsBy="day_key"
-      dataKey="id"
-      responsiveLayout="scroll"
-      (onPage)="onPageChange($event)">
-      <ng-template pTemplate="header">
-        <tr>
-          <th style="width: 8rem">Hora</th>
-          <th>Operacion y archivo</th>
-          <th style="width: 13rem">Origen</th>
-          <th>Estado y mensaje</th>
-          <th>Usuario</th>
-          <th style="width: 14rem">Archivo local</th>
-          <th style="width: 4rem"></th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="groupheader" let-row>
-        <tr pRowGroupHeader>
-          <td colspan="7">
-            <div class="day-group">
-              <strong>Operaciones del {{ row.day_label }}</strong>
-              <span>{{ getDayCountLabel(row) }}</span>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-row>
-        <tr>
-          <td>
-            <div class="time-cell">
-              <strong>{{ getTimeLabel(row) }}</strong>
-              <span>{{ getSecondaryDate(row) }}</span>
-            </div>
-          </td>
-          <td>
-            <div class="operation-file-cell">
+      <ng-container *ngFor="let group of groups">
+        <div class="day">{{ group.label }}</div>
+        <div class="row" *ngFor="let row of group.items" tabindex="0" (click)="openDetail(row)" (keydown.enter)="openDetail(row)">
+          <span class="time mono">{{ timeOf(row) }}</span>
+          <span class="op">
+            <app-lucide-icon [name]="opIcon(row)" [size]="16"></app-lucide-icon>
+            <span class="op-text">
               <strong>{{ row.operation.label || row.operation.value || '-' }}</strong>
-              <div class="operation-file-details">
-                <div>
-                  <span>Archivo</span>
-                  <p-tag
-                    [value]="getFileType(row)"
-                    [severity]="getFileSeverity(row.file_type)">
-                  </p-tag>
-                </div>
-                <div>
-                  <span>Nombre</span>
-                  <strong>{{ row.file_name || 'Sin archivo' }}</strong>
-                </div>
-              </div>
-              <small *ngIf="getExtraData(row)">Extra: {{ getExtraData(row) }}</small>
-            </div>
-          </td>
-          <td>
-            <div class="origin-cell">
-              <span class="origin-ip">{{ row.ip_address || 'Sin IP' }}</span>
-              <p-tag [severity]="getOriginSeverity(row.ip_status)">
-                <span class="tag-content">
-                  <app-lucide-icon [name]="getOriginIcon(row.ip_status)" [size]="14"></app-lucide-icon>
-                  {{ getOriginLabel(row.ip_status) }}
-                </span>
-              </p-tag>
-            </div>
-          </td>
-          <td>
-            <div class="status-message-cell">
-              <p-tag
-                [value]="row.status.label || row.status.value || 'Sin estado'"
-                [severity]="getSeverity(row.status.value)">
-              </p-tag>
-              <span>{{ row.message || '-' }}</span>
-              <p-tag *ngIf="row.error_origin" severity="secondary" [value]="row.error_origin.label"></p-tag>
-            </div>
-          </td>
-          <td>
-            <div class="user-cell">
-              <strong>{{ row.user.full_name || 'Sistema' }}</strong>
-              <span>{{ row.user.number || '' }}</span>
-            </div>
-          </td>
-          <td>
-            <div class="download-cell">
-              <button
-                pButton
-                type="button"
-                icon="pi pi-download"
-                [label]="downloadingId === row.id ? 'Descargando' : 'Descargar'"
-                size="small"
-                [disabled]="!row.has_local_file || downloadingId === row.id"
-                (click)="downloadFile(row)">
-              </button>
-              <span>{{ row.file_path ? getFileBasename(row.file_path) : 'Sin archivo local' }}</span>
-            </div>
-          </td>
-          <td>
+              <small>{{ fileLine(row) }}</small>
+            </span>
+          </span>
+          <span class="from">
+            <span class="mono">{{ row.ip_address || 'Sin IP' }}</span>
+            <small [ngClass]="row.ip_status">{{ row.origin_label || originStatusLabel(row.ip_status) }}</small>
+          </span>
+          <p-tag class="state" [value]="rowStatus(row).label" [severity]="rowStatus(row).severity"></p-tag>
+          <span class="actions">
             <button
               pButton
               type="button"
-              class="detail-button"
+              class="icon-btn"
               severity="secondary"
               [text]="true"
               [rounded]="true"
-              aria-label="Ver detalle"
-              (click)="openDetail(row)">
-              <app-lucide-icon name="chevron-right" [size]="18"></app-lucide-icon>
+              [disabled]="!row.has_local_file || downloadingId === row.id"
+              [attr.aria-label]="row.has_local_file ? 'Descargar archivo' : 'Sin archivo para descargar'"
+              (click)="downloadFile(row, $event)">
+              <app-lucide-icon name="download" [size]="18"></app-lucide-icon>
             </button>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="7" class="empty-message">No hay registros para los filtros seleccionados.</td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
-
-  <p-drawer [(visible)]="detailVisible" position="right" header="Detalle del intento" styleClass="bn-detail-drawer">
-    <div class="detail-body" *ngIf="selected as t">
-      <div class="detail-status">
-        <p-tag [value]="t.status.label || t.status.value || 'Sin estado'" [severity]="getSeverity(t.status.value)"></p-tag>
-        <p-tag [severity]="getOriginSeverity(t.ip_status)">
-          <span class="tag-content">
-            <app-lucide-icon [name]="getOriginIcon(t.ip_status)" [size]="14"></app-lucide-icon>
-            {{ getOriginLabel(t.ip_status) }}
+            <app-lucide-icon class="chev" name="chevron-right" [size]="18"></app-lucide-icon>
           </span>
-        </p-tag>
-      </div>
-      <p class="detail-message">{{ t.message || 'Sin mensaje' }}</p>
+        </div>
+      </ng-container>
+    </div>
 
-      <dl class="detail-list">
-        <div *ngIf="t.error_origin"><dt>Origen del error</dt><dd>{{ t.error_origin.label }}</dd></div>
-        <div><dt>Operacion</dt><dd>{{ t.operation.label || t.operation.value || '-' }}</dd></div>
-        <div><dt>Registrado</dt><dd>{{ getOperationDateLabel(t) }}</dd></div>
-        <div><dt>Fecha solicitada</dt><dd>{{ getRequestedDateLabel(t) }}</dd></div>
-        <div><dt>IP de origen</dt><dd class="mono">{{ t.ip_address || 'Sin IP' }}</dd></div>
+    <p-paginator
+      [first]="(list.pagination.current_page - 1) * perPage"
+      [rows]="perPage"
+      [totalRecords]="list.pagination.total"
+      [rowsPerPageOptions]="[20, 50, 100]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first} a {last} de {totalRecords}"
+      (onPageChange)="onPage($event)">
+    </p-paginator>
+  </section>
+
+  <p-drawer [(visible)]="detailVisible" position="right" header="Detalle de la operación" styleClass="bn-detail-drawer">
+    <div class="detail" *ngIf="selected as t">
+      <div class="detail-head">
+        <strong>{{ t.operation.label || t.operation.value }}</strong>
+        <p-tag [value]="rowStatus(t).label" [severity]="rowStatus(t).severity"></p-tag>
+      </div>
+      <p class="message">{{ t.message || 'Sin mensaje' }}</p>
+      <p class="origin-note" *ngIf="t.error_origin">
+        <app-lucide-icon name="circle-alert" [size]="14"></app-lucide-icon>
+        {{ t.error_origin.label }}
+      </p>
+
+      <dl class="facts">
+        <div><dt>Registrado</dt><dd>{{ dateTimeOf(t.created_at_lima || t.created_at) }}</dd></div>
+        <div><dt>Fecha solicitada</dt><dd>{{ dateTimeOf(t.request_date) }}</dd></div>
+        <div>
+          <dt>Solicitado desde</dt>
+          <dd>
+            <span class="mono">{{ t.ip_address || 'Sin IP' }}</span>
+            <p-tag [severity]="originStatusSeverity(t.ip_status)" [value]="t.origin_label || originStatusLabel(t.ip_status)"></p-tag>
+          </dd>
+        </div>
         <div><dt>Cliente</dt><dd class="mono">{{ t.user_agent || '-' }}</dd></div>
         <div><dt>Usuario del sistema</dt><dd>{{ t.user.full_name || 'Sistema' }} {{ t.user.number }}</dd></div>
-        <div><dt>Archivo</dt><dd>{{ t.file_name || 'Sin archivo' }}</dd></div>
         <div><dt>Intento</dt><dd>{{ t.attempt }}</dd></div>
       </dl>
 
-      <div class="detail-extra" *ngIf="getExtraPretty(t)">
-        <span>Datos adicionales</span>
-        <pre>{{ getExtraPretty(t) }}</pre>
-      </div>
+      <section class="file-box" *ngIf="t.has_local_file || t.file_name">
+        <div class="file-head">
+          <div>
+            <strong>Archivo</strong>
+            <small class="mono">{{ t.file_path ? basename(t.file_path) : t.file_name }}</small>
+          </div>
+          <button pButton type="button" class="icon-label-button" size="small" [disabled]="!t.has_local_file || downloadingId === t.id" (click)="downloadFile(t)">
+            <app-lucide-icon name="download" [size]="16"></app-lucide-icon>
+            <span>{{ downloadingId === t.id ? 'Descargando' : 'Descargar archivo' }}</span>
+          </button>
+        </div>
+        <p class="muted" *ngIf="!t.has_local_file">No hay una copia guardada de este archivo.</p>
+        <p-skeleton *ngIf="previewLoading" height="5rem"></p-skeleton>
+        <ng-container *ngIf="preview as p">
+          <p class="muted">{{ formatSize(p.size) }}<ng-container *ngIf="p.total_lines !== null"> · {{ p.total_lines }} líneas</ng-container></p>
+          <div class="preview" *ngIf="p.previewable && p.lines.length">
+            <span class="muted">Primeras líneas (solo lectura)</span>
+            <pre *ngFor="let line of p.lines">{{ line }}</pre>
+          </div>
+          <div class="sha" *ngIf="p.sha256">
+            <span class="muted">Huella SHA-256</span>
+            <code>{{ p.sha256 }}</code>
+            <button pButton type="button" size="small" severity="secondary" [text]="true" class="icon-label-button" (click)="copy(p.sha256)">
+              <app-lucide-icon name="copy" [size]="14"></app-lucide-icon>
+              <span>Copiar</span>
+            </button>
+          </div>
+        </ng-container>
+      </section>
 
-      <div class="detail-actions">
-        <button
-          pButton
-          type="button"
-          class="icon-label-button"
-          [disabled]="!t.has_local_file || downloadingId === t.id"
-          (click)="downloadFile(t)">
-          <app-lucide-icon name="download" [size]="16"></app-lucide-icon>
-          <span>{{ downloadingId === t.id ? 'Descargando' : 'Descargar archivo' }}</span>
-        </button>
-      </div>
+      <section class="extra" *ngIf="extraPretty(t)">
+        <span class="muted">Datos adicionales</span>
+        <pre>{{ extraPretty(t) }}</pre>
+      </section>
     </div>
   </p-drawer>
 </div>
