@@ -65,6 +65,7 @@ export class BnConfigComponent implements OnInit {
     mode_changed: 'Modo cambiado',
     security_changed: 'Seguridad modificada',
     ip_blocked: 'IP bloqueada',
+    ip_unblocked: 'IP desbloqueada',
   };
 
   config: AccountingBnConfig | null = null;

@@ -13,6 +13,8 @@ import { TagModule } from 'primeng/tag';
 import { AppLucideIconComponent } from '../../../../core/components/lucide-icon/lucide-icon.component';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
+import { LoginService } from '../../../../services/login.service';
+import { ROLE } from '../../../../core/constants/app-roles.constants';
 import {
   AccountingBnService,
   AccountingBnTraceDetail,
@@ -64,7 +66,13 @@ export class BnTracesComponent implements OnInit {
     private accountingBnService: AccountingBnService,
     private notificationService: NotificationService,
     private route: ActivatedRoute,
+    private loginService: LoginService,
   ) {}
+
+  /** Solo el administrador puede bloquear IP; contabilidad solo consulta. */
+  get canBlock(): boolean {
+    return this.loginService.getUser()?.role?.value === ROLE.admin;
+  }
 
   ngOnInit(): void {
     this.accountingBnService.traces().subscribe({

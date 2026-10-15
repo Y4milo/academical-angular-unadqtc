@@ -106,7 +106,7 @@
         <span class="chip mono" *ngFor="let path of d.paths">{{ path }}</span>
       </div>
 
-      <div class="detail-actions" *ngIf="d.status !== 'blocked' && d.status !== 'allowed'">
+      <div class="detail-actions" *ngIf="canBlock && d.status !== 'blocked' && d.status !== 'allowed'">
         <button pButton type="button" severity="danger" [outlined]="true" class="icon-label-button" [disabled]="saving" (click)="blockConfirm = true">
           <app-lucide-icon name="ban" [size]="16"></app-lucide-icon>
           <span>Bloquear IP</span>
