@@ -1,0 +1,144 @@
+<div class="dbu-queue">
+  <div class="page-heading">
+    <div>
+      <h2>Cola de citas</h2>
+      <p>Bienestar Universitario: las citas del día para atender, reasignar o cancelar.</p>
+    </div>
+  </div>
+
+  <div class="queue-toolbar">
+    <div class="queue-day" role="group" aria-label="Día de la cola">
+      <p-button severity="secondary" [outlined]="true" size="small" ariaLabel="Día anterior" (onClick)="moveDay(-1)">
+        <ng-template #icon><app-lucide-icon name="chevron-left" [size]="16"></app-lucide-icon></ng-template>
+      </p-button>
+      <p-datepicker [(ngModel)]="date" (onSelect)="load()" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" ariaLabel="Fecha"></p-datepicker>
+      <p-button severity="secondary" [outlined]="true" size="small" ariaLabel="Día siguiente" (onClick)="moveDay(1)">
+        <ng-template #icon><app-lucide-icon name="chevron-right" [size]="16"></app-lucide-icon></ng-template>
+      </p-button>
+      <p-button label="Hoy" severity="secondary" [text]="true" size="small" (onClick)="today()"></p-button>
+    </div>
+    <p-iconfield class="queue-search">
+      <p-inputicon styleClass="pi pi-search"></p-inputicon>
+      <input pInputText type="search" [(ngModel)]="search" (keyup.enter)="load()" placeholder="Buscar alumno o código" aria-label="Buscar" />
+    </p-iconfield>
+    <p-select [options]="statusOptions" optionLabel="label" optionValue="value" [(ngModel)]="status" (onChange)="load()" appendTo="body" aria-label="Estado"></p-select>
+    <p-select [options]="typeOptions()" optionLabel="label" optionValue="value" [(ngModel)]="typeId" (onChange)="load()" appendTo="body" aria-label="Atención"></p-select>
+    @if (result()?.scope === 'all') {
+      <p-select [options]="attendantOptions()" optionLabel="label" optionValue="value" [(ngModel)]="attendantId" (onChange)="load()" appendTo="body" aria-label="Encargado"></p-select>
+    }
+  </div>
+
+  <p class="queue-dayline">{{ dayNote() }}</p>
+
+  @if (error()) {
+    <p-message severity="error" text="No se pudo cargar la cola."></p-message>
+    <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button>
+  } @else {
+    @if (result(); as r) {
+      <div class="queue-summary" aria-label="Resumen del día">
+        <div class="metric"><span>Citas</span><strong>{{ r.summary.total ?? 0 }}</strong></div>
+        <div class="metric"><span>Por atender</span><strong>{{ (r.summary.reserved ?? 0) + (r.summary.pending ?? 0) }}</strong></div>
+        <div class="metric"><span>Atendidas</span><strong>{{ r.summary.attended ?? 0 }}</strong></div>
+        <div class="metric"><span>No asistió</span><strong>{{ r.summary.no_show ?? 0 }}</strong></div>
+      </div>
+    }
+
+    <section class="queue-list" aria-label="Citas del día" [attr.aria-busy]="loading()">
+      @if (loading() && !result()) {
+        @for (row of skeletonRows; track row) {
+          <div class="queue-row queue-row--skeleton"><p-skeleton width="3.5rem" height="1rem"></p-skeleton><p-skeleton height="2.25rem"></p-skeleton></div>
+        }
+      } @else {
+       @if (result(); as r) {
+        @for (item of r.items; track item.id) {
+          <button type="button" class="queue-row" [class.is-urgent]="item.is_urgent" (click)="open(item)" [attr.data-testid]="'queue-row-' + item.id">
+            <span class="queue-row__time">{{ item.time }}</span>
+            <span class="queue-row__main">
+              <strong>{{ item.full_name }}</strong>
+              <small>{{ item.type }}@if (item.attendant) { · {{ item.attendant }} }</small>
+            </span>
+            <p-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)"></p-tag>
+          </button>
+        } @empty {
+          <div class="queue-empty" data-testid="queue-empty">
+            <app-lucide-icon name="calendar-check" [size]="32"></app-lucide-icon>
+            <strong>No hay citas este día</strong>
+            <span>Cambia el día o los filtros para ver otras citas.</span>
+          </div>
+        }
+       }
+      }
+    </section>
+  }
+
+  <p-drawer [(visible)]="drawerOpen" position="right" [style]="{ width: 'min(34rem, 100vw)' }" [header]="selected()?.full_name ?? 'Cita'">
+    @if (selected(); as item) {
+      <div class="detail">
+        <div class="detail__head">
+          <p-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)"></p-tag>
+          @if (item.is_urgent) { <p-tag value="Urgente" [severity]="'danger'"></p-tag> }
+          <code>{{ item.code }}</code>
+        </div>
+
+        <dl class="detail__facts">
+          <div><dt>Día y hora</dt><dd>{{ item.date }} · {{ item.time }}</dd></div>
+          <div><dt>Atención</dt><dd>{{ item.type }}</dd></div>
+          <div><dt>Encargado</dt><dd>{{ item.attendant ?? 'Sin asignar' }}</dd></div>
+          <div><dt>Documento</dt><dd>{{ item.document_number }}@if (item.student_code) { · {{ item.student_code }} }</dd></div>
+          <div><dt>Correo</dt><dd>{{ item.contact_email }}</dd></div>
+          @if (item.contact_phone) { <div><dt>Celular</dt><dd>{{ item.contact_phone }}</dd></div> }
+          @if (item.reason) { <div><dt>Motivo</dt><dd>{{ item.reason }}</dd></div> }
+          @if (item.cancel_reason) { <div><dt>Motivo de cancelación</dt><dd>{{ item.cancel_reason }}</dd></div> }
+        </dl>
+
+        @if (detailError()) { <p-message severity="error" [text]="detailError()"></p-message> }
+
+        <div class="detail__field">
+          <label for="dbu-note">Nota de la atención (solo la ve Bienestar)</label>
+          <textarea pTextarea id="dbu-note" rows="3" [(ngModel)]="note" maxlength="1000"></textarea>
+          <p-button label="Guardar nota" severity="secondary" [outlined]="true" size="small" [loading]="busy()" (onClick)="saveNote()"></p-button>
+        </div>
+
+        <div class="detail__actions">
+          @if (item.actions.confirm) { <p-button [fluid]="true" label="Confirmar solicitud" [loading]="busy()" (onClick)="run('confirm')"></p-button> }
+          @if (item.actions.attended) { <p-button [fluid]="true" label="Marcar atendida" [loading]="busy()" (onClick)="run('attended')"></p-button> }
+          @if (item.actions.no_show) { <p-button [fluid]="true" label="No asistió" severity="secondary" [outlined]="true" [loading]="busy()" (onClick)="run('no-show')"></p-button> }
+          @if (item.actions.reopen) { <p-button [fluid]="true" label="Deshacer atención" severity="secondary" [outlined]="true" [loading]="busy()" (onClick)="run('reopen')"></p-button> }
+          @if (item.actions.reject) { <p-button [fluid]="true" label="Rechazar" severity="danger" [outlined]="true" (onClick)="askCancel('reject')"></p-button> }
+          @if (item.actions.cancel && !item.actions.reject) { <p-button [fluid]="true" label="Cancelar y avisar" severity="danger" [outlined]="true" (onClick)="askCancel('cancel')"></p-button> }
+        </div>
+
+        @if (item.actions.reassign && result()?.scope === 'all') {
+          <div class="detail__field">
+            <label for="dbu-reassign">Reasignar a otro encargado</label>
+            <div class="detail__inline">
+              <p-select inputId="dbu-reassign" [options]="reassignOptions()" optionLabel="label" optionValue="value" [(ngModel)]="newAttendantId" placeholder="Elige un encargado" appendTo="body"></p-select>
+              <p-button label="Reasignar" severity="secondary" [outlined]="true" [disabled]="newAttendantId === null" [loading]="busy()" (onClick)="reassign()"></p-button>
+            </div>
+          </div>
+        }
+
+        @if (item.events?.length) {
+          <div class="detail__history">
+            <h3>Historial</h3>
+            <ol>
+              @for (event of item.events; track event.id) {
+                <li><strong>{{ eventLabel(event.action) }}</strong><small>{{ actorLabel(event.actor_type) }} · {{ event.created_at }}</small></li>
+              }
+            </ol>
+          </div>
+        }
+      </div>
+    }
+  </p-drawer>
+
+  <p-dialog [(visible)]="cancelDialog" [modal]="true" [style]="{ width: 'min(94vw, 32rem)' }" [header]="cancelMode === 'reject' ? 'Rechazar solicitud' : 'Cancelar cita'">
+    <p>Se avisará al estudiante por correo y el horario quedará libre.</p>
+    <label for="dbu-cancel-reason">Motivo (opcional, el estudiante lo verá)</label>
+    <textarea pTextarea id="dbu-cancel-reason" rows="3" [(ngModel)]="cancelReason" maxlength="255"></textarea>
+    <ng-template #footer>
+      <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="cancelDialog = false"></p-button>
+      <p-button [label]="cancelMode === 'reject' ? 'Rechazar y avisar' : 'Cancelar y avisar'" severity="danger" [loading]="busy()" (onClick)="confirmCancel()"></p-button>
+    </ng-template>
+  </p-dialog>
+</div>

@@ -45,6 +45,7 @@ import {
 } from './dashboard/staff/accounting/bn-incidents/bn-incidents.component';
 import {BnConfigComponent} from './dashboard/staff/accounting/bn-config/bn-config.component';
 import {ComponentsCatalogComponent} from './dashboard/staff/shared/components-catalog/components-catalog.component';
+import {DbuQueueComponent} from './dashboard/staff/dbu/dbu-queue/dbu-queue.component';
 import {DbuConfigComponent} from './dashboard/staff/dbu/dbu-config/dbu-config.component';
 import {DbuLayOutComponent} from './dashboard/staff/dbu/dbu-lay-out-component/dbu-lay-out.component';
 import {BnTracesComponent} from './dashboard/staff/accounting/bn-traces/bn-traces.component';
@@ -134,6 +135,10 @@ export const routes: Routes = [
       {
         path: PATHS.admin.events.certificates.path,
         component: EventCertificatesAdminComponent
+      },
+      {
+        path: PATHS.admin.dbu.queue.path,
+        component: DbuQueueComponent
       },
       {
         path: PATHS.admin.dbu.config.path,
@@ -268,6 +273,10 @@ export const routes: Routes = [
             path: '',
             redirectTo: PATHS.dbu.home.path,
             pathMatch: 'full'
+          },
+          {
+            path: PATHS.dbu.queue.path,
+            component: DbuQueueComponent,
           },
           {
             path: PATHS.dbu.config.path,
