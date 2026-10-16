@@ -13,8 +13,8 @@
 
 .surface-header h2 {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: var(--text-card-title);
+  font-weight: var(--weight-strong);
 }
 
 .surface-header p {
@@ -38,7 +38,7 @@
   padding: 0 .25rem .75rem;
   border-bottom: 1px solid var(--p-content-border-color);
   color: var(--p-text-muted-color);
-  font-size: .78rem;
+  font-size: var(--text-small);
   text-transform: uppercase;
   letter-spacing: .04em;
 }
@@ -80,18 +80,18 @@
 }
 
 .role-name {
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .muted {
   color: var(--p-text-muted-color);
-  font-size: .85rem;
+  font-size: var(--text-small);
 }
 
 ::ng-deep .row-avatar.p-avatar {
   background: var(--p-primary-color);
   color: var(--p-primary-contrast-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   flex-shrink: 0;
 }
 
@@ -129,7 +129,7 @@
   .directory-cell--label::before {
     content: attr(data-label);
     color: var(--p-text-muted-color);
-    font-size: .8rem;
+    font-size: var(--text-small);
   }
 
   .directory-cell--action {
@@ -179,10 +179,10 @@
 ::ng-deep .current-avatar.p-avatar {
   width: 3.25rem;
   height: 3.25rem;
-  font-size: 1.1rem;
+  font-size: var(--text-card-title);
   background: var(--p-primary-color);
   color: var(--p-primary-contrast-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   flex-shrink: 0;
 }
 
@@ -192,7 +192,7 @@
 }
 
 .current-authority-details strong {
-  font-size: 1.1rem;
+  font-size: var(--text-card-title);
 }
 
 .current-authority-contact {
@@ -223,8 +223,8 @@
 .history-filters label {
   display: grid;
   gap: .35rem;
-  font-size: .82rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
 }
 
 @media (max-width: 48rem) {
@@ -236,7 +236,7 @@
 ::ng-deep .history-avatar.p-avatar {
   background: var(--p-content-hover-background);
   color: var(--p-text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   flex-shrink: 0;
 }
 
@@ -251,8 +251,8 @@
 }
 
 .designation-step-title {
-  font-size: .82rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
   text-transform: uppercase;
   letter-spacing: .04em;
   color: var(--p-text-muted-color);
@@ -292,8 +292,8 @@
 .designation-form-grid label {
   display: grid;
   gap: .4rem;
-  font-weight: 600;
-  font-size: .85rem;
+  font-weight: var(--weight-strong);
+  font-size: var(--text-small);
 }
 
 .designation-form-grid label.full {
@@ -426,7 +426,7 @@
 .change-arrow {
   margin-left: 0.5rem;
   color: #dc2626;
-  font-size: 0.875rem;
+  font-size: var(--text-small);
 }
 
 /* Asistente de designación */
@@ -503,7 +503,7 @@
 .history-facts dt,
 .metric-label {
   font-size: var(--text-label);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--p-text-muted-color);
@@ -554,12 +554,12 @@
 }
 
 .management-tabs ::ng-deep .p-tab {
-  font-weight: 500;
+  font-weight: var(--weight-regular);
   padding: var(--space-3) var(--space-4);
 }
 
 .management-tabs ::ng-deep .p-tab.p-tab-active {
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 /* Tabla de campos: primera columna alineada con el resto del contenido de la tarjeta */
@@ -631,7 +631,7 @@
 
 .metric-value {
   font-size: var(--text-card-title);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   line-height: var(--leading-tight);
 }
 
@@ -829,7 +829,7 @@
     content: attr(data-label);
     color: var(--p-text-muted-color);
     font-size: var(--text-label);
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: .04em;
     text-transform: uppercase;
   }
@@ -889,7 +889,7 @@
   :host ::ng-deep .stack-on-mobile tbody td[data-label="Dato"] {
     justify-content: flex-start;
     text-align: left;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
 
   :host ::ng-deep .stack-on-mobile tbody td[data-label="Dato"]::before {
