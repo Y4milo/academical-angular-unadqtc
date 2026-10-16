@@ -12,6 +12,9 @@
           [(ngModel)]="number"
           (keyup)="onKeyUp($event)"
           class="w-full"
+          [class.ng-invalid]="numberError"
+          [class.ng-dirty]="numberError"
+          (input)="numberError = ''"
           autofocus
         />
         <button
@@ -22,6 +25,9 @@
           (click)="searchParticipant()"
         ></button>
       </div>
+      @if (numberError) {
+        <small class="form-field__error" role="alert">{{ numberError }}</small>
+      }
 
       <!-- Message result -->
       <div class="mt-2">

@@ -104,6 +104,14 @@ Referencia en `dashboard/staff/accounting/{bn-incidents,bn-files,bn-traces,bn-co
 - **Rutas:** agregar la ruta en `app-paths.constants.ts` y `app.routes.ts` (admin y, si aplica, accounting) y la entrada de menú en el backend (`MenuRoutes`/`RoleMenus`).
 - **Sesión:** el usuario vive en `sessionStorage` (por pestaña); abrir una URL en otra pestaña manda al login con `returnUrl`, que vuelve a la página pedida. Para revisar en el navegador integrado sin perder la sesión, navegar con `history.pushState` + `popstate`; `ng.getComponent` sirve en desarrollo. Si `ng serve` deja de reaccionar a los cambios, reiniciarlo (`npm start`).
 
+## Notices and validation (toast policy)
+
+- **Validation never goes in a toast.** A missing or invalid field is shown under the field and the field is marked. Use `app-form-field` (`core/components/form-field.component.ts`): `[error]` for a message you compute, or `[control]` + `invalidMessage` with a reactive form (shows the message only when the control is invalid and touched). On submit call `form.markAllAsTouched()` and return; do not add a toast or a per-screen `fieldError()` helper. Template-driven screens keep a `submitted` flag and pass a computed `[error]`. For `p-password` mark the input with `[inputStyleClass]="error ? 'w-full ng-invalid ng-dirty' : 'w-full'"` (PrimeNG 19 has no `invalid` input there).
+- **Toast only for what the screen cannot show by itself:** real failures (`error`), results with no visible effect (e-mail sent, link or hash copied to the clipboard) and the end of a long process. If the screen already changes (list reloads, dialog closes, new state is visible) no success toast.
+- **A state is not a toast.** Information that stays true while the user is on the screen (no current semester, read-only mode, nothing to show) is a fixed `p-message`, because a toast vanishes in seconds.
+- **Severity matches the case:** something that failed is `error`, never `warning`; `warning` is for a risk the user can still accept.
+- Buttons that need a prior step (a file, a selection) are `[disabled]` until it exists, instead of warning after the click.
+
 ## Verificación
 
 Antes de dar un cambio de UI por terminado: probarlo en el navegador en tema claro y oscuro (quitando o poniendo la clase `app-dark` en `<html>`; emular `prefers-color-scheme` no sirve), a ancho de escritorio y de móvil (375 px), con datos reales o de prueba, y revisar la consola sin errores.

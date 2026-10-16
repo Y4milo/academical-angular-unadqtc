@@ -223,7 +223,6 @@ export class EventQuestionsWithCheckOutComponent implements OnInit {
 
     if (hasUnanswered) {
       this.hasValidationError = true;
-      this.notificationService.warning('⚠️ Advertencia', 'Hay preguntas sin responder.');
       return;
     }
 

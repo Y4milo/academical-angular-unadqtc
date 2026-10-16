@@ -7,8 +7,8 @@
 </div>
 <form [formGroup]="reportForm">
   <div class="grid w-full">
-    <div class="col-12 md:col-6 lg:col-4 flex flex-column gap-2">
-      <label class="form-label" for="id_month">Mes</label>
+    <app-form-field class="col-12 md:col-6 lg:col-4" label="Mes" for="id_month" [required]="true"
+                    [control]="reportForm.controls['id_month']" invalidMessage="Seleccione el mes.">
       <p-select
         inputId="id_month"
         [options]="monthOptions"
@@ -18,10 +18,10 @@
         placeholder="Seleccione el mes"
         styleClass="w-full"
       ></p-select>
-    </div>
+    </app-form-field>
 
-    <div class="col-12 md:col-6 lg:col-4 flex flex-column gap-2">
-      <label class="form-label" for="id_year">Año</label>
+    <app-form-field class="col-12 md:col-6 lg:col-4" label="Año" for="id_year" [required]="true"
+                    [control]="reportForm.controls['id_year']" invalidMessage="Seleccione el año.">
       <p-select
         inputId="id_year"
         [options]="yearOptions"
@@ -31,7 +31,7 @@
         placeholder="Seleccione el año"
         styleClass="w-full"
       ></p-select>
-    </div>
+    </app-form-field>
 
     <div class="col-12 lg:col-4 flex flex-column gap-2 justify-content-end">
       <button

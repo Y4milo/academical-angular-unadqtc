@@ -67,6 +67,8 @@ export class ApprovedAverageComponent {
     return this.rows.filter(row => row.status === 'EN_VARIAS_SEDES_MISMA_CARRERA').length;
   }
 
+  fileError = '';
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -77,10 +79,11 @@ export class ApprovedAverageComponent {
     }
 
     if (!this.isTxtFile(file)) {
-      this.notificationService.warning('Archivo invalido', 'Seleccione un archivo TXT con codigos o DNI de estudiantes.');
+      this.fileError = 'Seleccione un archivo TXT con códigos o DNI de estudiantes.';
       return;
     }
 
+    this.fileError = '';
     this.selectedFile = file;
     this.preview = undefined;
     this.generatePreview();
@@ -88,7 +91,6 @@ export class ApprovedAverageComponent {
 
   generatePreview(): void {
     if (!this.selectedFile) {
-      this.notificationService.warning('Sin archivo', 'Seleccione un TXT antes de generar la vista previa.');
       return;
     }
 
@@ -117,7 +119,6 @@ export class ApprovedAverageComponent {
 
   downloadExcel(): void {
     if (!this.selectedFile) {
-      this.notificationService.warning('Sin archivo', 'Seleccione un TXT antes de descargar.');
       return;
     }
 
