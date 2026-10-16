@@ -252,9 +252,31 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     return this.semesterOptions.find(semester => semester.id === this.selectedSemesterId);
   }
 
+  /** Fixed notice while the semester list leaves the screen without a current semester; a toast would vanish in seconds. */
+  get semesterNotice(): {severity: 'warn' | 'info'; text: string} | null {
+    if (!this.semestersLoaded) {
+      return null;
+    }
+
+    if (!this.semesterOptions.length) {
+      return {severity: 'warn', text: 'No existen semestres. Registre un semestre antes de consultar la gestión de carnés.'};
+    }
+
+    if (!this.semesterOptions.some(semester => semester.is_current)) {
+      return {
+        severity: 'info',
+        text: `No existe un semestre vigente. Se muestra ${this.selectedSemester?.label ?? 'el semestre más reciente'} en modo de consulta.`,
+      };
+    }
+
+    return null;
+  }
+
   get isHistoricalSemester(): boolean {
     return !!this.selectedSemester && !this.selectedSemester.is_current;
   }
+
+  semestersLoaded = false;
 
   loadSemesters(): void {
     this.isLoadingSemesters = true;
@@ -276,11 +298,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           }
 
           this.semesterOptions = response.payload.data ?? [];
+          this.semestersLoaded = true;
           if (!this.semesterOptions.length) {
-            this.notificationService.warning(
-              'No existen semestres',
-              'Debe registrar un semestre antes de consultar la gestión de carnés.'
-            );
             return;
           }
 
@@ -289,13 +308,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           const currentSemester = this.semesterOptions.find(item => item.is_current);
           this.selectedSemesterId = (currentSemester ?? storedSemester ?? this.semesterOptions[0]).id;
           sessionStorage.setItem('student-cards-semester-id', String(this.selectedSemesterId));
-
-          if (!currentSemester) {
-            this.notificationService.warning(
-              'No existe un semestre vigente',
-              `Se mostrará ${this.selectedSemester?.label ?? 'el semestre más reciente'} en modo de consulta.`
-            );
-          }
 
           this.loadSemesterLists();
         },
@@ -310,13 +322,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
     sessionStorage.setItem('student-cards-semester-id', String(this.selectedSemesterId));
     this.loadSemesterLists();
-
-    if (this.isHistoricalSemester) {
-      this.notificationService.info(
-        'Modo de consulta',
-        'El semestre seleccionado no está vigente. Las modificaciones permanecen deshabilitadas.'
-      );
-    }
   }
 
   private loadSemesterLists(): void {

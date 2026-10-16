@@ -974,7 +974,7 @@ export class DegreeRecordsComponent implements OnInit {
   copyGeneratedLink(): void {
     navigator.clipboard.writeText(this.generatedLink).then(
       () => this.notifications.success('Enlace copiado', 'Ya puede enviarlo al estudiante.'),
-      () => this.notifications.warning('No se pudo copiar', 'Seleccione el enlace y cópielo manualmente.'),
+      () => this.notifications.error('No se pudo copiar', 'Seleccione el enlace y cópielo manualmente.'),
     );
   }
 

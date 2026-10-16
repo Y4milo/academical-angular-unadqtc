@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {CardModule} from 'primeng/card';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormFieldComponent} from '../../core/components/form-field.component';
 import {NotificationService} from '../../services/notification.service';
 import {DropdownModule} from 'primeng/dropdown';
 import {InputTextModule} from 'primeng/inputtext';
@@ -14,6 +15,7 @@ import {DialogModule} from 'primeng/dialog';
   selector: 'app-register-participant',
   imports: [
     ReactiveFormsModule,
+    FormFieldComponent,
     CardModule,
     DropdownModule,
     InputTextModule,
@@ -126,10 +128,8 @@ export class RegisterParticipantComponent {
   /** Envía el formulario */
   onSubmit(): void {
     if (this.form.invalid) {
-      this.notificationService.warning(
-        'Campos incompletos',
-        'Por favor, complete todos los campos obligatorios.'
-      );
+      this.form.markAllAsTouched();
+      return;
     }
 
     this.loading = true;
@@ -137,6 +137,7 @@ export class RegisterParticipantComponent {
 
     this.participantService.storeParticipant(payload).subscribe({
       next: participantResponse => {
+        this.loading = false;
         const response = participantResponse.payload;
         if (participantResponse.status === 'success') {
           this.whatsappLink = response.data.link_group!;
@@ -146,6 +147,7 @@ export class RegisterParticipantComponent {
 
       },
       error: (err) => {
+        this.loading = false;
         // Si hay un error de red o del servidor
         this.notificationService.error('Error de conexión', 'No se pudo conectar con el servidor.');
         console.error(err);

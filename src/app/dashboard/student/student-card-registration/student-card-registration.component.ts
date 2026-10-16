@@ -127,7 +127,6 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
         this.registrationAvailabilityMessage = availability?.message ?? 'El registro de carnet universitario no esta disponible.';
 
         if (!this.registrationOpen) {
-          this.notificationService.warning('Registro fuera de fecha', this.registrationAvailabilityMessage);
           throw new Error('registration-closed');
         }
 

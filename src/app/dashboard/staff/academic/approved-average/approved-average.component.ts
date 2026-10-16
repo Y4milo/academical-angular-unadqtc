@@ -128,7 +128,7 @@ export class ApprovedAverageComponent {
         const blob = response.body;
 
         if (!blob) {
-          this.notificationService.warning('Sin archivo', 'No se recibio el Excel procesado.');
+          this.notificationService.error('No se pudo descargar', 'No se recibió el Excel procesado.');
           return;
         }
 
@@ -223,7 +223,7 @@ export class ApprovedAverageComponent {
       const parsed = JSON.parse(await blob.text());
       this.notificationService.notifyApiData(parsed);
     } catch {
-      this.notificationService.warning('Respuesta invalida', 'El servicio no devolvio un archivo Excel valido.');
+      this.notificationService.error('Respuesta inválida', 'El servicio no devolvió un archivo Excel válido.');
     }
   }
 }

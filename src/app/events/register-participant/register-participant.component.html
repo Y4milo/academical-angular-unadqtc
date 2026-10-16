@@ -8,9 +8,8 @@
     <!-- Formulario -->
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-fluid">
 
-      <!-- Tipo de Documento -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="idtype_id">Tipo de documento</label>
+      <app-form-field class="block mb-4" label="Tipo de documento" for="idtype_id" [required]="true"
+                      [control]="form.controls['idtype_id']" invalidMessage="Seleccione el tipo de documento.">
         <p-dropdown
           id="idtype_id"
           formControlName="idtype_id"
@@ -19,35 +18,30 @@
           optionValue="code"
           placeholder="Seleccione un tipo">
         </p-dropdown>
-      </div>
+      </app-form-field>
 
-      <!-- Número de Documento -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="number">Número de documento</label>
+      <app-form-field class="block mb-4" label="Número de documento" for="number" [required]="true"
+                      [control]="form.controls['number']" invalidMessage="Ingrese un número de documento de hasta 10 caracteres.">
         <input id="number" type="text" pInputText formControlName="number" placeholder="Ingrese número" />
-      </div>
+      </app-form-field>
 
-      <!-- Nombres -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="names">Nombres</label>
+      <app-form-field class="block mb-4" label="Nombres" for="names" [required]="true"
+                      [control]="form.controls['names']" invalidMessage="Ingrese sus nombres.">
         <input id="names" type="text" pInputText formControlName="names" placeholder="Ingrese nombres" />
-      </div>
+      </app-form-field>
 
-      <!-- Apellido Paterno -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="last_name">Apellido paterno</label>
+      <app-form-field class="block mb-4" label="Apellido paterno" for="last_name" [required]="true"
+                      [control]="form.controls['last_name']" invalidMessage="Ingrese su apellido paterno.">
         <input id="last_name" type="text" pInputText formControlName="last_name" placeholder="Ingrese apellido paterno" />
-      </div>
+      </app-form-field>
 
-      <!-- Apellido Materno -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="maternal_last_name">Apellido materno</label>
+      <app-form-field class="block mb-4" label="Apellido materno" for="maternal_last_name" [required]="true"
+                      [control]="form.controls['maternal_last_name']" invalidMessage="Ingrese su apellido materno.">
         <input id="maternal_last_name" type="text" pInputText formControlName="maternal_last_name" placeholder="Ingrese apellido materno" />
-      </div>
+      </app-form-field>
 
-      <!-- Género -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="gender_id">Género</label>
+      <app-form-field class="block mb-4" label="Género" for="gender_id" [required]="true"
+                      [control]="form.controls['gender_id']" invalidMessage="Seleccione su género.">
         <p-dropdown
           id="gender_id"
           formControlName="gender_id"
@@ -56,23 +50,20 @@
           optionValue="code"
           placeholder="Seleccione género">
         </p-dropdown>
-      </div>
+      </app-form-field>
 
-      <!-- Celular -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="phone">Celular</label>
+      <app-form-field class="block mb-4" label="Celular" for="phone" [required]="true"
+                      [control]="form.controls['phone']" invalidMessage="Ingrese un celular de hasta 15 caracteres.">
         <input id="phone" type="text" pInputText formControlName="phone" placeholder="Ingrese número de celular" />
-      </div>
+      </app-form-field>
 
-      <!-- Correo -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="email">Correo electrónico</label>
+      <app-form-field class="block mb-4" label="Correo electrónico" for="email" [required]="true"
+                      [control]="form.controls['email']" invalidMessage="Ingrese un correo electrónico válido.">
         <input id="email" type="email" pInputText formControlName="email" placeholder="Ingrese su correo" />
-      </div>
+      </app-form-field>
 
-      <!-- Tipo de Participante -->
-      <div class="flex flex-column gap-2 mb-4">
-        <label for="participant_type_id">Tipo de participante</label>
+      <app-form-field class="block mb-4" label="Tipo de participante" for="participant_type_id" [required]="true"
+                      [control]="form.controls['participant_type_id']" invalidMessage="Seleccione el tipo de participante.">
         <p-dropdown
           id="participant_type_id"
           formControlName="participant_type_id"
@@ -81,11 +72,11 @@
           optionValue="code"
           placeholder="Seleccione tipo">
         </p-dropdown>
-      </div>
+      </app-form-field>
 
       <!-- Botón de Envío -->
       <div class="flex justify-content-center mt-4">
-        <button pButton type="submit" label="Registrar" icon="pi pi-save" [disabled]="form.invalid"></button>
+        <button pButton type="submit" label="Registrar" icon="pi pi-save" [loading]="loading"></button>
       </div>
     </form>
   </p-card>
