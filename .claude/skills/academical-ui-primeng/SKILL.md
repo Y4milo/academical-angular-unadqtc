@@ -111,6 +111,7 @@ Referencia en `dashboard/staff/accounting/{bn-incidents,bn-files,bn-traces,bn-co
 - **A state is not a toast.** Information that stays true while the user is on the screen (no current semester, read-only mode, nothing to show) is a fixed `p-message`, because a toast vanishes in seconds.
 - **Severity matches the case:** something that failed is `error`, never `warning`; `warning` is for a risk the user can still accept.
 - Buttons that need a prior step (a file, a selection) are `[disabled]` until it exists, instead of warning after the click.
+- `NotificationService.notifyApiData` toasts every API response, success included; use `notifyApiFailure` instead when the success is already visible (row moves, dialog closes, file replaced) so only failures toast.
 
 ## Verificación
 
