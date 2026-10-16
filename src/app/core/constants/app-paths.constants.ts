@@ -21,6 +21,10 @@ export const PATHS = {
         path: `dbu/config`,
         link: `admin/dbu/config`,
       },
+      queue: {
+        path: `dbu/cola`,
+        link: `admin/dbu/cola`,
+      },
     },
     components: {
       path: `components`,
@@ -164,13 +168,17 @@ export const PATHS = {
       path:  `citas/estado`,
       link:   `dbu/citas/estado`,
     },
+    queue: {
+      path:  `cola`,
+      link:   `dbu/cola`,
+    },
     config: {
       path:  `config`,
       link:   `dbu/config`,
     },
     home: {
-      path:  `config`,
-      link:   `dbu/config`,
+      path:  `cola`,
+      link:   `dbu/cola`,
     },
   },
   accounting: {
