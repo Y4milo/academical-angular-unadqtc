@@ -81,6 +81,10 @@ Basado en el skill `primeng-ux-design` de `events-unadqtc-angular` y `core-angul
 - **Lista de revisión antes de dar una pantalla por terminada:** etiquetas ligadas a su campo (`for`/`id`), `aria-label` en botones de solo ícono, orden de foco lógico, contraste en claro y oscuro, funciona a 375 px y 1440 px, sin scroll horizontal de página (`scrollWidth === innerWidth`), acciones alcanzables con teclado, diálogos que cierran con Esc.
 - **Si el código existente se sale de la escala, no se copia:** se usa la escala en lo que se toca y se menciona la desviación grande sin reescribirla en silencio.
 
+## Menú lateral del personal
+
+`staff-role-layout` es el shell de todas las pantallas del personal: `p-panelmenu` en una columna de 17rem (`p-drawer` bajo 900px), máximo dos niveles (grupo y pantalla), un grupo abierto a la vez y abierto el de la pantalla actual. Persona, «Cambiar contraseña» y «Cerrar sesión» al pie. Las opciones vienen del API (`RoleMenus.php`, un bloque por módulo); no se agregan opciones a mano en el front. `StaffMenuStore` carga el menú una vez por sesión. Íconos nuevos: registrarlos en `lucide-icon.util.ts`; sin registro se ve un círculo.
+
 ## Pantallas de asistencias
 
 Una sola pieza compartida: `shared/staff-attendance-cards` la usan la lista de RRHH (`hr-admin/attendace-admin`) y «Mis asistencias» (`staff-user/attendance-user`). Cualquier cambio visual se hace ahí y aplica a ambas. El detalle del motivo y quién registró una marcación manual solo se muestra con `showDetails` (admin y RRHH).

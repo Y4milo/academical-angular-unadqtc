@@ -1,29 +1,101 @@
-<div class="flex justify-content-center min-h-screen">
-  <div class="p-shadow-4 w-full md:w-9 lg:w-10 xl:w-10 mt-5">
-    <p-menubar [model]="items">
-      <ng-template #item let-item let-root="root">
-        <a class="p-menubar-item-link" [routerLink]="item.routerLink">
-          @if (item.icon) {
-            <app-lucide-icon [name]="item.icon" class="p-menubar-item-icon menu-lucide-icon" [size]="18"></app-lucide-icon>
-          }
-          <span class="p-menubar-item-label">{{ item.label }}</span>
-          @if (item.items) {
-            <app-lucide-icon
-              [name]="root ? 'chevron-down' : 'chevron-right'"
-              class="p-menubar-submenu-icon menu-lucide-icon"
-              [size]="16"
-            ></app-lucide-icon>
-          }
-        </a>
-      </ng-template>
-    </p-menubar>
+<div class="shell">
+  <aside class="shell__sidebar" aria-label="Navegación principal">
+    <ng-container *ngTemplateOutlet="brand"></ng-container>
+    <nav class="shell__nav">
+      <ng-container *ngTemplateOutlet="navigation; context: {$implicit: sidebarItems()}"></ng-container>
+    </nav>
+    <ng-container *ngTemplateOutlet="account"></ng-container>
+  </aside>
 
-    <ng-content select="[layout-banner]"></ng-content>
+  <div class="shell__main">
+    <header class="shell__topbar">
+      <p-button severity="secondary" [text]="true" ariaLabel="Abrir menú" data-testid="open-menu" (onClick)="drawerOpen.set(true)">
+        <ng-template #icon><app-lucide-icon name="menu" [size]="20"></app-lucide-icon></ng-template>
+      </p-button>
+      <strong>Academical</strong>
+    </header>
 
-    <div class="mt-4">
+    <main class="shell__content">
+      <ng-content select="[layout-banner]"></ng-content>
       <router-outlet></router-outlet>
-    </div>
+    </main>
   </div>
 </div>
 
-<app-staff-change-password-dialog [(visible)]="showChangePasswordDialog"></app-staff-change-password-dialog>
+<p-drawer [(visible)]="drawerOpen" position="left" styleClass="shell__drawer" ariaCloseLabel="Cerrar menú">
+  <ng-template #header><ng-container *ngTemplateOutlet="brand"></ng-container></ng-template>
+  <nav class="shell__nav">
+    <ng-container *ngTemplateOutlet="navigation; context: {$implicit: drawerItems()}"></ng-container>
+  </nav>
+  <ng-container *ngTemplateOutlet="account"></ng-container>
+</p-drawer>
+
+<ng-template #brand>
+  <div class="shell__brand">
+    <app-lucide-icon name="school" [size]="24"></app-lucide-icon>
+    <div><strong>Academical</strong><small>UNADQTC</small></div>
+  </div>
+</ng-template>
+
+<ng-template #navigation let-model>
+  @if (status() === 'loading' && !model.length) {
+    <div class="shell__skeleton" aria-hidden="true">
+      @for (row of skeletonRows; track row) {
+        <p-skeleton height="2.5rem" borderRadius="var(--radius-md)"></p-skeleton>
+      }
+    </div>
+  } @else {
+    @if (status() === 'error') {
+      <p-message severity="error" styleClass="shell__notice">
+        <span>No se pudo cargar el menú. Revisa tu conexión e inténtalo de nuevo.</span>
+        <p-button label="Reintentar" size="small" severity="secondary" [outlined]="true" (onClick)="retryMenu()"></p-button>
+      </p-message>
+    }
+    @if (attendanceRouterLink()) {
+      <a class="shell__link" [routerLink]="attendanceRouterLink()" routerLinkActive="is-active" (click)="closeDrawer()" data-testid="my-attendance">
+        <app-lucide-icon class="shell__link-icon" name="calendar-check" [size]="18"></app-lucide-icon>
+        <span class="shell__link-label">Mis asistencias</span>
+      </a>
+    }
+    <p-panelmenu [model]="model" [multiple]="false" styleClass="shell__menu">
+      <ng-template #item let-item>
+        @if (item.routerLink) {
+          <a class="shell__link" [routerLink]="item.routerLink" routerLinkActive="is-active" (click)="closeDrawer()">
+            @if (item.icon) {
+              <app-lucide-icon class="shell__link-icon" [name]="item.icon" [size]="18"></app-lucide-icon>
+            }
+            <span class="shell__link-label">{{ item.label }}</span>
+          </a>
+        } @else {
+          <span class="shell__link shell__link--group" [class.is-open]="item.expanded">
+            <app-lucide-icon class="shell__link-icon" [name]="item.icon" [size]="18"></app-lucide-icon>
+            <span class="shell__link-label">{{ item.label }}</span>
+            <app-lucide-icon class="shell__chevron" name="chevron-down" [size]="16"></app-lucide-icon>
+          </span>
+        }
+      </ng-template>
+    </p-panelmenu>
+  }
+</ng-template>
+
+<ng-template #account>
+  <div class="shell__account">
+    <div class="shell__person">
+      <p-avatar [label]="userInitials" shape="circle"></p-avatar>
+      <div class="shell__person-text">
+        <strong>{{ userName }}</strong>
+        <small>{{ userPosition }}</small>
+      </div>
+    </div>
+    <div class="shell__account-actions">
+      <p-button label="Cambiar contraseña" severity="secondary" [text]="true" size="small" data-testid="change-password" (onClick)="openChangePasswordDialog()">
+        <ng-template #icon><app-lucide-icon name="lock" [size]="16"></app-lucide-icon></ng-template>
+      </p-button>
+      <p-button label="Cerrar sesión" severity="secondary" [text]="true" size="small" [loading]="loggingOut()" data-testid="logout" (onClick)="logout()">
+        <ng-template #icon><app-lucide-icon name="log-out" [size]="16"></app-lucide-icon></ng-template>
+      </p-button>
+    </div>
+  </div>
+</ng-template>
+
+<app-staff-change-password-dialog [visible]="showChangePasswordDialog()" (visibleChange)="showChangePasswordDialog.set($event)"></app-staff-change-password-dialog>
