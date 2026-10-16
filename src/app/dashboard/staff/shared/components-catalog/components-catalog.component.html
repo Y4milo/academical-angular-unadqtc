@@ -54,8 +54,23 @@
           }
         </div>
         <h3>Texto</h3>
-        <ul class="catalog__list">
-          @for (item of typeScale; track item.name) { <li [style.font-size.rem]="item.rem">{{ item.name }} · {{ item.rem }} rem</li> }
+        <p class="catalog__lead">Misma escala que el menú lateral. Los tamaños y pesos se declaran una sola vez en <code>styles.css</code>; ninguna pantalla escribe el suyo.</p>
+        <ul class="catalog__list" data-testid="type-scale">
+          @for (row of typeRows(); track row.token.token) {
+            <li [style.font-size]="'var(' + row.token.token + ')'">
+              {{ row.token.name }} · <code>{{ row.token.token }}</code> {{ row.value }}
+              <small> · {{ row.token.use }}</small>
+            </li>
+          }
+        </ul>
+        <h3>Peso</h3>
+        <ul class="catalog__list" data-testid="weight-scale">
+          @for (row of weightRows(); track row.token.token) {
+            <li [style.font-weight]="'var(' + row.token.token + ')'">
+              {{ row.token.name }} · <code>{{ row.token.token }}</code> {{ row.value }}
+              <small [style.font-weight]="'var(--weight-regular)'"> · {{ row.token.use }}</small>
+            </li>
+          }
         </ul>
         <h3>Puntos de quiebre</h3>
         <p class="catalog__lead">Base para teléfono. No se inventan otros anchos.</p>

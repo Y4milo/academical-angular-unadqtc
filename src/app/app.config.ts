@@ -10,7 +10,23 @@ import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {credentialsInterceptor} from './interceptors/credentials.interceptor';
 import {sessionExpiredInterceptor} from './interceptors/session-expired.interceptor';
 
+/**
+ * Aura trae su propio peso y tamaño por componente (botón 500, tag 700, tarjeta 500 de 1.25 rem, mensaje 500...). Se
+ * llevan a los tokens de styles.css (`--weight-*`, `--text-*`) para que todo PrimeNG herede la misma escala que el menú.
+ */
+const typography = {
+  button: {root: {label: {fontWeight: 'var(--weight-strong)'}}},
+  tag: {root: {fontSize: 'var(--text-small)', fontWeight: 'var(--weight-strong)'}},
+  card: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}},
+  message: {text: {fontSize: 'var(--text-body)', fontWeight: 'var(--weight-regular)'}},
+  dialog: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}},
+  panel: {title: {fontWeight: 'var(--weight-strong)'}},
+  datatable: {columnTitle: {fontWeight: 'var(--weight-strong)'}},
+  tabs: {tab: {fontWeight: 'var(--weight-strong)'}},
+};
+
 export const InstitutionalPreset = definePreset(Aura, {
+  components: typography,
   semantic: {
     primary: {
       50: '#fff1f2',

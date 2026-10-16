@@ -10,8 +10,14 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import {
-  BREAKPOINTS, DBU_STATUS_VIEW, FORBIDDEN_TOKENS, SPACE_SCALE, STATE_SEVERITY, THEME_TOKENS, ThemeToken, TYPE_SCALE,
+  BREAKPOINTS, DBU_STATUS_VIEW, FORBIDDEN_TOKENS, SPACE_SCALE, STATE_SEVERITY, THEME_TOKENS, ThemeToken, TYPE_SCALE, TypographyToken, WEIGHT_SCALE,
 } from '../../../../shared/ui/ui-tokens';
+
+export interface TypographyRow {
+  token: TypographyToken;
+  value: string;
+  ok: boolean;
+}
 
 export interface TokenRow {
   token: ThemeToken;
@@ -40,7 +46,8 @@ export class ComponentsCatalogComponent implements OnInit {
   readonly forbidden = FORBIDDEN_TOKENS;
   readonly space = SPACE_SCALE;
   readonly breakpoints = BREAKPOINTS;
-  readonly typeScale = TYPE_SCALE;
+  readonly typeRows = signal<TypographyRow[]>([]);
+  readonly weightRows = signal<TypographyRow[]>([]);
   readonly severity = STATE_SEVERITY;
   readonly states = Object.entries(STATE_SEVERITY).map(([kind, severity]) => ({ kind, severity }));
   readonly dbuStatuses = Object.entries(DBU_STATUS_VIEW).map(([code, view]) => ({ code, label: view.label, severity: STATE_SEVERITY[view.kind] }));
@@ -57,6 +64,18 @@ export class ComponentsCatalogComponent implements OnInit {
 
   ngOnInit(): void {
     this.tokenRows.set(this.measure());
+    this.typeRows.set(this.measureTypography(TYPE_SCALE));
+    this.weightRows.set(this.measureTypography(WEIGHT_SCALE));
+  }
+
+  /** Reads the declared value of each typography token from `styles.css`; a token that is missing or has another weight is flagged. */
+  private measureTypography(scale: readonly TypographyToken[]): TypographyRow[] {
+    const styles = getComputedStyle(document.documentElement);
+
+    return scale.map(token => {
+      const value = styles.getPropertyValue(token.token).trim();
+      return { token, value, ok: value !== '' && (token.expected === undefined || value === token.expected) };
+    });
   }
 
   /** Lee cada token en el tema claro y en el oscuro sin que se vea el cambio (todo ocurre antes de pintar) y deja el tema como estaba. */

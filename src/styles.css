@@ -2,7 +2,10 @@
 @import "primeflex/primeflex.css";
 
 body {
-  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
   margin: 0;
   background: var(--surface-ground, var(--p-surface-50, #f8fafc));
   color: var(--text-color, var(--p-text-color, #111827));
@@ -52,16 +55,51 @@ html.app-dark .surface-card {
   --radius-md: .5rem;
   --radius-lg: .75rem;
 
+  /* Tipografía: única fuente de verdad (catálogo /admin/components y docs/frontend-components.md). */
+  --font-sans: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
   --text-title: 1.75rem;
   --text-card-title: 1.125rem;
   --text-body: .9375rem;
   --text-small: .8125rem;
   --text-label: .75rem;
 
+  /* Solo tres pesos: texto, énfasis (activo, botón, cabecera, etiqueta, tag) y título de página o marca. */
+  --weight-regular: 400;
+  --weight-strong: 600;
+  --weight-title: 700;
+
   --leading-tight: 1.25;
   --leading-body: 1.5;
 
   --page-gutter: var(--space-4);
+}
+
+/* Títulos: misma escala que el menú lateral. Los componentes pueden afinarla con los mismos tokens. */
+h1 {
+  font-size: var(--text-title);
+  font-weight: var(--weight-title);
+  line-height: var(--leading-tight);
+}
+
+h2,
+h3 {
+  font-size: var(--text-card-title);
+  font-weight: var(--weight-strong);
+  line-height: var(--leading-tight);
+}
+
+h4,
+h5,
+h6 {
+  font-size: var(--text-body);
+  font-weight: var(--weight-strong);
+  line-height: var(--leading-tight);
+}
+
+strong,
+b {
+  font-weight: var(--weight-strong);
 }
 
 /* ======================================================================================
@@ -108,7 +146,7 @@ html.app-dark .surface-card {
 
 .form-field__label {
   font-size: var(--text-small);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: var(--leading-tight);
 }
 
@@ -200,7 +238,7 @@ label:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), t
   gap: var(--space-2);
   min-width: 0;
   font-size: var(--text-small);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: var(--leading-tight);
 }
 
@@ -210,7 +248,7 @@ label:has(input, textarea, p-select, p-datepicker, p-inputnumber) textarea,
 label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-select,
 label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-datepicker {
   font-size: var(--text-body);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 
 /* Etiqueta suelta seguida de su control en un contenedor: usar la clase de etiqueta estándar */
@@ -222,7 +260,7 @@ label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-datepicker 
   display: inline-block;
   margin-bottom: var(--space-2);
   font-size: var(--text-small);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: var(--leading-tight);
 }
 
@@ -231,7 +269,7 @@ label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-datepicker 
   display: block;
   margin-bottom: var(--space-2);
   font-size: var(--text-small);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: var(--leading-tight);
 }
 
