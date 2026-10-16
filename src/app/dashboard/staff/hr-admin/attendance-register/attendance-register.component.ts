@@ -159,13 +159,13 @@ export class AttendanceRegisterComponent implements OnInit {
       return;
     }
 
+    // Sin sede o motivo, el aviso fijo bajo el campo ya explica qué falta.
     if (!this.ready) {
-      this.notifications.warning('Falta información', 'Seleccione la sede y escriba el motivo antes de registrar.');
       return;
     }
 
     if (this.dni.length !== DNI_LENGTH) {
-      this.notifications.warning('DNI no válido', 'El DNI debe tener exactamente 8 dígitos.');
+      this.notice = {title: 'DNI no válido', message: 'El DNI debe tener exactamente 8 dígitos.', reason: 'invalid_dni'};
       this.focusDni();
       return;
     }

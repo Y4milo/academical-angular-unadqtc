@@ -57,14 +57,17 @@ export class EventAttendanceCheckInComponent implements OnInit {
     }
   }
 
+  numberError = '';
+
   /**
    * Executes participant search by document number
    */
   searchParticipant(): void {
     if (!this.number.trim()) {
-      this.notificationService.warning('Campo vacío', 'Debe ingresar un número de documento.');
+      this.numberError = 'Ingrese un número de documento.';
       return;
     }
+    this.numberError = '';
 
     const formData = new FormData();
     formData.append('number', this.number);

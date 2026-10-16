@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {NgIf} from '@angular/common';
+import {FormFieldComponent} from '../../../../core/components/form-field.component';
 import {ButtonDirective} from 'primeng/button';
 import {Dialog} from 'primeng/dialog';
 import {Password} from 'primeng/password';
@@ -13,8 +13,8 @@ import {STATUS} from '../../../../core/constants/api-status.constants';
   imports: [
     ButtonDirective,
     Dialog,
+    FormFieldComponent,
     FormsModule,
-    NgIf,
     Password,
   ],
   templateUrl: './staff-change-password-dialog.component.html',
@@ -28,11 +28,25 @@ export class StaffChangePasswordDialogComponent {
   newPassword = '';
   confirmPassword = '';
   savingPassword = false;
+  submitted = false;
 
   constructor(
     private usersService: UsersService,
     private notificationService: NotificationService,
   ) {}
+
+  /** Mensajes junto a cada campo; vacíos hasta que el usuario intenta guardar. */
+  get errors(): {current: string; new: string; confirm: string} {
+    if (!this.submitted) {
+      return {current: '', new: '', confirm: ''};
+    }
+
+    return {
+      current: this.currentPassword ? '' : 'Ingresa tu contraseña actual.',
+      new: !this.newPassword ? 'Ingresa la nueva contraseña.' : this.newPassword.length < 8 ? 'Debe tener al menos 8 caracteres.' : '',
+      confirm: !this.confirmPassword ? 'Confirma la nueva contraseña.' : this.newPassword !== this.confirmPassword ? 'La confirmación no coincide.' : '',
+    };
+  }
 
   close(): void {
     if (this.savingPassword) {
@@ -44,18 +58,9 @@ export class StaffChangePasswordDialogComponent {
   }
 
   changePassword(): void {
-    if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
-      this.notificationService.warning('Formulario incompleto', 'Completa todos los campos.');
-      return;
-    }
+    this.submitted = true;
 
-    if (this.newPassword.length < 8) {
-      this.notificationService.warning('Contraseña muy corta', 'La nueva contraseña debe tener al menos 8 caracteres.');
-      return;
-    }
-
-    if (this.newPassword !== this.confirmPassword) {
-      this.notificationService.warning('Confirmación incorrecta', 'La confirmación de la contraseña no coincide.');
+    if (this.errors.current || this.errors.new || this.errors.confirm) {
       return;
     }
 
@@ -89,6 +94,7 @@ export class StaffChangePasswordDialogComponent {
   }
 
   private resetPasswordForm(): void {
+    this.submitted = false;
     this.currentPassword = '';
     this.newPassword = '';
     this.confirmPassword = '';

@@ -1,5 +1,6 @@
 import {Component, Input, ViewEncapsulation} from '@angular/core';
 import {NgIf} from '@angular/common';
+import {AbstractControl} from '@angular/forms';
 
 /**
  * Campo de formulario estándar: etiqueta (con marca de obligatorio y etiquetas de estado opcionales),
@@ -10,6 +11,11 @@ import {NgIf} from '@angular/common';
  *     <app-status-tag fieldTag severity="info" value="Core"></app-status-tag>
  *     <input pInputText id="email" [(ngModel)]="email">
  *   </app-form-field>
+ *
+ * Con un formulario reactivo, `[control]` muestra `invalidMessage` solo cuando el control es inválido y fue tocado
+ * (o se llamó a `markAllAsTouched()` al intentar enviar), sin repetir esa lógica en cada pantalla:
+ *
+ *   <app-form-field label="Mes" [control]="form.controls['month']" invalidMessage="Seleccione el mes.">
  */
 @Component({
   selector: 'app-form-field',
@@ -22,8 +28,8 @@ import {NgIf} from '@angular/common';
         <ng-content select="[fieldTag]"></ng-content>
       </div>
       <ng-content></ng-content>
-      <small *ngIf="error" class="form-field__error" role="alert">{{ error }}</small>
-      <small *ngIf="hint && !error" class="form-field__hint">{{ hint }}</small>
+      <small *ngIf="shownError" class="form-field__error" role="alert">{{ shownError }}</small>
+      <small *ngIf="hint && !shownError" class="form-field__hint">{{ hint }}</small>
     </div>
   `,
   styles: [`app-form-field { display: block; min-width: 0; }`],
@@ -35,4 +41,15 @@ export class FormFieldComponent {
   @Input() required = false;
   @Input() hint = '';
   @Input() error = '';
+  /** Control reactivo cuya validez gobierna `invalidMessage`. */
+  @Input() control: AbstractControl | null = null;
+  @Input() invalidMessage = 'Este campo es obligatorio.';
+
+  get shownError(): string {
+    if (this.error) {
+      return this.error;
+    }
+
+    return this.control?.invalid && this.control.touched ? this.invalidMessage : '';
+  }
 }

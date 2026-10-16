@@ -1,6 +1,5 @@
 
   <!-- Encabezado -->
-  <script src="student-ranking.component.ts"></script>
   <div class="flex flex-column align-items-center mb-4">
     <h3>Ranking Academico de Estudiante</h3>
   </div>
@@ -9,29 +8,30 @@
   <form [formGroup]="reportForm">
     <div class="grid w-full pb-3">
       <!-- Input Student Code -->
-      <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
-        <label class="form-label" for="id_employment_agreement">Estudiante</label>
+      <app-form-field class="col-12 md:col-6 lg:col-3" label="Estudiante" for="student_code" [required]="true"
+                      [control]="reportForm.controls['student']" invalidMessage="Ingrese el código del estudiante.">
         <input
+          id="student_code"
           type="text"
           pInputText
           placeholder="Codigo de Estudiante"
           formControlName="student"
           class="w-full"
         />
-      </div>
+      </app-form-field>
       <!-- Categoria de ranking -->
-      <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2">
-        <label class="form-label" for="id_employment_agreement">Categoría</label>
+      <app-form-field class="col-12 md:col-6 lg:col-3" label="Categoría" for="top_student_ranking" [required]="true"
+                      [control]="reportForm.controls['top_student_ranking']" invalidMessage="Seleccione la categoría.">
         <p-select
-          id="id_employment_agreement"
-          name="id_employment_agreement"
+          inputId="top_student_ranking"
           [options]="topStudentRankingOptions"
           optionLabel="label"
           optionValue="value"
           formControlName="top_student_ranking"
           placeholder="Seleccione la categoría"
+          styleClass="w-full"
         ></p-select>
-      </div>
+      </app-form-field>
       <!-- Botón buscar -->
       <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2 justify-content-end">
         <button

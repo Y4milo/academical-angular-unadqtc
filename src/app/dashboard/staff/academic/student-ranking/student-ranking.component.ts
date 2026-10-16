@@ -12,6 +12,7 @@ import {Dictionary} from '../../../../models/dictionary.model';
 import {STATUS} from '../../../../core/constants/api-status.constants';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {Select} from 'primeng/select';
+import {FormFieldComponent} from '../../../../core/components/form-field.component';
 
 @Component({
   selector: 'app-student-ranking',
@@ -23,6 +24,7 @@ import {Select} from 'primeng/select';
     InputText,
     ReactiveFormsModule,
     Select,
+    FormFieldComponent,
   ],
   templateUrl: './student-ranking.component.html',
   styleUrl: './student-ranking.component.css'
@@ -71,10 +73,6 @@ export class StudentRankingComponent implements OnInit {
 
   loadRanking() {
     if (this.reportForm.invalid) {
-      this.notificationService.warning(
-        'Formulario incompleto',
-        'Debe seleccionar todos los campos.'
-      );
       this.reportForm.markAllAsTouched();
       return;
     }

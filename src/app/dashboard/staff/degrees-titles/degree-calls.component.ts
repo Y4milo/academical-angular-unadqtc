@@ -156,16 +156,7 @@ export class DegreeCallsComponent implements OnInit {
   save(): void {
     this.formAttempted = true;
     const name = this.form.name.trim();
-    if (!name) {
-      this.notificationService.warning('Datos incompletos', 'El nombre de la convocatoria es obligatorio.');
-      return;
-    }
-
-    if (this.isResolutionOnlyEdit() && (!this.form.resolution_number.trim() || !this.form.resolution_date)) {
-      this.notificationService.warning(
-        'Datos incompletos',
-        'El nombre, el número y la fecha de resolución son obligatorios para completar la convocatoria.',
-      );
+    if (!name || (this.isResolutionOnlyEdit() && (!this.form.resolution_number.trim() || !this.form.resolution_date))) {
       return;
     }
 
@@ -212,10 +203,7 @@ export class DegreeCallsComponent implements OnInit {
   openCall(call: DegreeCall): void {
     if (!call.name?.trim() || !call.resolution_number?.trim() || !call.resolution_date) {
       this.openEdit(call, true);
-      this.notificationService.warning(
-        'Complete la convocatoria',
-        'Registre el nombre, el número y la fecha de resolución antes de abrir o reabrir.',
-      );
+      this.formAttempted = true;
       return;
     }
 

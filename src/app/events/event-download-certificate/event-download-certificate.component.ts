@@ -67,10 +67,7 @@ export class EventDownloadCertificateComponent implements OnInit{
   onSubmit(): void {
     this.event_data = [];
     if (this.form.invalid) {
-      this.notificationService.warning(
-        'Campos incompletos',
-        'Por favor, complete todos los campos obligatorios.'
-      );
+      this.form.markAllAsTouched();
       return;
     }
 

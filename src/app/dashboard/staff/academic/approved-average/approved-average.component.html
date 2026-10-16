@@ -32,6 +32,9 @@
           @if (selectedFile) {
             <span class="approved-average-file-name">{{ selectedFile.name }}</span>
           }
+          @if (fileError) {
+            <small class="form-field__error" role="alert">{{ fileError }}</small>
+          }
         </div>
       </ng-template>
 

@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ButtonDirective} from 'primeng/button';
 import {Select} from 'primeng/select';
+import {FormFieldComponent} from '../../../../core/components/form-field.component';
 import {AttendanceService, ReportFilterOption} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {STATUS} from '../../../../core/constants/api-status.constants';
@@ -22,7 +23,7 @@ const FIRST_YEAR = 2022;
  */
 @Component({
   selector: 'app-hr-report-attendance-component',
-  imports: [FormsModule, ReactiveFormsModule, ButtonDirective, Select],
+  imports: [FormsModule, ReactiveFormsModule, ButtonDirective, Select, FormFieldComponent],
   templateUrl: './hr-report-attendance-component.component.html',
   styleUrl: './hr-report-attendance-component.component.css'
 })
@@ -94,7 +95,6 @@ export class HrReportAttendanceComponentComponent implements OnInit {
 
   downloadReportExcel(): void {
     if (this.reportForm.invalid) {
-      this.notificationService.warning('Formulario incompleto', 'Seleccione el mes y el año.');
       this.reportForm.markAllAsTouched();
       return;
     }

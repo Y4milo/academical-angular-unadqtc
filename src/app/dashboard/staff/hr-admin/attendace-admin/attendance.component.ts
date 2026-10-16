@@ -137,10 +137,13 @@ export class AttendanceListComponent implements OnInit {
     });
   }
 
+  queryError = '';
+
   onQueryChange(value: string | StaffSearchResult): void {
     if (typeof value === 'string') {
       this.number = value.trim();
     }
+    this.queryError = '';
   }
 
   onStaffSelected(event: AutoCompleteSelectEvent): void {
@@ -152,7 +155,7 @@ export class AttendanceListComponent implements OnInit {
 
   loadAttendances(startDate?: string, endDate?: string) {
     if (!this.number.trim()) {
-      this.notificationService.warning('Atención','Debe ingresar el número de empleado o DNI.');
+      this.queryError = 'Ingrese un DNI o un nombre para consultar.';
       return;
     }
 
@@ -200,8 +203,8 @@ export class AttendanceListComponent implements OnInit {
   }
 
   protected downloadAttendancesExcel(startDate?: string, endDate?: string) {
+    // El botón de descarga solo existe con una persona consultada; sin ella no hay nada que descargar.
     if (!this.number.trim()) {
-      this.notificationService.warning('Atencion','Debe ingresar el numero de empleado o DNI.');
       return;
     }
 
