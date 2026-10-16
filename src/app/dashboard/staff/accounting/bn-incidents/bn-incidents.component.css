@@ -13,7 +13,7 @@
 
 .mono {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: .82rem;
+  font-size: var(--text-small);
 }
 
 .icon-label-button {
@@ -59,8 +59,8 @@ small,
   align-items: center;
   border-radius: 999px;
   display: inline-flex;
-  font-size: .8rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
   gap: var(--space-1, .25rem);
   padding: .2rem .65rem;
 }
@@ -101,7 +101,7 @@ small,
 .step-name {
   align-items: center;
   display: inline-flex;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   gap: var(--space-2, .5rem);
 }
 
@@ -202,15 +202,15 @@ small,
 .tabs button.on {
   background: var(--surface-ground);
   color: var(--text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .count {
   background: var(--surface-ground);
   border-radius: 999px;
   color: var(--text-color-secondary);
-  font-size: .72rem;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
   padding: 0 .45rem;
 }
 
@@ -265,7 +265,7 @@ small,
 
 .field label {
   color: var(--text-color-secondary);
-  font-size: .8rem;
+  font-size: var(--text-small);
 }
 
 :host ::ng-deep .field .p-datepicker,
@@ -303,8 +303,8 @@ small,
 
 .day {
   color: var(--text-color-secondary);
-  font-size: .8rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
   padding: 1rem 0 .35rem;
   text-transform: capitalize;
 }
@@ -362,8 +362,8 @@ small,
   align-self: flex-start;
   border-radius: 999px;
   display: inline-flex;
-  font-size: .78rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
   gap: var(--space-1, .25rem);
   padding: .1rem .6rem;
 }
@@ -398,7 +398,7 @@ small,
   align-items: flex-start;
   color: var(--text-color-secondary);
   display: flex;
-  font-size: .8rem;
+  font-size: var(--text-small);
   gap: var(--space-2, .5rem);
   line-height: 1.4;
   margin: 0;
@@ -413,7 +413,7 @@ small,
   color: var(--text-color-secondary);
   display: inline-flex;
   flex-wrap: wrap;
-  font-size: .75rem;
+  font-size: var(--text-label);
   gap: var(--space-1, .25rem);
 }
 
@@ -432,8 +432,8 @@ small,
   background: color-mix(in srgb, var(--p-orange-500, #f97316) 18%, transparent);
   border-radius: 999px;
   color: var(--p-orange-500, #f97316);
-  font-size: .65rem;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
   padding: 0 .4rem;
 }
 
@@ -503,7 +503,7 @@ small,
   align-items: center;
   color: var(--text-color-secondary);
   display: flex;
-  font-size: .85rem;
+  font-size: var(--text-small);
   gap: var(--space-1, .25rem);
   margin: 0;
 }
@@ -523,8 +523,8 @@ small,
 
 .facts dt {
   color: var(--text-color-secondary);
-  font-size: .75rem;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
 }
 
 .facts dd {
@@ -578,7 +578,7 @@ small,
   background: var(--surface-ground);
   border-radius: 8px;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: .75rem;
+  font-size: var(--text-label);
   margin: 0;
   overflow-x: auto;
   padding: .45rem .65rem;
@@ -593,7 +593,7 @@ small,
 .sha code {
   background: var(--surface-ground);
   border-radius: 8px;
-  font-size: .72rem;
+  font-size: var(--text-label);
   overflow-wrap: anywhere;
   padding: .45rem .65rem;
 }
