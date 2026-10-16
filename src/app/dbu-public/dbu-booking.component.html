@@ -147,7 +147,7 @@
               </dl>
               <p class="hint">Te enviamos el comprobante a tu correo. Guarda tu código: con él y tu número de documento puedes ver el estado de tu cita o cancelarla hasta {{ config()!.cancel_hours_before }} horas antes.</p>
               <div class="dbu-actions">
-                <a routerLink="/citas/estado" class="dbu-link">Ver o cancelar mi cita</a>
+                <a [routerLink]="links.status" class="dbu-link">Ver o cancelar mi cita</a>
               </div>
             </section>
           }
@@ -155,7 +155,7 @@
       }
 
       @if (step() !== 'done') {
-        <p class="dbu-footer-link"><a routerLink="/citas/estado" class="dbu-link">¿Ya tienes una cita? Consulta su estado</a></p>
+        <p class="dbu-footer-link"><a [routerLink]="links.status" class="dbu-link">¿Ya tienes una cita? Consulta su estado</a></p>
       }
     }
   </p-card>

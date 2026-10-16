@@ -8,7 +8,8 @@
     "build:staging": "ng build --configuration staging",
     "start:staging": "ng serve --configuration staging",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "check:theme": "node scripts/check-theme-tokens.mjs"
   },
   "private": true,
   "dependencies": {

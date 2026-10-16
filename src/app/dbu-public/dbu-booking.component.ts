@@ -13,6 +13,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { StepsModule } from 'primeng/steps';
 import { TextareaModule } from 'primeng/textarea';
 import { finalize } from 'rxjs';
+import { PATHS } from '../core/constants/app-paths.constants';
 import { TestModeBannerComponent } from '../core/components/test-mode-banner.component';
 import {
   DbuPublicAppointment, DbuPublicAvailability, DbuPublicConfig, DbuPublicDay, DbuPublicService, dbuErrorMessage,
@@ -38,6 +39,9 @@ interface Option { label: string; value: string; disabled?: boolean }
 })
 export class DbuBookingComponent implements OnInit, OnDestroy {
   @ViewChild(TurnstileWidgetComponent) turnstile?: TurnstileWidgetComponent;
+
+  /** Enlaces del módulo: todo Bienestar cuelga de /dbu. */
+  readonly links = { booking: `/${PATHS.dbu.booking.link}`, status: `/${PATHS.dbu.status.link}` };
 
   readonly steps: MenuItem[] = [{ label: 'Tus datos' }, { label: 'Correo' }, { label: 'Código' }, { label: 'Cita' }, { label: 'Listo' }];
   readonly documentTypes: Option[] = [

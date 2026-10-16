@@ -7,6 +7,10 @@ description: "Reglas de UI del front Academical (Angular 19 + PrimeNG 19 Aura): 
 
 Front: Angular 19.2 standalone, PrimeNG 19 con tema Aura (`@primeng/themes`), primeflex, iconos Lucide. UI en español, código en inglés.
 
+## Fuente de verdad
+
+El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-catalog`) y `docs/frontend-components.md` son la fuente de verdad de la interfaz, como en Core y Events: se leen antes de tocar una pantalla y todo patrón nuevo o cambiado se agrega al catálogo, a ese documento y a este skill en el mismo cambio. Lo hacen cumplir `components-catalog.component.spec.ts` (tokens de tema que existen y cambian en claro y oscuro), `npm run check:theme` (sin colores que no siguen el tema, tope que solo baja) y las pruebas de pantalla con `autoDetectChanges` + `whenStable`.
+
 ## Regla principal
 
 **Siempre un componente de PrimeNG si existe uno que sirva.** Solo se escribe HTML/CSS propio para la disposición (grid, espaciados) y para lo que PrimeNG no cubre. No se reimplementan a mano botones, chips, etiquetas, líneas de tiempo, paginadores, selects, avisos ni avatares.
@@ -36,7 +40,21 @@ Antes de escribir CSS para algo, revisa `node_modules/primeng` (carpeta del comp
 ## Reglas de implementación
 
 - Componentes standalone: importar cada módulo de PrimeNG que se usa en `imports` (`TimelineModule`, `TagModule`, `SelectButtonModule`, etc.).
-- **Colores y tamaños con tokens del tema**, nunca hexadecimales: `var(--p-primary-color)`, `var(--p-green-500)`, `var(--text-color)`, `var(--text-color-secondary)`, `var(--surface-card)`, `var(--surface-border)`. Así funcionan en tema claro y oscuro sin código extra.
+- **Colores con tokens del tema de PrimeNG 19 (`--p-*`), nunca hexadecimales ni fallbacks claros.** Este proyecto solo carga el tema de `@primeng/themes` (Aura): los nombres antiguos `--surface-card`, `--surface-border`, `--surface-ground`, `--text-color`, `--text-color-secondary` y `--primary-color` NO existen, así que `var(--surface-card, #fff)` siempre cae al fallback claro y en tema oscuro deja la pantalla mitad clara. Tampoco sirven `--p-surface-0..950` ni `--p-primary-50..950` para fondos y textos: son paletas fijas que no cambian con el tema.
+
+  | Necesidad | Token que cambia con el tema |
+  | --- | --- |
+  | Fondo de tarjeta, panel, diálogo | `--p-content-background` |
+  | Fondo al pasar el mouse, bloque suave dentro de una tarjeta | `--p-content-hover-background` |
+  | Borde y separadores | `--p-content-border-color` |
+  | Texto normal / texto apagado | `--p-text-color` / `--p-text-muted-color` |
+  | Elemento destacado (celda, fila o chip resaltado) | `--p-highlight-background` + `--p-highlight-color` |
+  | Color de marca | `--p-primary-color` (texto sobre él: `--p-primary-contrast-color`) |
+  | Estados | `p-tag` / `p-message` con su `severity`; si hace falta CSS, `--p-green-500`, `--p-orange-500`, `--p-red-500` |
+
+  Las pantallas antiguas (banco, asistencias) usan cadenas como `var(--surface-card, var(--p-content-background, #fff))`: funcionan porque caen en el token `--p-*`, pero no se copian; en código nuevo se usa el `--p-*` directo. El fallo es el fallback fijo (`var(--surface-card, #fff)`), que nunca se actualiza con el tema.
+
+  Para saber si un token cambia con el tema, consultarlo en el navegador en los dos temas (ver Verificación). Si no existe, `getPropertyValue` devuelve vacío.
 - **Tema claro/oscuro: lo decide solo la clase `app-dark` de `<html>`** (`main.ts` la pone; PrimeNG usa `darkModeSelector: '.app-dark'`). Nunca usar `@media (prefers-color-scheme: dark)` en CSS: si el tema guardado no coincide con el del sistema, la página queda mitad clara y mitad oscura. Para algo específico del tema oscuro: `html.app-dark ...` o `:host-context(.app-dark)`.
 - Personalizar con **tokens de diseño** (`[dt]`, `--p-*`) o `styleClass`; evitar `::ng-deep` y `!important`. Si es imprescindible, acotarlo con `:host`.
 - Iconos de componentes PrimeNG: `pi pi-*`. Iconos propios del dominio (huella, rostro, lector, entrada/salida): `app-lucide-icon` con el nombre registrado en `src/app/core/utils/lucide-icon.util.ts`; si falta, agregarlo allí.
@@ -78,9 +96,19 @@ Referencia en `dashboard/staff/accounting/{bn-incidents,bn-files,bn-traces,bn-co
 - **Detalle (`p-drawer`) a la derecha** con `styleClass` y ancho `34rem` (`100vw` en teléfono); reutiliza endpoints de descarga y vista previa por id de transacción.
 - **Origen con color:** azul = el propio sistema, verde = autorizado, verde punteado = probable, naranja = desconocida (roja en trazabilidad), gris/ámbar = sin verificar; siempre con texto o ícono además del color.
 - **Íconos de estado** con Lucide registrados en `core/utils/lucide-icon.util.ts` (`circle-check`, `clock`, `circle-x`, `triangle-alert`, `minus`, `shield-*`, `plug-zap`, `key-round`, `coffee`, `wrench`, `terminal`, `globe`, `route`, `sliders-horizontal`); al usar uno nuevo, importarlo y registrarlo allí.
+- **Enlaces agrupados por módulo:** todo lo de un módulo cuelga de su propia ruta, también las páginas públicas (Bienestar: `/dbu/citas`, `/dbu/citas/estado`, `/dbu/config`; copia de admin `/admin/dbu/...`). Las rutas se declaran una vez en `PATHS` y los enlaces de las plantillas salen de ahí (`readonly links`); si se renombra una, la antigua queda como `redirectTo`.
 - **Rutas:** agregar la ruta en `app-paths.constants.ts` y `app.routes.ts` (admin y, si aplica, accounting) y la entrada de menú en el backend (`MenuRoutes`/`RoleMenus`).
 - **Sesión:** el usuario vive en `sessionStorage` (por pestaña); abrir una URL en otra pestaña manda al login con `returnUrl`, que vuelve a la página pedida. Para revisar en el navegador integrado sin perder la sesión, navegar con `history.pushState` + `popstate`; `ng.getComponent` sirve en desarrollo. Si `ng serve` deja de reaccionar a los cambios, reiniciarlo (`npm start`).
 
 ## Verificación
 
 Antes de dar un cambio de UI por terminado: probarlo en el navegador en tema claro y oscuro (quitando o poniendo la clase `app-dark` en `<html>`; emular `prefers-color-scheme` no sirve), a ancho de escritorio y de móvil (375 px), con datos reales o de prueba, y revisar la consola sin errores.
+
+Medidas de pantalla: revisar siempre a 375, 768 y 1440 px, en claro y oscuro, con `scrollWidth === innerWidth` y nada fuera de su tarjeta. En teléfono (≤ 640 px): paddings menores, filas de formulario con `flex-wrap` (nunca `flex-direction: column` con un `flex-basis` en rem: el basis se vuelve alto y deja un bloque vacío enorme), menú de secciones en una fila que se desliza, esqueleto de carga corto y tablas de texto como tarjetas etiqueta/valor (`data-label`).
+
+Comprobación de tema, paso a paso (con `javascript_tool` en el navegador integrado):
+1. Poner el tema: `document.documentElement.classList.toggle('app-dark', true)` (o `false`).
+2. Revisar que ningún CSS propio use un token que no cambia: en una hoja del componente, buscar `var(--surface-`, `var(--text-color`, `var(--primary-color`, `--p-surface-`, `--p-primary-50..950` y colores hexadecimales o `#fff`: todos son errores en tema oscuro.
+3. Medir el fondo y el texto de cada bloque en los dos temas: `getComputedStyle(el).backgroundColor` y `.color`; en tema oscuro el fondo de una tarjeta no puede ser claro ni el texto oscuro sobre fondo oscuro. Un bloque cuyo fondo es el mismo en los dos temas es sospechoso.
+4. Revisar en pantalla: tarjeta, filas, celdas resaltadas, etiquetas, mensajes, diálogos y menús desplegables (con `appendTo="body"`, el panel nace fuera de la tarjeta y hereda solo el tema global).
+5. Una prueba de componente (`autoDetectChanges` + `whenStable`) asegura que la pantalla termina de dibujarse; no sustituye mirar los dos temas.

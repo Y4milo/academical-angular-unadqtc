@@ -7,7 +7,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
 import { finalize } from 'rxjs';
-import { DBU_STATUS_LABELS, DbuPublicAppointment, DbuPublicService, dbuErrorMessage } from './dbu-public.service';
+import { PATHS } from '../core/constants/app-paths.constants';
+import { DBU_STATUS_VIEW, STATE_SEVERITY, TagSeverity } from '../shared/ui/ui-tokens';
+import { DbuPublicAppointment, DbuPublicService, dbuErrorMessage } from './dbu-public.service';
 
 /** Consulta y cancelación de una cita de Bienestar con su código y el número de documento. Sin cuenta. */
 @Component({
@@ -18,6 +20,9 @@ import { DBU_STATUS_LABELS, DbuPublicAppointment, DbuPublicService, dbuErrorMess
   styleUrl: './dbu-booking.component.css',
 })
 export class DbuStatusComponent {
+  /** Enlaces del módulo: todo Bienestar cuelga de /dbu. */
+  readonly links = { booking: `/${PATHS.dbu.booking.link}`, status: `/${PATHS.dbu.status.link}` };
+
   code = '';
   documentNumber = '';
 
@@ -62,17 +67,11 @@ export class DbuStatusComponent {
   }
 
   label(status: string): string {
-    return DBU_STATUS_LABELS[status] ?? status;
+    return DBU_STATUS_VIEW[status]?.label ?? status;
   }
 
-  severity(status: string): 'success' | 'warn' | 'danger' | 'secondary' {
-    if (status === 'reserved' || status === 'attended') {
-      return 'success';
-    }
-    if (status === 'pending') {
-      return 'warn';
-    }
-    return status === 'no_show' ? 'danger' : 'secondary';
+  severity(status: string): TagSeverity {
+    return STATE_SEVERITY[DBU_STATUS_VIEW[status]?.kind ?? 'neutral'];
   }
 
   prettyDate(date: string): string {

@@ -104,12 +104,3 @@ export function dbuErrorMessage(error: unknown, fallback = 'No se pudo completar
   const body = (error as { error?: { payload?: { message?: string } } })?.error;
   return body?.payload?.message ?? fallback;
 }
-
-export const DBU_STATUS_LABELS: Record<string, string> = {
-  reserved: 'Reservada',
-  pending: 'Pendiente de aprobación',
-  attended: 'Atendida',
-  no_show: 'No asististe',
-  cancelled: 'Cancelada',
-  released: 'Cupo liberado',
-};

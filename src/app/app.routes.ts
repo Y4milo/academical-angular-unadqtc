@@ -44,6 +44,7 @@ import {
   BnIncidentsComponent
 } from './dashboard/staff/accounting/bn-incidents/bn-incidents.component';
 import {BnConfigComponent} from './dashboard/staff/accounting/bn-config/bn-config.component';
+import {ComponentsCatalogComponent} from './dashboard/staff/shared/components-catalog/components-catalog.component';
 import {DbuConfigComponent} from './dashboard/staff/dbu/dbu-config/dbu-config.component';
 import {DbuLayOutComponent} from './dashboard/staff/dbu/dbu-lay-out-component/dbu-lay-out.component';
 import {BnTracesComponent} from './dashboard/staff/accounting/bn-traces/bn-traces.component';
@@ -71,8 +72,9 @@ import {SupportRequestsAdminComponent} from './support/support-requests-admin.co
 export const routes: Routes = [
   {path: 'grados-titulos/variables-etnicas/:token', component: PublicEthnicityFormComponent},
   {path: 'soporte/correo', component: PublicSupportRequestComponent},
-  {path: 'citas', component: DbuBookingComponent},
-  {path: 'citas/estado', component: DbuStatusComponent},
+  // Los primeros enlaces de citas eran /citas; siguen funcionando y llevan al módulo.
+  {path: 'citas', redirectTo: PATHS.dbu.booking.link, pathMatch: 'full'},
+  {path: 'citas/estado', redirectTo: PATHS.dbu.status.link, pathMatch: 'full'},
   {
     path: '',
     redirectTo: PATHS.login.staff,
@@ -136,6 +138,10 @@ export const routes: Routes = [
       {
         path: PATHS.admin.dbu.config.path,
         component: DbuConfigComponent
+      },
+      {
+        path: PATHS.admin.components.path,
+        component: ComponentsCatalogComponent
       },
       {
         path: PATHS.admin.accounting.bank.incidents.path,
@@ -247,21 +253,29 @@ export const routes: Routes = [
     ]
   },
   {
+    // Todo lo de Bienestar Universitario vive bajo /dbu: las páginas públicas del alumno y el panel del personal.
     path: PATHS.dbu.path,
-    component: DbuLayOutComponent,
-    canActivate: [AuthRoleGuard],
-    data: {roles: [ROLE.dbu_admin, ROLE.dbu, ROLE.admin]},
     children: [
+      {path: PATHS.dbu.booking.path, component: DbuBookingComponent},
+      {path: PATHS.dbu.status.path, component: DbuStatusComponent},
       {
         path: '',
-        redirectTo: PATHS.dbu.home.path,
-        pathMatch: 'full'
-      },
-      {
-        path: PATHS.dbu.config.path,
-        component: DbuConfigComponent,
+        component: DbuLayOutComponent,
         canActivate: [AuthRoleGuard],
-        data: {roles: [ROLE.dbu_admin, ROLE.admin]},
+        data: {roles: [ROLE.dbu_admin, ROLE.dbu, ROLE.admin]},
+        children: [
+          {
+            path: '',
+            redirectTo: PATHS.dbu.home.path,
+            pathMatch: 'full'
+          },
+          {
+            path: PATHS.dbu.config.path,
+            component: DbuConfigComponent,
+            canActivate: [AuthRoleGuard],
+            data: {roles: [ROLE.dbu_admin, ROLE.admin]},
+          },
+        ]
       },
     ]
   },

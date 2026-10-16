@@ -8,7 +8,7 @@
 
   @if (loading()) {
     <div class="dbu-layout" aria-busy="true">
-      <p-skeleton height="18rem"></p-skeleton>
+      <p-skeleton styleClass="dbu-skeleton-nav" height="18rem"></p-skeleton>
       <div class="dbu-skeletons">
         <p-skeleton height="3rem"></p-skeleton>
         <p-skeleton height="3rem"></p-skeleton>
@@ -142,15 +142,15 @@
             </p-button>
           </div>
 
-          <p-table [value]="c.attendants" [tableStyle]="{ 'min-width': '36rem' }">
+          <p-table [value]="c.attendants" styleClass="dbu-stack">
             <ng-template #header><tr><th>Encargado</th><th>Tipos</th><th>Horario</th><th>Estado</th><th></th></tr></ng-template>
             <ng-template #body let-attendant>
               <tr>
-                <td>{{ attendant.name }}</td>
-                <td>{{ typeNames(attendant.type_ids) }}</td>
-                <td>{{ attendant.start_time }} a {{ attendant.end_time }}</td>
-                <td><p-toggleSwitch [ngModel]="attendant.is_active" (ngModelChange)="toggleAttendant(attendant, $event)" [attr.aria-label]="'Activo: ' + attendant.name"></p-toggleSwitch></td>
-                <td><p-button severity="secondary" [text]="true" size="small" label="Editar" (onClick)="openEditAttendant(attendant)"></p-button></td>
+                <td data-label="Encargado">{{ attendant.name }}</td>
+                <td data-label="Tipos">{{ typeNames(attendant.type_ids) }}</td>
+                <td data-label="Horario">{{ attendant.start_time }} a {{ attendant.end_time }}</td>
+                <td data-label="Activo"><p-toggleSwitch [ngModel]="attendant.is_active" (ngModelChange)="toggleAttendant(attendant, $event)" [attr.aria-label]="'Activo: ' + attendant.name"></p-toggleSwitch></td>
+                <td class="dbu-stack__actions"><p-button severity="secondary" [text]="true" size="small" label="Editar" (onClick)="openEditAttendant(attendant)"></p-button></td>
               </tr>
             </ng-template>
             <ng-template #emptymessage>
@@ -191,13 +191,13 @@
               <ng-template #icon><app-lucide-icon name="plus" [size]="16"></app-lucide-icon></ng-template>
             </p-button>
           </div>
-          <p-table [value]="c.types" [tableStyle]="{ 'min-width': '28rem' }">
+          <p-table [value]="c.types" styleClass="dbu-stack">
             <ng-template #header><tr><th>Nombre</th><th>Código</th><th>Activo</th></tr></ng-template>
             <ng-template #body let-type>
               <tr>
-                <td>{{ type.name }}</td>
-                <td><code>{{ type.code }}</code></td>
-                <td><p-toggleSwitch [ngModel]="type.is_active" (ngModelChange)="toggleType(type, $event)" [attr.aria-label]="'Activo: ' + type.name"></p-toggleSwitch></td>
+                <td data-label="Nombre">{{ type.name }}</td>
+                <td data-label="Código"><code>{{ type.code }}</code></td>
+                <td data-label="Activo"><p-toggleSwitch [ngModel]="type.is_active" (ngModelChange)="toggleType(type, $event)" [attr.aria-label]="'Activo: ' + type.name"></p-toggleSwitch></td>
               </tr>
             </ng-template>
           </p-table>
@@ -209,14 +209,14 @@
           @if (logs() === null) {
             <p-skeleton height="12rem"></p-skeleton>
           } @else {
-            <p-table [value]="logs()!" [tableStyle]="{ 'min-width': '36rem' }">
+            <p-table [value]="logs()!" styleClass="dbu-stack">
               <ng-template #header><tr><th>Fecha</th><th>Usuario</th><th>Cambio</th><th>Detalle</th></tr></ng-template>
               <ng-template #body let-log>
                 <tr>
-                  <td>{{ log.created_at }}</td>
-                  <td>{{ log.user || 'Sistema' }}</td>
-                  <td>{{ actionLabel(log.action) }}</td>
-                  <td>{{ log.subject }}</td>
+                  <td data-label="Fecha">{{ log.created_at }}</td>
+                  <td data-label="Usuario">{{ log.user || 'Sistema' }}</td>
+                  <td data-label="Cambio">{{ actionLabel(log.action) }}</td>
+                  <td data-label="Detalle">{{ log.subject }}</td>
                 </tr>
               </ng-template>
               <ng-template #emptymessage><tr><td colspan="4"><div class="empty">Todavía no hay cambios registrados.</div></td></tr></ng-template>
