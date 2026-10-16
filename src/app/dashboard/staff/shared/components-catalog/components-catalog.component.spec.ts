@@ -26,6 +26,20 @@ describe('ComponentsCatalogComponent', () => {
     }
   });
 
+  it('documents the sidebar menu pattern', async () => {
+    const fixture = TestBed.createComponent(ComponentsCatalogComponent);
+    fixture.autoDetectChanges(true);
+    await fixture.whenStable();
+
+    const root = fixture.nativeElement as HTMLElement;
+    Array.from(root.querySelectorAll<HTMLElement>('p-tab')).find(tab => tab.textContent?.includes('Patrones'))?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const note = root.querySelector('[data-testid="sidebar-pattern"]');
+    expect(note?.textContent).toContain('p-panelmenu');
+  });
+
   it('reads every theme token and leaves the theme as it was', () => {
     document.documentElement.classList.add('app-dark');
     const fixture = TestBed.createComponent(ComponentsCatalogComponent);

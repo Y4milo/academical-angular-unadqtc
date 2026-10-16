@@ -134,6 +134,14 @@
           <p-inputnumber [(ngModel)]="minutes" [min]="15" [max]="240" [showButtons]="true" suffix=" min"></p-inputnumber>
         </div>
 
+        <h3>Menú lateral</h3>
+        <p class="catalog__lead" data-testid="sidebar-pattern">El menú del personal es un <code>p-panelmenu</code> en una columna de 17 rem (<code>p-drawer</code> bajo 900 px). Dos niveles como máximo: grupo (módulo) y pantalla. Se abre un grupo a la vez y queda abierto el de la pantalla actual; la opción activa usa <code>--p-highlight-background</code>. Abajo van la persona (<code>p-avatar</code>), «Cambiar contraseña» y «Cerrar sesión». Mientras carga muestra <code>p-skeleton</code> y, si falla, un <code>p-message</code> con «Reintentar».</p>
+        <ul class="catalog__list">
+          <li>Las opciones salen del API (<code>RoleMenus.php</code>, un bloque por módulo): nunca se agregan opciones a mano en el front.</li>
+          <li>Íconos Lucide registrados en <code>lucide-icon.util.ts</code>; sin ícono, el menú muestra un círculo.</li>
+          <li>Se carga una vez por sesión (<code>StaffMenuStore</code>) y se olvida al cerrar sesión.</li>
+        </ul>
+
         <h3>Pantallas de referencia</h3>
         <ul class="catalog__list">
           <li><code>/admin/dbu/config</code>: menú de secciones, filas de ajuste, tablas apiladas y matriz de cupos.</li>

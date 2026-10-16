@@ -49,6 +49,12 @@ To check a screen: toggle the theme with `document.documentElement.classList.tog
 - Section menus: a vertical list on desktop; below 900 px a single row that slides, so the content is not pushed down.
 - Text tables: below 640 px each row is a label/value card (`data-label` on every `td`, `styleClass="dbu-stack"` as the reference). Dense numeric tables keep a horizontal scroll inside their container.
 
+## Sidebar menu
+
+The staff menu is a `p-panelmenu` in a 17 rem column (`p-drawer` below 900 px) rendered by `staff-role-layout`. Two levels at most: group (module) and screen; one group open at a time, the group of the current screen expanded, the active screen highlighted with `--p-highlight-background`. The person, "Cambiar contraseña" and "Cerrar sesión" sit at the bottom. Loading shows `p-skeleton`; a failure shows a `p-message` with a retry button.
+
+The entries come from the API (`RoleMenus.php` in the backend, one block per module written once and shown with the `/admin/...` routes to the administrator and with its own routes to the module role). The front never adds entries by hand. `StaffMenuStore` loads the menu once per session and forgets it on sign out. New icons are registered in `lucide-icon.util.ts`.
+
 ## Routes grouped by module
 
 Every module hangs from its own path, public pages included: Bienestar Universitario lives under `/dbu` (`/dbu/citas`, `/dbu/citas/estado`, `/dbu/config`) and the admin copy under `/admin/dbu/...`. Paths are declared once in `src/app/core/constants/app-paths.constants.ts` (`PATHS`) and used by the routes and by the links in templates (`readonly links = ...`), never typed by hand. When a link is renamed, the old one stays as a `redirectTo`.
