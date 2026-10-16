@@ -12,7 +12,7 @@ import {TooltipModule} from 'primeng/tooltip';
     :host{display:block;margin:.85rem 0}
     :host ::ng-deep .test-mode-banner{width:100%;padding:1rem 1.1rem;border:1px solid color-mix(in srgb,var(--p-orange-500) 45%,transparent);border-radius:12px;background:color-mix(in srgb,var(--p-orange-500) 11%,var(--p-content-background));color:var(--p-text-color);box-shadow:0 8px 22px color-mix(in srgb,var(--p-orange-500) 8%,transparent)}
     :host ::ng-deep .test-mode-banner .p-message-icon{color:var(--p-orange-500);font-size:1.15rem}
-    :host ::ng-deep .test-mode-banner .p-message-text{font-size:.88rem;font-weight:650;line-height:1.45}
+    :host ::ng-deep .test-mode-banner .p-message-text{font-size:var(--text-body);font-weight:var(--weight-strong);line-height:1.45}
   `],
 })
 export class TestModeBannerComponent {

@@ -3,7 +3,8 @@
  * Impide que el CSS y las plantillas de Academical inventen pesos y tamaños de letra.
  *
  * Regla: el peso sale de `--weight-regular|strong|title` y el tamaño de `--text-title|card-title|body|small|label`
- * (definidos una sola vez en src/styles.css y mostrados en el catálogo /admin/components). Se cuentan los valores literales:
+ * (definidos una sola vez en src/styles.css y mostrados en el catálogo /admin/components). Se revisan css, html y los estilos dentro
+ * de los componentes (.ts, sin specs). Se cuentan los valores literales:
  * `font-weight: 650`, `font-weight: bold`, `font-size: .82rem`, `font-size: 14px`...
  *
  * Los archivos antiguos tienen un tope (typography-baseline.json) que solo puede bajar; los archivos nuevos o tocados deben quedar
@@ -24,7 +25,7 @@ const RULES = [
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
     const full = join(dir, name);
-    return statSync(full).isDirectory() ? walk(full) : /\.(css|html)$/.test(name) ? [full] : [];
+    return statSync(full).isDirectory() ? walk(full) : /\.(css|html)$/.test(name) || (/\.ts$/.test(name) && !/\.spec\.ts$/.test(name)) ? [full] : [];
   });
 }
 
