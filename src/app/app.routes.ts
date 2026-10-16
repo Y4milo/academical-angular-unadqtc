@@ -1,78 +1,12 @@
 import { Routes } from '@angular/router';
-import { StudentCardRegistrationComponent } from './dashboard/student/student-card-registration/student-card-registration.component';
-import {LoginStudentComponent} from './dashboard/student/login-student/login-student.component';
-import {LoginStaffComponent} from './dashboard/staff/login-staff/login-staff.component';
-import {StudentCardsComponent} from './dashboard/staff/academic/student-cards/student-cards.component';
-import {RegisterParticipantComponent} from './events/register-participant/register-participant.component';
-import {EventAttendanceCheckInComponent} from './events/event-attendance-check-in/event-attendance-check-in.component';
-import {
-  EventQuestionsWithCheckOutComponent
-} from './events/event-questions-with-check-out/event-questions-with-check-out.component';
-import {AttendanceListComponent} from './dashboard/staff/hr-admin/attendace-admin/attendance.component';
-import {AttendanceRegisterComponent} from './dashboard/staff/hr-admin/attendance-register/attendance-register.component';
-import {AttendanceManualListComponent} from './dashboard/staff/hr-admin/attendance-manual-list/attendance-manual-list.component';
-import {AttendanceUserComponent} from './dashboard/staff/staff-user/attendance-user/attendance-user.component';
-import {
-  HrLayOutComponentComponent
-} from './dashboard/staff/hr-admin/hr-lay-out-component/hr-lay-out-component.component';
-import {
-  HrReportAttendanceComponentComponent
-} from './dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component';
 import {PATHS} from './core/constants/app-paths.constants';
 import {ROLE} from './core/constants/app-roles.constants';
-import {
-  AcademicLayOutComponentComponent
-} from './dashboard/staff/academic/academic-lay-out-component/academic-lay-out-component.component';
-import {StudentRankingComponent} from './dashboard/staff/academic/student-ranking/student-ranking.component';
-import {ApprovedAverageComponent} from './dashboard/staff/academic/approved-average/approved-average.component';
-import {
-  StaffUserLayOutComponentComponent
-} from './dashboard/staff/staff-user/staff-user-lay-out-component/staff-user-lay-out-component.component';
-import {
-  EventDownloadCertificateComponent
-} from './events/event-download-certificate/event-download-certificate.component';
-import {
-  EventValidateCertificateComponent
-} from './events/event-validate-certificate/event-validate-certificate.component';
-import {StaffMenuBaseComponent} from './dashboard/staff-menu-base/staff-menu-base.component';
 import {AuthRoleGuard} from './guards/auth-role.guard';
 import {AuthStudentGuard} from './guards/auth-student.guard';
-import {
-  EventCertificatesAdminComponent
-} from './dashboard/staff/events/event-certificates-admin/event-certificates-admin.component';
-import {
-  BnIncidentsComponent
-} from './dashboard/staff/accounting/bn-incidents/bn-incidents.component';
-import {BnConfigComponent} from './dashboard/staff/accounting/bn-config/bn-config.component';
-import {ComponentsCatalogComponent} from './dashboard/staff/shared/components-catalog/components-catalog.component';
-import {DbuQueueComponent} from './dashboard/staff/dbu/dbu-queue/dbu-queue.component';
-import {DbuConfigComponent} from './dashboard/staff/dbu/dbu-config/dbu-config.component';
-import {DbuLayOutComponent} from './dashboard/staff/dbu/dbu-lay-out-component/dbu-lay-out.component';
-import {BnTracesComponent} from './dashboard/staff/accounting/bn-traces/bn-traces.component';
-import {BnFilesComponent} from './dashboard/staff/accounting/bn-files/bn-files.component';
-import {
-  AccountingLayOutComponentComponent
-} from './dashboard/staff/accounting/accounting-lay-out-component/accounting-lay-out-component.component';
-import {
-  DegreesTitlesLayoutComponent
-} from './dashboard/staff/degrees-titles/degrees-titles-layout.component';
-import {
-  DegreesTitlesPageComponent
-} from './dashboard/staff/degrees-titles/degrees-titles-page.component';
-import {
-  DegreeCallsComponent
-} from './dashboard/staff/degrees-titles/degree-calls.component';
-import {DegreeRecordsComponent} from './dashboard/staff/degrees-titles/degree-records.component';
-import {DegreeGeneralDataComponent} from './dashboard/staff/degrees-titles/degree-general-data.component';
-import {PublicEthnicityFormComponent} from './degrees-titles/public-ethnicity-form.component';
-import {PublicSupportRequestComponent} from './support/public-support-request.component';
-import {DbuBookingComponent} from './dbu-public/dbu-booking.component';
-import {DbuStatusComponent} from './dbu-public/dbu-status.component';
-import {SupportRequestsAdminComponent} from './support/support-requests-admin.component';
 
 export const routes: Routes = [
-  {path: 'grados-titulos/variables-etnicas/:token', component: PublicEthnicityFormComponent},
-  {path: 'soporte/correo', component: PublicSupportRequestComponent},
+  {path: 'grados-titulos/variables-etnicas/:token', loadComponent: () => import('./degrees-titles/public-ethnicity-form.component').then(m => m.PublicEthnicityFormComponent)},
+  {path: 'soporte/correo', loadComponent: () => import('./support/public-support-request.component').then(m => m.PublicSupportRequestComponent)},
   // Los primeros enlaces de citas eran /citas; siguen funcionando y llevan al módulo.
   {path: 'citas', redirectTo: PATHS.dbu.booking.link, pathMatch: 'full'},
   {path: 'citas/estado', redirectTo: PATHS.dbu.status.link, pathMatch: 'full'},
@@ -83,17 +17,17 @@ export const routes: Routes = [
   },
   {
     path: PATHS.login.student,
-    component: LoginStudentComponent
+    loadComponent: () => import('./dashboard/student/login-student/login-student.component').then(m => m.LoginStudentComponent)
   },
   {
     path: PATHS.login.staff,
-    component: LoginStaffComponent
+    loadComponent: () => import('./dashboard/staff/login-staff/login-staff.component').then(m => m.LoginStaffComponent)
   },
   {
     path: PATHS.admin.path,
     canActivate: [AuthRoleGuard],
     data: {roles: [ROLE.admin]},
-    component: StaffMenuBaseComponent,
+    loadComponent: () => import('./dashboard/staff-menu-base/staff-menu-base.component').then(m => m.StaffMenuBaseComponent),
     children: [
       {
         path: '',
@@ -102,88 +36,88 @@ export const routes: Routes = [
       },
       {
         path: PATHS.admin.home.path,
-        component: AttendanceUserComponent
+        loadComponent: () => import('./dashboard/staff/staff-user/attendance-user/attendance-user.component').then(m => m.AttendanceUserComponent)
       },
       {
         path: PATHS.hr.staff.attendance.list.path,
-        component: AttendanceListComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/attendace-admin/attendance.component').then(m => m.AttendanceListComponent)
       },
       {
         path: PATHS.hr.staff.attendance.register.path,
-        component: AttendanceRegisterComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/attendance-register/attendance-register.component').then(m => m.AttendanceRegisterComponent)
       },
       {
         path: PATHS.hr.staff.attendance.manual.path,
-        component: AttendanceManualListComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/attendance-manual-list/attendance-manual-list.component').then(m => m.AttendanceManualListComponent)
       },
       {
         path: PATHS.hr.staff.attendance.reports.path,
-        component: HrReportAttendanceComponentComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component').then(m => m.HrReportAttendanceComponentComponent)
       },
       {
         path: PATHS.academic.student.card.panel.path,
-        component: StudentCardsComponent
+        loadComponent: () => import('./dashboard/staff/academic/student-cards/student-cards.component').then(m => m.StudentCardsComponent)
       },
       {
         path: PATHS.academic.student.ranking.path,
-        component: StudentRankingComponent
+        loadComponent: () => import('./dashboard/staff/academic/student-ranking/student-ranking.component').then(m => m.StudentRankingComponent)
       },
       {
         path: PATHS.academic.student.approvedAverage.path,
-        component: ApprovedAverageComponent
+        loadComponent: () => import('./dashboard/staff/academic/approved-average/approved-average.component').then(m => m.ApprovedAverageComponent)
       },
       {
         path: PATHS.admin.events.certificates.path,
-        component: EventCertificatesAdminComponent
+        loadComponent: () => import('./dashboard/staff/events/event-certificates-admin/event-certificates-admin.component').then(m => m.EventCertificatesAdminComponent)
       },
       {
         path: PATHS.admin.dbu.queue.path,
-        component: DbuQueueComponent
+        loadComponent: () => import('./dashboard/staff/dbu/dbu-queue/dbu-queue.component').then(m => m.DbuQueueComponent)
       },
       {
         path: PATHS.admin.dbu.config.path,
-        component: DbuConfigComponent
+        loadComponent: () => import('./dashboard/staff/dbu/dbu-config/dbu-config.component').then(m => m.DbuConfigComponent)
       },
       {
         path: PATHS.admin.components.path,
-        component: ComponentsCatalogComponent
+        loadComponent: () => import('./dashboard/staff/shared/components-catalog/components-catalog.component').then(m => m.ComponentsCatalogComponent)
       },
       {
         path: PATHS.admin.accounting.bank.incidents.path,
-        component: BnIncidentsComponent
+        loadComponent: () => import('./dashboard/staff/accounting/bn-incidents/bn-incidents.component').then(m => m.BnIncidentsComponent)
       },
       {
         path: PATHS.admin.accounting.bank.config.path,
-        component: BnConfigComponent
+        loadComponent: () => import('./dashboard/staff/accounting/bn-config/bn-config.component').then(m => m.BnConfigComponent)
       },
       {
         path: PATHS.admin.accounting.bank.traces.path,
-        component: BnTracesComponent
+        loadComponent: () => import('./dashboard/staff/accounting/bn-traces/bn-traces.component').then(m => m.BnTracesComponent)
       },
       {
         path: PATHS.admin.accounting.bank.files.path,
-        component: BnFilesComponent
+        loadComponent: () => import('./dashboard/staff/accounting/bn-files/bn-files.component').then(m => m.BnFilesComponent)
       },
       {
         path: PATHS.admin.degreesTitles.generalData.path,
-        component: DegreeGeneralDataComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degree-general-data.component').then(m => m.DegreeGeneralDataComponent),
       },
       {
         path: PATHS.admin.degreesTitles.calls.path,
-        component: DegreeCallsComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degree-calls.component').then(m => m.DegreeCallsComponent),
       },
       {
         path: PATHS.admin.degreesTitles.records.path,
-        component: DegreeRecordsComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degree-records.component').then(m => m.DegreeRecordsComponent),
       },
       {
         path: PATHS.admin.degreesTitles.exports.path,
-        component: DegreesTitlesPageComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degrees-titles-page.component').then(m => m.DegreesTitlesPageComponent),
         data: {title: 'Exportaciones SUNEDU'},
       },
       {
         path: 'support/requests',
-        component: SupportRequestsAdminComponent,
+        loadComponent: () => import('./support/support-requests-admin.component').then(m => m.SupportRequestsAdminComponent),
       },
     ]
   },
@@ -191,7 +125,7 @@ export const routes: Routes = [
     path: PATHS.degreesTitles.path,
     canActivate: [AuthRoleGuard],
     data: {roles: [ROLE.degrees_titles]},
-    component: DegreesTitlesLayoutComponent,
+    loadComponent: () => import('./dashboard/staff/degrees-titles/degrees-titles-layout.component').then(m => m.DegreesTitlesLayoutComponent),
     children: [
       {
         path: '',
@@ -200,19 +134,19 @@ export const routes: Routes = [
       },
       {
         path: PATHS.degreesTitles.generalData.path,
-        component: DegreeGeneralDataComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degree-general-data.component').then(m => m.DegreeGeneralDataComponent),
       },
       {
         path: PATHS.degreesTitles.calls.path,
-        component: DegreeCallsComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degree-calls.component').then(m => m.DegreeCallsComponent),
       },
       {
         path: PATHS.degreesTitles.records.path,
-        component: DegreeRecordsComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degree-records.component').then(m => m.DegreeRecordsComponent),
       },
       {
         path: PATHS.degreesTitles.exports.path,
-        component: DegreesTitlesPageComponent,
+        loadComponent: () => import('./dashboard/staff/degrees-titles/degrees-titles-page.component').then(m => m.DegreesTitlesPageComponent),
         data: {title: 'Exportaciones SUNEDU'},
       },
     ],
@@ -221,39 +155,39 @@ export const routes: Routes = [
     path: PATHS.hr.path,
     canActivate: [AuthRoleGuard],
     data: {roles: [ROLE.hr]},
-    component: HrLayOutComponentComponent,
+    loadComponent: () => import('./dashboard/staff/hr-admin/hr-lay-out-component/hr-lay-out-component.component').then(m => m.HrLayOutComponentComponent),
     children: [
       {
         path: PATHS.hr.home.path,
-        component: AttendanceUserComponent
+        loadComponent: () => import('./dashboard/staff/staff-user/attendance-user/attendance-user.component').then(m => m.AttendanceUserComponent)
       },
       {
         path: PATHS.hr.staff.attendance.list.path,
-        component: AttendanceListComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/attendace-admin/attendance.component').then(m => m.AttendanceListComponent)
       },
       {
         path: PATHS.hr.staff.attendance.register.path,
-        component: AttendanceRegisterComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/attendance-register/attendance-register.component').then(m => m.AttendanceRegisterComponent)
       },
       {
         path: PATHS.hr.staff.attendance.manual.path,
-        component: AttendanceManualListComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/attendance-manual-list/attendance-manual-list.component').then(m => m.AttendanceManualListComponent)
       },
       {
         path: PATHS.hr.staff.attendance.reports.path,
-        component: HrReportAttendanceComponentComponent
+        loadComponent: () => import('./dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component').then(m => m.HrReportAttendanceComponentComponent)
       },
     ]
   },
   {
     path: PATHS.staff.path,
-    component: StaffUserLayOutComponentComponent,
+    loadComponent: () => import('./dashboard/staff/staff-user/staff-user-lay-out-component/staff-user-lay-out-component.component').then(m => m.StaffUserLayOutComponentComponent),
     canActivate: [AuthRoleGuard],
     data: {roles: [ROLE.professor, ROLE.administrative]},
     children: [
       {
         path: PATHS.staff.home.path,
-        component: AttendanceUserComponent
+        loadComponent: () => import('./dashboard/staff/staff-user/attendance-user/attendance-user.component').then(m => m.AttendanceUserComponent)
       },
     ]
   },
@@ -261,11 +195,11 @@ export const routes: Routes = [
     // Todo lo de Bienestar Universitario vive bajo /dbu: las páginas públicas del alumno y el panel del personal.
     path: PATHS.dbu.path,
     children: [
-      {path: PATHS.dbu.booking.path, component: DbuBookingComponent},
-      {path: PATHS.dbu.status.path, component: DbuStatusComponent},
+      {path: PATHS.dbu.booking.path, loadComponent: () => import('./dbu-public/dbu-booking.component').then(m => m.DbuBookingComponent)},
+      {path: PATHS.dbu.status.path, loadComponent: () => import('./dbu-public/dbu-status.component').then(m => m.DbuStatusComponent)},
       {
         path: '',
-        component: DbuLayOutComponent,
+        loadComponent: () => import('./dashboard/staff/dbu/dbu-lay-out-component/dbu-lay-out.component').then(m => m.DbuLayOutComponent),
         canActivate: [AuthRoleGuard],
         data: {roles: [ROLE.dbu_admin, ROLE.dbu, ROLE.admin]},
         children: [
@@ -276,11 +210,11 @@ export const routes: Routes = [
           },
           {
             path: PATHS.dbu.queue.path,
-            component: DbuQueueComponent,
+            loadComponent: () => import('./dashboard/staff/dbu/dbu-queue/dbu-queue.component').then(m => m.DbuQueueComponent),
           },
           {
             path: PATHS.dbu.config.path,
-            component: DbuConfigComponent,
+            loadComponent: () => import('./dashboard/staff/dbu/dbu-config/dbu-config.component').then(m => m.DbuConfigComponent),
             canActivate: [AuthRoleGuard],
             data: {roles: [ROLE.dbu_admin, ROLE.admin]},
           },
@@ -290,7 +224,7 @@ export const routes: Routes = [
   },
   {
     path: PATHS.accounting.path,
-    component: AccountingLayOutComponentComponent,
+    loadComponent: () => import('./dashboard/staff/accounting/accounting-lay-out-component/accounting-lay-out-component.component').then(m => m.AccountingLayOutComponentComponent),
     canActivate: [AuthRoleGuard],
     data: {roles: [ROLE.accounting, ROLE.admin]},
     children: [
@@ -301,44 +235,44 @@ export const routes: Routes = [
       },
       {
         path: PATHS.accounting.bank.incidents.path,
-        component: BnIncidentsComponent
+        loadComponent: () => import('./dashboard/staff/accounting/bn-incidents/bn-incidents.component').then(m => m.BnIncidentsComponent)
       },
       {
         path: PATHS.accounting.bank.traces.path,
-        component: BnTracesComponent
+        loadComponent: () => import('./dashboard/staff/accounting/bn-traces/bn-traces.component').then(m => m.BnTracesComponent)
       },
       {
         path: PATHS.accounting.bank.files.path,
-        component: BnFilesComponent
+        loadComponent: () => import('./dashboard/staff/accounting/bn-files/bn-files.component').then(m => m.BnFilesComponent)
       },
     ]
   },
   {
     path: PATHS.student.card.registration,
-    component: StudentCardRegistrationComponent,
+    loadComponent: () => import('./dashboard/student/student-card-registration/student-card-registration.component').then(m => m.StudentCardRegistrationComponent),
     canActivate: [AuthStudentGuard]
   },
   {
     path: PATHS.academic.path,
-    component: AcademicLayOutComponentComponent,
+    loadComponent: () => import('./dashboard/staff/academic/academic-lay-out-component/academic-lay-out-component.component').then(m => m.AcademicLayOutComponentComponent),
     canActivate: [AuthRoleGuard],
     data: {roles: [ROLE.academic]},
     children: [
       {
         path: PATHS.academic.home.path,
-        component: AttendanceUserComponent
+        loadComponent: () => import('./dashboard/staff/staff-user/attendance-user/attendance-user.component').then(m => m.AttendanceUserComponent)
       },
       {
         path: PATHS.academic.student.card.panel.path,
-        component: StudentCardsComponent
+        loadComponent: () => import('./dashboard/staff/academic/student-cards/student-cards.component').then(m => m.StudentCardsComponent)
       },
       {
         path: PATHS.academic.student.ranking.path,
-        component: StudentRankingComponent
+        loadComponent: () => import('./dashboard/staff/academic/student-ranking/student-ranking.component').then(m => m.StudentRankingComponent)
       },
       {
         path: PATHS.academic.student.approvedAverage.path,
-        component: ApprovedAverageComponent
+        loadComponent: () => import('./dashboard/staff/academic/approved-average/approved-average.component').then(m => m.ApprovedAverageComponent)
       },
     ]
   },
@@ -347,42 +281,42 @@ export const routes: Routes = [
     children: [
       {
         path: PATHS.event.participant.register,
-        component: RegisterParticipantComponent,
+        loadComponent: () => import('./events/register-participant/register-participant.component').then(m => m.RegisterParticipantComponent),
       },
       {
         path: PATHS.event.attendance.path,
         children: [
           {
             path: PATHS.event.attendance.check_in,
-            component: EventAttendanceCheckInComponent,
+            loadComponent: () => import('./events/event-attendance-check-in/event-attendance-check-in.component').then(m => m.EventAttendanceCheckInComponent),
           },
           {
             path: PATHS.event.attendance.check_out,
-            component: EventQuestionsWithCheckOutComponent,
+            loadComponent: () => import('./events/event-questions-with-check-out/event-questions-with-check-out.component').then(m => m.EventQuestionsWithCheckOutComponent),
           }
         ]
       },
       {
         path: PATHS.event.certification.download,
-        component: EventDownloadCertificateComponent,
+        loadComponent: () => import('./events/event-download-certificate/event-download-certificate.component').then(m => m.EventDownloadCertificateComponent),
       },
       {
         path: PATHS.event.certification.validate,
-        component: EventValidateCertificateComponent,
+        loadComponent: () => import('./events/event-validate-certificate/event-validate-certificate.component').then(m => m.EventValidateCertificateComponent),
       }
     ]
   },
   // {
   //   path: PATHS.event.participant.register,
-  //   component: RegisterParticipantComponent,
+  //   loadComponent: () => import('./events/register-participant/register-participant.component').then(m => m.RegisterParticipantComponent),
   // },
   // {
   //   path: PATHS.event.attendance.check_in,
-  //   component: EventAttendanceCheckInComponent,
+  //   loadComponent: () => import('./events/event-attendance-check-in/event-attendance-check-in.component').then(m => m.EventAttendanceCheckInComponent),
   // },
   // {
   //   path: PATHS.event.attendance.check_out,
-  //   component: EventQuestionsWithCheckOutComponent,
+  //   loadComponent: () => import('./events/event-questions-with-check-out/event-questions-with-check-out.component').then(m => m.EventQuestionsWithCheckOutComponent),
   // },
   {
     path: '**', redirectTo: PATHS.login.staff
