@@ -78,7 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   background: var(--surface-card, var(--p-content-background, #18181b));
   border: 1px solid var(--surface-border, var(--p-content-border-color, #3f3f46));
 }
@@ -89,8 +89,8 @@
 }
 
 .register-result-name {
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: var(--weight-strong);
+  font-size: var(--text-card-title);
   overflow-wrap: anywhere;
 }
 
@@ -106,14 +106,14 @@
   flex: none;
   text-align: right;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   font-variant-numeric: tabular-nums;
 }
 
 .register-time small {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 400;
+  font-size: var(--text-label);
+  font-weight: var(--weight-regular);
 }
 
 .register-notice {
