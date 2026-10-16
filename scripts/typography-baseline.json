@@ -25,6 +25,5 @@
   "events/event-download-certificate/event-download-certificate.component.html": 1,
   "events/event-questions-with-check-out/event-questions-with-check-out.component.css": 2,
   "events/event-validate-certificate/event-validate-certificate.component.html": 2,
-  "support/public-support-request.component.css": 26,
-  "support/support-requests-admin.component.css": 6
+  "support/public-support-request.component.css": 2
 }
