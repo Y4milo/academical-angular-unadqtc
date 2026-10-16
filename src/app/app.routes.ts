@@ -64,11 +64,15 @@ import {DegreeRecordsComponent} from './dashboard/staff/degrees-titles/degree-re
 import {DegreeGeneralDataComponent} from './dashboard/staff/degrees-titles/degree-general-data.component';
 import {PublicEthnicityFormComponent} from './degrees-titles/public-ethnicity-form.component';
 import {PublicSupportRequestComponent} from './support/public-support-request.component';
+import {DbuBookingComponent} from './dbu-public/dbu-booking.component';
+import {DbuStatusComponent} from './dbu-public/dbu-status.component';
 import {SupportRequestsAdminComponent} from './support/support-requests-admin.component';
 
 export const routes: Routes = [
   {path: 'grados-titulos/variables-etnicas/:token', component: PublicEthnicityFormComponent},
   {path: 'soporte/correo', component: PublicSupportRequestComponent},
+  {path: 'citas', component: DbuBookingComponent},
+  {path: 'citas/estado', component: DbuStatusComponent},
   {
     path: '',
     redirectTo: PATHS.login.staff,

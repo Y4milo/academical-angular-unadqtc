@@ -1,0 +1,162 @@
+<main class="dbu-page">
+  <header class="dbu-header">
+    <img src="/img/logo-unadqtc-rojo.png" alt="Escudo de la Universidad Nacional de Arte Diego Quispe Tito del Cusco">
+    <div class="dbu-header__copy">
+      <strong>Universidad Nacional de Arte</strong>
+      <span>Diego Quispe Tito del Cusco</span>
+      <small>Dirección de Bienestar Universitario</small>
+    </div>
+  </header>
+
+  @if (config()?.test_mode) {
+    <app-test-mode-banner area="la reserva de citas de Bienestar" [publicView]="true"></app-test-mode-banner>
+  }
+
+  <p-card styleClass="dbu-card">
+    <div class="dbu-title">
+      <span class="eyebrow">BIENESTAR UNIVERSITARIO</span>
+      <h1>Reserva tu cita</h1>
+      <p>Para estudiantes de la universidad. Elige el día y la hora que te convengan.</p>
+    </div>
+
+    @if (configError()) {
+      <p-message severity="error" text="No pudimos cargar el formulario. Recarga la página e inténtalo nuevamente."></p-message>
+    } @else if (!config()) {
+      <div class="dbu-skeleton" aria-busy="true">
+        <p-skeleton height="2.5rem"></p-skeleton>
+        <p-skeleton height="2.5rem"></p-skeleton>
+        <p-skeleton height="2.75rem" width="10rem"></p-skeleton>
+      </div>
+    } @else {
+      <p-steps styleClass="dbu-steps" [model]="steps" [activeIndex]="activeIndex()" [readonly]="true"></p-steps>
+
+      @if (error()) {
+        <p-message severity="error" [text]="error()" styleClass="dbu-message"></p-message>
+      }
+
+      @switch (step()) {
+        @case ('identity') {
+          <section class="dbu-panel" aria-labelledby="dbu-identity-title">
+            <h2 id="dbu-identity-title">¿Quién eres?</h2>
+            <p class="hint">Comprobamos que seas estudiante activo. No necesitas crear una cuenta.</p>
+            <div class="dbu-fields">
+              <label for="dbu-document-type">Tipo de documento</label>
+              <p-select inputId="dbu-document-type" [options]="documentTypes" optionLabel="label" optionValue="value" [(ngModel)]="documentType" appendTo="body"></p-select>
+              <label for="dbu-document-number">Número de documento</label>
+              <input pInputText id="dbu-document-number" [(ngModel)]="documentNumber" maxlength="20" autocomplete="off" inputmode="numeric" placeholder="Ej. 71424933" (keyup.enter)="submitIdentity()" />
+            </div>
+            @if (needsChallenge) {
+              <app-turnstile [siteKey]="config()!.turnstile.site_key ?? ''" (tokenChange)="turnstileToken.set($event)" (failed)="turnstileFailed.set(true)"></app-turnstile>
+              @if (turnstileFailed()) { <small class="hint">No pudimos cargar la verificación de seguridad. Recarga la página.</small> }
+            }
+            <div class="dbu-actions">
+              <p-button label="Continuar" icon="pi pi-arrow-right" iconPos="right" [loading]="busy()" [disabled]="!canSubmitIdentity()" (onClick)="submitIdentity()"></p-button>
+            </div>
+          </section>
+        }
+
+        @case ('email') {
+          <section class="dbu-panel" aria-labelledby="dbu-email-title">
+            <h2 id="dbu-email-title">Hola, {{ studentName() }}</h2>
+            <p class="hint">Te enviaremos un código a tu correo para confirmar que eres tú y avisarte de tu cita.</p>
+            <div class="dbu-fields">
+              <label for="dbu-email">Correo de contacto</label>
+              <input pInputText id="dbu-email" type="email" [(ngModel)]="email" maxlength="150" autocomplete="email" placeholder="nombre@correo.com" />
+              <label for="dbu-phone">Celular (opcional)</label>
+              <input pInputText id="dbu-phone" [(ngModel)]="phone" maxlength="20" autocomplete="tel" inputmode="tel" placeholder="Ej. 984 000 000" />
+            </div>
+            @if (needsChallenge) {
+              <app-turnstile [siteKey]="config()!.turnstile.site_key ?? ''" (tokenChange)="turnstileToken.set($event)" (failed)="turnstileFailed.set(true)"></app-turnstile>
+            }
+            <div class="dbu-actions">
+              <p-button label="Enviar código" icon="pi pi-send" iconPos="right" [loading]="busy()" [disabled]="!canSendCode()" (onClick)="sendCode()"></p-button>
+            </div>
+          </section>
+        }
+
+        @case ('code') {
+          <section class="dbu-panel" aria-labelledby="dbu-code-title">
+            <h2 id="dbu-code-title">Escribe tu código</h2>
+            <p class="hint">Lo enviamos a <strong>{{ sentTo() }}</strong>. Vence en 10 minutos.</p>
+            <div class="dbu-otp">
+              <p-inputotp [(ngModel)]="code" [length]="6" [integerOnly]="true" (keyup.enter)="verifyCode()"></p-inputotp>
+            </div>
+            <div class="dbu-actions">
+              <p-button label="Cambiar correo" severity="secondary" [outlined]="true" (onClick)="changeEmail()"></p-button>
+              <p-button label="Confirmar" [loading]="busy()" [disabled]="code.length !== 6" (onClick)="verifyCode()"></p-button>
+            </div>
+            @if (resendIn() > 0) {
+              <small class="hint">Podrás pedir otro código en {{ resendIn() }} s.</small>
+            } @else {
+              <small class="hint">¿No te llegó? Usa “Cambiar correo” para pedir otro código.</small>
+            }
+          </section>
+        }
+
+        @case ('choose') {
+          <section class="dbu-panel" aria-labelledby="dbu-choose-title">
+            <h2 id="dbu-choose-title">Elige tu cita</h2>
+            <p class="hint">Cada sesión dura {{ config()!.session_minutes }} minutos. Solo puedes tener una cita por día.</p>
+
+            <div class="dbu-fields">
+              <label for="dbu-type">¿Qué atención necesitas?</label>
+              <p-select inputId="dbu-type" [options]="typeOptions()" optionLabel="name" optionValue="id" [(ngModel)]="typeId" (onChange)="loadAvailability()" placeholder="Elige una atención" appendTo="body"></p-select>
+            </div>
+
+            @if (loadingAvailability()) {
+              <div class="dbu-skeleton" aria-busy="true">
+                <p-skeleton height="2.75rem"></p-skeleton>
+                <p-skeleton height="2.75rem"></p-skeleton>
+              </div>
+            } @else if (availability()) {
+              @if (dayOptions().length === 0) {
+                <p-message severity="warn" text="Por ahora no hay cupos disponibles en los próximos días. Vuelve a intentarlo mañana: se abren cupos nuevos cada día hábil."></p-message>
+              } @else {
+                <div class="dbu-fields">
+                  <span class="dbu-label" id="dbu-day-label">Día</span>
+                  <p-selectbutton [options]="dayOptions()" optionLabel="label" optionValue="value" [ngModel]="selectedDate()" (ngModelChange)="chooseDate($event)" [allowEmpty]="false" aria-labelledby="dbu-day-label" styleClass="dbu-days"></p-selectbutton>
+                </div>
+                @if (selectedDate()) {
+                  <div class="dbu-fields">
+                    <span class="dbu-label" id="dbu-time-label">Hora</span>
+                    <p-selectbutton [options]="timeOptions()" optionLabel="label" optionValue="value" optionDisabled="disabled" [(ngModel)]="selectedTime" [allowEmpty]="false" aria-labelledby="dbu-time-label" styleClass="dbu-times"></p-selectbutton>
+                  </div>
+                  <div class="dbu-fields">
+                    <label for="dbu-reason">Cuéntanos brevemente (opcional)</label>
+                    <textarea pTextarea id="dbu-reason" rows="2" [(ngModel)]="reason" maxlength="500" placeholder="Describe en pocas palabras lo que necesitas"></textarea>
+                  </div>
+                }
+              }
+            }
+
+            <div class="dbu-actions">
+              <p-button label="Reservar cita" icon="pi pi-check" iconPos="right" [loading]="busy()" [disabled]="!canReserve()" (onClick)="reserve()"></p-button>
+            </div>
+          </section>
+        }
+
+        @case ('done') {
+          @if (appointment(); as item) {
+            <section class="dbu-panel dbu-done" aria-labelledby="dbu-done-title">
+              <h2 id="dbu-done-title">{{ item.status === 'pending' ? 'Recibimos tu solicitud' : 'Tu cita está reservada' }}</h2>
+              <p class="dbu-code" data-testid="dbu-code">{{ item.code }}</p>
+              <dl class="dbu-summary">
+                <div><dt>Atención</dt><dd>{{ item.type }}</dd></div>
+                <div><dt>Día</dt><dd class="capitalize">{{ prettyDate(item.date) }}</dd></div>
+                <div><dt>Hora</dt><dd>{{ item.time }}</dd></div>
+              </dl>
+              <p class="hint">Te enviamos el comprobante a tu correo. Guarda tu código: con él y tu número de documento puedes ver el estado de tu cita o cancelarla hasta {{ config()!.cancel_hours_before }} horas antes.</p>
+              <div class="dbu-actions">
+                <a routerLink="/citas/estado" class="dbu-link">Ver o cancelar mi cita</a>
+              </div>
+            </section>
+          }
+        }
+      }
+
+      @if (step() !== 'done') {
+        <p class="dbu-footer-link"><a routerLink="/citas/estado" class="dbu-link">¿Ya tienes una cita? Consulta su estado</a></p>
+      }
+    }
+  </p-card>
+</main>

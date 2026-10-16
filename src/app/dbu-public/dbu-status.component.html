@@ -1,0 +1,66 @@
+<main class="dbu-page">
+  <header class="dbu-header">
+    <img src="/img/logo-unadqtc-rojo.png" alt="Escudo de la Universidad Nacional de Arte Diego Quispe Tito del Cusco">
+    <div class="dbu-header__copy">
+      <strong>Universidad Nacional de Arte</strong>
+      <span>Diego Quispe Tito del Cusco</span>
+      <small>Dirección de Bienestar Universitario</small>
+    </div>
+  </header>
+
+  <p-card styleClass="dbu-card">
+    <div class="dbu-title">
+      <span class="eyebrow">BIENESTAR UNIVERSITARIO</span>
+      <h1>Mi cita</h1>
+      <p>Consulta el estado de tu cita o cancélala con tu código y tu número de documento.</p>
+    </div>
+
+    @if (error()) {
+      <p-message severity="error" [text]="error()" styleClass="dbu-message"></p-message>
+    }
+
+    @if (appointment(); as item) {
+      <section class="dbu-panel dbu-done" aria-label="Detalle de la cita">
+        <p class="dbu-code" data-testid="dbu-code">{{ item.code }}</p>
+        <p-tag [value]="label(item.status)" [severity]="severity(item.status)"></p-tag>
+        <dl class="dbu-summary">
+          <div><dt>Atención</dt><dd>{{ item.type }}</dd></div>
+          <div><dt>Día</dt><dd class="capitalize">{{ prettyDate(item.date) }}</dd></div>
+          <div><dt>Hora</dt><dd>{{ item.time }}</dd></div>
+        </dl>
+
+        @if (confirmingCancel()) {
+          <p-message severity="warn" text="¿Seguro que quieres cancelar tu cita? Liberaremos el horario para otro estudiante."></p-message>
+          <div class="dbu-actions">
+            <p-button label="Mantener mi cita" severity="secondary" [outlined]="true" (onClick)="keep()"></p-button>
+            <p-button label="Sí, cancelar" severity="danger" [loading]="busy()" (onClick)="cancel()"></p-button>
+          </div>
+        } @else {
+          <div class="dbu-actions">
+            <p-button label="Consultar otra cita" severity="secondary" [outlined]="true" (onClick)="newSearch()"></p-button>
+            @if (item.can_cancel) {
+              <p-button label="Cancelar mi cita" severity="danger" [outlined]="true" (onClick)="askCancel()"></p-button>
+            }
+          </div>
+          @if (!item.can_cancel && (item.status === 'reserved' || item.status === 'pending')) {
+            <small class="hint">Ya pasó el plazo para cancelar. Si no podrás asistir, comunícate con Bienestar Universitario.</small>
+          }
+        }
+      </section>
+    } @else {
+      <section class="dbu-panel" aria-label="Buscar mi cita">
+        <div class="dbu-fields">
+          <label for="dbu-find-code">Código de la cita</label>
+          <input pInputText id="dbu-find-code" [(ngModel)]="code" maxlength="9" autocomplete="off" placeholder="CT-XXXXXX" (keyup.enter)="search()" />
+          <label for="dbu-find-document">Número de documento</label>
+          <input pInputText id="dbu-find-document" [(ngModel)]="documentNumber" maxlength="20" autocomplete="off" inputmode="numeric" (keyup.enter)="search()" />
+        </div>
+        <div class="dbu-actions">
+          <p-button label="Buscar mi cita" icon="pi pi-search" [loading]="busy()" [disabled]="!canSearch()" (onClick)="search()"></p-button>
+        </div>
+      </section>
+    }
+
+    <p class="dbu-footer-link"><a routerLink="/citas" class="dbu-link">Reservar una cita nueva</a></p>
+  </p-card>
+</main>
