@@ -1,0 +1,37 @@
+:host { display: block; }
+.dbu-page { min-height: 100vh; padding: 1rem; background: var(--p-content-background, #f4f5f7); }
+.dbu-header { display: flex; align-items: center; gap: .75rem; max-width: 44rem; margin: 0 auto 1rem; }
+.dbu-header img { width: 3.25rem; height: auto; }
+.dbu-header__copy { display: flex; flex-direction: column; line-height: 1.25; }
+.dbu-header__copy small { color: var(--p-text-muted-color, #64748b); }
+:host ::ng-deep .dbu-card { max-width: 44rem; margin: 0 auto; border-radius: 12px; }
+.dbu-title h1 { margin: .25rem 0; font-size: 1.5rem; }
+.dbu-title p, .hint { margin: 0 0 .75rem; color: var(--p-text-muted-color, #64748b); font-size: .9rem; }
+.eyebrow { font-size: .75rem; font-weight: 700; letter-spacing: .08em; color: var(--p-primary-color, #d40f1c); }
+.dbu-skeleton { display: grid; gap: .75rem; margin: 1rem 0; }
+:host ::ng-deep .dbu-steps { margin: 1rem 0; }
+:host ::ng-deep .dbu-message { margin: 0 0 1rem; width: 100%; }
+.dbu-panel h2 { margin: 1rem 0 .25rem; font-size: 1.15rem; }
+.dbu-fields { display: grid; gap: .4rem; margin: 1rem 0; }
+.dbu-fields label, .dbu-label { font-size: .9rem; font-weight: 600; }
+.dbu-fields :is(input, textarea) { width: 100%; }
+.dbu-otp { margin: 1rem 0; }
+.dbu-actions { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; margin-top: 1.25rem; }
+:host ::ng-deep .dbu-days, :host ::ng-deep .dbu-times { display: flex; flex-wrap: wrap; gap: .5rem; }
+:host ::ng-deep .dbu-days .p-togglebutton, :host ::ng-deep .dbu-times .p-togglebutton { flex: 1 1 8rem; }
+.dbu-done { text-align: center; }
+.dbu-code { margin: .5rem 0; font-family: var(--p-font-family, monospace); font-size: 2rem; font-weight: 700; letter-spacing: .15em; }
+.dbu-summary { display: grid; gap: .5rem; margin: 1rem 0; text-align: left; }
+.dbu-summary div { display: flex; justify-content: space-between; gap: 1rem; padding: .5rem .75rem; border-radius: 8px; background: var(--p-surface-100, #f1f5f9); }
+.dbu-summary dt { font-weight: 600; }
+.dbu-summary dd { margin: 0; }
+.capitalize { text-transform: capitalize; }
+.dbu-link { color: var(--p-primary-color, #d40f1c); font-weight: 600; text-decoration: none; }
+.dbu-link:hover { text-decoration: underline; }
+.dbu-footer-link { margin: 1.5rem 0 0; text-align: center; font-size: .9rem; }
+
+@media (max-width: 600px) {
+  .dbu-page { padding: .5rem; }
+  .dbu-actions { justify-content: stretch; }
+  .dbu-actions > * { flex: 1 1 100%; }
+}
