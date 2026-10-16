@@ -1,6 +1,35 @@
 @import "primeicons/primeicons.css";
 @import "primeflex/primeflex.css";
 
+/*
+ * Selawik (Microsoft, SIL OFL 1.1) es la versión abierta de Segoe UI con las mismas medidas de letra. Segoe UI va primero en la
+ * pila: en Windows se usa la propia y esto no se descarga; en Mac, Android y Linux se usa Selawik y nada cambia de ancho ni se corta.
+ * Licencia en public/fonts/selawik/OFL.txt.
+ */
+@font-face {
+  font-family: 'Selawik';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/selawik/Selawik-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Selawik';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/selawik/Selawik-Semibold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Selawik';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/selawik/Selawik-Bold.woff2') format('woff2');
+}
+
 body {
   font-family: var(--font-sans);
   font-size: var(--text-body);
@@ -56,7 +85,7 @@ html.app-dark .surface-card {
   --radius-lg: .75rem;
 
   /* Tipografía: única fuente de verdad (catálogo /admin/components y docs/frontend-components.md). */
-  --font-sans: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-sans: 'Segoe UI', 'Selawik', Roboto, 'Helvetica Neue', sans-serif;
 
   --text-title: 1.75rem;
   --text-card-title: 1.125rem;
