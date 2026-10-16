@@ -764,6 +764,15 @@
             </div>
           </div>
 
+          @if (reviewFileError) {
+            <p-message severity="error" styleClass="w-full mb-3" role="alert">
+              <span style="white-space: pre-line">{{ reviewFileError }}</span>
+            </p-message>
+          }
+          @if (reviewValidationProblems.length) {
+            <p-message severity="error" styleClass="w-full mb-3" role="alert">{{ reviewValidationProblems[0] }}</p-message>
+          }
+
           <div class="review-decision-grid">
             <div class="review-decision-section review-decision-section-success">
               <div class="flex flex-column gap-3">
@@ -838,7 +847,7 @@
                   [label]="hasNextReview ? 'Observar y pasar al siguiente' : 'Observar estudiante'"
                   icon="pi pi-flag"
                   severity="warn"
-                  [disabled]="isReviewSubmitting"
+                  [disabled]="isReviewSubmitting || !reviewStudent.photo || !reviewStudent.dni"
                   (onClick)="confirmReviewObservation()"
                 ></p-button>
               </div>
@@ -1094,6 +1103,9 @@
             } @else if (manualRegistrationUsesPreviousPhoto) {
               <small class="text-green-500">Se usara la foto validada de un semestre anterior.</small>
             }
+            @if (manualRegistrationFileProblems.photo) {
+              <small class="form-field__error" role="alert">{{ manualRegistrationFileProblems.photo }}</small>
+            }
           </div>
 
           <div class="manual-preview-panel">
@@ -1137,6 +1149,9 @@
             </button>
             @if (manualRegistrationDniFile) {
               <small class="text-green-500">{{ manualRegistrationDniFile.name }}</small>
+            }
+            @if (manualRegistrationFileProblems.dni) {
+              <small class="form-field__error" role="alert">{{ manualRegistrationFileProblems.dni }}</small>
             }
           </div>
 

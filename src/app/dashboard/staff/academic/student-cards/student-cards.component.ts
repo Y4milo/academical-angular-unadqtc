@@ -41,6 +41,7 @@ import {ProgressBarModule} from 'primeng/progressbar';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {SelectButtonModule} from 'primeng/selectbutton';
+import {MessageModule} from 'primeng/message';
 import {MenuItem} from 'primeng/api';
 
 @Component({
@@ -73,6 +74,7 @@ import {MenuItem} from 'primeng/api';
     IconFieldModule,
     InputIconModule,
     SelectButtonModule,
+    MessageModule,
     ImageModule,
     ToolbarModule,
     StepsModule,
@@ -809,6 +811,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   openReviewDialog(student: StudentCard, queue?: StudentCard[]): void {
     this.reviewQueue = [...(queue ?? this.reviewQueueFor(student))];
     this.reviewStudent = student;
+    this.reviewValidationProblems = [];
+    this.reviewFileError = '';
     this.reviewDialogVisible = true;
     this.selectedFlags = [];
     this.selectedPhotoFlags = [];
@@ -828,6 +832,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
   closeReviewDialog(): void {
     this.reviewDialogVisible = false;
+    this.reviewValidationProblems = [];
+    this.reviewFileError = '';
     this.reviewStudent = undefined;
     this.reviewQueue = [];
     this.selectedFlags = [];
@@ -862,6 +868,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   openManualRegistrationDialog(student: StudentCard): void {
     this.isManualRegistrationEdit = true;
     this.manualRegistrationStep = 0;
+    this.manualRegistrationFilesAttempted = false;
     this.editStudent = student;
     this.editDialogVisible = true;
     this.revokeManualRegistrationPreviews();
@@ -893,6 +900,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.isEditSubmitting = false;
     this.isManualRegistrationEdit = false;
     this.manualRegistrationStep = 0;
+    this.manualRegistrationFilesAttempted = false;
     this.revokeManualRegistrationPreviews();
     this.manualRegistrationPhotoFile = undefined;
     this.manualRegistrationDniFile = undefined;
@@ -912,11 +920,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         control.markAsTouched();
         control.updateValueAndValidity();
       });
-      if (this.editStudentForm.hasError('codeMatchesDocument')) {
-        this.notificationService.warning('Advertencia', 'El código del alumno no puede ser igual al documento.');
-        return;
-      }
-      this.notificationService.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
       return;
     }
 
@@ -1073,21 +1076,32 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         control.updateValueAndValidity();
       });
 
-      if (this.editStudentForm.hasError('codeMatchesDocument')) {
-        this.notificationService.warning('Advertencia', 'El codigo del alumno no puede ser igual al documento.');
-        return;
-      }
-
-      this.notificationService.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
       return;
     }
 
     this.manualRegistrationStep = 1;
   }
 
+  /** Files still missing in step 2 of the manual registration; shown under each upload after a failed submit. */
+  get manualRegistrationFileProblems(): {photo: string; dni: string} {
+    if (!this.manualRegistrationFilesAttempted) {
+      return {photo: '', dni: ''};
+    }
+
+    return {
+      photo: this.manualRegistrationPhotoFile || this.manualRegistrationUsesPreviousPhoto ? '' : 'Suba la foto del carné.',
+      dni: this.manualRegistrationDniFile ? '' : 'Suba el DNI.',
+    };
+  }
+
   previousManualRegistrationStep(): void {
     this.manualRegistrationStep = 0;
+    this.manualRegistrationFilesAttempted = false;
   }
+
+  manualRegistrationFilesAttempted = false;
+  reviewValidationProblems: string[] = [];
+  reviewFileError = '';
 
   async onManualRegistrationFileSelect(event: Event, type: StudentFileType): Promise<void> {
     const input = event.target as HTMLInputElement;
@@ -1151,7 +1165,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
     if ((!this.manualRegistrationPhotoFile && !this.manualRegistrationUsesPreviousPhoto) || !this.manualRegistrationDniFile) {
       this.isEditSubmitting = false;
-      this.notificationService.warning('Archivos requeridos', 'Debe subir la foto o usar una foto validada anterior, y tambien subir el DNI.');
+      this.manualRegistrationFilesAttempted = true;
       return;
     }
 
@@ -1290,10 +1304,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
     if (!student || !file) {
       this.setReviewApprovalCheckbox(type, false);
-      this.notificationService.warning(
-        'Archivo requerido',
-        type === 'photo' ? 'Debe existir una foto antes de aprobarla.' : 'Debe existir un DNI antes de aprobarlo.'
-      );
       return;
     }
 
@@ -1344,19 +1354,14 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
 
     if (!this.canValidateReview()) {
-      this.notificationService.warning(
-        'Validación incompleta',
-        'Debe aprobar la foto SUNEDU y confirmar la identidad con el DNI.'
-      );
       return;
     }
 
     const missingFields = this.getReviewMissingStudentData(student);
+    this.reviewValidationProblems = missingFields.length > 0
+      ? [`Complete o corrija estos campos: ${missingFields.join(', ')}.`]
+      : [];
     if (missingFields.length > 0) {
-      this.notificationService.warning(
-        'Datos incompletos',
-        `Complete o corrija estos campos: ${missingFields.join(', ')}.`
-      );
       return;
     }
 
@@ -1400,10 +1405,6 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     }
 
     if (!student.photo || !student.dni) {
-      this.notificationService.warning(
-        'Archivos requeridos',
-        'Debe existir la foto y el DNI antes de observar al estudiante.'
-      );
       return;
     }
 
@@ -1623,13 +1624,11 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       const requirements = await validatePhotoCardStudent(file);
 
       if (!requirements.validated) {
-        this.notificationService.warning(
-          'Foto invalida',
-          requirements.invalid.map(err => `• ${err.message}`).join('\n')
-        );
+        this.reviewFileError = `Foto inválida:\n${requirements.invalid.map(err => `• ${err.message}`).join('\n')}`;
         return false;
       }
 
+      this.reviewFileError = '';
       return true;
     }
 
@@ -1637,15 +1636,16 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
       || /\.(jpe?g|png|pdf)$/i.test(file.name);
 
     if (!isValidDni) {
-      this.notificationService.warning('Formato inválido', 'El DNI debe estar en formato JPG, PNG o PDF.');
+      this.reviewFileError = 'El DNI debe estar en formato JPG, PNG o PDF.';
       return false;
     }
 
     if (file.size > 20 * 1024 * 1024) {
-      this.notificationService.warning('Archivo muy grande', 'El DNI no debe superar los 20MB.');
+      this.reviewFileError = 'El DNI no debe superar los 20MB.';
       return false;
     }
 
+    this.reviewFileError = '';
     return true;
   }
 

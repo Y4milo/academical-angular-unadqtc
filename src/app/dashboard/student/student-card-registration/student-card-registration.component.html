@@ -282,6 +282,7 @@
                   [showUploadButton]="false"
                   [showCancelButton]="false"
                 ></p-fileUpload>
+                <small *ngIf="photoError" class="p-error mt-2" role="alert" style="white-space: pre-line">{{ photoError }}</small>
               </div>
             </div>
 
@@ -319,6 +320,7 @@
                   [showUploadButton]="false"
                   [showCancelButton]="false"
                 ></p-fileUpload>
+                <small *ngIf="dniError" class="p-error mt-2" role="alert">{{ dniError }}</small>
               </div>
             </div>
 

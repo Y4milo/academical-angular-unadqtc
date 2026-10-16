@@ -156,6 +156,10 @@ export class DegreeRecordsComponent implements OnInit {
   savingManualStudent = false;
   officialStudentCode = '';
   officialCodeReason = '';
+  officialCodeAttempted = false;
+  manualStudentAttempted = false;
+  saveAttempted = false;
+  studentSearchError = '';
   confirmingStudentCode = false;
   saving = false;
   revalidationEnabled = false;
@@ -245,9 +249,9 @@ export class DegreeRecordsComponent implements OnInit {
 
   openCreate(): void {
     if (!this.calls.length) {
-      this.notifications.warning('Sin convocatoria abierta', 'Abra una convocatoria antes de registrar estudiantes aptos.');
       return;
     }
+    this.saveAttempted = false;
     this.editing = null;
     this.selectedStudent = null;
     this.students = [];
@@ -258,6 +262,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.revalidationEnabled = false;
     this.officialStudentCode = '';
     this.officialCodeReason = '';
+    this.officialCodeAttempted = false;
     this.form = this.emptyForm();
     this.form.degree_call_id = this.selectedCallId ?? this.calls[0].id;
     this.form.diploma_issue_type_id = this.issueTypes[0]?.id ?? null;
@@ -270,6 +275,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.selectedStudent = null;
     this.officialStudentCode = '';
     this.officialCodeReason = '';
+    this.officialCodeAttempted = false;
     this.form = {
       degree_call_id: record.degree_call_id,
       academic_profile_id: record.academic_profile_id,
@@ -290,6 +296,7 @@ export class DegreeRecordsComponent implements OnInit {
     };
     this.revalidationEnabled = ['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO', 'CRIT_REV']
       .some(field => !!this.form.sunedu_data[field]);
+    this.saveAttempted = false;
     this.dialogVisible = true;
   }
 
@@ -304,9 +311,10 @@ export class DegreeRecordsComponent implements OnInit {
   findStudents(): void {
     const term = this.studentSearch.trim();
     if (term.length < 2) {
-      this.notifications.warning('Búsqueda incompleta', 'Ingrese al menos dos caracteres.');
+      this.studentSearchError = 'Ingrese al menos dos caracteres.';
       return;
     }
+    this.studentSearchError = '';
     this.searchingStudents = true;
     this.resetIdentityResolution();
     this.service.searchStudents(term).subscribe({
@@ -440,7 +448,6 @@ export class DegreeRecordsComponent implements OnInit {
 
   saveManualAcademicProfile(): void {
     if (this.manualCodeStatus !== 'code_available') {
-      this.notifications.warning('Código sin verificar', 'Verifique el código académico antes de guardar.');
       return;
     }
     this.manualAcademicSaving = true;
@@ -508,10 +515,12 @@ export class DegreeRecordsComponent implements OnInit {
     // already-synced academic profile. GyT search/selection is strictly read-only.
   }
 
+  bulkLimit(action: 'pdf' | 'ethnicity-email'): number {
+    return action === 'pdf' ? 100 : 50;
+  }
+
   startBulkProcess(action: 'pdf' | 'ethnicity-email'): void {
-    const limit = action === 'pdf' ? 100 : 50;
-    if (!this.selectedRecords.length || this.selectedRecords.length > limit) {
-      this.notifications.warning('Selección inválida', `Seleccione entre 1 y ${limit} registros.`);
+    if (!this.selectedRecords.length || this.selectedRecords.length > this.bulkLimit(action)) {
       return;
     }
     this.bulkStarting = true;
@@ -655,6 +664,7 @@ export class DegreeRecordsComponent implements OnInit {
   openManualStudent(): void {
     this.manualStudent = this.emptyManualStudent();
     this.manualStudent.number = this.studentSearch.trim();
+    this.manualStudentAttempted = false;
     this.manualStudentDialogVisible = true;
   }
 
@@ -678,8 +688,8 @@ export class DegreeRecordsComponent implements OnInit {
   }
 
   saveManualStudent(): void {
+    this.manualStudentAttempted = true;
     if (!this.isValidAcademicCode(this.manualStudent.code)) {
-      this.notifications.warning('Código académico inválido', 'Use únicamente letras mayúsculas y números, entre 4 y 20 caracteres.');
       return;
     }
     this.savingManualStudent = true;
@@ -705,8 +715,8 @@ export class DegreeRecordsComponent implements OnInit {
     const studentId = this.editing?.student_id;
     const code = this.officialStudentCode.trim();
     const reason = this.officialCodeReason.trim();
+    this.officialCodeAttempted = true;
     if (!studentId || !this.isValidAcademicCode(code) || reason.length < 10) {
-      this.notifications.warning('Datos incompletos', 'El código debe contener únicamente letras mayúsculas y números, además de un motivo de al menos 10 caracteres.');
       return;
     }
     this.confirmingStudentCode = true;
@@ -775,28 +785,32 @@ export class DegreeRecordsComponent implements OnInit {
     this.form.degree_denomination_id = denominationForDegreeType(this.selectedCareer, this.form.degree_type_id)?.id ?? null;
   }
 
-  save(): void {
-    if (!this.editing && !this.form.degree_call_id) {
-      this.notifications.warning('Datos incompletos', 'Seleccione la convocatoria.');
-      return;
-    }
+  /** Required data still missing in the record form; each entry is shown inside the dialog after a failed save. */
+  get formProblems(): string[] {
+    const problems: string[] = [];
+    const missing = (fields: string[]): boolean => fields.some(field => !this.form.sunedu_data[field]);
+
+    if (!this.editing && !this.form.degree_call_id) problems.push('Seleccione la convocatoria.');
     if (!this.editing && !this.form.academic_profile_id && !this.form.manual_academic_profile_id) {
-      this.notifications.warning('No se puede continuar', 'Seleccione un perfil académico vigente del estudiante.');
-      return;
+      problems.push('Busque y seleccione un estudiante con perfil académico vigente.');
     }
     if (!this.form.degree_type_id || !this.form.diploma_issue_type_id || !this.form.faculty_id || !this.form.professional_career_id
       || !this.form.degree_denomination_id || (this.requiresSpecialty && !this.form.degree_program_id)) {
-      this.notifications.warning('Datos académicos incompletos', 'Seleccione una combinación válida de facultad, carrera, grado y especialidad.');
-      return;
+      problems.push('Seleccione una combinación válida de facultad, carrera, grado, tipo de emisión y especialidad.');
     }
-    if (this.isDuplicateDiploma && ['RESO_NUM_DUP_NUE', 'RESO_FEC_DUP_NUE', 'DIPL_FEC_DUP_NUE']
-      .some(field => !this.form.sunedu_data[field])) {
-      this.notifications.warning('Datos de duplicado incompletos', 'Complete la resolución y las fechas del diploma duplicado.');
-      return;
+    if (this.isDuplicateDiploma && missing(['RESO_NUM_DUP_NUE', 'RESO_FEC_DUP_NUE', 'DIPL_FEC_DUP_NUE'])) {
+      problems.push('Complete la resolución y las fechas del diploma duplicado.');
     }
-    if (this.revalidationEnabled && ['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO', 'CRIT_REV']
-      .some(field => !this.form.sunedu_data[field])) {
-      this.notifications.warning('Datos de revalidación incompletos', 'Complete todos los campos de revalidación.');
+    if (this.revalidationEnabled && missing(['PROC_REV_PAIS', 'PROC_REV_UNIV', 'PROC_REV_GRADO', 'CRIT_REV'])) {
+      problems.push('Complete todos los campos de revalidación.');
+    }
+
+    return problems;
+  }
+
+  save(): void {
+    this.saveAttempted = true;
+    if (this.formProblems.length) {
       return;
     }
     const payload: DegreeRecordPayload = {
