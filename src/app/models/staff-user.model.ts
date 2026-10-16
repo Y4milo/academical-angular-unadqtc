@@ -6,7 +6,7 @@ import {Dictionary} from './dictionary.model';
 export interface StaffUser {
   id: string;
   nick: string;
-  position: string;
+  position: Dictionary;
   role: Dictionary;
   staff: Staff;
   dependency: Dictionary;

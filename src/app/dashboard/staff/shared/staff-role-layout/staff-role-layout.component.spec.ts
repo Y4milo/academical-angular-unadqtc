@@ -36,7 +36,7 @@ describe('StaffRoleLayoutComponent', () => {
         providePrimeNG({theme: {preset: InstitutionalPreset, options: {darkModeSelector: '.app-dark'}}}),
         {provide: UsersService, useValue: {getStaffMenu, logoutStaff}},
         {provide: NotificationService, useValue: {notifyApiData: () => undefined}},
-        {provide: LoginService, useValue: {getUser: () => ({id: '7', position: 'Jefa de RR. HH.', staff: {names: 'Ana Pérez'}}), removeUser}},
+        {provide: LoginService, useValue: {getUser: () => ({id: '7', position: {label: 'Jefa de RR. HH.'}, staff: {names: 'Ana Pérez'}}), removeUser}},
       ],
     }).compileComponents();
 

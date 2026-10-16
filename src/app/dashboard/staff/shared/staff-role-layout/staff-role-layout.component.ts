@@ -71,7 +71,7 @@ export class StaffRoleLayoutComponent implements OnInit {
   }
 
   get userPosition(): string {
-    return this.loginService.getUser()?.position ?? '';
+    return this.loginService.getUser()?.position?.label ?? '';
   }
 
   get userInitials(): string {
