@@ -55,7 +55,7 @@ One definition, in `src/styles.css`, shown live in the catalog (section Escalas)
 | `--weight-strong` | 600 | Active item, button, table header, field label, tag, panel title |
 | `--weight-title` | 700 | Page title and brand |
 
-- Font: `--font-sans` (`Segoe UI`, `Roboto`, `Helvetica Neue`). No web font is loaded.
+- Font: `--font-sans` = `Segoe UI`, then `Selawik`, `Roboto`, `Helvetica Neue`. Selawik is Microsoft's open version of Segoe UI (SIL OFL 1.1) with almost the same letter widths (measured: +0.2 % at 400 and 700, +1.6 % at 600); it is self-hosted in `public/fonts/selawik/` (weights 400, 600, 700 as woff2, about 14 KB each, license in `OFL.txt`) and declared with `@font-face` in `styles.css`. On Windows the real Segoe UI is used and Selawik is never downloaded; on Mac, Android and Linux Selawik keeps widths so nothing is cut. Do not add another font without approval.
 - Sentence case; no all-caps headings.
 - PrimeNG fixes 1rem on buttons and fields; `styles.css` brings every `.p-component` and `.p-inputtext` to `--text-body` (15 px) and table headers to `--text-small`, so what you see matches the catalog.
 - A screen never writes `font-weight: 650` or `font-size: .82rem`. It uses the tokens (`font-weight: var(--weight-strong)`).
