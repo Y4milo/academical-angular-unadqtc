@@ -96,12 +96,12 @@
 .shell__link.is-active {
   background: var(--p-highlight-background);
   color: var(--p-highlight-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .shell__link--group.is-open {
   color: var(--p-text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .shell__link-icon {
