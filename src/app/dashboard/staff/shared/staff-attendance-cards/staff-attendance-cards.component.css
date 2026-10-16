@@ -23,7 +23,7 @@
 
 .attendance-stat-value {
   font-size: 1.6rem;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: 1;
   color: var(--p-text-color);
 }
@@ -34,7 +34,7 @@
 
 .attendance-stat-label,
 .attendance-stat-total {
-  font-size: 0.85rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -62,8 +62,8 @@
 }
 
 .attendance-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
   color: var(--p-text-muted-color);
 }
 
@@ -108,7 +108,7 @@
 
 .day-number {
   font-size: 1.9rem;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: 1;
 }
 
@@ -125,13 +125,13 @@
 
 .day-weekday,
 .day-range {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-strong);
 }
 
 .day-month,
 .day-count {
-  font-size: 0.78rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -152,7 +152,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 0.75rem;
+  font-size: var(--text-label);
   color: var(--p-text-muted-color);
 }
 
@@ -196,21 +196,21 @@
 }
 
 .tick-time {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-strong);
   font-variant-numeric: tabular-nums;
 }
 
 .tick-role {
-  font-size: 0.85rem;
+  font-size: var(--text-small);
 }
 
 .method-tag {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
   text-transform: uppercase;
 }
 
@@ -219,7 +219,7 @@
   flex-direction: column;
   gap: var(--space-1);
   margin-top: var(--space-1);
-  font-size: 0.75rem;
+  font-size: var(--text-label);
 }
 
 .attendance-mark-reason {
@@ -269,10 +269,10 @@
 
 .attendance-empty strong {
   color: var(--p-text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .attendance-empty p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--text-small);
 }
