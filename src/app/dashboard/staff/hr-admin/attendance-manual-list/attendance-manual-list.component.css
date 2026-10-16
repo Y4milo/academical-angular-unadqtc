@@ -16,7 +16,7 @@
 
 .manual-head p {
   margin-top: var(--space-1);
-  font-size: 0.85rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -89,13 +89,13 @@
 
 .manual-kpi-label {
   display: block;
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
 .manual-kpi-value {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .manual-caption {
@@ -103,13 +103,13 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  font-size: 0.85rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
 .manual-sub {
   display: block;
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -121,7 +121,7 @@
 }
 
 .manual-name {
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .manual-nowrap {
@@ -151,12 +151,12 @@
 
 .manual-empty strong {
   color: var(--p-text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .manual-empty p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--text-small);
 }
 
 /* En teléfono la tabla se desplaza dentro de su caja en vez de comprimir las columnas. */
