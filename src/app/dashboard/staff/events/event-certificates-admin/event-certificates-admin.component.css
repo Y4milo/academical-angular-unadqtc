@@ -37,7 +37,7 @@
 
 .eyebrow {
   color: var(--p-primary-color, #64748b);
-  font-size: .8rem;
+  font-size: var(--text-small);
   text-transform: uppercase;
 }
 
@@ -91,7 +91,7 @@ h3 {
 
 .stats span {
   color: var(--p-text-muted-color, #64748b);
-  font-size: .8rem;
+  font-size: var(--text-small);
 }
 
 .actions-card {
@@ -103,7 +103,7 @@ h3 {
   border: 1px solid color-mix(in srgb, var(--p-primary-color, #2563eb) 30%, transparent);
   border-radius: 8px;
   color: var(--p-primary-color, #2563eb);
-  font-size: .9rem;
+  font-size: var(--text-body);
   margin-top: 1rem;
   padding: .75rem;
 }
@@ -129,7 +129,7 @@ h3 {
 
 .participant-name {
   color: var(--p-text-color, #0f172a);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   min-height: 1.25rem;
 }
 
