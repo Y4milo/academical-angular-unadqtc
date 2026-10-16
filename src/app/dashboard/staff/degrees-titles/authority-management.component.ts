@@ -374,7 +374,6 @@ export class AuthorityManagementComponent implements OnChanges {
           this.completeVisible = false;
           this.history = this.history.map(item => (item.id === response.data.id ? response.data : item));
           this.audits = [];
-          this.notifications.success('Datos generales', 'Datos completados. Quedó registrado quién y por qué.');
           this.changed.emit();
         },
         error: error => {
@@ -487,7 +486,6 @@ export class AuthorityManagementComponent implements OnChanges {
           this.mode = 'view';
           this.redesignatePrefill = null;
           this.audits = [];
-          this.notifications.success('Datos generales', 'Autoridad actualizada correctamente.');
           this.load();
           this.changed.emit();
         },

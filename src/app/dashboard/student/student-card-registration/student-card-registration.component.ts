@@ -522,10 +522,6 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: () => {
         this.currentStep = 2;
-        this.notificationService.success(
-          'Registro completo',
-          'Tus datos, foto y DNI fueron registrados correctamente.'
-        );
       },
       error: (e) => {
         if (e?.message === 'api-flow-stopped') {

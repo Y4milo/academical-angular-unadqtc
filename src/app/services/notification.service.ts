@@ -12,6 +12,18 @@ export class NotificationService {
 
   constructor(private messageService: MessageService) {}
 
+  /**
+   * Notifica solo cuando la respuesta no fue exitosa. Se usa cuando el éxito ya se ve en la pantalla
+   * (la fila cambia de lista, el diálogo se cierra, el archivo se reemplaza) y un aviso sería redundante.
+   */
+  notifyApiFailure(responseData: HttpErrorResponse | ApiData<any>, life: number = 3000): void {
+    if (!(responseData instanceof HttpErrorResponse) && responseData?.status === 'success') {
+      return;
+    }
+
+    this.notifyApiData(responseData, life);
+  }
+
   notifyApiData(responseData: HttpErrorResponse | ApiData<any>, life: number = 3000): void {
     let apiData: ApiData<any> | null;
 

@@ -148,7 +148,6 @@ export class BnTracesComponent implements OnInit {
       next: (response) => {
         this.saving = false;
         if (response.status === STATUS.success) {
-          this.notificationService.success('IP bloqueada', ip);
           this.refresh(ip);
         } else {
           this.notificationService.notifyApiData(response);

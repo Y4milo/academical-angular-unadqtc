@@ -184,10 +184,6 @@ export class DegreeCallsComponent implements OnInit {
             return;
           }
 
-          this.notificationService.success(
-            this.editingCall ? 'Convocatoria actualizada' : 'Convocatoria creada',
-            response.payload.message,
-          );
           this.loadCalls(this.editingCall ? this.page : 1);
           return;
         }
@@ -316,7 +312,6 @@ export class DegreeCallsComponent implements OnInit {
       next: response => {
         this.actionId = null;
         if (response.status === STATUS.success) {
-          this.notificationService.success('Estado actualizado', response.payload.message);
           this.loadCalls(this.page);
           return;
         }
