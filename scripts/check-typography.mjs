@@ -8,7 +8,7 @@
  * `font-weight: 650`, `font-weight: bold`, `font-size: .82rem`, `font-size: 14px`...
  *
  * Los archivos antiguos tienen un tope (typography-baseline.json) que solo puede bajar; los archivos nuevos o tocados deben quedar
- * en cero: `node scripts/check-typography.mjs --fix-baseline` baja el tope cuando se limpia uno.
+ * en cero: `node scripts/check-typography.mjs --fix-baseline` baja el tope cuando se limpia uno. Los iconos (`<i ...>`) en html se ignoran.
  */
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -31,7 +31,8 @@ function walk(dir) {
 
 const counts = {};
 for (const file of walk(ROOT)) {
-  const text = readFileSync(file, 'utf8');
+  // Un icono (<i class="pi ..." style="font-size: 4rem">) lleva su propio tamaño: no es texto de la escala.
+  const text = readFileSync(file, 'utf8').replace(/<i[^>]*>/g, '');
   const found = RULES.reduce((total, rule) => total + (text.match(rule.regex)?.length ?? 0), 0);
   if (found > 0) counts[relative(ROOT, file).split('\\').join('/')] = found;
 }
