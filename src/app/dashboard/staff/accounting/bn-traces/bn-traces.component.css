@@ -38,7 +38,7 @@
   border-radius: 8px;
   color: var(--text-color-secondary);
   display: flex;
-  font-size: .85rem;
+  font-size: var(--text-small);
   gap: var(--space-2, .5rem);
   line-height: 1.4;
   margin-bottom: 1rem;
@@ -60,8 +60,8 @@
   align-items: center;
   color: var(--text-color-secondary);
   display: inline-flex;
-  font-size: .8rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
   gap: var(--space-2, .5rem);
 }
 
@@ -101,7 +101,7 @@
 
 .count {
   color: var(--text-color-secondary);
-  font-size: .85rem;
+  font-size: var(--text-small);
 }
 
 .tag-content {
@@ -164,11 +164,11 @@
 .ip-address,
 .mono {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: .85rem;
+  font-size: var(--text-small);
 }
 
 .ip-address.big {
-  font-size: 1.05rem;
+  font-size: var(--text-body);
 }
 
 .ip-total {
@@ -253,8 +253,8 @@
 .tag-new,
 .tag-manual {
   border-radius: 999px;
-  font-size: .65rem;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
   padding: 0 .4rem;
 }
 
@@ -297,7 +297,7 @@
 .timeline .time {
   color: var(--text-color-secondary);
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: .75rem;
+  font-size: var(--text-label);
 }
 
 .timeline .dot {
@@ -329,7 +329,7 @@
 }
 
 .event .source {
-  font-size: .7rem;
+  font-size: var(--text-label);
 }
 
 @media (max-width: 760px) {

@@ -32,7 +32,7 @@
 
 .mono {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: .8rem;
+  font-size: var(--text-small);
 }
 
 .icon-label-button {
@@ -72,8 +72,8 @@
   background: color-mix(in srgb, var(--p-red-500, #ef4444) 18%, transparent);
   border-radius: 999px;
   color: var(--p-red-500, #ef4444);
-  font-size: .72rem;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
   padding: 0 .45rem;
 }
 
@@ -81,7 +81,7 @@
   color: var(--text-color-secondary);
   display: flex;
   flex-wrap: wrap;
-  font-size: .8rem;
+  font-size: var(--text-small);
   gap: .4rem 1rem;
   list-style: none;
   margin: 0;
@@ -134,8 +134,8 @@
 .row.head {
   background: var(--surface-ground);
   color: var(--text-color-secondary);
-  font-size: .78rem;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
 }
 
 .row.day {
@@ -174,7 +174,7 @@
 
 .cell .cell-text {
   color: var(--text-color);
-  font-size: .85rem;
+  font-size: var(--text-small);
 }
 
 .cell .cell-type {
@@ -197,7 +197,7 @@
   background: var(--surface-ground);
   border-radius: 8px;
   color: var(--text-color-secondary);
-  font-size: .75rem;
+  font-size: var(--text-label);
   padding: .15rem .5rem;
   white-space: nowrap;
 }
@@ -278,7 +278,7 @@
 
 .life {
   color: var(--text-color-secondary);
-  font-size: .85rem;
+  font-size: var(--text-small);
   margin: 0;
 }
 
@@ -300,7 +300,7 @@
   }
 
   .cell .cell-text {
-    font-size: .78rem;
+    font-size: var(--text-small);
   }
 }
 
@@ -361,7 +361,7 @@
   .cell .cell-type {
     color: var(--text-color-secondary);
     display: inline;
-    font-size: .75rem;
+    font-size: var(--text-label);
     min-width: 2.6rem;
   }
 
