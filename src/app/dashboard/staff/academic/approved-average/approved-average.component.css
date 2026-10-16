@@ -25,7 +25,7 @@
 .approved-average-file-name {
   max-width: min(54vw, 24rem);
   color: var(--text-color-secondary);
-  font-size: 0.9rem;
+  font-size: var(--text-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -44,7 +44,7 @@
   align-items: center;
   gap: 0.45rem;
   color: var(--text-color-secondary);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 
 :host ::ng-deep .approved-average-table .p-datatable-thead > tr > th {
@@ -64,7 +64,7 @@
 }
 
 .approved-average-identifier {
-  font-weight: 800;
+  font-weight: var(--weight-strong);
 }
 
 .approved-average-student,
@@ -77,7 +77,7 @@
 .approved-average-student span,
 .approved-average-status small {
   color: var(--text-color-secondary);
-  font-size: 0.82rem;
+  font-size: var(--text-small);
 }
 
 .approved-average-empty {

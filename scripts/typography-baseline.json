@@ -1,7 +1,6 @@
 {
   "core/components/test-mode-banner.component.ts": 1,
-  "dashboard/staff/academic/approved-average/approved-average.component.css": 4,
-  "dashboard/staff/academic/student-cards/student-cards.component.css": 50,
+  "dashboard/staff/academic/student-cards/student-cards.component.css": 6,
   "dashboard/staff/accounting/bn-config/bn-config.component.css": 6,
   "dashboard/staff/accounting/bn-files/bn-files.component.css": 12,
   "dashboard/staff/accounting/bn-incidents/bn-incidents.component.css": 22,

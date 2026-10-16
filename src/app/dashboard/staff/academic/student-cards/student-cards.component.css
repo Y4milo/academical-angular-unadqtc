@@ -37,7 +37,7 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--p-orange-600);
-  font-size: 0.9rem;
+  font-size: var(--text-body);
 }
 
 :host ::ng-deep .semester-read-only .p-button,
@@ -118,8 +118,8 @@
 
 .student-file-status-label {
   color: var(--text-color);
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
   white-space: nowrap;
 }
 
@@ -251,8 +251,8 @@
   color: #4ade80;
   background: transparent;
   border-color: #22c55e;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: var(--text-body);
+  font-weight: var(--weight-strong);
 }
 
 .review-sunedu-button:hover {
@@ -268,7 +268,7 @@
 .student-meta-label,
 .student-data-warning .student-meta-label {
   color: var(--p-gray-400);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 
 .student-meta-row {
@@ -335,7 +335,7 @@
 
 .student-no-observations {
   color: var(--p-gray-500);
-  font-size: 0.85rem;
+  font-size: var(--text-small);
 }
 
 .student-unregistered-mark {
@@ -346,8 +346,8 @@
   border-radius: 6px;
   color: var(--p-red-300);
   background: color-mix(in srgb, var(--p-red-500) 12%, transparent);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
   line-height: 1.2;
   text-transform: uppercase;
 }
@@ -393,7 +393,7 @@
   color: var(--text-color);
   background: color-mix(in srgb, var(--surface-card) 78%, #000000);
   font-size: clamp(1.30rem, 2.5vw, 1.8rem);
-  font-weight: 800;
+  font-weight: var(--weight-strong);
   line-height: 1;
   text-transform: uppercase;
   overflow-wrap: anywhere;
@@ -427,8 +427,8 @@
   padding: 0;
   color: var(--p-gray-400);
   background: transparent;
-  font-size: 0.82rem;
-  font-weight: 300;
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
   line-height: 1.2;
   text-align: right;
 }
@@ -439,19 +439,19 @@
   padding: 0;
   color: var(--text-color);
   background: transparent;
-  font-size: 1rem;
-  font-weight: 300;
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
   line-height: 1.2;
 }
 
 .review-data-value-danger {
   color: var(--p-red-500);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 
 .student-data-warning {
   color: var(--p-yellow-600) !important;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 
 .review-decision-grid {
@@ -594,12 +594,12 @@
 .sc-title {
   margin: 0;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .sc-subtitle {
   margin: var(--space-1) 0 0;
-  font-size: 0.85rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -650,19 +650,19 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
 .sc-kpi-value {
   font-size: 1.6rem;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: 1.2;
 }
 
 .sc-kpi-hint {
   min-height: 1rem;
-  font-size: 0.78rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -734,8 +734,8 @@
 }
 
 .sc-review-name {
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: var(--text-card-title);
+  font-weight: var(--weight-strong);
 }
 
 .sc-review-meta {
@@ -743,13 +743,13 @@
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-4);
   margin-top: var(--space-1);
-  font-size: 0.85rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
 .sc-review-meta b {
   color: var(--p-text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .sc-review-nav {
@@ -760,7 +760,7 @@
 
 .sc-review-count {
   margin-right: var(--space-2);
-  font-size: 0.85rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -809,8 +809,8 @@
 
 .sc-student-name {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-strong);
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -819,7 +819,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -831,14 +831,14 @@
 
 .sc-student-meta b {
   color: var(--p-text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .sc-student-cell {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -863,7 +863,7 @@
 
 :host ::ng-deep .sc-manual-tag {
   align-self: flex-start;
-  font-size: 0.7rem;
+  font-size: var(--text-label);
 }
 
 .sc-observations {
@@ -875,8 +875,8 @@
 }
 
 .sc-observations-title {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
   color: var(--p-orange-500);
 }
 
@@ -889,7 +889,7 @@
 
 .sc-observations-label {
   min-width: 2rem;
-  font-size: 0.78rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -916,12 +916,12 @@
 
 .sc-empty strong {
   color: var(--p-text-color);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 .sc-empty p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--text-small);
 }
 
 :host ::ng-deep .sc-paginator {
@@ -939,7 +939,7 @@
 
 .sc-compact-meta {
   flex-basis: 100%;
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -985,7 +985,7 @@
 }
 
 .sc-validated-count span {
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -1071,7 +1071,7 @@
 }
 
 .sc-detail-fig figcaption {
-  font-size: 0.78rem;
+  font-size: var(--text-small);
   color: var(--p-text-muted-color);
 }
 
@@ -1100,24 +1100,24 @@
   border-radius: var(--radius-md);
   background: var(--p-content-hover-background);
   color: var(--p-text-muted-color);
-  font-size: 0.8rem;
+  font-size: var(--text-small);
 }
 
 .sc-detail-data {
   display: grid;
   gap: var(--space-2);
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--text-small);
 }
 
 .sc-detail-data dt {
   color: var(--p-text-muted-color);
-  font-size: 0.78rem;
+  font-size: var(--text-small);
 }
 
 .sc-detail-data dd {
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   overflow-wrap: anywhere;
 }
 
