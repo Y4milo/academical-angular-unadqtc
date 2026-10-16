@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
 import { InstitutionalPreset } from '../../../../app.config';
-import { DBU_STATUS_VIEW, STATE_SEVERITY, THEME_TOKENS } from '../../../../shared/ui/ui-tokens';
+import { DBU_STATUS_VIEW, STATE_SEVERITY, THEME_TOKENS, TYPE_SCALE, WEIGHT_SCALE } from '../../../../shared/ui/ui-tokens';
 import { ComponentsCatalogComponent } from './components-catalog.component';
 
 describe('ComponentsCatalogComponent', () => {
@@ -56,6 +56,16 @@ describe('ComponentsCatalogComponent', () => {
     // Si un token no existe o no cambia con el tema, la pantalla que lo use queda mitad clara en uno de los dos temas.
     const broken = fixture.componentInstance.tokenRows().filter(row => !row.ok).map(row => row.token.name);
     expect(broken).toEqual([]);
+  });
+
+  it('reads every typography token from styles.css with the three allowed weights', () => {
+    const fixture = TestBed.createComponent(ComponentsCatalogComponent);
+    fixture.detectChanges();
+
+    // Un token ausente o con otro peso significa que la escala del menú y la de PrimeNG ya no coinciden.
+    const rows = [...fixture.componentInstance.typeRows(), ...fixture.componentInstance.weightRows()];
+    expect(rows.filter(row => !row.ok).map(row => row.token.token)).toEqual([]);
+    expect(rows.length).toBe(TYPE_SCALE.length + WEIGHT_SCALE.length);
   });
 
   it('gives each Bienestar status a color of the shared vocabulary', () => {

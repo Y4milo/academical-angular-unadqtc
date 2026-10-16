@@ -50,14 +50,30 @@ export const BREAKPOINTS = [
   { name: 'Escritorio', max: 1200 },
 ] as const;
 
-export const TYPE_SCALE = [
-  { name: 'Leyenda', rem: 0.75 },
-  { name: 'Metadato', rem: 0.8 },
-  { name: 'Denso (tablas, listas)', rem: 0.85 },
-  { name: 'Cuerpo', rem: 1 },
-  { name: 'Título de panel', rem: 1.125 },
-  { name: 'Título de página', rem: 1.5 },
-] as const;
+export interface TypographyToken {
+  name: string;
+  /** CSS custom property declared once in `src/styles.css`. */
+  token: string;
+  use: string;
+  /** Declared value the token must have (weights only). */
+  expected?: string;
+}
+
+/** Text sizes. Same scale as the sidebar menu; a screen never writes its own `font-size`. */
+export const TYPE_SCALE: readonly TypographyToken[] = [
+  { name: 'Título de página', token: '--text-title', use: 'h1 y encabezado de cada pantalla' },
+  { name: 'Título de panel', token: '--text-card-title', use: 'h2, h3, título de tarjeta y de diálogo' },
+  { name: 'Cuerpo', token: '--text-body', use: 'Texto, campos, elementos del menú y filas de tabla' },
+  { name: 'Ayuda y etiqueta de campo', token: '--text-small', use: 'Metadatos, ayudas, errores, tags y cabeceras de tabla' },
+  { name: 'Leyenda', token: '--text-label', use: 'Subtítulo de la marca y notas mínimas' },
+];
+
+/** Only three weights: regular text, strong (active, button, header, label, tag) and title (page title, brand). */
+export const WEIGHT_SCALE: readonly TypographyToken[] = [
+  { name: 'Texto', token: '--weight-regular', use: 'Todo el texto normal', expected: '400' },
+  { name: 'Énfasis', token: '--weight-strong', use: 'Elemento activo, botón, cabecera de tabla, etiqueta, tag y títulos de panel', expected: '600' },
+  { name: 'Título', token: '--weight-title', use: 'Título de página y marca', expected: '700' },
+];
 
 export type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
 

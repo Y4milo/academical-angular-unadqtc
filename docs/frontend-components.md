@@ -17,6 +17,7 @@ The page **Catálogo de componentes** (`/admin/components`, `src/app/dashboard/s
 |---|---|
 | `components-catalog.component.spec.ts` | A catalog section disappearing; a theme token that is missing or does not change between light and dark |
 | `npm run check:theme` (`scripts/check-theme-tokens.mjs`) | CSS or templates using the old PrimeNG names (`--surface-card`, `--surface-border`, `--text-color-secondary`...) with a hard light fallback, or fixed palettes (`--p-surface-N`, `--p-primary-N`) as backgrounds or text. Old files have a cap in `scripts/theme-tokens-baseline.json` that can only go down; new or touched files must be at zero |
+| `npm run check:typography` (`scripts/check-typography.mjs`) | CSS or templates writing their own `font-weight` or `font-size` instead of the tokens. Old files have a cap in `scripts/typography-baseline.json` that can only go down; new or touched files must be at zero |
 | Component specs with `autoDetectChanges` + `whenStable` | A screen that never settles (for example a value that is a new object on every change detection) |
 
 ## Light and dark theme
@@ -39,9 +40,30 @@ Old screens (bank, attendance) still use chains like `var(--surface-card, var(--
 
 To check a screen: toggle the theme with `document.documentElement.classList.toggle('app-dark', true|false)` in the browser, read `getComputedStyle(el).backgroundColor` and `.color` of each block in both themes, and look at cards, rows, highlighted cells, tags, messages, dialogs and overlays (`appendTo="body"` panels live outside the card).
 
+## Typography
+
+One definition, in `src/styles.css`, shown live in the catalog (section Escalas) and listed in `src/app/shared/ui/ui-tokens.ts`. It is the scale of the sidebar menu.
+
+| Token | Value | Use |
+|---|---|---|
+| `--text-title` | 1.75 rem | `h1` and the heading of each screen |
+| `--text-card-title` | 1.125 rem | `h2`, `h3`, card and dialog titles |
+| `--text-body` | 0.9375 rem | Text, fields, menu items, table rows |
+| `--text-small` | 0.8125 rem | Help, errors, tags, table headers, field labels |
+| `--text-label` | 0.75 rem | Brand subtitle, minimal notes |
+| `--weight-regular` | 400 | All normal text |
+| `--weight-strong` | 600 | Active item, button, table header, field label, tag, panel title |
+| `--weight-title` | 700 | Page title and brand |
+
+- Font: `--font-sans` (`Segoe UI`, `Roboto`, `Helvetica Neue`). No web font is loaded.
+- Sentence case; no all-caps headings.
+- A screen never writes `font-weight: 650` or `font-size: .82rem`. It uses the tokens (`font-weight: var(--weight-strong)`).
+- PrimeNG components take the scale from `InstitutionalPreset` (`typography` in `app.config.ts`): button, tag, card, dialog, panel, tabs, data table and message. Aura's own defaults (button 500, tag 700, card 500 at 1.25 rem) are overridden there, once. Do not restyle them per screen.
+- Changing a token means editing `styles.css` (and the expected value in `ui-tokens.ts` for weights); the catalog spec fails if they disagree.
+
 ## Sizes and spacing
 
-- Spacing: `--space-1..6` (4, 8, 12, 16, 24, 32 px). Text: 0.75, 0.8, 0.85, 1, 1.125 and 1.5 rem. Weights 400 and 600.
+- Spacing: `--space-1..6` (4, 8, 12, 16, 24, 32 px). Text and weights: see Typography below.
 - Breakpoints: 640 px (phone), 900 px (tablet), 1200 px (desktop). Phone first.
 - Check every screen at **375, 768 and 1440 px, in both themes**, with no horizontal page scroll (`scrollWidth === innerWidth`) and nothing outside its card.
 - A container separates its children with one `gap`. A form row is `display: flex; flex-wrap: wrap`; never `flex-direction: column` together with a `flex-basis` in `rem` (the basis becomes a height and leaves a huge empty block on phones).
