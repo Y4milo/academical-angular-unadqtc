@@ -226,6 +226,10 @@
       </div>
     </header>
 
+    @if (semesterNotice; as notice) {
+      <p-message [severity]="notice.severity" styleClass="w-full mb-3" [text]="notice.text" />
+    }
+
     <div class="sc-kpis" role="tablist" aria-label="Estado de las fotos del carné">
       @for (kpi of kpiCards; track kpi.index) {
         <p-card

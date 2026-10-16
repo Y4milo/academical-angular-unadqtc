@@ -118,7 +118,7 @@ export class EventCertificatesAdminComponent implements OnInit, OnDestroy {
 
         try {
           const parsed = JSON.parse(await blob.text());
-          this.notificationService.warning(
+          this.notificationService.error(
             parsed?.payload?.title ?? 'No se pudo generar la vista previa',
             parsed?.payload?.message ?? 'Revise los datos del evento.'
           );
@@ -151,7 +151,7 @@ export class EventCertificatesAdminComponent implements OnInit, OnDestroy {
 
     if (job.status === 'failed') {
       this.downloading = false;
-      this.notificationService.warning(
+      this.notificationService.error(
         'No se pudo generar el ZIP',
         job.message ?? 'Revise los datos del evento.'
       );
@@ -195,7 +195,7 @@ export class EventCertificatesAdminComponent implements OnInit, OnDestroy {
 
         try {
           const parsed = JSON.parse(await blob.text());
-          this.notificationService.warning(
+          this.notificationService.error(
             parsed?.payload?.title ?? 'No se pudo descargar el ZIP',
             parsed?.payload?.message ?? 'Revise el estado de la generacion.'
           );

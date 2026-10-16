@@ -397,7 +397,7 @@ export class BnIncidentsComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
 
     if (!row.has_local_file) {
-      this.notificationService.warning('Archivo no disponible', 'No hay un archivo guardado para descargar.');
+      this.notificationService.error('Archivo no disponible', 'No hay un archivo guardado para descargar.');
       return;
     }
 
