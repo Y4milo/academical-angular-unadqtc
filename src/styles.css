@@ -102,6 +102,20 @@ b {
   font-weight: var(--weight-strong);
 }
 
+/*
+ * PrimeNG fija 1rem (16 px) en botones y campos mientras el cuerpo de la app es --text-body (15 px). Se igualan con
+ * `html` delante para ganar a los estilos que PrimeNG inyecta en tiempo de ejecución. Las cabeceras de tabla usan el
+ * tamaño de apoyo, como en el catálogo.
+ */
+html .p-component,
+html .p-inputtext {
+  font-size: var(--text-body);
+}
+
+html .p-datatable .p-datatable-thead > tr > th {
+  font-size: var(--text-small);
+}
+
 /* ======================================================================================
  * Estándar de formularios (skill ui-design-consistency §5). Todo formulario nuevo usa estas
  * clases o el componente <app-form-field>; así etiquetas, campos, ayudas, errores y barras de

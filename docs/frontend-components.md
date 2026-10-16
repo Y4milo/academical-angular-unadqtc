@@ -57,6 +57,7 @@ One definition, in `src/styles.css`, shown live in the catalog (section Escalas)
 
 - Font: `--font-sans` (`Segoe UI`, `Roboto`, `Helvetica Neue`). No web font is loaded.
 - Sentence case; no all-caps headings.
+- PrimeNG fixes 1rem on buttons and fields; `styles.css` brings every `.p-component` and `.p-inputtext` to `--text-body` (15 px) and table headers to `--text-small`, so what you see matches the catalog.
 - A screen never writes `font-weight: 650` or `font-size: .82rem`. It uses the tokens (`font-weight: var(--weight-strong)`).
 - PrimeNG components take the scale from `InstitutionalPreset` (`typography` in `app.config.ts`): button, tag, card, dialog, panel, tabs, data table and message. Aura's own defaults (button 500, tag 700, card 500 at 1.25 rem) are overridden there, once. Do not restyle them per screen.
 - Changing a token means editing `styles.css` (and the expected value in `ui-tokens.ts` for weights); the catalog spec fails if they disagree.
