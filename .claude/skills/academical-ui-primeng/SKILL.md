@@ -7,6 +7,10 @@ description: "Reglas de UI del front Academical (Angular 19 + PrimeNG 19 Aura): 
 
 Front: Angular 19.2 standalone, PrimeNG 19 con tema Aura (`@primeng/themes`), primeflex, iconos Lucide. UI en español, código en inglés.
 
+## Fuente de verdad
+
+El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-catalog`) y `docs/frontend-components.md` son la fuente de verdad de la interfaz, como en Core y Events: se leen antes de tocar una pantalla y todo patrón nuevo o cambiado se agrega al catálogo, a ese documento y a este skill en el mismo cambio. Lo hacen cumplir `components-catalog.component.spec.ts` (tokens de tema que existen y cambian en claro y oscuro), `npm run check:theme` (sin colores que no siguen el tema, tope que solo baja) y las pruebas de pantalla con `autoDetectChanges` + `whenStable`.
+
 ## Regla principal
 
 **Siempre un componente de PrimeNG si existe uno que sirva.** Solo se escribe HTML/CSS propio para la disposición (grid, espaciados) y para lo que PrimeNG no cubre. No se reimplementan a mano botones, chips, etiquetas, líneas de tiempo, paginadores, selects, avisos ni avatares.
@@ -92,12 +96,15 @@ Referencia en `dashboard/staff/accounting/{bn-incidents,bn-files,bn-traces,bn-co
 - **Detalle (`p-drawer`) a la derecha** con `styleClass` y ancho `34rem` (`100vw` en teléfono); reutiliza endpoints de descarga y vista previa por id de transacción.
 - **Origen con color:** azul = el propio sistema, verde = autorizado, verde punteado = probable, naranja = desconocida (roja en trazabilidad), gris/ámbar = sin verificar; siempre con texto o ícono además del color.
 - **Íconos de estado** con Lucide registrados en `core/utils/lucide-icon.util.ts` (`circle-check`, `clock`, `circle-x`, `triangle-alert`, `minus`, `shield-*`, `plug-zap`, `key-round`, `coffee`, `wrench`, `terminal`, `globe`, `route`, `sliders-horizontal`); al usar uno nuevo, importarlo y registrarlo allí.
+- **Enlaces agrupados por módulo:** todo lo de un módulo cuelga de su propia ruta, también las páginas públicas (Bienestar: `/dbu/citas`, `/dbu/citas/estado`, `/dbu/config`; copia de admin `/admin/dbu/...`). Las rutas se declaran una vez en `PATHS` y los enlaces de las plantillas salen de ahí (`readonly links`); si se renombra una, la antigua queda como `redirectTo`.
 - **Rutas:** agregar la ruta en `app-paths.constants.ts` y `app.routes.ts` (admin y, si aplica, accounting) y la entrada de menú en el backend (`MenuRoutes`/`RoleMenus`).
 - **Sesión:** el usuario vive en `sessionStorage` (por pestaña); abrir una URL en otra pestaña manda al login con `returnUrl`, que vuelve a la página pedida. Para revisar en el navegador integrado sin perder la sesión, navegar con `history.pushState` + `popstate`; `ng.getComponent` sirve en desarrollo. Si `ng serve` deja de reaccionar a los cambios, reiniciarlo (`npm start`).
 
 ## Verificación
 
 Antes de dar un cambio de UI por terminado: probarlo en el navegador en tema claro y oscuro (quitando o poniendo la clase `app-dark` en `<html>`; emular `prefers-color-scheme` no sirve), a ancho de escritorio y de móvil (375 px), con datos reales o de prueba, y revisar la consola sin errores.
+
+Medidas de pantalla: revisar siempre a 375, 768 y 1440 px, en claro y oscuro, con `scrollWidth === innerWidth` y nada fuera de su tarjeta. En teléfono (≤ 640 px): paddings menores, filas de formulario con `flex-wrap` (nunca `flex-direction: column` con un `flex-basis` en rem: el basis se vuelve alto y deja un bloque vacío enorme), menú de secciones en una fila que se desliza, esqueleto de carga corto y tablas de texto como tarjetas etiqueta/valor (`data-label`).
 
 Comprobación de tema, paso a paso (con `javascript_tool` en el navegador integrado):
 1. Poner el tema: `document.documentElement.classList.toggle('app-dark', true)` (o `false`).

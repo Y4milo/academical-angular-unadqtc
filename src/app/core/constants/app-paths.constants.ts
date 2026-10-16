@@ -22,6 +22,10 @@ export const PATHS = {
         link: `admin/dbu/config`,
       },
     },
+    components: {
+      path: `components`,
+      link: `admin/components`,
+    },
     accounting: {
       bank: {
         incidents: {
@@ -151,6 +155,15 @@ export const PATHS = {
   },
   dbu: {
     path: `dbu`,
+    // Páginas públicas del alumno (sin cuenta): reservar y consultar o cancelar una cita.
+    booking: {
+      path:  `citas`,
+      link:   `dbu/citas`,
+    },
+    status: {
+      path:  `citas/estado`,
+      link:   `dbu/citas/estado`,
+    },
     config: {
       path:  `config`,
       link:   `dbu/config`,

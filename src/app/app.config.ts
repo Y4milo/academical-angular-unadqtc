@@ -10,7 +10,7 @@ import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {credentialsInterceptor} from './interceptors/credentials.interceptor';
 import {sessionExpiredInterceptor} from './interceptors/session-expired.interceptor';
 
-const InstitutionalPreset = definePreset(Aura, {
+export const InstitutionalPreset = definePreset(Aura, {
   semantic: {
     primary: {
       50: '#fff1f2',

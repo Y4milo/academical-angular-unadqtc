@@ -1,0 +1,146 @@
+<div class="catalog">
+  <header class="catalog__header">
+    <h2>Catálogo de componentes</h2>
+    <p>Fuente de verdad de la interfaz de Academical. Revísalo antes de crear una pantalla y agrega aquí todo patrón nuevo, en el mismo cambio.</p>
+  </header>
+
+  <p-tabs value="theme" [scrollable]="true">
+    <p-tablist>
+      <p-tab value="theme">Tema claro y oscuro</p-tab>
+      <p-tab value="scales">Escalas</p-tab>
+      <p-tab value="components">Componentes</p-tab>
+      <p-tab value="states">Estados</p-tab>
+      <p-tab value="patterns">Patrones</p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <p-tabpanel value="theme">
+        <p class="catalog__lead">Cada token se lee en el tema claro y en el oscuro. Un token que no existe, o que debería cambiar y no cambia, deja la pantalla a medias en uno de los dos temas.</p>
+        <div class="catalog__scroll">
+          <table class="catalog__table" data-testid="token-table">
+            <thead><tr><th>Token</th><th>Para qué</th><th>Claro</th><th>Oscuro</th><th>Estado</th></tr></thead>
+            <tbody>
+              @for (row of tokenRows(); track row.token.name) {
+                <tr [attr.data-testid]="'token-' + row.token.name">
+                  <td><code>{{ row.token.name }}</code></td>
+                  <td>{{ row.token.use }}</td>
+                  <td><span class="swatch" [style.background]="row.light"></span> <code>{{ row.light || '—' }}</code></td>
+                  <td><span class="swatch" [style.background]="row.dark"></span> <code>{{ row.dark || '—' }}</code></td>
+                  <td>
+                    @if (row.ok) {
+                      <p-tag [value]="row.token.followsTheme ? 'Cambia con el tema' : 'Paleta fija'" [severity]="severity.ok"></p-tag>
+                    } @else {
+                      <p-tag [value]="row.defined ? 'No cambia' : 'No existe'" [severity]="severity.failed"></p-tag>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <h3>No usar</h3>
+        <p class="catalog__lead">Estos nombres no existen con PrimeNG 19 (o son paletas fijas): <code>var(--surface-card, &#35;fff)</code> siempre cae al fallback claro. El script <code>npm run check:theme</code> lo impide en el CSS nuevo.</p>
+        <ul class="catalog__list">
+          @for (name of forbidden; track name) { <li><code>{{ name }}</code></li> }
+        </ul>
+      </p-tabpanel>
+
+      <p-tabpanel value="scales">
+        <h3>Espaciado</h3>
+        <div class="catalog__bars">
+          @for (item of space; track item.token) {
+            <div class="catalog__bar"><code>{{ item.token }}</code><span class="catalog__bar-fill" [style.width.px]="item.px"></span><small>{{ item.px }} px</small></div>
+          }
+        </div>
+        <h3>Texto</h3>
+        <ul class="catalog__list">
+          @for (item of typeScale; track item.name) { <li [style.font-size.rem]="item.rem">{{ item.name }} · {{ item.rem }} rem</li> }
+        </ul>
+        <h3>Puntos de quiebre</h3>
+        <p class="catalog__lead">Base para teléfono. No se inventan otros anchos.</p>
+        <ul class="catalog__list">
+          @for (item of breakpoints; track item.name) { <li>{{ item.name }}: hasta {{ item.max }} px</li> }
+        </ul>
+        <h3>Reglas de pantalla</h3>
+        <ul class="catalog__list">
+          <li>Sin desplazamiento horizontal de la página a 375 px, 768 px y 1440 px.</li>
+          <li>Una fila de formulario con <code>flex-wrap</code>; nunca <code>flex-direction: column</code> con un <code>flex-basis</code> en rem (se convierte en alto).</li>
+          <li>Menú de secciones: lista vertical en escritorio y una fila que se desliza bajo 900 px.</li>
+          <li>Tablas de texto: tarjetas etiqueta/valor bajo 640 px (<code>styleClass="dbu-stack"</code> como ejemplo).</li>
+          <li>El esqueleto de carga no es más alto que lo que reemplaza en teléfono.</li>
+        </ul>
+      </p-tabpanel>
+
+      <p-tabpanel value="components">
+        <h3>Botones</h3>
+        <div class="catalog__row">
+          <p-button label="Guardar cambios"></p-button>
+          <p-button label="Descartar" severity="secondary" [outlined]="true"></p-button>
+          <p-button label="Cancelar mi cita" severity="danger" [outlined]="true"></p-button>
+          <p-button label="Cargando" [loading]="true"></p-button>
+          <p-button label="Deshabilitado" [disabled]="true"></p-button>
+        </div>
+        <p class="catalog__lead">Un solo botón primario por pantalla o diálogo.</p>
+
+        <h3>Selección y campos</h3>
+        <div class="catalog__row">
+          <p-selectbutton [options]="weekdays" optionLabel="label" optionValue="value" [multiple]="true" [(ngModel)]="selectedDays"></p-selectbutton>
+          <p-toggleswitch [(ngModel)]="switchOn" aria-label="Ejemplo de interruptor"></p-toggleswitch>
+          <p-inputnumber [(ngModel)]="minutes" [min]="15" [max]="240" [showButtons]="true" suffix=" min"></p-inputnumber>
+        </div>
+
+        <h3>Avisos</h3>
+        <div class="catalog__stack">
+          <p-message severity="info" text="Los cambios aplican hacia adelante; las citas ya reservadas no se mueven."></p-message>
+          <p-message severity="warn" text="2027 no tiene fechas cargadas en el calendario."></p-message>
+          <p-message severity="error" text="No se pudo cargar la configuración."></p-message>
+        </div>
+      </p-tabpanel>
+
+      <p-tabpanel value="states">
+        <h3>Vocabulario de estados</h3>
+        <p class="catalog__lead">El mismo estado lleva el mismo color en todas las pantallas. Nunca un <code>--p-green-*</code> a mano para algo que ya tiene etiqueta.</p>
+        <div class="catalog__row">
+          @for (item of states; track item.kind) { <p-tag [value]="item.kind" [severity]="item.severity"></p-tag> }
+        </div>
+        <h3>Estados de una cita de Bienestar</h3>
+        <div class="catalog__row">
+          @for (item of dbuStatuses; track item.code) { <p-tag [value]="item.label" [severity]="item.severity"></p-tag> }
+        </div>
+
+        <h3>Cargando, vacío y error</h3>
+        <div class="catalog__states">
+          <div class="catalog__card"><strong>Cargando</strong><p-skeleton height="2.5rem"></p-skeleton><p-skeleton height="2.5rem"></p-skeleton></div>
+          <div class="catalog__card catalog__empty"><strong>Vacío</strong><span>Aún no hay encargados. Agrega a quien atenderá las citas para tener cupos.</span><p-button label="Agregar encargado" size="small"></p-button></div>
+          <div class="catalog__card"><strong>Error</strong><p-message severity="error" text="No se pudo cargar. Inténtalo nuevamente."></p-message><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small"></p-button></div>
+        </div>
+      </p-tabpanel>
+
+      <p-tabpanel value="patterns">
+        <h3>Tabla que se vuelve tarjeta en teléfono</h3>
+        <p class="catalog__lead">Encargados, tipos de atención e historial: cada <code>td</code> lleva <code>data-label</code> y la tabla <code>styleClass="dbu-stack"</code>.</p>
+        <p-table [value]="sampleRows" styleClass="catalog-stack">
+          <ng-template #header><tr><th>Encargado</th><th>Tipos</th><th>Horario</th></tr></ng-template>
+          <ng-template #body let-row>
+            <tr><td data-label="Encargado">{{ row.name }}</td><td data-label="Tipos">{{ row.types }}</td><td data-label="Horario">{{ row.schedule }}</td></tr>
+          </ng-template>
+        </p-table>
+
+        <h3>Fila de ajuste</h3>
+        <p class="catalog__lead">Título y ayuda a la izquierda, control a la derecha; si no cabe, el control baja. Ejemplo en Configuración de citas.</p>
+        <div class="catalog__setting">
+          <div><strong>Duración de cada sesión</strong><small>En minutos.</small></div>
+          <p-inputnumber [(ngModel)]="minutes" [min]="15" [max]="240" [showButtons]="true" suffix=" min"></p-inputnumber>
+        </div>
+
+        <h3>Pantallas de referencia</h3>
+        <ul class="catalog__list">
+          <li><code>/admin/dbu/config</code>: menú de secciones, filas de ajuste, tablas apiladas y matriz de cupos.</li>
+          <li><code>/dbu/citas</code> y <code>/dbu/citas/estado</code>: páginas públicas del alumno, de un solo paso por pantalla, para teléfono.</li>
+          <li><code>/admin/accounting/bank/*</code>: listas propias con detalle en <code>p-drawer</code>.</li>
+        </ul>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>
