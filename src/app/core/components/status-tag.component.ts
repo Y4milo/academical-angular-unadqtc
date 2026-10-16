@@ -18,7 +18,7 @@ import {TagModule} from 'primeng/tag';
 
     :host ::ng-deep .status-tag {
       font-size: var(--text-label);
-      font-weight: 600;
+      font-weight: var(--weight-strong);
       line-height: 1;
       white-space: nowrap;
       padding: var(--space-1) var(--space-2);

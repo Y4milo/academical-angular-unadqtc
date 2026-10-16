@@ -36,12 +36,12 @@ import {ButtonModule} from 'primeng/button';
 
     h1 {
       font-size: var(--text-title);
-      font-weight: 700;
+      font-weight: var(--weight-title);
     }
 
     h2 {
-      font-size: 1.375rem;
-      font-weight: 600;
+      font-size: var(--text-card-title);
+      font-weight: var(--weight-strong);
     }
 
     p {
