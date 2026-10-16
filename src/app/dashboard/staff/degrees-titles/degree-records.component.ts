@@ -436,7 +436,6 @@ export class DegreeRecordsComponent implements OnInit {
         if (response.data.status === 'core_profile_found' && response.data.candidate) {
           this.chooseStudent(response.data.candidate);
           this.manualAcademicVisible = false;
-          this.notifications.success('Perfil institucional encontrado', 'Se utilizará la información académica de CORE.');
         }
       },
       error: error => {
@@ -464,7 +463,6 @@ export class DegreeRecordsComponent implements OnInit {
         if (this.manualAcademicCreated && this.createdManualCandidate) {
           this.chooseStudent(this.createdManualCandidate);
           this.manualAcademicVisible = false;
-          this.notifications.success('Perfil excepcional registrado', 'El perfil académico manual quedó listo y fue seleccionado.');
         }
       },
       error: error => {
@@ -699,7 +697,6 @@ export class DegreeRecordsComponent implements OnInit {
         if (response.status !== STATUS.success) return this.notifications.notifyApiData(response);
         this.manualStudentDialogVisible = false;
         this.studentSearch = response.payload.data.code;
-        this.notifications.success('Estudiante registrado', response.payload.message);
         this.findStudents();
       },
       error: error => {
@@ -728,7 +725,6 @@ export class DegreeRecordsComponent implements OnInit {
           this.editing.student_code = code;
           this.editing.institutional_identity.code_status = 'confirmed';
         }
-        this.notifications.success('Código académico confirmado', response.payload.message);
         this.loadRecords(this.page);
       },
       error: error => {
@@ -856,7 +852,6 @@ export class DegreeRecordsComponent implements OnInit {
           this.staleWarning = null;
           this.pendingPayload = null;
           this.staleAccepted = false;
-          this.notifications.success('Padrón actualizado', response.payload.message);
           this.loadRecords(this.editing ? this.page : 1);
           return;
         }
@@ -898,7 +893,6 @@ export class DegreeRecordsComponent implements OnInit {
       accept: () => this.service.annulRecord(record.id).subscribe({
         next: response => {
           if (response.status === STATUS.success) {
-            this.notifications.success('Registro anulado', response.payload.message);
             this.loadRecords(this.page);
             return;
           }

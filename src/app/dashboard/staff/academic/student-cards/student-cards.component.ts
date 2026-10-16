@@ -955,7 +955,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           this.applyStudentBasicInfoUpdate(this.editStudent!, data.payload.data);
           this.closeEditStudentDialog();
         }
-        this.notificationService.notifyApiData(data);
+        this.notificationService.notifyApiFailure(data);
       },
       error: e => {
         this.isEditSubmitting = false;
@@ -1221,7 +1221,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           this.closeEditStudentDialog();
         }
 
-        this.notificationService.notifyApiData(data);
+        this.notificationService.notifyApiFailure(data);
       },
       error: e => {
         this.isEditSubmitting = false;
@@ -1327,7 +1327,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           file.status = previousStatus;
           this.setReviewApprovalCheckbox(type, previousStatus?.value === 'approved');
         }
-        this.notificationService.notifyApiData(data);
+        this.notificationService.notifyApiFailure(data);
       },
       error: e => {
         file.status = previousStatus;
@@ -1382,7 +1382,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           this.pendingStudents = this.pendingStudents.filter(s => s.id !== student.id);
           this.advanceReview(student);
         }
-        this.notificationService.notifyApiData(data);
+        this.notificationService.notifyApiFailure(data);
       },
       error: (e) => {
         this.isReviewSubmitting = false;
@@ -1442,7 +1442,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           this.flaggedStudents.push(student);
           this.advanceReview(student);
         }
-        this.notificationService.notifyApiData(data);
+        this.notificationService.notifyApiFailure(data);
       },
       error: (e) => {
         this.isReviewSubmitting = false;
@@ -1531,7 +1531,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         } else {
           student.status = previousStatus;
         }
-        this.notificationService.notifyApiData(data);
+        this.notificationService.notifyApiFailure(data);
       },
       error: (e) => {
         this.notificationService.error(
@@ -1561,7 +1561,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         }  else {
           student.status = previousStatus;
         }
-        this.notificationService.notifyApiData(pending);
+        this.notificationService.notifyApiFailure(pending);
       },
       error: (e) => {
         this.notificationService.error(
@@ -1609,7 +1609,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
         if (data.status === STATUS.success) {
           this.applyStudentFileUpdate(this.reviewStudent!, data.payload.data, type);
         }
-        this.notificationService.notifyApiData(data);
+        this.notificationService.notifyApiFailure(data);
       },
       error: e => {
         this.notificationService.error(
@@ -1942,10 +1942,8 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
             this.pendingStudents.splice(index, 1);
             this.flaggedStudents.push(student);
           }
-          this.notificationService.notifyApiData(data);
-        } else {
-          this.notificationService.notifyApiData(data);
         }
+        this.notificationService.notifyApiFailure(data);
       }
     });
     this.clearObservationPanelState();
@@ -1993,7 +1991,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
           this.flaggedStudents = this.flaggedStudents.filter(s => s.id !== studentCard.id);
           this.overlayUploadPhoto.hide();
         }
-        this.notificationService.notifyApiData(studentCardData);
+        this.notificationService.notifyApiFailure(studentCardData);
       },
       error: (e) => {
         this.notificationService.error(
