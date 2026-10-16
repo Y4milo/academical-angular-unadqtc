@@ -5,7 +5,9 @@
       <h1>Padrón de aptos</h1>
       <p>Registro de estudiantes aptos por convocatoria de grados y títulos.</p>
     </div>
-    <button pButton type="button" icon="pi pi-plus" label="Agregar estudiante" (click)="openCreate()"></button>
+    <button pButton type="button" icon="pi pi-plus" label="Agregar estudiante" (click)="openCreate()"
+            [disabled]="!calls.length"
+            [pTooltip]="calls.length ? '' : 'Abra una convocatoria antes de registrar estudiantes aptos.'"></button>
   </div>
 
   <app-test-mode-banner *ngIf="mailTestMode" area="Grados y Títulos" [recipient]="mailTestRecipient"></app-test-mode-banner>
@@ -33,10 +35,13 @@
 
   <div class="bulk-actions" *ngIf="selectedRecords.length">
     <span><strong>{{ selectedRecords.length }}</strong> registros seleccionados</span>
+    <small *ngIf="selectedRecords.length > bulkLimit('ethnicity-email')" class="form-field__error" role="status">
+      Los formularios se envían de {{ bulkLimit('ethnicity-email') }} en {{ bulkLimit('ethnicity-email') }} y los PDF de {{ bulkLimit('pdf') }} en {{ bulkLimit('pdf') }}.
+    </small>
     <button pButton type="button" icon="pi pi-file-pdf" label="Generar PDFs" severity="danger"
-            [loading]="bulkStarting" (click)="startBulkProcess('pdf')"></button>
+            [loading]="bulkStarting" [disabled]="selectedRecords.length > bulkLimit('pdf')" (click)="startBulkProcess('pdf')"></button>
     <button pButton type="button" icon="pi pi-envelope" label="Enviar formularios" severity="success"
-            [loading]="bulkStarting" (click)="startBulkProcess('ethnicity-email')"></button>
+            [loading]="bulkStarting" [disabled]="selectedRecords.length > bulkLimit('ethnicity-email')" (click)="startBulkProcess('ethnicity-email')"></button>
     <button pButton type="button" icon="pi pi-times" label="Limpiar selección" severity="secondary"
             [text]="true" (click)="selectedRecords = []"></button>
   </div>
@@ -162,6 +167,12 @@
 
 <p-dialog [(visible)]="dialogVisible" [modal]="true" [style]="{width: 'min(1180px, 98vw)'}"
           [header]="editing ? 'Editar registro del padrón' : 'Agregar estudiante apto'">
+  <p-message *ngIf="saveAttempted && formProblems.length" severity="error" styleClass="w-full mb-3">
+    <div>
+      <strong>Revise estos datos antes de guardar:</strong>
+      <ul class="m-0 mt-2 pl-3"><li *ngFor="let problem of formProblems">{{ problem }}</li></ul>
+    </div>
+  </p-message>
   <div class="form-grid">
     <label *ngIf="!editing" class="full">Convocatoria abierta
       <p-select [(ngModel)]="form.degree_call_id" [options]="calls" optionLabel="name" optionValue="id"
@@ -171,9 +182,10 @@
     <div *ngIf="!editing" class="student-picker full">
       <label class="form-field__label" for="student-search">Buscar estudiante por código, DNI o nombres</label>
       <div class="search-row">
-        <input pInputText id="student-search" [(ngModel)]="studentSearch" (keyup.enter)="findStudents()" placeholder="Ejemplo: 20191234 o apellido">
+        <input pInputText id="student-search" [(ngModel)]="studentSearch" (keyup.enter)="findStudents()" (input)="studentSearchError = ''" placeholder="Ejemplo: 20191234 o apellido">
         <button pButton type="button" label="Buscar" icon="pi pi-search" [loading]="searchingStudents" (click)="findStudents()"></button>
       </div>
+      <small *ngIf="studentSearchError" class="form-field__error" role="alert">{{ studentSearchError }}</small>
       <p-listbox *ngIf="students.length" class="student-results" [options]="students" optionLabel="full_name"
                  [listStyle]="{'max-height': '190px'}" (onChange)="chooseStudent($event.value)">
         <ng-template pTemplate="item" let-student>
@@ -303,7 +315,7 @@
         <p-message *ngIf="manualAcademicCreated" severity="success"
                    text="El perfil académico excepcional fue registrado con estado Listo."></p-message>
         <button pButton type="button" icon="pi pi-save" label="Guardar perfil excepcional"
-                [loading]="manualAcademicSaving" [disabled]="manualAcademicCreated"
+                [loading]="manualAcademicSaving" [disabled]="manualAcademicCreated || manualCodeStatus !== 'code_available'"
                 (click)="saveManualAcademicProfile()"></button>
       </p-fieldset>
       <div class="selected-student" *ngIf="selectedStudent">
@@ -345,9 +357,15 @@
           <small *ngIf="officialCodeHasInvalidCharacters" class="field-warning">
             <i class="pi pi-exclamation-triangle"></i> Solo se permiten letras mayúsculas y números.
           </small>
+          <small *ngIf="officialCodeAttempted && !officialCodeHasInvalidCharacters && !isValidAcademicCode(officialStudentCode)" class="form-field__error" role="alert">
+            Ingrese un código de 4 a 20 letras mayúsculas o números.
+          </small>
         </label>
         <label><span>Motivo de la corrección <b>*</b></span>
           <input pInputText [(ngModel)]="officialCodeReason" maxlength="255" placeholder="Indique la fuente que confirma el código">
+          <small *ngIf="officialCodeAttempted && officialCodeReason.trim().length < 10" class="form-field__error" role="alert">
+            Indique el motivo con al menos 10 caracteres.
+          </small>
         </label>
         <button pButton type="button" icon="pi pi-check" label="Confirmar código"
                 [loading]="confirmingStudentCode" (click)="confirmOfficialStudentCode()"></button>
@@ -559,6 +577,9 @@
              [class.ng-invalid]="manualCodeHasInvalidCharacters">
       <small *ngIf="manualCodeHasInvalidCharacters" class="field-warning">
         <i class="pi pi-exclamation-triangle"></i> Solo se permiten letras mayúsculas y números.
+      </small>
+      <small *ngIf="manualStudentAttempted && !manualCodeHasInvalidCharacters && !isValidAcademicCode(manualStudent.code)" class="form-field__error" role="alert">
+        Ingrese un código de 4 a 20 letras mayúsculas o números.
       </small>
     </label>
     <label><span>Número de documento <b>*</b></span><input pInputText [(ngModel)]="manualStudent.number" maxlength="20"></label>

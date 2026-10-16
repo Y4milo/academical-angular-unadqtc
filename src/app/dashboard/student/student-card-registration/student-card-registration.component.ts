@@ -347,6 +347,9 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
   }
 
   /** Avanza al siguiente paso si es válido */
+  photoError = '';
+  dniError = '';
+
   nextStep() {
     if (this.currentStep === 0 && this.registrationForm.valid) {
       this.currentStep++;
@@ -355,11 +358,6 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
         control.markAsTouched();
         control.updateValueAndValidity();
       });
-      if (this.registrationForm.hasError('codeMatchesDocument')) {
-        this.notificationService.warning('Advertencia', 'El código del alumno no puede ser igual al DNI.');
-        return;
-      }
-      this.notificationService.warning('Alerta', 'Por favor, complete todos los campos requeridos.');
     }
   }
 
@@ -378,14 +376,9 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     if (!requirements.validated) {
       this.hasValidatedPhoto = false;
 
-      const messages = requirements.invalid
+      this.photoError = requirements.invalid
         .map(err => `• ${err.message}`)
         .join('\n');
-
-      this.notificationService.warning(
-        'Foto inválida',
-        messages
-      );
 
       // reset UI
       this.revokePreviewObjectUrl();
@@ -398,6 +391,7 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
 
     this.revokePreviewObjectUrl();
 
+    this.photoError = '';
     this.selectedPhotoFile = file;
     this.hasValidatedPhoto = true;
     this.previewObjectUrl = URL.createObjectURL(file);
@@ -417,15 +411,13 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
 
     if (file.size > maxSize) {
 
-      this.notificationService.warning(
-        'Archivo demasiado grande',
-        'El DNI no debe superar los 20MB.'
-      );
+      this.dniError = 'El DNI no debe superar los 20MB.';
 
       this.selectedDniFile = null;
       return;
     }
 
+    this.dniError = '';
     this.revokeDniObjectUrl();
     this.selectedDniFile = file;
 
@@ -457,33 +449,23 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
         control.updateValueAndValidity();
       });
 
-      if (this.registrationForm.hasError('codeMatchesDocument')) {
-        this.notificationService.warning(
-          'Advertencia',
-          'El código del alumno no puede ser igual al DNI.'
-        );
-        return;
-      }
-
-      this.notificationService.warning(
-        'Advertencia',
-        'Complete todos los campos requeridos.'
-      );
       return;
     }
 
     // 2. VALIDAR FOTO CARNÉ
-    if (!this.selectedPhotoFile && !this.hasValidatedPhoto) {
-      this.notificationService.warning(
-        'Advertencia',
-        'Debe seleccionar una foto del carné.'
-      );
-      return;
+    const missingPhoto = !this.selectedPhotoFile && !this.hasValidatedPhoto;
+    const missingDni = !this.selectedDniFile && !this.dniPdfUrl && !this.dniImageUrl;
+
+    if (missingPhoto) {
+      this.photoError = 'Seleccione la foto del carné.';
     }
 
     // 3. VALIDAR DNI
-    if (!this.selectedDniFile && !this.dniPdfUrl && !this.dniImageUrl) {
-      this.notificationService.warning('Advertencia', 'Debe subir el DNI');
+    if (missingDni) {
+      this.dniError = 'Suba el DNI.';
+    }
+
+    if (missingPhoto || missingDni) {
       return;
     }
 
