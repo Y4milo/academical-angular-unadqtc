@@ -10,6 +10,13 @@ export const PATHS = {
       path:  `home`,
       link:   `admin/home`,
     },
+    users: {
+      accounts: {
+        path: `users/accounts`,
+        link: `admin/users/accounts`,
+        sheetPath: `users/accounts/:id`,
+      },
+    },
     dbu: {
       config: {
         path: `dbu/config`,
