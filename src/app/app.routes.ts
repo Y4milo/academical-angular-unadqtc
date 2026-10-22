@@ -67,10 +67,6 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/academic/approved-average/approved-average.component').then(m => m.ApprovedAverageComponent)
       },
       {
-        path: PATHS.admin.events.certificates.path,
-        loadComponent: () => import('./dashboard/staff/events/event-certificates-admin/event-certificates-admin.component').then(m => m.EventCertificatesAdminComponent)
-      },
-      {
         path: PATHS.admin.dbu.queue.path,
         loadComponent: () => import('./dashboard/staff/dbu/dbu-queue/dbu-queue.component').then(m => m.DbuQueueComponent)
       },
@@ -276,48 +272,6 @@ export const routes: Routes = [
       },
     ]
   },
-  {
-    path: PATHS.event.path,
-    children: [
-      {
-        path: PATHS.event.participant.register,
-        loadComponent: () => import('./events/register-participant/register-participant.component').then(m => m.RegisterParticipantComponent),
-      },
-      {
-        path: PATHS.event.attendance.path,
-        children: [
-          {
-            path: PATHS.event.attendance.check_in,
-            loadComponent: () => import('./events/event-attendance-check-in/event-attendance-check-in.component').then(m => m.EventAttendanceCheckInComponent),
-          },
-          {
-            path: PATHS.event.attendance.check_out,
-            loadComponent: () => import('./events/event-questions-with-check-out/event-questions-with-check-out.component').then(m => m.EventQuestionsWithCheckOutComponent),
-          }
-        ]
-      },
-      {
-        path: PATHS.event.certification.download,
-        loadComponent: () => import('./events/event-download-certificate/event-download-certificate.component').then(m => m.EventDownloadCertificateComponent),
-      },
-      {
-        path: PATHS.event.certification.validate,
-        loadComponent: () => import('./events/event-validate-certificate/event-validate-certificate.component').then(m => m.EventValidateCertificateComponent),
-      }
-    ]
-  },
-  // {
-  //   path: PATHS.event.participant.register,
-  //   loadComponent: () => import('./events/register-participant/register-participant.component').then(m => m.RegisterParticipantComponent),
-  // },
-  // {
-  //   path: PATHS.event.attendance.check_in,
-  //   loadComponent: () => import('./events/event-attendance-check-in/event-attendance-check-in.component').then(m => m.EventAttendanceCheckInComponent),
-  // },
-  // {
-  //   path: PATHS.event.attendance.check_out,
-  //   loadComponent: () => import('./events/event-questions-with-check-out/event-questions-with-check-out.component').then(m => m.EventQuestionsWithCheckOutComponent),
-  // },
   {
     path: '**', redirectTo: PATHS.login.staff
   }

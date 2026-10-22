@@ -3,7 +3,6 @@ import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
-import {EventAttendance} from '../models/event-attendance.model';
 import {Attendance} from '../models/attendance.model';
 import {Dictionary} from '../models/dictionary.model';
 
@@ -147,9 +146,6 @@ export class AttendanceService {
 
   constructor(private http: HttpClient) { }
 
-  storeAttendance(formData: FormData): Observable<ApiData<EventAttendance>> {
-    return this.http.post<ApiData<EventAttendance>>(`${this.apiURL}/event/attendance/store`, formData);
-  }
   /** Busca personal por DNI o por nombre (solo admin y RRHH). */
   searchStaff(q: string): Observable<ApiData<StaffSearchResult[]>> {
     return this.http.post<ApiData<StaffSearchResult[]>>(`${this.apiURL}/staff-attendance/search-staff`, {q});

@@ -10,12 +10,6 @@ export const PATHS = {
       path:  `home`,
       link:   `admin/home`,
     },
-    events: {
-      certificates: {
-        path: `events/certificates`,
-        link: `admin/events/certificates`,
-      },
-    },
     dbu: {
       config: {
         path: `dbu/config`,
@@ -225,20 +219,5 @@ export const PATHS = {
         link:   `academic/student/approved-average`,
       }
     },
-  },
-  event: {
-    path: `event`,
-    participant: {
-      register: `participant/register/:slug`,
-    },
-    attendance: {
-      path: `attendance`,
-      check_in: `check-in/:slug/:id`,
-      check_out: `check-out/:slug/:id`,
-    },
-    certification: {
-      download: `certification/download`,
-      validate: `certification/validate/:slug`,
-    }
   }
 }
