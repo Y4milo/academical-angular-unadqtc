@@ -1,0 +1,74 @@
+<div class="accounts">
+  <header class="accounts__header">
+    <div>
+      <h1>Cuentas funcionales</h1>
+      <p>Cuentas de una oficina que usa una persona a la vez, y cuentas técnicas de otros sistemas.</p>
+    </div>
+  </header>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="accounts__notice">
+      No se pudieron cargar las cuentas. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  } @else if (!loading() && needAttention() > 0) {
+    <p-message severity="warn" styleClass="accounts__notice">
+      {{ needAttention() === 1 ? '1 cuenta necesita' : needAttention() + ' cuentas necesitan' }} atención: sin titular, con la orden de servicio vencida o por vencer.
+    </p-message>
+  }
+
+  <section class="accounts__panel" aria-label="Lista de cuentas">
+    @if (loading()) {
+      <div class="accounts__skeleton" aria-busy="true">
+        @for (row of skeletonRows; track row) {
+          <div class="accounts__skeleton-row">
+            <p-skeleton width="40%" height="1rem" />
+            <p-skeleton width="14%" height="1.25rem" />
+            <p-skeleton width="16%" height="1.25rem" />
+            <p-skeleton width="10%" height="1rem" />
+          </div>
+        }
+      </div>
+    } @else if (accounts().length === 0 && !loadError()) {
+      <div class="accounts__empty">
+        <app-lucide-icon name="users" [size]="28" />
+        <strong>No hay cuentas funcionales ni de servicio</strong>
+        <span>Márcalas con <code>users:account-kind</code> para que aparezcan aquí.</span>
+      </div>
+    } @else if (accounts().length > 0) {
+      <p-table [value]="accounts()" size="small" [tableStyle]="{ 'min-width': '40rem' }" styleClass="accounts__table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Cuenta</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Titular</th>
+            <th>Último ingreso</th>
+            <th class="accounts__actions" aria-label="Acciones"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-account>
+          <tr class="accounts__row" (click)="openSheet($event, account)">
+            <td class="accounts__cell-main">
+              <a class="accounts__name" [routerLink]="sheetLink(account)">{{ account.display_name || account.nick }}</a>
+              <span class="accounts__nick">{{ account.nick }}</span>
+            </td>
+            <td data-label="Tipo"><app-status-tag [value]="kindLabel(account.kind)" [severity]="kindSeverity(account.kind)" /></td>
+            <td data-label="Estado"><app-status-tag [value]="account.status ?? 'Sin estado'" [severity]="statusSeverity(account.status)" /></td>
+            <td data-label="Titular">
+              @if (holderTag(account); as holder) {
+                <app-status-tag [value]="holder.label" [severity]="holder.severity" />
+              } @else {
+                <span class="accounts__muted">No aplica</span>
+              }
+            </td>
+            <td data-label="Último ingreso">{{ account.last_login_at ? (account.last_login_at | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}</td>
+            <td class="accounts__actions">
+              <a pButton [routerLink]="sheetLink(account)" label="Abrir ficha" severity="secondary" [outlined]="true" size="small"></a>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </section>
+</div>

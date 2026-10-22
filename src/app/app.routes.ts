@@ -79,6 +79,14 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/shared/components-catalog/components-catalog.component').then(m => m.ComponentsCatalogComponent)
       },
       {
+        path: PATHS.admin.users.accounts.path,
+        loadComponent: () => import('./dashboard/staff/users/user-accounts/user-accounts.component').then(m => m.UserAccountsComponent)
+      },
+      {
+        path: PATHS.admin.users.accounts.sheetPath,
+        loadComponent: () => import('./dashboard/staff/users/user-accounts/user-account-sheet.component').then(m => m.UserAccountSheetComponent)
+      },
+      {
         path: PATHS.admin.accounting.bank.incidents.path,
         loadComponent: () => import('./dashboard/staff/accounting/bn-incidents/bn-incidents.component').then(m => m.BnIncidentsComponent)
       },

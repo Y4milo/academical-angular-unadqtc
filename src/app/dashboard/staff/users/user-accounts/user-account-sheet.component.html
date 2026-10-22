@@ -1,0 +1,211 @@
+<div class="sheet">
+  <nav class="sheet__crumb" aria-label="Ruta">
+    <a [routerLink]="listLink"><app-lucide-icon name="chevron-left" [size]="16" /><span>Cuentas funcionales</span></a>
+  </nav>
+
+  @if (loading()) {
+    <div class="sheet__card" aria-busy="true">
+      <p-skeleton width="45%" height="1.25rem" />
+      <p-skeleton width="70%" height="1rem" />
+      <p-skeleton width="100%" height="3rem" />
+    </div>
+  } @else if (loadError() || !data()) {
+    <p-message severity="error" styleClass="sheet__wide">
+      No se pudo cargar la cuenta. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  } @else {
+    @let account = data()!.account;
+
+    <section class="sheet__card" aria-label="Cuenta">
+      <div class="sheet__head">
+        <div class="sheet__id">
+          <span class="sheet__icon"><app-lucide-icon [name]="isFunctional() ? 'users' : 'key-round'" [size]="22" /></span>
+          <div>
+            <h1>{{ account.display_name || account.nick }}</h1>
+            <p>Usuario <code>{{ account.nick }}</code></p>
+          </div>
+        </div>
+        <div class="sheet__tags">
+          <app-status-tag [value]="kindLabel()" [severity]="isFunctional() ? 'info' : 'secondary'" />
+          <app-status-tag [value]="account.status ?? 'Sin estado'" [severity]="account.status === 'Activo' ? 'success' : 'secondary'" />
+        </div>
+      </div>
+      <dl class="sheet__facts">
+        <div><dt>Perfil</dt><dd>{{ account.role ?? 'Sin perfil' }}</dd></div>
+        <div><dt>Cuenta creada</dt><dd>{{ account.created_at ? (account.created_at | date: 'dd/MM/yyyy') : 'Sin fecha' }}</dd></div>
+        <div><dt>Último ingreso</dt><dd>{{ account.last_login_at ? (account.last_login_at | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}</dd></div>
+      </dl>
+    </section>
+
+    @if (!isFunctional()) {
+      <p-message severity="info" styleClass="sheet__wide">
+        Esta cuenta es {{ kindLabel().toLowerCase() }}: no tiene titular. Solo las cuentas funcionales registran quién las usa.
+      </p-message>
+    } @else {
+      <section class="sheet__card" aria-label="Titular actual">
+        <div class="sheet__row">
+          <h2>Titular actual</h2>
+          <app-status-tag value="Solo administrador" severity="secondary" />
+        </div>
+
+        @if (current(); as holder) {
+          @let status = holderStatus(holder);
+          <div class="sheet__row">
+            <div class="sheet__person">
+              <span class="sheet__avatar" aria-hidden="true"><app-lucide-icon name="user" [size]="20" /></span>
+              <div>
+                <strong>{{ holder.name ?? 'Nombre no disponible' }}</strong>
+                <span class="sheet__muted">Dato de Core · id {{ holder.core_person_id }}</span>
+              </div>
+            </div>
+            <app-status-tag [value]="status.label" [severity]="status.severity" />
+          </div>
+
+          @if (!holder.name) {
+            <p-message severity="info" variant="simple">
+              No se pudo leer el nombre desde Core. El titular sigue registrado; vuelve a abrir la ficha en unos minutos.
+            </p-message>
+          }
+
+          <dl class="sheet__facts">
+            <div><dt>Orden de servicio</dt><dd>{{ holder.service_order }}</dd></div>
+            <div><dt>Desde</dt><dd>{{ fmt(holder.valid_from) }}</dd></div>
+            <div><dt>Hasta</dt><dd>{{ holder.valid_to ? fmt(holder.valid_to) + ' · ' + status.note : 'Sin fecha de fin' }}</dd></div>
+          </dl>
+
+          @if (holder.valid_to) {
+            <p-progressbar [value]="status.percent" [showValue]="false" [styleClass]="'sheet__progress sheet__progress--' + status.severity" [attr.aria-label]="'Avance de la orden de servicio: ' + status.percent + '%'" />
+          }
+
+          <div class="sheet__actions">
+            <p-button label="Cambiar titular" severity="secondary" [outlined]="true" (onClick)="openAssign(true)" />
+            <p-button label="Cerrar titular" severity="danger" [outlined]="true" (onClick)="openClose()" />
+          </div>
+        } @else {
+          <p-message severity="warn" styleClass="sheet__wide">
+            <div class="sheet__alert">
+              <strong>Esta cuenta no tiene titular vigente</strong>
+              <span>Mientras no se registre uno no se sabe quién la usa. La reconciliación nocturna lo reporta.</span>
+            </div>
+          </p-message>
+          <div class="sheet__actions">
+            <p-button label="Registrar titular" (onClick)="openAssign(false)" />
+          </div>
+        }
+      </section>
+
+      <section class="sheet__card" aria-label="Historial de titulares">
+        <h2>Historial de titulares</h2>
+        @if (history().length === 0) {
+          <div class="sheet__empty">
+            <app-lucide-icon name="clock" [size]="24" />
+            <strong>Aún no hay titulares registrados</strong>
+            <span>Cuando registres uno aparecerá aquí con su orden de servicio.</span>
+          </div>
+        } @else {
+          <p-timeline [value]="history()" styleClass="sheet__timeline">
+            <ng-template pTemplate="marker" let-holder>
+              <span class="sheet__marker" [class.sheet__marker--current]="holder.is_current"></span>
+            </ng-template>
+            <ng-template pTemplate="content" let-holder>
+              <div class="sheet__entry">
+                <strong>{{ holder.name ?? 'Persona id ' + holder.core_person_id }}</strong>
+                <span class="sheet__muted">{{ holder.service_order }} · {{ fmt(holder.valid_from) }} – {{ holder.valid_to ? fmt(holder.valid_to) : 'sin fecha de fin' }}</span>
+                <span class="sheet__muted">
+                  @if (holder.is_current) { Vigente ahora } @else { Cerrado el {{ holder.closed_at | date: 'dd/MM/yyyy' }} · {{ holder.close_reason }} }
+                </span>
+              </div>
+            </ng-template>
+          </p-timeline>
+        }
+      </section>
+
+      <section class="sheet__card sheet__card--soft" aria-label="Qué ven los demás">
+        <div class="sheet__row sheet__row--start">
+          <app-lucide-icon name="eye-off" [size]="18" />
+          <h2>Así aparece esta cuenta para los demás</h2>
+        </div>
+        <p class="sheet__muted">
+          Los informes, las exportaciones, las auditorías externas y las pantallas de otros perfiles muestran solo
+          «{{ account.display_name || account.nick }}». El nombre del titular nunca sale ahí.
+        </p>
+      </section>
+    }
+  }
+</div>
+
+<p-dialog [(visible)]="assignOpen" [modal]="true" [draggable]="false" [header]="replacing ? 'Cambiar titular' : 'Registrar titular'" [style]="{ width: 'min(94vw, 38rem)' }">
+  <div class="dialog">
+    <p class="sheet__muted">La persona debe existir ya en Core. Aquí solo se guarda su identificador, no su documento.</p>
+
+    @if (replacing) {
+      <p-message severity="warn" variant="simple">El titular actual se cerrará con el motivo «Cambio de titular» y quedará en el historial.</p-message>
+    }
+
+    <div class="dialog__lookup">
+      <app-form-field label="Tipo de documento" for="holder-doc-type">
+        <p-select inputId="holder-doc-type" [options]="documentTypes" optionLabel="label" optionValue="value" [(ngModel)]="documentType" (onChange)="onDocumentChange()" appendTo="body" styleClass="w-full" />
+      </app-form-field>
+      <app-form-field label="Número de documento" for="holder-doc-number" [required]="true" [error]="lookupState === 'error' ? lookupMessage : ''">
+        <input pInputText id="holder-doc-number" [(ngModel)]="documentNumber" (ngModelChange)="onDocumentChange()" (keydown.enter)="search()" inputmode="numeric" maxlength="20" autocomplete="off" />
+      </app-form-field>
+      <p-button label="Buscar en Core" severity="secondary" [outlined]="true" [loading]="lookupState === 'loading'" (onClick)="search()" styleClass="dialog__search" />
+    </div>
+
+    @if (lookupState === 'found' && lookupPerson) {
+      <p-message severity="success" icon="pi pi-check-circle">
+        <div class="sheet__alert">
+          <strong>{{ lookupPerson.full_name }}</strong>
+          <span>{{ lookupPerson.is_staff ? 'Core la tiene como personal.' : 'Core la tiene como persona, sin ficha de personal.' }} Puedes registrarla como titular.</span>
+        </div>
+      </p-message>
+    } @else if (lookupState === 'missing') {
+      <p-message severity="error">
+        <div class="sheet__alert">
+          <strong>Core no tiene a esa persona</strong>
+          <span>Pide su alta en Core y vuelve a buscar. Aquí no se registran personas.</span>
+        </div>
+      </p-message>
+    }
+
+    @if (lookupState === 'found') {
+      <div class="dialog__grid">
+        <app-form-field label="Orden de servicio" for="holder-os" [required]="true" [error]="serviceOrderError">
+          <input pInputText id="holder-os" [(ngModel)]="serviceOrder" placeholder="O/S 0123-2026" maxlength="60" />
+        </app-form-field>
+        <app-form-field label="Desde" for="holder-from" [required]="true" [error]="validFromError">
+          <input pInputText id="holder-from" type="date" [(ngModel)]="validFrom" />
+        </app-form-field>
+        <app-form-field label="Hasta (fin de la O/S)" for="holder-to" [error]="validToError" hint="Déjalo vacío si la orden no tiene fecha de fin.">
+          <input pInputText id="holder-to" type="date" [(ngModel)]="validTo" />
+        </app-form-field>
+      </div>
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog__footer">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="assignOpen = false" />
+      <p-button label="Guardar titular" [loading]="saving()" [disabled]="lookupState !== 'found'" (onClick)="saveHolder()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="closeOpen" [modal]="true" [draggable]="false" header="Cerrar titular" [style]="{ width: 'min(94vw, 32rem)' }">
+  <div class="dialog">
+    <p-message severity="warn" variant="simple">
+      La cuenta quedará sin titular vigente hasta que registres otro. El titular se conserva en el historial.
+    </p-message>
+    <app-form-field label="Motivo del cierre" for="close-reason" [required]="true" [error]="closeReasonError">
+      <input pInputText id="close-reason" [(ngModel)]="closeReason" placeholder="Terminó su orden de servicio" maxlength="160" />
+    </app-form-field>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog__footer">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="closeOpen = false" />
+      <p-button label="Cerrar titular" severity="danger" [loading]="saving()" (onClick)="confirmClose()" />
+    </div>
+  </ng-template>
+</p-dialog>
