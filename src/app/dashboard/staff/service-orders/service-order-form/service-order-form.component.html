@@ -1,0 +1,64 @@
+<div class="order-form">
+  <div class="page-heading">
+    <h2>Nueva orden de servicio</h2>
+    <p>Registra la orden una sola vez. Después emitirás la carta y la conformidad de cada entregable.</p>
+  </div>
+
+  <form class="card" (ngSubmit)="save()" novalidate>
+    <h3>Contratista</h3>
+    <div class="grid">
+      <app-form-field label="RUC" for="os-ruc" [required]="true" [error]="errors().ruc ?? ''" hint="Se busca en Core.">
+        <div class="ruc">
+          <input pInputText id="os-ruc" name="ruc" [(ngModel)]="ruc" inputmode="numeric" maxlength="11" autocomplete="off" (keyup.enter)="lookupRuc()">
+          <p-button icon="pi pi-search" severity="secondary" [outlined]="true" ariaLabel="Buscar RUC en Core" [loading]="searching()" (onClick)="lookupRuc()"></p-button>
+        </div>
+      </app-form-field>
+      <app-form-field label="Contratista" for="os-contractor" [required]="true" [error]="errors().contractor ?? ''">
+        <input pInputText id="os-contractor" name="contractor" [(ngModel)]="contractorName" autocomplete="off">
+      </app-form-field>
+    </div>
+
+    <h3>Orden de servicio</h3>
+    <div class="grid">
+      <app-form-field label="N° de orden" for="os-number" [required]="true" [error]="errors().orderNumber ?? ''">
+        <p-inputNumber inputId="os-number" name="orderNumber" [(ngModel)]="orderNumber" [useGrouping]="false" [min]="1"></p-inputNumber>
+      </app-form-field>
+      <app-form-field label="Fecha de notificación" for="os-notified" [required]="true" [error]="errors().notifiedAt ?? ''" hint="El año de la orden sale de esta fecha.">
+        <p-datepicker inputId="os-notified" name="notifiedAt" [(ngModel)]="notifiedAt" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+      </app-form-field>
+      <app-form-field label="Monto por entregable" for="os-amount" [required]="true" [error]="errors().amount ?? ''">
+        <p-inputNumber inputId="os-amount" name="amount" [(ngModel)]="amount" mode="currency" currency="PEN" locale="es-PE" [min]="0"></p-inputNumber>
+      </app-form-field>
+      <app-form-field label="Cantidad de entregables" for="os-count" [required]="true">
+        <p-inputNumber inputId="os-count" name="count" [ngModel]="count" (ngModelChange)="setCount($event)" [min]="1" [max]="12" [showButtons]="true"></p-inputNumber>
+      </app-form-field>
+    </div>
+    <app-form-field label="Denominación" for="os-denomination" [required]="true" [error]="errors().denomination ?? ''">
+      <textarea pTextarea id="os-denomination" name="denomination" [(ngModel)]="denomination" rows="2" [autoResize]="true"></textarea>
+    </app-form-field>
+
+    <h3>Entregables</h3>
+    <p class="hint">La fecha de vencimiento de cada uno. Si cae en día no laborable, la carta se fecha el siguiente día hábil.</p>
+    @if (errors().rows) {
+      <p class="field-error" role="alert">{{ errors().rows }}</p>
+    }
+    <div class="rows">
+      @for (row of rows; track $index) {
+        <div class="deliverable">
+          <strong class="deliverable__title">{{ ordinals[$index] }} entregable</strong>
+          <app-form-field label="Vence" [for]="'os-due-' + $index">
+            <p-datepicker [inputId]="'os-due-' + $index" [name]="'due' + $index" [(ngModel)]="row.due" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+          </app-form-field>
+          <app-form-field label="Actividad" [for]="'os-activity-' + $index" [hint]="daysFor(row) !== null ? 'A los ' + daysFor(row) + ' días calendario de la notificación.' : ''">
+            <input pInputText [id]="'os-activity-' + $index" [name]="'activity' + $index" [(ngModel)]="row.activity" autocomplete="off" placeholder="Sale en la carta">
+          </app-form-field>
+        </div>
+      }
+    </div>
+
+    <div class="actions">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()"></p-button>
+      <p-button label="Guardar orden" icon="pi pi-check" type="submit" [loading]="saving()"></p-button>
+    </div>
+  </form>
+</div>

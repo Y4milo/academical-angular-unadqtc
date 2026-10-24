@@ -1,0 +1,289 @@
+import { Component, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
+import { ApiData } from '../../../../models/api/api-data.model';
+import { FormFieldComponent } from '../../../../core/components/form-field.component';
+import { PATHS } from '../../../../core/constants/app-paths.constants';
+import { STATUS } from '../../../../core/constants/api-status.constants';
+import { NotificationService } from '../../../../services/notification.service';
+import {
+  DeliverableStatus, DocumentFormat, DocumentKind, ServiceOrder, ServiceOrderDeliverable, ServiceOrdersConfig,
+  ServiceOrdersService, fromIsoDate, toIsoDate,
+} from '../../../../services/service-orders.service';
+
+type TagSeverity = 'success' | 'info' | 'warn' | 'secondary';
+
+const ORDINALS = ['Primer', 'Segundo', 'Tercer', 'Cuarto', 'Quinto', 'Sexto', 'Séptimo', 'Octavo', 'Noveno', 'Décimo', 'Undécimo', 'Duodécimo'];
+const STATUS_LABELS: Record<DeliverableStatus, { label: string; severity: TagSeverity }> = {
+  locked: { label: 'Bloqueado', severity: 'secondary' },
+  pending_letter: { label: 'Falta la carta', severity: 'warn' },
+  pending_conformity: { label: 'Falta la conformidad', severity: 'info' },
+  finished: { label: 'Finalizado', severity: 'success' },
+};
+const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+/** Una orden de servicio y sus entregables: carta, conformidad y descarga en Word o PDF. */
+@Component({
+  selector: 'app-service-order-detail',
+  imports: [
+    FormsModule, ButtonModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MessageModule,
+    SkeletonModule, TagModule, TextareaModule, TooltipModule, FormFieldComponent,
+  ],
+  templateUrl: './service-order-detail.component.html',
+  styleUrl: './service-order-detail.component.css',
+})
+export class ServiceOrderDetailComponent implements OnInit {
+  readonly order = signal<ServiceOrder | null>(null);
+  readonly config = signal<ServiceOrdersConfig | null>(null);
+  readonly loading = signal(true);
+  readonly loadError = signal(false);
+  readonly saving = signal(false);
+  readonly downloading = signal<string | null>(null);
+
+  letterDialog = false;
+  letterTarget: ServiceOrderDeliverable | null = null;
+  letterForm: { date: Date | null; number: number | null; activity: string } = { date: null, number: null, activity: '' };
+  letterError = '';
+
+  conformityDialog = false;
+  conformityTarget: ServiceOrderDeliverable | null = null;
+  conformityForm = this.emptyConformity();
+  conformityError = '';
+
+  constructor(
+    private service: ServiceOrdersService,
+    private notificationService: NotificationService,
+    private route: ActivatedRoute,
+    private router: Router,
+  ) {}
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.loading.set(true);
+    this.loadError.set(false);
+    this.service.show(id).subscribe({
+      next: response => {
+        this.loading.set(false);
+        if (response.status === STATUS.success) {
+          this.order.set(response.payload.data);
+          this.loadConfig();
+        } else {
+          this.loadError.set(true);
+          this.notificationService.notifyApiData(response);
+        }
+      },
+      error: error => {
+        this.loading.set(false);
+        this.loadError.set(true);
+        this.notificationService.notifyApiData(error);
+      },
+    });
+  }
+
+  back(): void {
+    this.router.navigateByUrl(PATHS.admin.serviceOrders.link);
+  }
+
+  ordinal(deliverable: ServiceOrderDeliverable): string {
+    return ORDINALS[deliverable.position - 1] ?? `${deliverable.position}.º`;
+  }
+
+  statusOf(deliverable: ServiceOrderDeliverable) {
+    return STATUS_LABELS[deliverable.status];
+  }
+
+  /** "lunes 31/08/2026" */
+  dayText(iso: string | null): string {
+    const date = fromIsoDate(iso);
+    return date ? `${WEEKDAYS[date.getDay()]} ${this.shortDate(iso)}` : '';
+  }
+
+  shortDate(iso: string | null): string {
+    return iso ? iso.split('-').reverse().join('/') : '';
+  }
+
+  letterTitle(deliverable: ServiceOrderDeliverable): string {
+    return `Carta N°${String(deliverable.letter_number ?? '').padStart(3, '0')}-${deliverable.letter_year}`;
+  }
+
+  openLetter(deliverable: ServiceOrderDeliverable): void {
+    this.letterTarget = deliverable;
+    this.letterForm = { date: fromIsoDate(deliverable.suggested_letter_date), number: null, activity: deliverable.activity ?? '' };
+    this.letterError = '';
+    this.letterDialog = true;
+  }
+
+  saveLetter(): void {
+    const target = this.letterTarget;
+    if (!target) {
+      return;
+    }
+    if (!this.letterForm.date) {
+      this.letterError = 'Elige la fecha de la carta.';
+      return;
+    }
+    this.saving.set(true);
+    this.service.issueLetter(target.id, {
+      letter_date: toIsoDate(this.letterForm.date),
+      letter_number: this.letterForm.number,
+      activity: this.letterForm.activity.trim() || null,
+    }).subscribe({
+      next: response => this.afterSave(response, () => (this.letterDialog = false)),
+      error: error => this.failSave(error),
+    });
+  }
+
+  openConformity(deliverable: ServiceOrderDeliverable): void {
+    this.conformityTarget = deliverable;
+    const today = new Date();
+    this.conformityForm = {
+      conformityDate: today, reportDate: today, reportNumber: null, recordNumber: '', recordYear: today.getFullYear(),
+      penalty: '-', delayDays: '-', observation: deliverable.suggested_observation,
+    };
+    this.conformityError = '';
+    this.conformityDialog = true;
+  }
+
+  saveConformity(): void {
+    const target = this.conformityTarget;
+    const form = this.conformityForm;
+    if (!target) {
+      return;
+    }
+    if (!form.recordNumber.trim()) {
+      this.conformityError = 'Escribe el número de acta de conformidad.';
+      return;
+    }
+    if (!form.conformityDate || !form.reportDate) {
+      this.conformityError = 'Elige la fecha de la conformidad y la del informe.';
+      return;
+    }
+    this.saving.set(true);
+    this.service.issueConformity(target.id, {
+      conformity_date: toIsoDate(form.conformityDate),
+      report_date: toIsoDate(form.reportDate),
+      report_number: form.reportNumber,
+      record_number: form.recordNumber.trim(),
+      record_year: form.recordYear,
+      penalty: form.penalty.trim() || '-',
+      delay_days: form.delayDays.trim() || '-',
+      observation: form.observation.trim() || '-',
+    }).subscribe({
+      next: response => this.afterSave(response, () => (this.conformityDialog = false)),
+      error: error => this.failSave(error),
+    });
+  }
+
+  download(deliverable: ServiceOrderDeliverable, kind: DocumentKind, format: DocumentFormat): void {
+    const key = `${deliverable.id}-${kind}-${format}`;
+    this.downloading.set(key);
+    this.service.download(deliverable.id, kind, format).subscribe({
+      next: response => {
+        this.downloading.set(null);
+        this.save(response, `${kind}-${deliverable.id}.${format}`);
+      },
+      error: async error => {
+        this.downloading.set(null);
+        this.notificationService.error('No se pudo descargar', await this.messageOf(error));
+      },
+    });
+  }
+
+  private loadConfig(): void {
+    this.service.config().subscribe({
+      next: response => {
+        if (response.status === STATUS.success) {
+          this.config.set(response.payload.data);
+        }
+      },
+    });
+  }
+
+  private afterSave(response: ApiData<ServiceOrder>, close: () => void): void {
+    this.saving.set(false);
+    if (response.status === STATUS.success) {
+      this.order.set(response.payload.data);
+      this.loadConfig();
+      close();
+    } else {
+      this.notificationService.notifyApiData(response);
+    }
+  }
+
+  private failSave(error: HttpErrorResponse): void {
+    this.saving.set(false);
+    this.notificationService.notifyApiData(error);
+  }
+
+  private save(response: HttpResponse<Blob>, fallbackName: string): void {
+    const blob = response.body;
+    if (!blob) {
+      return;
+    }
+    if (blob.type.includes('json')) {
+      blob.text().then(text => {
+        let message = 'El documento no se pudo generar.';
+        try {
+          message = JSON.parse(text)?.payload?.message ?? message;
+        } catch { /* se usa el texto por defecto */ }
+        this.notificationService.error('No se pudo generar el documento', message);
+      });
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = this.fileNameOf(response) ?? fallbackName;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private fileNameOf(response: HttpResponse<Blob>): string | null {
+    const header = response.headers.get('content-disposition') ?? '';
+    const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header);
+    if (encoded) {
+      return decodeURIComponent(encoded[1]);
+    }
+    return /filename="([^"]+)"/i.exec(header)?.[1] ?? null;
+  }
+
+  private async messageOf(error: { error?: unknown }): Promise<string> {
+    const body = error?.error;
+    if (body instanceof Blob) {
+      try {
+        return JSON.parse(await body.text())?.payload?.message ?? 'Intenta de nuevo.';
+      } catch {
+        return 'Intenta de nuevo.';
+      }
+    }
+    return 'Intenta de nuevo.';
+  }
+
+  private emptyConformity() {
+    return {
+      conformityDate: null as Date | null,
+      reportDate: null as Date | null,
+      reportNumber: null as number | null,
+      recordNumber: '',
+      recordYear: null as number | null,
+      penalty: '-',
+      delayDays: '-',
+      observation: '-',
+    };
+  }
+}

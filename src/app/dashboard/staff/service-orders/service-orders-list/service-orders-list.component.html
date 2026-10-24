@@ -1,0 +1,46 @@
+<div class="service-orders">
+  <div class="page-heading">
+    <div>
+      <h2>Órdenes de servicio</h2>
+      <p>Cada orden tiene sus entregables: de cada uno se emite la carta y luego la conformidad.</p>
+    </div>
+    @if (orders().length > 0) {
+      <p-button label="Nueva orden" icon="pi pi-plus" (onClick)="create()"></p-button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="list" aria-busy="true">
+      <p-skeleton height="4.5rem"></p-skeleton>
+      <p-skeleton height="4.5rem"></p-skeleton>
+      <p-skeleton height="4.5rem"></p-skeleton>
+    </div>
+  } @else if (loadError()) {
+    <p-message severity="error" styleClass="mb-3">No se pudieron cargar las órdenes de servicio.</p-message>
+    <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button>
+  } @else if (orders().length === 0) {
+    <div class="empty">
+      <i class="pi pi-file-edit empty__icon" aria-hidden="true"></i>
+      <h3>Registra tu primera orden de servicio</h3>
+      <p>Con el RUC, el número de orden y las fechas de los entregables, el sistema emite las cartas y las conformidades.</p>
+      <p-button label="Nueva orden" icon="pi pi-plus" (onClick)="create()"></p-button>
+    </div>
+  } @else {
+    <ul class="list">
+      @for (order of orders(); track order.id) {
+        <li>
+          <button type="button" class="order" (click)="open(order)" [attr.aria-label]="'Abrir la orden de servicio ' + order.order_number + '-' + order.year">
+            <span class="order__main">
+              <strong>OS N°{{ order.order_number }}-{{ order.year }}</strong>
+              <span class="order__name">{{ order.denomination }}</span>
+              <span class="order__meta">{{ order.contractor_name }}</span>
+            </span>
+            <p-tag
+              [severity]="isComplete(order) ? 'success' : order.finished_count > 0 ? 'info' : 'secondary'"
+              [value]="order.finished_count + ' de ' + order.deliverables_count + ' con conformidad'"></p-tag>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

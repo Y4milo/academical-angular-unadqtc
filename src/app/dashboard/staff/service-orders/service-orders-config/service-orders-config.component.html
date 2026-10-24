@@ -1,0 +1,60 @@
+<div class="so-config">
+  <div class="page-heading">
+    <h2>Configuración de documentos</h2>
+    <p>Autoridades que salen en las cartas y los informes, y la numeración de cada año.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="skeletons" aria-busy="true">
+      <p-skeleton height="12rem"></p-skeleton>
+      <p-skeleton height="8rem"></p-skeleton>
+    </div>
+  } @else if (loadError() || !config()) {
+    <p-message severity="error" styleClass="mb-3">No se pudo cargar la configuración.</p-message>
+    <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button>
+  } @else {
+    @if (config(); as c) {
+      <form class="stack" (ngSubmit)="save()">
+        <section class="card">
+          <h3>Numeración {{ c.year }}</h3>
+          <p class="hint">Escribe el último número que ya usaste. El siguiente documento toma ese número más uno, y cada año vuelve a empezar.</p>
+          <div class="grid">
+            <app-form-field label="Última carta usada" for="so-last-letter" [hint]="'La próxima será la N°' + (lastLetter + 1) + '.'">
+              <p-inputNumber inputId="so-last-letter" name="lastLetter" [(ngModel)]="lastLetter" [useGrouping]="false" [min]="0"></p-inputNumber>
+            </app-form-field>
+            <app-form-field label="Último informe usado" for="so-last-report" [hint]="'El próximo será el N°' + (lastReport + 1) + '.'">
+              <p-inputNumber inputId="so-last-report" name="lastReport" [(ngModel)]="lastReport" [useGrouping]="false" [min]="0"></p-inputNumber>
+            </app-form-field>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Autoridades</h3>
+          <p class="hint">Cámbialas cuando cambie la persona. Los documentos ya emitidos se vuelven a generar con los datos de ahora.</p>
+          <div class="grid">
+            @for (field of people; track field.key) {
+              <app-form-field [label]="field.label" [for]="'so-' + field.key" [hint]="field.hint ?? ''">
+                <input pInputText [id]="'so-' + field.key" [name]="field.key" [(ngModel)]="settings[field.key]" autocomplete="off">
+              </app-form-field>
+            }
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Sufijos de numeración</h3>
+          <div class="grid">
+            @for (field of suffixes; track field.key) {
+              <app-form-field [label]="field.label" [for]="'so-' + field.key" [hint]="field.hint ?? ''">
+                <input pInputText [id]="'so-' + field.key" [name]="field.key" [(ngModel)]="settings[field.key]" autocomplete="off">
+              </app-form-field>
+            }
+          </div>
+        </section>
+
+        <div class="actions">
+          <p-button label="Guardar cambios" icon="pi pi-check" type="submit" [loading]="saving()"></p-button>
+        </div>
+      </form>
+    }
+  }
+</div>
