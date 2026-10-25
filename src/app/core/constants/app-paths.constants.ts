@@ -27,6 +27,19 @@ export const PATHS = {
         link: `admin/dbu/cola`,
       },
     },
+    serviceOrders: {
+      path: `service-orders`,
+      link: `admin/service-orders`,
+      newOrder: {
+        path: `service-orders/nueva`,
+        link: `admin/service-orders/nueva`,
+      },
+      config: {
+        path: `service-orders/config`,
+        link: `admin/service-orders/config`,
+      },
+      detailPath: `service-orders/:id`,
+    },
     components: {
       path: `components`,
       link: `admin/components`,

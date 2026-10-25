@@ -75,6 +75,22 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/dbu/dbu-config/dbu-config.component').then(m => m.DbuConfigComponent)
       },
       {
+        path: PATHS.admin.serviceOrders.path,
+        loadComponent: () => import('./dashboard/staff/service-orders/service-orders-list/service-orders-list.component').then(m => m.ServiceOrdersListComponent)
+      },
+      {
+        path: PATHS.admin.serviceOrders.newOrder.path,
+        loadComponent: () => import('./dashboard/staff/service-orders/service-order-form/service-order-form.component').then(m => m.ServiceOrderFormComponent)
+      },
+      {
+        path: PATHS.admin.serviceOrders.config.path,
+        loadComponent: () => import('./dashboard/staff/service-orders/service-orders-config/service-orders-config.component').then(m => m.ServiceOrdersConfigComponent)
+      },
+      {
+        path: PATHS.admin.serviceOrders.detailPath,
+        loadComponent: () => import('./dashboard/staff/service-orders/service-order-detail/service-order-detail.component').then(m => m.ServiceOrderDetailComponent)
+      },
+      {
         path: PATHS.admin.components.path,
         loadComponent: () => import('./dashboard/staff/shared/components-catalog/components-catalog.component').then(m => m.ComponentsCatalogComponent)
       },
