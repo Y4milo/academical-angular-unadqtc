@@ -19,6 +19,31 @@ export interface ServiceOrderSummary {
 }
 
 /** Un entregable con lo que ya se emitió y lo que el sistema sugiere para el siguiente paso. */
+/** Quién firmó digitalmente un documento; `holder_matches` es null cuando no había un titular esperado. */
+export interface DocumentSigner {
+  name: string;
+  certificate_kind: string;
+  holder_matches: boolean | null;
+  reason: string;
+  signed_at: string;
+}
+
+export interface DocumentSignature {
+  signed: boolean;
+  signers: DocumentSigner[];
+}
+
+export interface SignatureStatus extends DocumentSignature {
+  last_error: string | null;
+}
+
+export interface SigningConfig {
+  configured: boolean;
+  reasons: string[];
+  script_url: string;
+  port: number;
+}
+
 export interface ServiceOrderDeliverable {
   id: number;
   position: number;
@@ -42,6 +67,8 @@ export interface ServiceOrderDeliverable {
   delay_days: string;
   observation: string | null;
   letter_signed: boolean;
+  letter_signature: DocumentSignature;
+  conformity_signature: DocumentSignature;
 }
 
 export interface ServiceOrder {
@@ -102,6 +129,7 @@ export interface ServiceOrdersConfig {
   next_report_number: number;
   has_signature: boolean;
   has_fingerprint: boolean;
+  signing: SigningConfig;
 }
 
 export type SignatureKind = 'signature' | 'fingerprint';
@@ -196,5 +224,13 @@ export class ServiceOrdersService {
 
   deleteSignatureImage(kind: SignatureKind): Observable<ApiData<ServiceOrdersConfig>> {
     return this.http.delete<ApiData<ServiceOrdersConfig>>(`${this.apiURL}/service-orders/config/signature-images/${kind}`);
+  }
+
+  prepareSignature(deliverableId: number, kind: DocumentKind, reason: string): Observable<ApiData<{ param: string; port: number }>> {
+    return this.http.post<ApiData<{ param: string; port: number }>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/${kind}/signature/prepare`, { reason });
+  }
+
+  signatureStatus(deliverableId: number, kind: DocumentKind): Observable<ApiData<SignatureStatus>> {
+    return this.http.get<ApiData<SignatureStatus>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/${kind}/signature`);
   }
 }
