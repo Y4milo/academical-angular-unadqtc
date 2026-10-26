@@ -42,4 +42,22 @@ describe('ServiceOrdersService', () => {
     expect(request.request.responseType).toBe('blob');
     request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
   });
+
+  it('uploads a signature image as multipart form data', () => {
+    const file = new File(['png'], 'firma.png', { type: 'image/png' });
+    service.uploadSignatureImage('signature', file).subscribe();
+
+    const request = http.expectOne(req => req.url.endsWith('/service-orders/config/signature-images/signature'));
+    expect(request.request.method).toBe('POST');
+    expect((request.request.body as FormData).get('image')).toBeTruthy();
+    request.flush({ status: 'success', payload: { data: {} } });
+  });
+
+  it('asks for the stored fingerprint as a blob', () => {
+    service.signatureImage('fingerprint').subscribe();
+
+    const request = http.expectOne(req => req.url.endsWith('/service-orders/config/signature-images/fingerprint'));
+    expect(request.request.responseType).toBe('blob');
+    request.flush(new Blob(['png'], { type: 'image/png' }));
+  });
 });

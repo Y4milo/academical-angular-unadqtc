@@ -32,3 +32,6 @@
   .deliverable__actions { flex-direction: column; align-items: stretch; }
   .downloads { flex-wrap: wrap; }
 }
+.sign-option { display: flex; align-items: flex-start; gap: var(--space-2); cursor: pointer; }
+.sign-option span { display: grid; gap: var(--space-1); }
+.sign-option small { color: var(--p-text-muted-color); font-size: var(--text-small); }

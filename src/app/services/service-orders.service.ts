@@ -41,6 +41,7 @@ export interface ServiceOrderDeliverable {
   penalty: string;
   delay_days: string;
   observation: string | null;
+  letter_signed: boolean;
 }
 
 export interface ServiceOrder {
@@ -80,6 +81,7 @@ export interface LetterBody {
   letter_date: string | null;
   letter_number: number | null;
   activity: string | null;
+  include_signature: boolean;
 }
 
 export interface ConformityBody {
@@ -98,7 +100,11 @@ export interface ServiceOrdersConfig {
   year: number;
   next_letter_number: number;
   next_report_number: number;
+  has_signature: boolean;
+  has_fingerprint: boolean;
 }
+
+export type SignatureKind = 'signature' | 'fingerprint';
 
 export interface ConfigUpdate {
   settings?: Record<string, string>;
@@ -176,5 +182,19 @@ export class ServiceOrdersService {
 
   updateConfig(body: ConfigUpdate): Observable<ApiData<ServiceOrdersConfig>> {
     return this.http.patch<ApiData<ServiceOrdersConfig>>(`${this.apiURL}/service-orders/config`, body);
+  }
+
+  signatureImage(kind: SignatureKind): Observable<Blob> {
+    return this.http.get(`${this.apiURL}/service-orders/config/signature-images/${kind}`, { responseType: 'blob' });
+  }
+
+  uploadSignatureImage(kind: SignatureKind, file: File): Observable<ApiData<ServiceOrdersConfig>> {
+    const body = new FormData();
+    body.append('image', file);
+    return this.http.post<ApiData<ServiceOrdersConfig>>(`${this.apiURL}/service-orders/config/signature-images/${kind}`, body);
+  }
+
+  deleteSignatureImage(kind: SignatureKind): Observable<ApiData<ServiceOrdersConfig>> {
+    return this.http.delete<ApiData<ServiceOrdersConfig>>(`${this.apiURL}/service-orders/config/signature-images/${kind}`);
   }
 }
