@@ -1,8 +1,9 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -37,7 +38,7 @@ const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes
 @Component({
   selector: 'app-service-order-detail',
   imports: [
-    FormsModule, ButtonModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MessageModule,
+    FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MessageModule,
     SkeletonModule, TagModule, TextareaModule, TooltipModule, FormFieldComponent,
   ],
   templateUrl: './service-order-detail.component.html',
@@ -53,7 +54,7 @@ export class ServiceOrderDetailComponent implements OnInit {
 
   letterDialog = false;
   letterTarget: ServiceOrderDeliverable | null = null;
-  letterForm: { date: Date | null; number: number | null; activity: string } = { date: null, number: null, activity: '' };
+  letterForm: { date: Date | null; number: number | null; activity: string; signed: boolean } = { date: null, number: null, activity: '', signed: false };
   letterError = '';
 
   conformityDialog = false;
@@ -117,13 +118,21 @@ export class ServiceOrderDetailComponent implements OnInit {
     return iso ? iso.split('-').reverse().join('/') : '';
   }
 
+  /** La firma o la huella ya subidas en la configuración; sin ellas no hay nada que incluir. */
+  get hasSignatureImages(): boolean {
+    const config = this.config();
+    return !!config && (config.has_signature || config.has_fingerprint);
+  }
+
+  readonly configLink = `/${PATHS.admin.serviceOrders.link}/config`;
+
   letterTitle(deliverable: ServiceOrderDeliverable): string {
     return `Carta N°${String(deliverable.letter_number ?? '').padStart(3, '0')}-${deliverable.letter_year}`;
   }
 
   openLetter(deliverable: ServiceOrderDeliverable): void {
     this.letterTarget = deliverable;
-    this.letterForm = { date: fromIsoDate(deliverable.suggested_letter_date), number: null, activity: deliverable.activity ?? '' };
+    this.letterForm = { date: fromIsoDate(deliverable.suggested_letter_date), number: null, activity: deliverable.activity ?? '', signed: this.hasSignatureImages };
     this.letterError = '';
     this.letterDialog = true;
   }
@@ -142,6 +151,7 @@ export class ServiceOrderDetailComponent implements OnInit {
       letter_date: toIsoDate(this.letterForm.date),
       letter_number: this.letterForm.number,
       activity: this.letterForm.activity.trim() || null,
+      include_signature: this.letterForm.signed && this.hasSignatureImages,
     }).subscribe({
       next: response => this.afterSave(response, () => (this.letterDialog = false)),
       error: error => this.failSave(error),

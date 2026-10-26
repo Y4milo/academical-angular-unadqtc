@@ -48,7 +48,7 @@
 
             @if (d.letter_number) {
               <p class="deliverable__done">
-                <span class="inline-icon"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ letterTitle(d) }} · {{ shortDate(d.letter_date) }}</span>
+                <span class="inline-icon"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ letterTitle(d) }} · {{ shortDate(d.letter_date) }}{{ d.letter_signed ? ' · con firma y huella' : '' }}</span>
                 @if (d.status === 'finished') {
                   <span class="inline-icon"><i class="pi pi-check-circle" aria-hidden="true"></i>Informe N°{{ d.report_number }}-{{ d.report_year }} · acta {{ d.record_number }}-{{ d.record_year }}</span>
                 }
@@ -100,6 +100,14 @@
       <app-form-field label="Actividad" for="letter-activity" hint="Es la actividad que se detalla en la carta.">
         <textarea pTextarea id="letter-activity" name="letterActivity" [(ngModel)]="letterForm.activity" rows="2" [autoResize]="true"></textarea>
       </app-form-field>
+      @if (hasSignatureImages) {
+        <label class="sign-option" for="letter-signed">
+          <p-checkbox inputId="letter-signed" name="letterSigned" [(ngModel)]="letterForm.signed" [binary]="true"></p-checkbox>
+          <span>Incluir firma y huella<small>Salen en el Word y en el PDF. Sin marcar, la carta sale limpia para firmarla a mano.</small></span>
+        </label>
+      } @else {
+        <p class="hint">Para incluir tu firma y huella, <a [routerLink]="configLink">súbelas en la configuración</a>.</p>
+      }
       @if (letterError) {
         <p-message severity="error" variant="simple">{{ letterError }}</p-message>
       }

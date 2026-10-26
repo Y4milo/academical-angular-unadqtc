@@ -51,6 +51,32 @@
           </div>
         </section>
 
+        <section class="card">
+          <h3>Firma y huella del contratista</h3>
+          <p class="hint">Se suben una sola vez. Al emitir cada carta eliges si se incluyen. Usa un PNG con fondo transparente, de hasta 2 MB. Solo las ve el administrador.</p>
+          <div class="grid">
+            @for (image of images; track image.kind) {
+              <div class="signature">
+                <span class="signature__label">{{ image.label }}</span>
+                <div class="signature__preview">
+                  @if (previews()[image.kind]; as url) {
+                    <img [src]="url" [alt]="image.label + ' subida'">
+                  } @else {
+                    <span class="hint">Sin imagen</span>
+                  }
+                </div>
+                <div class="signature__actions">
+                  <input #file type="file" accept="image/png" hidden (change)="upload(image.kind, $event)">
+                  <p-button [label]="hasImage(image.kind) ? 'Reemplazar' : 'Subir'" icon="pi pi-upload" severity="secondary" [outlined]="true" size="small" [loading]="uploading() === image.kind" (onClick)="file.click()"></p-button>
+                  @if (hasImage(image.kind)) {
+                    <p-button label="Quitar" icon="pi pi-trash" severity="secondary" [text]="true" size="small" [disabled]="uploading() === image.kind" (onClick)="remove(image.kind)"></p-button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
         <div class="actions">
           <p-button label="Guardar cambios" icon="pi pi-check" type="submit" [loading]="saving()"></p-button>
         </div>
