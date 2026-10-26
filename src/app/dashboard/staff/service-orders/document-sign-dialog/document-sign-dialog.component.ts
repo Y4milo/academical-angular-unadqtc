@@ -73,7 +73,20 @@ export class DocumentSignDialogComponent implements OnDestroy {
     }
     this.phase.set('preparing');
     this.message.set('');
-    this.signaturesBefore = (this.kind === 'letter' ? this.deliverable.letter_signature : this.deliverable.conformity_signature).signers.length;
+    // Cuántas firmas tiene el documento ahora, leído del servidor: los datos de la pantalla pueden estar desactualizados.
+    this.service.signatureStatus(this.deliverable.id, this.kind).subscribe({
+      next: current => {
+        this.signaturesBefore = current.status === STATUS.success ? current.payload.data.signers.length : 0;
+        this.prepare();
+      },
+      error: error => {
+        this.phase.set('idle');
+        this.notificationService.notifyApiData(error);
+      },
+    });
+  }
+
+  private prepare(): void {
     this.service.prepareSignature(this.deliverable.id, this.kind, this.reason).subscribe({
       next: response => {
         if (response.status !== STATUS.success) {
@@ -103,6 +116,8 @@ export class DocumentSignDialogComponent implements OnDestroy {
           ok: () => this.poll(0),
           cancel: () => this.fail('Se canceló la firma.'),
         });
+        // El aviso "terminó" del firmador no siempre llega: se revisa el servidor desde que se abre.
+        this.poll(0);
       })
       .catch(() => this.fail('No se pudo cargar el firmador de Firma Perú. Revisa tu conexión a internet.'));
   }
