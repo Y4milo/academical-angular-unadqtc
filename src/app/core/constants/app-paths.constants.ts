@@ -16,6 +16,10 @@ export const PATHS = {
         link: `admin/users/accounts`,
         sheetPath: `users/accounts/:id`,
       },
+      cases: {
+        path: `users/cases`,
+        link: `admin/users/cases`,
+      },
     },
     dbu: {
       config: {

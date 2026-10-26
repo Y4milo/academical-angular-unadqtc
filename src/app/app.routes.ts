@@ -99,6 +99,10 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/users/user-accounts/user-accounts.component').then(m => m.UserAccountsComponent)
       },
       {
+        path: PATHS.admin.users.cases.path,
+        loadComponent: () => import('./dashboard/staff/users/user-cases/user-cases.component').then(m => m.UserCasesComponent)
+      },
+      {
         path: PATHS.admin.users.accounts.sheetPath,
         loadComponent: () => import('./dashboard/staff/users/user-accounts/user-account-sheet.component').then(m => m.UserAccountSheetComponent)
       },
