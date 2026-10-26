@@ -35,3 +35,4 @@
 .sign-option { display: flex; align-items: flex-start; gap: var(--space-2); cursor: pointer; }
 .sign-option span { display: grid; gap: var(--space-1); }
 .sign-option small { color: var(--p-text-muted-color); font-size: var(--text-small); }
+.downloads__signed { display: inline-flex; align-items: center; gap: var(--space-2); flex-basis: 100%; color: var(--p-text-muted-color); font-size: var(--text-small); }

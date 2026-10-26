@@ -66,14 +66,26 @@
                 <div class="downloads" role="group" [attr.aria-label]="'Descargar la carta del ' + ordinal(d).toLowerCase() + ' entregable'">
                   <span class="downloads__label">Carta</span>
                   <p-button label="Word" icon="pi pi-file-word" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-letter-docx'" (onClick)="download(d, 'letter', 'docx')"></p-button>
-                  <p-button label="PDF" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-letter-pdf'" (onClick)="download(d, 'letter', 'pdf')"></p-button>
+                  <p-button [label]="signatureOf(d, 'letter').signed ? 'PDF firmado' : 'PDF'" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-letter-pdf'" (onClick)="download(d, 'letter', 'pdf')"></p-button>
+                  @if (config()?.signing?.configured) {
+                    <p-button [label]="signatureOf(d, 'letter').signed ? 'Agregar otra firma' : 'Firmar digitalmente'" icon="pi pi-pencil" severity="secondary" [text]="true" size="small" (onClick)="openSign(d, 'letter')"></p-button>
+                  }
+                  @if (signatureOf(d, 'letter').signed) {
+                    <span class="downloads__signed"><i class="pi pi-verified" aria-hidden="true"></i>Firmada digitalmente: {{ signersText(d, 'letter') }}</span>
+                  }
                 </div>
               }
               @if (d.status === 'finished') {
                 <div class="downloads" role="group" [attr.aria-label]="'Descargar la conformidad del ' + ordinal(d).toLowerCase() + ' entregable'">
                   <span class="downloads__label">Conformidad</span>
                   <p-button label="Word" icon="pi pi-file-word" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-conformity-docx'" (onClick)="download(d, 'conformity', 'docx')"></p-button>
-                  <p-button label="PDF" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-conformity-pdf'" (onClick)="download(d, 'conformity', 'pdf')"></p-button>
+                  <p-button [label]="signatureOf(d, 'conformity').signed ? 'PDF firmado' : 'PDF'" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-conformity-pdf'" (onClick)="download(d, 'conformity', 'pdf')"></p-button>
+                  @if (config()?.signing?.configured) {
+                    <p-button [label]="signatureOf(d, 'conformity').signed ? 'Agregar otra firma' : 'Firmar digitalmente'" icon="pi pi-pencil" severity="secondary" [text]="true" size="small" (onClick)="openSign(d, 'conformity')"></p-button>
+                  }
+                  @if (signatureOf(d, 'conformity').signed) {
+                    <span class="downloads__signed"><i class="pi pi-verified" aria-hidden="true"></i>Firmada digitalmente: {{ signersText(d, 'conformity') }}</span>
+                  }
                 </div>
               }
               @if (d.status === 'locked') {
@@ -159,3 +171,7 @@
     <p-button label="Emitir conformidad" icon="pi pi-check" [loading]="saving()" (onClick)="saveConformity()"></p-button>
   </ng-template>
 </p-dialog>
+
+@if (signTarget && config()?.signing; as signing) {
+  <app-document-sign-dialog [(visible)]="signDialog" [deliverable]="signTarget" [kind]="signKind" [signing]="signing" (signed)="afterSigned()"></app-document-sign-dialog>
+}

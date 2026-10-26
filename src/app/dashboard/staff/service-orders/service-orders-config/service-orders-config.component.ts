@@ -22,6 +22,7 @@ const PEOPLE: SettingField[] = [
   { key: 'oti_title', label: 'Cargo del jefe de la oficina' },
   { key: 'dga_name', label: 'Director de Administración', hint: 'Destinatario del informe de conformidad.' },
   { key: 'dga_title', label: 'Cargo del director de Administración' },
+  { key: 'conformity_signer_document', label: 'DNI de quien firma el informe', hint: 'Opcional. Si firma otra persona, se avisa pero no se bloquea.' },
 ];
 
 const SUFFIXES: SettingField[] = [

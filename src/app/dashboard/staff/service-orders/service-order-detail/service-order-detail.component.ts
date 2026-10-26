@@ -13,13 +13,14 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
+import { DocumentSignDialogComponent } from '../document-sign-dialog/document-sign-dialog.component';
 import { ApiData } from '../../../../models/api/api-data.model';
 import { FormFieldComponent } from '../../../../core/components/form-field.component';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import {
-  DeliverableStatus, DocumentFormat, DocumentKind, ServiceOrder, ServiceOrderDeliverable, ServiceOrdersConfig,
+  DeliverableStatus, DocumentFormat, DocumentKind, DocumentSignature, ServiceOrder, ServiceOrderDeliverable, ServiceOrdersConfig,
   ServiceOrdersService, fromIsoDate, toIsoDate,
 } from '../../../../services/service-orders.service';
 
@@ -39,7 +40,7 @@ const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes
   selector: 'app-service-order-detail',
   imports: [
     FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MessageModule,
-    SkeletonModule, TagModule, TextareaModule, TooltipModule, FormFieldComponent,
+    SkeletonModule, TagModule, TextareaModule, TooltipModule, FormFieldComponent, DocumentSignDialogComponent,
   ],
   templateUrl: './service-order-detail.component.html',
   styleUrl: './service-order-detail.component.css',
@@ -56,6 +57,10 @@ export class ServiceOrderDetailComponent implements OnInit {
   letterTarget: ServiceOrderDeliverable | null = null;
   letterForm: { date: Date | null; number: number | null; activity: string; signed: boolean } = { date: null, number: null, activity: '', signed: false };
   letterError = '';
+
+  signDialog = false;
+  signTarget: ServiceOrderDeliverable | null = null;
+  signKind: DocumentKind = 'letter';
 
   conformityDialog = false;
   conformityTarget: ServiceOrderDeliverable | null = null;
@@ -125,6 +130,27 @@ export class ServiceOrderDetailComponent implements OnInit {
   }
 
   readonly configLink = `/${PATHS.admin.serviceOrders.link}/config`;
+
+  signatureOf(deliverable: ServiceOrderDeliverable, kind: DocumentKind): DocumentSignature {
+    return kind === 'letter' ? deliverable.letter_signature : deliverable.conformity_signature;
+  }
+
+  /** Quién firmó, para mostrarlo debajo del documento; avisa si el titular no era el esperado. */
+  signersText(deliverable: ServiceOrderDeliverable, kind: DocumentKind): string {
+    return this.signatureOf(deliverable, kind).signers
+      .map(signer => `${signer.name}${signer.holder_matches === false ? ' (titular distinto del esperado)' : ''}`)
+      .join(' · ');
+  }
+
+  openSign(deliverable: ServiceOrderDeliverable, kind: DocumentKind): void {
+    this.signTarget = deliverable;
+    this.signKind = kind;
+    this.signDialog = true;
+  }
+
+  afterSigned(): void {
+    this.load();
+  }
 
   letterTitle(deliverable: ServiceOrderDeliverable): string {
     return `Carta N°${String(deliverable.letter_number ?? '').padStart(3, '0')}-${deliverable.letter_year}`;
