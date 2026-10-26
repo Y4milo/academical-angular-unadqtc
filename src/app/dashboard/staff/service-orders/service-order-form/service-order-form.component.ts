@@ -19,7 +19,7 @@ interface DeliverableRow {
   activity: string;
 }
 
-type FieldErrors = Partial<Record<'ruc' | 'contractor' | 'orderNumber' | 'notifiedAt' | 'amount' | 'denomination' | 'rows', string>>;
+type FieldErrors = Partial<Record<'ruc' | 'contractor' | 'orderNumber' | 'notifiedAt' | 'amount' | 'denomination', string>>;
 
 const ORDINALS = ['Primer', 'Segundo', 'Tercer', 'Cuarto', 'Quinto', 'Sexto', 'Séptimo', 'Octavo', 'Noveno', 'Décimo', 'Undécimo', 'Duodécimo'];
 
@@ -45,6 +45,9 @@ export class ServiceOrderFormComponent {
   readonly searching = signal(false);
   readonly saving = signal(false);
   readonly errors = signal<FieldErrors>({});
+  /** Error por entregable (mismo orden que `rows`); se actualiza en vivo una vez intentado guardar. */
+  readonly rowErrors = signal<string[]>([]);
+  private submitted = false;
 
   constructor(
     private service: ServiceOrdersService,
@@ -84,18 +87,21 @@ export class ServiceOrderFormComponent {
   setCount(value: number | null): void {
     this.count = Math.min(12, Math.max(1, Math.round(value ?? 1)));
     this.rows = Array.from({ length: this.count }, (_, index) => this.rows[index] ?? { days: null, due: null, activity: '' });
+    this.revalidateRows();
   }
 
   /** Al cambiar los días, el vencimiento se calcula desde la notificación. */
   onDaysChange(row: DeliverableRow, days: number | null): void {
     row.days = days;
     row.due = this.notifiedAt && days !== null ? addDays(this.notifiedAt, days) : row.due;
+    this.revalidateRows();
   }
 
   /** Si se elige la fecha a mano, los días se recalculan para que ambos datos coincidan. */
   onDueChange(row: DeliverableRow, due: Date | null): void {
     row.due = due;
     row.days = this.notifiedAt && due ? daysBetween(this.notifiedAt, due) : row.days;
+    this.revalidateRows();
   }
 
   /** Al cambiar la notificación se recalculan todos los vencimientos que ya tienen días. */
@@ -103,6 +109,30 @@ export class ServiceOrderFormComponent {
     this.notifiedAt = notified;
     if (notified) {
       this.rows.filter(row => row.days !== null).forEach(row => (row.due = addDays(notified, row.days!)));
+    }
+    this.revalidateRows();
+  }
+
+  /** Los días acumulados deben existir, ser positivos y crecer de un entregable al siguiente. */
+  private validateRows(): string[] {
+    return this.rows.map((row, index) => {
+      if (row.days === null || !row.due) {
+        return 'Escribe los días o elige la fecha.';
+      }
+      if (row.days < 1) {
+        return 'Los días deben ser mayor a 0.';
+      }
+      const previous = index > 0 ? this.rows[index - 1].days : null;
+      if (previous !== null && row.days <= previous) {
+        return `Debe pasar de los ${previous} días del entregable anterior.`;
+      }
+      return '';
+    });
+  }
+
+  private revalidateRows(): void {
+    if (this.submitted) {
+      this.rowErrors.set(this.validateRows());
     }
   }
 
@@ -126,10 +156,13 @@ export class ServiceOrderFormComponent {
     if (!this.denomination.trim()) {
       errors.denomination = 'Escribe la denominación del servicio.';
     }
-    if (this.rows.some(row => !row.due)) {
-      errors.rows = 'Falta la fecha de vencimiento de algún entregable.';
-    }
+    this.submitted = true;
+    const rowErrors = this.validateRows();
+    this.rowErrors.set(rowErrors);
     this.errors.set(errors);
+    if (rowErrors.some(Boolean)) {
+      return;
+    }
     if (Object.keys(errors).length > 0) {
       return;
     }
