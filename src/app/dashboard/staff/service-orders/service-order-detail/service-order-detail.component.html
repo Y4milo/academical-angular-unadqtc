@@ -46,52 +46,49 @@
               </p-message>
             }
 
-            @if (d.letter_number) {
-              <p class="deliverable__done">
-                <span class="inline-icon"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ letterTitle(d) }} · {{ shortDate(d.letter_date) }}{{ d.letter_signed ? ' · con firma y huella' : '' }}</span>
-                @if (d.status === 'finished') {
-                  <span class="inline-icon"><i class="pi pi-check-circle" aria-hidden="true"></i>Informe N°{{ d.report_number }}-{{ d.report_year }} · acta {{ d.record_number }}-{{ d.record_year }}</span>
+            @if (docs()[d.id]?.length) {
+              <ul class="docs" [attr.aria-label]="'Documentos del ' + ordinal(d).toLowerCase() + ' entregable'">
+                @for (doc of docs()[d.id]; track doc.kind) {
+                  <li class="doc">
+                    <span class="doc__icon"><i class="pi" [class]="'pi ' + doc.icon" aria-hidden="true"></i></span>
+                    <div class="doc__main">
+                      <div class="doc__name">
+                        <strong>{{ doc.title }}</strong>
+                        @if (doc.tag) {
+                          <p-tag [severity]="doc.tag.severity" [value]="doc.tag.label"></p-tag>
+                        }
+                      </div>
+                      <p class="doc__meta">{{ doc.meta }}</p>
+                    </div>
+                    <div class="doc__actions">
+                      @if (doc.emit === 'letter') {
+                        <p-button label="Emitir carta" icon="pi pi-file-edit" (onClick)="openLetter(d)"></p-button>
+                      }
+                      @if (doc.emit === 'conformity') {
+                        <p-button label="Emitir conformidad" icon="pi pi-file-check" (onClick)="openConformity(d)"></p-button>
+                      }
+                      @if (doc.issued) {
+                        @if (canSign && !doc.signed) {
+                          <p-button label="Firmar" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="openSign(d, doc.kind)"></p-button>
+                        }
+                        <p-menu #downloadMenu [model]="menus()[d.id + '-' + doc.kind + '-download']" [popup]="true" appendTo="body"></p-menu>
+                        <p-button severity="secondary" [outlined]="true" size="small" [loading]="!!downloading()?.startsWith(d.id + '-' + doc.kind)" aria-haspopup="true" [attr.aria-label]="'Descargar ' + doc.title" (onClick)="downloadMenu.toggle($event)">
+                          <span class="btn-inline"><i class="pi pi-download" aria-hidden="true"></i>Descargar<i class="pi pi-chevron-down" aria-hidden="true"></i></span>
+                        </p-button>
+                        @if (doc.signed && canSign) {
+                          <p-menu #moreMenu [model]="menus()[d.id + '-' + doc.kind + '-more']" [popup]="true" appendTo="body"></p-menu>
+                          <p-button icon="pi pi-ellipsis-h" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)"></p-button>
+                        }
+                      }
+                    </div>
+                  </li>
                 }
-              </p>
+              </ul>
             }
 
-            <div class="deliverable__actions">
-              @if (d.status === 'pending_letter') {
-                <p-button label="Emitir carta" icon="pi pi-file-edit" (onClick)="openLetter(d)"></p-button>
-              }
-              @if (d.status === 'pending_conformity') {
-                <p-button label="Emitir conformidad" icon="pi pi-file-check" (onClick)="openConformity(d)"></p-button>
-              }
-              @if (d.letter_number) {
-                <div class="downloads" role="group" [attr.aria-label]="'Descargar la carta del ' + ordinal(d).toLowerCase() + ' entregable'">
-                  <span class="downloads__label">Carta</span>
-                  <p-button label="Word" icon="pi pi-file-word" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-letter-docx'" (onClick)="download(d, 'letter', 'docx')"></p-button>
-                  <p-button [label]="signatureOf(d, 'letter').signed ? 'PDF firmado' : 'PDF'" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-letter-pdf'" (onClick)="download(d, 'letter', 'pdf')"></p-button>
-                  @if (config()?.signing?.configured) {
-                    <p-button [label]="signatureOf(d, 'letter').signed ? 'Agregar otra firma' : 'Firmar digitalmente'" icon="pi pi-pencil" severity="secondary" [text]="true" size="small" (onClick)="openSign(d, 'letter')"></p-button>
-                  }
-                  @if (signatureOf(d, 'letter').signed) {
-                    <span class="downloads__signed"><i class="pi pi-verified" aria-hidden="true"></i>Firmada digitalmente: {{ signersText(d, 'letter') }}</span>
-                  }
-                </div>
-              }
-              @if (d.status === 'finished') {
-                <div class="downloads" role="group" [attr.aria-label]="'Descargar la conformidad del ' + ordinal(d).toLowerCase() + ' entregable'">
-                  <span class="downloads__label">Conformidad</span>
-                  <p-button label="Word" icon="pi pi-file-word" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-conformity-docx'" (onClick)="download(d, 'conformity', 'docx')"></p-button>
-                  <p-button [label]="signatureOf(d, 'conformity').signed ? 'PDF firmado' : 'PDF'" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-conformity-pdf'" (onClick)="download(d, 'conformity', 'pdf')"></p-button>
-                  @if (config()?.signing?.configured) {
-                    <p-button [label]="signatureOf(d, 'conformity').signed ? 'Agregar otra firma' : 'Firmar digitalmente'" icon="pi pi-pencil" severity="secondary" [text]="true" size="small" (onClick)="openSign(d, 'conformity')"></p-button>
-                  }
-                  @if (signatureOf(d, 'conformity').signed) {
-                    <span class="downloads__signed"><i class="pi pi-verified" aria-hidden="true"></i>Firmada digitalmente: {{ signersText(d, 'conformity') }}</span>
-                  }
-                </div>
-              }
-              @if (d.status === 'locked') {
-                <span class="deliverable__hint">Se habilita al emitir la conformidad del entregable anterior.</span>
-              }
-            </div>
+            @if (d.status === 'locked') {
+              <span class="deliverable__hint">Se habilita al emitir la conformidad del entregable anterior.</span>
+            }
           </li>
         }
       </ol>

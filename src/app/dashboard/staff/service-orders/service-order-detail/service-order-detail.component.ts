@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -8,6 +8,8 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { MenuItem } from 'primeng/api';
+import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
@@ -33,13 +35,26 @@ const STATUS_LABELS: Record<DeliverableStatus, { label: string; severity: TagSev
   pending_conformity: { label: 'Falta la conformidad', severity: 'info' },
   finished: { label: 'Finalizado', severity: 'success' },
 };
+/** Una fila de documento dentro del entregable: la carta o el informe de conformidad. */
+interface DocRow {
+  kind: DocumentKind;
+  icon: string;
+  title: string;
+  meta: string;
+  issued: boolean;
+  signed: boolean;
+  tag: { label: string; severity: TagSeverity } | null;
+  /** Si el documento todavía no existe, el paso que lo emite. */
+  emit: DocumentKind | null;
+}
+
 const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
 /** Una orden de servicio y sus entregables: carta, conformidad y descarga en Word o PDF. */
 @Component({
   selector: 'app-service-order-detail',
   imports: [
-    FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MessageModule,
+    FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MenuModule, MessageModule,
     SkeletonModule, TagModule, TextareaModule, TooltipModule, FormFieldComponent, DocumentSignDialogComponent,
   ],
   templateUrl: './service-order-detail.component.html',
@@ -52,6 +67,54 @@ export class ServiceOrderDetailComponent implements OnInit {
   readonly loadError = signal(false);
   readonly saving = signal(false);
   readonly downloading = signal<string | null>(null);
+
+  /** Documentos de cada entregable, con su estado y su firma ya resumidos para mostrar. */
+  readonly docs = computed<Record<number, DocRow[]>>(() => {
+    const result: Record<number, DocRow[]> = {};
+    for (const d of this.order()?.deliverables ?? []) {
+      const rows: DocRow[] = [];
+      const canSign = this.canSign;
+      if (d.letter_number) {
+        const signed = d.letter_signature.signed;
+        rows.push({
+          kind: 'letter', icon: 'pi-file', title: this.letterTitle(d), issued: true, signed, emit: null,
+          meta: `${this.shortDate(d.letter_date)}${d.letter_signed ? ' · con firma y huella' : ''}${this.signedText(d.letter_signature)}`,
+          tag: canSign ? (signed ? { label: 'Firmada', severity: 'success' } : { label: 'Sin firmar', severity: 'warn' }) : null,
+        });
+      } else if (d.status === 'pending_letter') {
+        rows.push({ kind: 'letter', icon: 'pi-file', title: 'Carta', issued: false, signed: false, emit: 'letter', meta: 'Aún no se emite.', tag: null });
+      }
+      if (d.status === 'finished') {
+        const signed = d.conformity_signature.signed;
+        rows.push({
+          kind: 'conformity', icon: 'pi-file-check', title: `Informe N°${d.report_number}-${d.report_year}`, issued: true, signed, emit: null,
+          meta: `Acta ${d.record_number}-${d.record_year} · ${this.shortDate(d.conformity_date)}${this.signedText(d.conformity_signature)}`,
+          tag: canSign ? (signed ? { label: 'Firmado', severity: 'success' } : { label: 'Sin firmar', severity: 'warn' }) : null,
+        });
+      } else if (d.status === 'pending_conformity') {
+        rows.push({ kind: 'conformity', icon: 'pi-file-check', title: 'Informe de conformidad', issued: false, signed: false, emit: 'conformity', meta: 'Se emite con el N° de acta de conformidad.', tag: null });
+      }
+      result[d.id] = rows;
+    }
+    return result;
+  });
+
+  /** Menús de descarga y de más acciones de cada documento, armados una sola vez por cambio de datos. */
+  readonly menus = computed<Record<string, MenuItem[]>>(() => {
+    const result: Record<string, MenuItem[]> = {};
+    const canSign = this.canSign;
+    for (const d of this.order()?.deliverables ?? []) {
+      for (const kind of ['letter', 'conformity'] as DocumentKind[]) {
+        const signed = this.signatureOf(d, kind).signed;
+        result[`${d.id}-${kind}-download`] = [
+          { label: 'Word', icon: 'pi pi-file-word', command: () => this.download(d, kind, 'docx') },
+          { label: signed ? 'PDF firmado' : 'PDF', icon: 'pi pi-file-pdf', command: () => this.download(d, kind, 'pdf') },
+        ];
+        result[`${d.id}-${kind}-more`] = canSign ? [{ label: 'Agregar otra firma', icon: 'pi pi-pencil', command: () => this.openSign(d, kind) }] : [];
+      }
+    }
+    return result;
+  });
 
   letterDialog = false;
   letterTarget: ServiceOrderDeliverable | null = null;
@@ -135,11 +198,22 @@ export class ServiceOrderDetailComponent implements OnInit {
     return kind === 'letter' ? deliverable.letter_signature : deliverable.conformity_signature;
   }
 
-  /** Quién firmó, para mostrarlo debajo del documento; avisa si el titular no era el esperado. */
-  signersText(deliverable: ServiceOrderDeliverable, kind: DocumentKind): string {
-    return this.signatureOf(deliverable, kind).signers
-      .map(signer => `${signer.name}${signer.holder_matches === false ? ' (titular distinto del esperado)' : ''}`)
-      .join(' · ');
+  get canSign(): boolean {
+    return !!this.config()?.signing?.configured;
+  }
+
+  /** " · Firmó Fulano el 26/10/2026 16:02": quién y cuándo, sin el tipo de certificado ni el DNI. */
+  private signedText(signature: DocumentSignature): string {
+    const signers = signature.signers;
+    if (signers.length === 0) {
+      return '';
+    }
+    const last = signers[signers.length - 1];
+    const when = new Date(last.signed_at);
+    const stamp = `${String(when.getDate()).padStart(2, '0')}/${String(when.getMonth() + 1).padStart(2, '0')}/${when.getFullYear()} ${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}`;
+    const name = last.name.replace(/\s+(FIR|FAU)\b.*$/, '');
+    const note = signers.some(signer => signer.holder_matches === false) ? ' (titular distinto del esperado)' : '';
+    return signers.length === 1 ? ` · Firmó ${name} el ${stamp}${note}` : ` · Firmado por ${signers.length} personas, la última el ${stamp}${note}`;
   }
 
   openSign(deliverable: ServiceOrderDeliverable, kind: DocumentKind): void {
