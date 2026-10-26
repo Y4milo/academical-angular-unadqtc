@@ -123,6 +123,16 @@ export function fromIsoDate(value: string | null): Date | null {
   return new Date(year, month - 1, day);
 }
 
+/** La fecha que cae `days` días calendario después de `from` (a los 30 días de la notificación = fin del primer entregable). */
+export function addDays(from: Date, days: number): Date {
+  return new Date(from.getFullYear(), from.getMonth(), from.getDate() + days);
+}
+
+/** Días calendario entre dos fechas locales. */
+export function daysBetween(from: Date, to: Date): number {
+  return Math.round((Date.UTC(to.getFullYear(), to.getMonth(), to.getDate()) - Date.UTC(from.getFullYear(), from.getMonth(), from.getDate())) / 86_400_000);
+}
+
 @Injectable({ providedIn: 'root' })
 export class ServiceOrdersService {
   private readonly apiURL = environment.apiUrl;

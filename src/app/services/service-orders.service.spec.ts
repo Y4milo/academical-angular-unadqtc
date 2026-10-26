@@ -1,7 +1,7 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { ServiceOrdersService, fromIsoDate, toIsoDate } from './service-orders.service';
+import { ServiceOrdersService, addDays, daysBetween, fromIsoDate, toIsoDate } from './service-orders.service';
 
 describe('ServiceOrdersService', () => {
   let service: ServiceOrdersService;
@@ -24,6 +24,14 @@ describe('ServiceOrdersService', () => {
     const date = fromIsoDate('2026-08-31')!;
     expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2026, 7, 31]);
     expect(fromIsoDate(null)).toBeNull();
+  });
+
+  it('adds calendar days to the notification date like the deliverable deadlines', () => {
+    const notified = new Date(2026, 6, 30);
+    expect(toIsoDate(addDays(notified, 30))).toBe('2026-08-29');
+    expect(toIsoDate(addDays(notified, 60))).toBe('2026-09-28');
+    expect(toIsoDate(addDays(notified, 90))).toBe('2026-10-28');
+    expect(daysBetween(notified, new Date(2026, 8, 28))).toBe(60);
   });
 
   it('asks the backend for a deliverable document as a blob', () => {

@@ -10,9 +10,11 @@ import { FormFieldComponent } from '../../../../core/components/form-field.compo
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
-import { ServiceOrdersService, toIsoDate } from '../../../../services/service-orders.service';
+import { ServiceOrdersService, addDays, daysBetween, toIsoDate } from '../../../../services/service-orders.service';
 
 interface DeliverableRow {
+  /** Días calendario desde la notificación hasta el vencimiento. */
+  days: number | null;
   due: Date | null;
   activity: string;
 }
@@ -20,7 +22,6 @@ interface DeliverableRow {
 type FieldErrors = Partial<Record<'ruc' | 'contractor' | 'orderNumber' | 'notifiedAt' | 'amount' | 'denomination' | 'rows', string>>;
 
 const ORDINALS = ['Primer', 'Segundo', 'Tercer', 'Cuarto', 'Quinto', 'Sexto', 'Séptimo', 'Octavo', 'Noveno', 'Décimo', 'Undécimo', 'Duodécimo'];
-const DAY_MS = 86_400_000;
 
 /** Alta de una orden de servicio: contratista (por RUC, desde Core), datos de la orden y fecha de cada entregable. */
 @Component({
@@ -82,15 +83,27 @@ export class ServiceOrderFormComponent {
 
   setCount(value: number | null): void {
     this.count = Math.min(12, Math.max(1, Math.round(value ?? 1)));
-    this.rows = Array.from({ length: this.count }, (_, index) => this.rows[index] ?? { due: null, activity: '' });
+    this.rows = Array.from({ length: this.count }, (_, index) => this.rows[index] ?? { days: null, due: null, activity: '' });
   }
 
-  /** Días calendario entre la notificación y el vencimiento, como el "Plazo de ejecución" del informe. */
-  daysFor(row: DeliverableRow): number | null {
-    if (!this.notifiedAt || !row.due) {
-      return null;
+  /** Al cambiar los días, el vencimiento se calcula desde la notificación. */
+  onDaysChange(row: DeliverableRow, days: number | null): void {
+    row.days = days;
+    row.due = this.notifiedAt && days !== null ? addDays(this.notifiedAt, days) : row.due;
+  }
+
+  /** Si se elige la fecha a mano, los días se recalculan para que ambos datos coincidan. */
+  onDueChange(row: DeliverableRow, due: Date | null): void {
+    row.due = due;
+    row.days = this.notifiedAt && due ? daysBetween(this.notifiedAt, due) : row.days;
+  }
+
+  /** Al cambiar la notificación se recalculan todos los vencimientos que ya tienen días. */
+  onNotifiedChange(notified: Date | null): void {
+    this.notifiedAt = notified;
+    if (notified) {
+      this.rows.filter(row => row.days !== null).forEach(row => (row.due = addDays(notified, row.days!)));
     }
-    return Math.round((row.due.getTime() - this.notifiedAt.getTime()) / DAY_MS);
   }
 
   save(): void {
@@ -156,6 +169,6 @@ export class ServiceOrderFormComponent {
   }
 
   private emptyRows(count: number): DeliverableRow[] {
-    return Array.from({ length: count }, () => ({ due: null, activity: '' }));
+    return Array.from({ length: count }, () => ({ days: null, due: null, activity: '' }));
   }
 }
