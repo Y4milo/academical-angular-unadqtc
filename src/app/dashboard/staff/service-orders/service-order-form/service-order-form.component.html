@@ -24,7 +24,7 @@
         <p-inputNumber inputId="os-number" name="orderNumber" [(ngModel)]="orderNumber" [useGrouping]="false" [min]="1"></p-inputNumber>
       </app-form-field>
       <app-form-field label="Fecha de notificación" for="os-notified" [required]="true" [error]="errors().notifiedAt ?? ''" hint="El año de la orden sale de esta fecha.">
-        <p-datepicker inputId="os-notified" name="notifiedAt" [(ngModel)]="notifiedAt" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+        <p-datepicker inputId="os-notified" name="notifiedAt" [ngModel]="notifiedAt" (ngModelChange)="onNotifiedChange($event)" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
       </app-form-field>
       <app-form-field label="Monto por entregable" for="os-amount" [required]="true" [error]="errors().amount ?? ''">
         <p-inputNumber inputId="os-amount" name="amount" [(ngModel)]="amount" mode="currency" currency="PEN" locale="es-PE" [min]="0"></p-inputNumber>
@@ -38,7 +38,7 @@
     </app-form-field>
 
     <h3>Entregables</h3>
-    <p class="hint">La fecha de vencimiento de cada uno. Si cae en día no laborable, la carta se fecha el siguiente día hábil.</p>
+    <p class="hint">Escribe los días calendario desde la notificación y la fecha se calcula; también puedes elegir la fecha y se calculan los días. Si cae en día no laborable, la carta se fecha el siguiente día hábil.</p>
     @if (errors().rows) {
       <p class="field-error" role="alert">{{ errors().rows }}</p>
     }
@@ -46,10 +46,13 @@
       @for (row of rows; track $index) {
         <div class="deliverable">
           <strong class="deliverable__title">{{ ordinals[$index] }} entregable</strong>
-          <app-form-field label="Vence" [for]="'os-due-' + $index">
-            <p-datepicker [inputId]="'os-due-' + $index" [name]="'due' + $index" [(ngModel)]="row.due" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+          <app-form-field label="Días acumulados" [for]="'os-days-' + $index" [hint]="notifiedAt ? '' : 'Elige antes la notificación.'">
+            <p-inputNumber [inputId]="'os-days-' + $index" [name]="'days' + $index" [ngModel]="row.days" (ngModelChange)="onDaysChange(row, $event)" [min]="1" [useGrouping]="false" suffix=" días"></p-inputNumber>
           </app-form-field>
-          <app-form-field label="Actividad" [for]="'os-activity-' + $index" [hint]="daysFor(row) !== null ? 'A los ' + daysFor(row) + ' días calendario de la notificación.' : ''">
+          <app-form-field label="Vence" [for]="'os-due-' + $index">
+            <p-datepicker [inputId]="'os-due-' + $index" [name]="'due' + $index" [ngModel]="row.due" (ngModelChange)="onDueChange(row, $event)" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+          </app-form-field>
+          <app-form-field label="Actividad" [for]="'os-activity-' + $index">
             <input pInputText [id]="'os-activity-' + $index" [name]="'activity' + $index" [(ngModel)]="row.activity" autocomplete="off" placeholder="Sale en la carta">
           </app-form-field>
         </div>
