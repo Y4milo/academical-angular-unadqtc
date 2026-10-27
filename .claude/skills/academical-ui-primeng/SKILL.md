@@ -25,6 +25,11 @@ El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-cat
 | Búsqueda de texto | `p-iconfield` + `p-inputicon` + `pInputText` |
 | Búsqueda con sugerencias (DNI o nombre) | `p-autoComplete` |
 | Rango de fechas | `p-datepicker` con `selectionMode="range"` |
+| Fecha o fecha con hora | `p-datepicker` (modelo `Date`; `[showTime]="true" hourFormat="24"` para la hora; convertir con `src/app/core/utils/date-input.util.ts`). Nunca `<input type="date">` ni `datetime-local` |
+| Número (intentos, tamaños, cantidades) | `p-inputnumber` (`[min]`, `[max]`, `suffix`, `[showButtons]`). Nunca `<input type="number">` |
+| Interruptor sí/no | `p-toggleswitch` (casillas sueltas solo con `p-checkbox`) |
+| Listado de filas con acciones | `p-table` con la tarjeta etiqueta/valor en teléfono; nunca `<ul>`/`<table>` a mano |
+| Tarjeta de resumen clicable | `p-card` con `role="button"` y `(keydown.enter)` |
 | Paginación | `p-paginator` (`rowsPerPageOptions`, `showCurrentPageReport`) |
 | Listado grande con paginación propia | `p-dataview` o `p-table` |
 | Persona / iniciales | `p-avatar` (`label` con iniciales, `shape="circle"`) |
@@ -36,6 +41,10 @@ El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-cat
 | Acciones | `pButton` / `p-button` (uno solo `primary` por vista; el resto `severity="secondary"`, `[text]="true"`) |
 
 Antes de escribir CSS para algo, revisa `node_modules/primeng` (carpeta del componente) o la documentación de PrimeNG 19.
+
+## Antes de entregar una pantalla
+
+Buscar elementos nativos en los `.html` nuevos o tocados y corregir cada coincidencia: `type="date"`, `type="datetime-local"`, `type="number"`, `type="checkbox"`, `type="radio"`, `<select`, `<button`, `<table`, `<ul`, `<ol`, `<textarea`. Solo se permite HTML propio para la disposición (`div`, `section`, `header`, `label`). Esta regla ya se incumplió una vez (semestres y configuración del carné) y se corrigió; no debe repetirse.
 
 ## Reglas de implementación
 
