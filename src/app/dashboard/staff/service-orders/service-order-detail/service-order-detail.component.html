@@ -46,40 +46,49 @@
               </p-message>
             }
 
-            @if (d.letter_number) {
-              <p class="deliverable__done">
-                <span class="inline-icon"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ letterTitle(d) }} · {{ shortDate(d.letter_date) }}</span>
-                @if (d.status === 'finished') {
-                  <span class="inline-icon"><i class="pi pi-check-circle" aria-hidden="true"></i>Informe N°{{ d.report_number }}-{{ d.report_year }} · acta {{ d.record_number }}-{{ d.record_year }}</span>
+            @if (docs()[d.id]?.length) {
+              <ul class="docs" [attr.aria-label]="'Documentos del ' + ordinal(d).toLowerCase() + ' entregable'">
+                @for (doc of docs()[d.id]; track doc.kind) {
+                  <li class="doc">
+                    <span class="doc__icon"><i class="pi" [class]="'pi ' + doc.icon" aria-hidden="true"></i></span>
+                    <div class="doc__main">
+                      <div class="doc__name">
+                        <strong>{{ doc.title }}</strong>
+                        @if (doc.tag) {
+                          <p-tag [severity]="doc.tag.severity" [value]="doc.tag.label"></p-tag>
+                        }
+                      </div>
+                      <p class="doc__meta">{{ doc.meta }}</p>
+                    </div>
+                    <div class="doc__actions">
+                      @if (doc.emit === 'letter') {
+                        <p-button label="Emitir carta" icon="pi pi-file-edit" (onClick)="openLetter(d)"></p-button>
+                      }
+                      @if (doc.emit === 'conformity') {
+                        <p-button label="Emitir conformidad" icon="pi pi-file-check" (onClick)="openConformity(d)"></p-button>
+                      }
+                      @if (doc.issued) {
+                        @if (canSign && !doc.signed) {
+                          <p-button label="Firmar" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="openSign(d, doc.kind)"></p-button>
+                        }
+                        <p-menu #downloadMenu [model]="menus()[d.id + '-' + doc.kind + '-download']" [popup]="true" appendTo="body"></p-menu>
+                        <p-button severity="secondary" [outlined]="true" size="small" [loading]="!!downloading()?.startsWith(d.id + '-' + doc.kind)" aria-haspopup="true" [attr.aria-label]="'Descargar ' + doc.title" (onClick)="downloadMenu.toggle($event)">
+                          <span class="btn-inline"><i class="pi pi-download" aria-hidden="true"></i>Descargar<i class="pi pi-chevron-down" aria-hidden="true"></i></span>
+                        </p-button>
+                        @if (doc.signed && canSign) {
+                          <p-menu #moreMenu [model]="menus()[d.id + '-' + doc.kind + '-more']" [popup]="true" appendTo="body"></p-menu>
+                          <p-button icon="pi pi-ellipsis-h" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)"></p-button>
+                        }
+                      }
+                    </div>
+                  </li>
                 }
-              </p>
+              </ul>
             }
 
-            <div class="deliverable__actions">
-              @if (d.status === 'pending_letter') {
-                <p-button label="Emitir carta" icon="pi pi-file-edit" (onClick)="openLetter(d)"></p-button>
-              }
-              @if (d.status === 'pending_conformity') {
-                <p-button label="Emitir conformidad" icon="pi pi-file-check" (onClick)="openConformity(d)"></p-button>
-              }
-              @if (d.letter_number) {
-                <div class="downloads" role="group" [attr.aria-label]="'Descargar la carta del ' + ordinal(d).toLowerCase() + ' entregable'">
-                  <span class="downloads__label">Carta</span>
-                  <p-button label="Word" icon="pi pi-file-word" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-letter-docx'" (onClick)="download(d, 'letter', 'docx')"></p-button>
-                  <p-button label="PDF" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-letter-pdf'" (onClick)="download(d, 'letter', 'pdf')"></p-button>
-                </div>
-              }
-              @if (d.status === 'finished') {
-                <div class="downloads" role="group" [attr.aria-label]="'Descargar la conformidad del ' + ordinal(d).toLowerCase() + ' entregable'">
-                  <span class="downloads__label">Conformidad</span>
-                  <p-button label="Word" icon="pi pi-file-word" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-conformity-docx'" (onClick)="download(d, 'conformity', 'docx')"></p-button>
-                  <p-button label="PDF" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" size="small" [loading]="downloading() === d.id + '-conformity-pdf'" (onClick)="download(d, 'conformity', 'pdf')"></p-button>
-                </div>
-              }
-              @if (d.status === 'locked') {
-                <span class="deliverable__hint">Se habilita al emitir la conformidad del entregable anterior.</span>
-              }
-            </div>
+            @if (d.status === 'locked') {
+              <span class="deliverable__hint">Se habilita al emitir la conformidad del entregable anterior.</span>
+            }
           </li>
         }
       </ol>
@@ -100,6 +109,14 @@
       <app-form-field label="Actividad" for="letter-activity" hint="Es la actividad que se detalla en la carta.">
         <textarea pTextarea id="letter-activity" name="letterActivity" [(ngModel)]="letterForm.activity" rows="2" [autoResize]="true"></textarea>
       </app-form-field>
+      @if (hasSignatureImages) {
+        <label class="sign-option" for="letter-signed">
+          <p-checkbox inputId="letter-signed" name="letterSigned" [(ngModel)]="letterForm.signed" [binary]="true"></p-checkbox>
+          <span>Incluir firma y huella<small>Salen en el Word y en el PDF. Sin marcar, la carta sale limpia para firmarla a mano.</small></span>
+        </label>
+      } @else {
+        <p class="hint">Para incluir tu firma y huella, <a [routerLink]="configLink">súbelas en la configuración</a>.</p>
+      }
       @if (letterError) {
         <p-message severity="error" variant="simple">{{ letterError }}</p-message>
       }
@@ -151,3 +168,7 @@
     <p-button label="Emitir conformidad" icon="pi pi-check" [loading]="saving()" (onClick)="saveConformity()"></p-button>
   </ng-template>
 </p-dialog>
+
+@if (signTarget && config()?.signing; as signing) {
+  <app-document-sign-dialog [(visible)]="signDialog" [deliverable]="signTarget" [kind]="signKind" [signing]="signing" (signed)="afterSigned()"></app-document-sign-dialog>
+}

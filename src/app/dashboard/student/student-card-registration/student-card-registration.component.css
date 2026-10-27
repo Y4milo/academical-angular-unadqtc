@@ -1,57 +1,117 @@
-button {
-  margin: 10px;
+:host {
+  display: block;
 }
 
-lu {
-  list-style-type: none;
-  padding-left: 0;
+.card-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  max-width: 50rem;
+  color: var(--p-text-color);
 }
 
-li {
-  padding-bottom: 0.5rem;
+.card-page__header h1 {
+  margin: 0;
 }
 
-.preview-box {
-  width: 260px;
-  height: 360px;
-  margin: 0 auto;
-  overflow: hidden;
+.card-page__header p {
+  margin: var(--space-1) 0 0;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.card-page__skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.card-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.card-page__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.card-page__status h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.card-page__muted {
+  margin: var(--space-1) 0 0;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.card-page__error {
+  color: var(--p-red-500);
+}
+
+.card-page__drop {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px dashed var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.card-page__photo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.card-page__photo-text {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1 1 14rem;
+}
+
+.card-page__thumb {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 6rem;
+  height: 7.2rem;
+  overflow: hidden;
+  flex: none;
+  color: var(--p-text-muted-color);
+  background: var(--p-content-hover-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
 }
 
-::ng-deep .p-fileupload-basic input[type="file"] {
-  display: none !important;
-}
-
-/* 🖼️ Imagen */
-.preview-img {
+.card-page__thumb img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
-/* 📄 PDF */
-.preview-pdf {
+.card-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+:host ::ng-deep .card-page__full {
   width: 100%;
-  height: 100%;
-  border: none;
 }
 
-/* 🪪 Placeholder */
-.preview-placeholder {
+:host ::ng-deep .card-page__card textarea {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 20px;
-}
-
-/* 🔴 ERROR (rojo moderno) */
-.p-error {
-  color: #f59e0b;
-  font-size: var(--text-small);
-  margin-top: 4px;
-  display: block;
-  font-weight: var(--weight-regular);
 }

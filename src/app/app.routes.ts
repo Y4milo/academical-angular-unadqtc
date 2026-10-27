@@ -55,6 +55,18 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component').then(m => m.HrReportAttendanceComponentComponent)
       },
       {
+        path: PATHS.admin.academic.semesters.path,
+        loadComponent: () => import('./dashboard/staff/academic/semesters/semesters.component').then(m => m.SemestersComponent)
+      },
+      {
+        path: PATHS.admin.academic.cardSettings.path,
+        loadComponent: () => import('./dashboard/staff/academic/student-card-settings/student-card-settings.component').then(m => m.StudentCardSettingsComponent)
+      },
+      {
+        path: PATHS.admin.academic.studentModules.path,
+        loadComponent: () => import('./dashboard/staff/academic/student-modules/student-modules.component').then(m => m.StudentModulesComponent)
+      },
+      {
         path: PATHS.academic.student.card.panel.path,
         loadComponent: () => import('./dashboard/staff/academic/student-cards/student-cards.component').then(m => m.StudentCardsComponent)
       },
@@ -97,6 +109,10 @@ export const routes: Routes = [
       {
         path: PATHS.admin.users.accounts.path,
         loadComponent: () => import('./dashboard/staff/users/user-accounts/user-accounts.component').then(m => m.UserAccountsComponent)
+      },
+      {
+        path: PATHS.admin.users.cases.path,
+        loadComponent: () => import('./dashboard/staff/users/user-cases/user-cases.component').then(m => m.UserCasesComponent)
       },
       {
         path: PATHS.admin.users.accounts.sheetPath,
@@ -268,9 +284,15 @@ export const routes: Routes = [
     ]
   },
   {
-    path: PATHS.student.card.registration,
-    loadComponent: () => import('./dashboard/student/student-card-registration/student-card-registration.component').then(m => m.StudentCardRegistrationComponent),
-    canActivate: [AuthStudentGuard]
+    path: PATHS.student.path,
+    loadComponent: () => import('./dashboard/student/student-lay-out/student-lay-out.component').then(m => m.StudentLayOutComponent),
+    canActivate: [AuthStudentGuard],
+    children: [
+      {
+        path: PATHS.student.card.path,
+        loadComponent: () => import('./dashboard/student/student-card-registration/student-card-registration.component').then(m => m.StudentCardRegistrationComponent),
+      },
+    ]
   },
   {
     path: PATHS.academic.path,
@@ -281,6 +303,14 @@ export const routes: Routes = [
       {
         path: PATHS.academic.home.path,
         loadComponent: () => import('./dashboard/staff/staff-user/attendance-user/attendance-user.component').then(m => m.AttendanceUserComponent)
+      },
+      {
+        path: PATHS.academic.semesters.path,
+        loadComponent: () => import('./dashboard/staff/academic/semesters/semesters.component').then(m => m.SemestersComponent)
+      },
+      {
+        path: PATHS.academic.cardSettings.path,
+        loadComponent: () => import('./dashboard/staff/academic/student-card-settings/student-card-settings.component').then(m => m.StudentCardSettingsComponent)
       },
       {
         path: PATHS.academic.student.card.panel.path,

@@ -1,0 +1,159 @@
+<div class="cases">
+  <header class="cases__header">
+    <div>
+      <h1>Depuración de usuarios</h1>
+      <p>Cuentas que no cuadran con Core o que ya no deberían tener acceso. Nada se borra: suspender es reversible.</p>
+    </div>
+    <p-button label="Exportar a Excel" severity="secondary" [outlined]="true" [loading]="exporting()" (onClick)="exportExcel()">
+      <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template>
+    </p-button>
+  </header>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="cases__notice">
+      No se pudieron cargar los casos. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  }
+
+  @if (summaryCards().length > 0) {
+    <section class="cases__summary" aria-label="Resumen por tipo de caso">
+      <p-card styleClass="cases__card" [class.cases__card--on]="code() === null" role="button" tabindex="0" (click)="setCode(null)" (keydown.enter)="setCode(null)">
+        <strong>{{ unresolvedTotal() }}</strong>
+        <span>Sin resolver</span>
+      </p-card>
+      @for (card of summaryCards(); track card.code) {
+        <p-card styleClass="cases__card" [class.cases__card--on]="code() === card.code" role="button" tabindex="0" (click)="setCode(card.code)" (keydown.enter)="setCode(card.code)">
+          <strong>{{ card.total }}</strong>
+          <span>{{ card.label }}</span>
+        </p-card>
+      }
+    </section>
+  }
+
+  <section class="cases__filters" aria-label="Filtros">
+    <input pInputText type="search" class="cases__search" placeholder="Buscar por nombre o usuario" aria-label="Buscar por nombre o usuario" [(ngModel)]="search" (ngModelChange)="onSearch()" />
+    <p-selectbutton [options]="statusFilters" optionLabel="label" optionValue="value" [allowEmpty]="false" [ngModel]="status()" (ngModelChange)="setStatus($event)" ariaLabelledBy="Estado del caso" />
+  </section>
+
+  @if (selection.length > 0) {
+    <section class="cases__bar" aria-live="polite">
+      <span>{{ selection.length === 1 ? '1 caso seleccionado' : selection.length + ' casos seleccionados' }}</span>
+      <div class="cases__bar-actions">
+        <p-button label="Actuar sobre la selección" size="small" (onClick)="openDialog(selection)" />
+        <p-button label="Limpiar" severity="secondary" [text]="true" size="small" (onClick)="selection = []" />
+      </div>
+    </section>
+  }
+
+  <section class="cases__panel" aria-label="Lista de casos">
+    @if (loading()) {
+      <div class="cases__skeleton" aria-busy="true">
+        @for (row of skeletonRows; track row) {
+          <div class="cases__skeleton-row">
+            <p-skeleton width="30%" height="1rem" />
+            <p-skeleton width="30%" height="1rem" />
+            <p-skeleton width="12%" height="1.25rem" />
+          </div>
+        }
+      </div>
+    } @else if (cases().length === 0 && !loadError()) {
+      <div class="cases__empty">
+        <app-lucide-icon name="circle-check" [size]="28" />
+        <strong>No hay casos con este filtro</strong>
+        <span>Cuando la reconciliación con Core encuentre algo, aparecerá aquí.</span>
+      </div>
+    } @else if (cases().length > 0) {
+      <p-table [value]="cases()" [(selection)]="selection" dataKey="id" size="small" [tableStyle]="{ 'min-width': '44rem' }" styleClass="cases__table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="cases__check"><p-tableHeaderCheckbox ariaLabel="Seleccionar todos los casos de la página" /></th>
+            <th>Usuario</th>
+            <th>Caso</th>
+            <th>Estado</th>
+            <th>Último ingreso</th>
+            <th class="cases__actions" aria-label="Acciones"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td class="cases__check"><p-tableCheckbox [value]="item" [ariaLabel]="'Seleccionar ' + item.nick" /></td>
+            <td class="cases__cell-main">
+              <span class="cases__name">{{ item.display_name || item.nick }}</span>
+              <span class="cases__nick">{{ item.nick }}</span>
+            </td>
+            <td data-label="Caso">
+              <span class="cases__code">{{ caseLabel(item.code) }}</span>
+              <span class="cases__detail">{{ item.detail }}</span>
+              @if (item.note) {
+                <span class="cases__detail">Nota: {{ item.note }}</span>
+              }
+            </td>
+            <td data-label="Estado">
+              <app-status-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)" />
+              @if (item.postponed_until) {
+                <span class="cases__detail">Hasta {{ item.postponed_until | date: 'dd/MM/yyyy' }}</span>
+              }
+            </td>
+            <td data-label="Último ingreso">{{ item.last_login_at ? (item.last_login_at | date: 'dd/MM/yyyy HH:mm') : 'Sin registro' }}</td>
+            <td class="cases__actions">
+              <p-button [label]="item.status === 'resolved' ? 'Reabrir' : 'Resolver'" severity="secondary" [outlined]="true" size="small" (onClick)="resolveRow(item)" />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+      <p-paginator [rows]="perPage" [totalRecords]="page()?.total ?? 0" [first]="(pageNumber() - 1) * perPage" [showCurrentPageReport]="true"
+        currentPageReportTemplate="{first} a {last} de {totalRecords} casos" (onPageChange)="onPage($event)" />
+    }
+  </section>
+
+  <p-dialog [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '34rem', maxWidth: '95vw' }"
+    [header]="dialogCases.length === 1 ? 'Resolver caso de ' + dialogCases[0].nick : 'Actuar sobre ' + dialogCases.length + ' casos'">
+    <div class="cases__form">
+      <app-form-field label="Acción" for="case-action">
+        <p-select inputId="case-action" [options]="actionOptions" optionLabel="label" optionValue="value" [(ngModel)]="action" (onChange)="onActionChange()" appendTo="body" styleClass="cases__full" />
+      </app-form-field>
+
+      @if (action === 'postpone') {
+        <app-form-field label="Posponer hasta" for="case-until" [required]="true">
+          <p-datepicker inputId="case-until" [(ngModel)]="until" (ngModelChange)="outcome = null" [minDate]="tomorrow" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" styleClass="cases__full" />
+        </app-form-field>
+      }
+
+      <app-form-field label="Motivo" for="case-note" [required]="needsNote" [hint]="needsNote ? '' : 'Opcional.'">
+        <input pInputText id="case-note" maxlength="255" [(ngModel)]="note" placeholder="Locación de servicios, contrato en trámite…" />
+      </app-form-field>
+
+      @if (action === 'suspend') {
+        <p-message severity="warn" styleClass="cases__full">
+          Se suspende el acceso y se cierran las sesiones abiertas. Se puede revertir. No se suspende tu propia cuenta ni al último administrador activo.
+        </p-message>
+      }
+
+      @if (formError) {
+        <small class="cases__error" role="alert">{{ formError }}</small>
+      }
+
+      @if (outcome) {
+        <div class="cases__outcome" aria-live="polite">
+          <strong>
+            {{ outcome.dry_run ? 'Simulación, no se cambió nada' : 'Aplicado' }}:
+            {{ outcome.dry_run ? outcome.summary.would_apply : outcome.summary.applied }} sí, {{ outcome.summary.skipped }} se omiten
+          </strong>
+          <div class="cases__results">
+            @for (result of outcome.results; track result.case_id) {
+              <p-message [severity]="result.outcome === 'skipped' ? 'warn' : 'success'" variant="simple" size="small">
+                <b>{{ result.nick }}</b> {{ outcomeText(result) }}
+              </p-message>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogVisible = false" />
+      <p-button label="Simular" severity="secondary" [outlined]="true" [loading]="working" (onClick)="simulate()" />
+      <p-button [label]="'Aplicar'" [severity]="action === 'suspend' ? 'danger' : 'primary'" [loading]="working" (onClick)="confirm()" />
+    </ng-template>
+  </p-dialog>
+</div>

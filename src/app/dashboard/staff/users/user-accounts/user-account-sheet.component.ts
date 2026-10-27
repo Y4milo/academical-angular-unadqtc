@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -14,6 +15,7 @@ import { TimelineModule } from 'primeng/timeline';
 import { AppLucideIconComponent } from '../../../../core/components/lucide-icon/lucide-icon.component';
 import { FormFieldComponent } from '../../../../core/components/form-field.component';
 import { StatusTagComponent } from '../../../../core/components/status-tag.component';
+import { dateToIso } from '../../../../core/utils/date-input.util';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { AccountHolder, AccountHolders, CorePersonLookup, UserAccountsService } from '../../../../services/user-accounts.service';
 import { NotificationService } from '../../../../services/notification.service';
@@ -28,7 +30,7 @@ const MS_PER_DAY = 86_400_000;
 @Component({
   selector: 'app-user-account-sheet',
   imports: [
-    DatePipe, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, MessageModule, SharedModule, ProgressBarModule, SelectModule,
+    DatePipe, FormsModule, RouterLink, ButtonModule, DatePickerModule, DialogModule, InputTextModule, MessageModule, SharedModule, ProgressBarModule, SelectModule,
     SkeletonModule, TimelineModule, AppLucideIconComponent, FormFieldComponent, StatusTagComponent,
   ],
   templateUrl: './user-account-sheet.component.html',
@@ -53,8 +55,8 @@ export class UserAccountSheetComponent implements OnInit {
   documentType = 'dni';
   documentNumber = '';
   serviceOrder = '';
-  validFrom = '';
-  validTo = '';
+  validFrom: Date | null = null;
+  validTo: Date | null = null;
   lookupState: LookupState = 'idle';
   lookupPerson: CorePersonLookup | null = null;
   lookupMessage = '';
@@ -129,8 +131,8 @@ export class UserAccountSheetComponent implements OnInit {
     this.documentType = 'dni';
     this.documentNumber = '';
     this.serviceOrder = '';
-    this.validFrom = new Date().toISOString().slice(0, 10);
-    this.validTo = '';
+    this.validFrom = new Date();
+    this.validTo = null;
     this.lookupState = 'idle';
     this.lookupPerson = null;
     this.lookupMessage = '';
@@ -195,8 +197,8 @@ export class UserAccountSheetComponent implements OnInit {
       document_type: this.documentType,
       document_number: this.documentNumber.trim(),
       service_order: this.serviceOrder.trim(),
-      valid_from: this.validFrom,
-      valid_to: this.validTo || null,
+      valid_from: dateToIso(this.validFrom),
+      valid_to: this.validTo ? dateToIso(this.validTo) : null,
       ...(this.replacing ? { replace_reason: 'Cambio de titular' } : {}),
     }).subscribe({
       next: response => {

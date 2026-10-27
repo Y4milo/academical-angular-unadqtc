@@ -25,6 +25,11 @@ El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-cat
 | Búsqueda de texto | `p-iconfield` + `p-inputicon` + `pInputText` |
 | Búsqueda con sugerencias (DNI o nombre) | `p-autoComplete` |
 | Rango de fechas | `p-datepicker` con `selectionMode="range"` |
+| Fecha o fecha con hora | `p-datepicker` (modelo `Date`; `[showTime]="true" hourFormat="24"` para la hora; convertir con `src/app/core/utils/date-input.util.ts`). Nunca `<input type="date">` ni `datetime-local` |
+| Número (intentos, tamaños, cantidades) | `p-inputnumber` (`[min]`, `[max]`, `suffix`, `[showButtons]`). Nunca `<input type="number">` |
+| Interruptor sí/no | `p-toggleswitch` (casillas sueltas solo con `p-checkbox`) |
+| Listado de filas con acciones | `p-table` con la tarjeta etiqueta/valor en teléfono; nunca `<ul>`/`<table>` a mano |
+| Tarjeta de resumen clicable | `p-card` con `role="button"` y `(keydown.enter)` |
 | Paginación | `p-paginator` (`rowsPerPageOptions`, `showCurrentPageReport`) |
 | Listado grande con paginación propia | `p-dataview` o `p-table` |
 | Persona / iniciales | `p-avatar` (`label` con iniciales, `shape="circle"`) |
@@ -36,6 +41,10 @@ El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-cat
 | Acciones | `pButton` / `p-button` (uno solo `primary` por vista; el resto `severity="secondary"`, `[text]="true"`) |
 
 Antes de escribir CSS para algo, revisa `node_modules/primeng` (carpeta del componente) o la documentación de PrimeNG 19.
+
+## Antes de entregar una pantalla
+
+Buscar elementos nativos en los `.html` nuevos o tocados y corregir cada coincidencia: `type="date"`, `type="datetime-local"`, `type="number"`, `type="checkbox"`, `type="radio"`, `<select`, `<button`, `<table`, `<ul`, `<ol`, `<textarea`. Solo se permite HTML propio para la disposición (`div`, `section`, `header`, `label`). Esta regla ya se incumplió una vez (semestres y configuración del carné) y se corrigió; no debe repetirse.
 
 ## Reglas de implementación
 
@@ -141,3 +150,7 @@ Referencia en `dashboard/staff/users/user-accounts/` (`user-accounts.component` 
 - **Fechas `YYYY-MM-DD` sin `DatePipe`:** `new Date('2026-03-02')` se lee en UTC y se ve un día antes en Lima; se formatean cortando la cadena (`fmt`). Para marcas de tiempo (`created_at`, `last_login_at`) sí se usa `DatePipe`.
 - **Pruebas** (`user-accounts.component.spec.ts`, 10 specs): la ficha lee el id de `ActivatedRoute.snapshot.paramMap`, así que el spec debe proveer `{ provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '1' }) } } }`; sin eso el id es 0.
 - **Verificación visual sin backend:** con `npx ng serve --port 4300 --host localhost`, en el navegador integrado poner `sessionStorage['user']` con rol `admin`, sustituir `window.XMLHttpRequest` por un doble que responda `{status:'success',payload:{data}}` según la URL (menú, lista, ficha, lookup) y navegar con `history.pushState` + `popstate`; así se revisan claro/oscuro y 1440/375 px y se mide `scrollWidth === innerWidth`. HMR actualiza estilos y plantillas sin recargar (esperar unos segundos antes de capturar; el `p-message` anima su entrada).
+
+## Maquetas fieles a la app
+
+Una maqueta que se muestra al usuario debe parecerse a la pantalla real, no a un boceto genérico. Antes de dibujarla se lee el CSS y el tema reales (`src/styles.css`, `app.config.ts`, el layout y su `.css`) y se copian sus valores literalmente: fuente `'Segoe UI','Selawik',Roboto`, cuerpo 15 px, pequeño 13 px, etiqueta 12 px, h1 28 px/700, título de tarjeta 18 px/600, radio .5rem, barra lateral de 17rem, primario `#d40f1c` (claro) y `#fb7185` (oscuro), fondos y bordes `--p-content-*` en los dos temas. Se reutiliza el layout existente (barra lateral, cajón en teléfono) en lugar de inventar uno y se incluye un interruptor de tema claro/oscuro.

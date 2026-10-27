@@ -19,6 +19,31 @@ export interface ServiceOrderSummary {
 }
 
 /** Un entregable con lo que ya se emitió y lo que el sistema sugiere para el siguiente paso. */
+/** Quién firmó digitalmente un documento; `holder_matches` es null cuando no había un titular esperado. */
+export interface DocumentSigner {
+  name: string;
+  certificate_kind: string;
+  holder_matches: boolean | null;
+  reason: string;
+  signed_at: string;
+}
+
+export interface DocumentSignature {
+  signed: boolean;
+  signers: DocumentSigner[];
+}
+
+export interface SignatureStatus extends DocumentSignature {
+  last_error: string | null;
+}
+
+export interface SigningConfig {
+  configured: boolean;
+  reasons: string[];
+  script_url: string;
+  port: number;
+}
+
 export interface ServiceOrderDeliverable {
   id: number;
   position: number;
@@ -41,6 +66,9 @@ export interface ServiceOrderDeliverable {
   penalty: string;
   delay_days: string;
   observation: string | null;
+  letter_signed: boolean;
+  letter_signature: DocumentSignature;
+  conformity_signature: DocumentSignature;
 }
 
 export interface ServiceOrder {
@@ -80,6 +108,7 @@ export interface LetterBody {
   letter_date: string | null;
   letter_number: number | null;
   activity: string | null;
+  include_signature: boolean;
 }
 
 export interface ConformityBody {
@@ -98,7 +127,12 @@ export interface ServiceOrdersConfig {
   year: number;
   next_letter_number: number;
   next_report_number: number;
+  has_signature: boolean;
+  has_fingerprint: boolean;
+  signing: SigningConfig;
 }
+
+export type SignatureKind = 'signature' | 'fingerprint';
 
 export interface ConfigUpdate {
   settings?: Record<string, string>;
@@ -121,6 +155,16 @@ export function fromIsoDate(value: string | null): Date | null {
   }
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year, month - 1, day);
+}
+
+/** La fecha que cae `days` días calendario después de `from` (a los 30 días de la notificación = fin del primer entregable). */
+export function addDays(from: Date, days: number): Date {
+  return new Date(from.getFullYear(), from.getMonth(), from.getDate() + days);
+}
+
+/** Días calendario entre dos fechas locales. */
+export function daysBetween(from: Date, to: Date): number {
+  return Math.round((Date.UTC(to.getFullYear(), to.getMonth(), to.getDate()) - Date.UTC(from.getFullYear(), from.getMonth(), from.getDate())) / 86_400_000);
 }
 
 @Injectable({ providedIn: 'root' })
@@ -166,5 +210,27 @@ export class ServiceOrdersService {
 
   updateConfig(body: ConfigUpdate): Observable<ApiData<ServiceOrdersConfig>> {
     return this.http.patch<ApiData<ServiceOrdersConfig>>(`${this.apiURL}/service-orders/config`, body);
+  }
+
+  signatureImage(kind: SignatureKind): Observable<Blob> {
+    return this.http.get(`${this.apiURL}/service-orders/config/signature-images/${kind}`, { responseType: 'blob' });
+  }
+
+  uploadSignatureImage(kind: SignatureKind, file: File): Observable<ApiData<ServiceOrdersConfig>> {
+    const body = new FormData();
+    body.append('image', file);
+    return this.http.post<ApiData<ServiceOrdersConfig>>(`${this.apiURL}/service-orders/config/signature-images/${kind}`, body);
+  }
+
+  deleteSignatureImage(kind: SignatureKind): Observable<ApiData<ServiceOrdersConfig>> {
+    return this.http.delete<ApiData<ServiceOrdersConfig>>(`${this.apiURL}/service-orders/config/signature-images/${kind}`);
+  }
+
+  prepareSignature(deliverableId: number, kind: DocumentKind, reason: string): Observable<ApiData<{ param: string; port: number }>> {
+    return this.http.post<ApiData<{ param: string; port: number }>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/${kind}/signature/prepare`, { reason });
+  }
+
+  signatureStatus(deliverableId: number, kind: DocumentKind): Observable<ApiData<SignatureStatus>> {
+    return this.http.get<ApiData<SignatureStatus>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/${kind}/signature`);
   }
 }

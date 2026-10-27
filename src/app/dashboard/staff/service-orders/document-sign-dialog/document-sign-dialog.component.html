@@ -1,0 +1,34 @@
+<p-dialog [header]="title" [visible]="visible" (visibleChange)="visibleChange.emit($event)" (onShow)="onShow()" (onHide)="close()" [modal]="true" [draggable]="false" [closable]="!busy" [style]="{ width: 'min(94vw, 34rem)' }" appendTo="body">
+  <div class="sign">
+    <ul class="checks" aria-label="Tu equipo">
+      <li>
+        <i class="pi" [class.pi-check-circle]="environment.recommended && environment.windows" [class.pi-exclamation-circle]="!(environment.recommended && environment.windows)" aria-hidden="true"></i>
+        <span>{{ environment.browser }}{{ environment.recommended ? '' : ': Firma Perú recomienda Microsoft Edge en Windows' }}</span>
+      </li>
+    </ul>
+
+    <app-form-field label="Motivo de la firma" for="sign-reason">
+      <p-select inputId="sign-reason" name="reason" [options]="signing.reasons" [(ngModel)]="reason" [disabled]="busy" appendTo="body" styleClass="w-full"></p-select>
+    </app-form-field>
+
+    <p class="hint">El PIN se escribe en la ventana del firmador; nunca pasa por Academical. Ubicas el sello en el visor del firmador.</p>
+
+    @if (phase() === 'waiting') {
+      <p-message severity="info" variant="simple" icon="pi pi-spin pi-spinner">{{ message() }}</p-message>
+    }
+    @if (phase() === 'failed') {
+      <p-message severity="error" variant="simple">{{ message() }}</p-message>
+    }
+    @if (phase() === 'done') {
+      <p-message severity="success" variant="simple" icon="pi pi-check-circle">Documento firmado y validado.</p-message>
+    }
+  </div>
+  <ng-template #footer>
+    @if (phase() === 'done') {
+      <p-button label="Listo" icon="pi pi-check" (onClick)="close()"></p-button>
+    } @else {
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="phase() === 'preparing'" (onClick)="close()"></p-button>
+      <p-button label="Firmar" icon="pi pi-pencil" [loading]="busy" (onClick)="start()"></p-button>
+    }
+  </ng-template>
+</p-dialog>

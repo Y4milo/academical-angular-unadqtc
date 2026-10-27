@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -8,7 +8,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { FormFieldComponent } from '../../../../core/components/form-field.component';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
-import { ServiceOrdersConfig, ServiceOrdersService } from '../../../../services/service-orders.service';
+import { ServiceOrdersConfig, ServiceOrdersService, SignatureKind } from '../../../../services/service-orders.service';
 
 interface SettingField {
   key: string;
@@ -22,6 +22,7 @@ const PEOPLE: SettingField[] = [
   { key: 'oti_title', label: 'Cargo del jefe de la oficina' },
   { key: 'dga_name', label: 'Director de Administración', hint: 'Destinatario del informe de conformidad.' },
   { key: 'dga_title', label: 'Cargo del director de Administración' },
+  { key: 'conformity_signer_document', label: 'DNI de quien firma el informe', hint: 'Opcional. Si firma otra persona, se avisa pero no se bloquea.' },
 ];
 
 const SUFFIXES: SettingField[] = [
@@ -36,9 +37,16 @@ const SUFFIXES: SettingField[] = [
   templateUrl: './service-orders-config.component.html',
   styleUrl: './service-orders-config.component.css',
 })
-export class ServiceOrdersConfigComponent implements OnInit {
+export class ServiceOrdersConfigComponent implements OnInit, OnDestroy {
   readonly people = PEOPLE;
   readonly suffixes = SUFFIXES;
+  readonly images: { kind: SignatureKind; label: string }[] = [
+    { kind: 'signature', label: 'Firma' },
+    { kind: 'fingerprint', label: 'Huella digital' },
+  ];
+  /** Vista previa de lo subido (URL temporal del navegador, por eso se libera al cambiar o salir). */
+  readonly previews = signal<Partial<Record<SignatureKind, string>>>({});
+  readonly uploading = signal<SignatureKind | null>(null);
 
   readonly config = signal<ServiceOrdersConfig | null>(null);
   readonly loading = signal(true);
@@ -80,6 +88,60 @@ export class ServiceOrdersConfigComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    Object.values(this.previews()).forEach(url => URL.revokeObjectURL(url));
+  }
+
+  hasImage(kind: SignatureKind): boolean {
+    const config = this.config();
+    return !!config && (kind === 'signature' ? config.has_signature : config.has_fingerprint);
+  }
+
+  upload(kind: SignatureKind, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    this.uploading.set(kind);
+    this.service.uploadSignatureImage(kind, file).subscribe({
+      next: response => {
+        this.uploading.set(null);
+        if (response.status === STATUS.success) {
+          this.config.set(response.payload.data);
+          this.loadPreview(kind);
+          this.notificationService.success('Imagen guardada', 'La podrás incluir al emitir una carta.');
+        } else {
+          this.notificationService.notifyApiData(response);
+        }
+      },
+      error: error => {
+        this.uploading.set(null);
+        this.notificationService.notifyApiData(error);
+      },
+    });
+  }
+
+  remove(kind: SignatureKind): void {
+    this.uploading.set(kind);
+    this.service.deleteSignatureImage(kind).subscribe({
+      next: response => {
+        this.uploading.set(null);
+        if (response.status === STATUS.success) {
+          this.config.set(response.payload.data);
+          this.setPreview(kind, null);
+        } else {
+          this.notificationService.notifyApiData(response);
+        }
+      },
+      error: error => {
+        this.uploading.set(null);
+        this.notificationService.notifyApiData(error);
+      },
+    });
+  }
+
   save(): void {
     const config = this.config();
     if (!config) {
@@ -114,5 +176,21 @@ export class ServiceOrdersConfigComponent implements OnInit {
     this.settings = { ...config.settings };
     this.lastLetter = config.next_letter_number - 1;
     this.lastReport = config.next_report_number - 1;
+    this.images.filter(image => this.hasImage(image.kind) && !this.previews()[image.kind]).forEach(image => this.loadPreview(image.kind));
+  }
+
+  private loadPreview(kind: SignatureKind): void {
+    this.service.signatureImage(kind).subscribe({
+      next: blob => this.setPreview(kind, URL.createObjectURL(blob)),
+      error: () => this.setPreview(kind, null),
+    });
+  }
+
+  private setPreview(kind: SignatureKind, url: string | null): void {
+    const current = this.previews()[kind];
+    if (current) {
+      URL.revokeObjectURL(current);
+    }
+    this.previews.update(previews => ({ ...previews, [kind]: url ?? undefined }));
   }
 }

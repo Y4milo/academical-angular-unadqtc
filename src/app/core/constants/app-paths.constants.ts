@@ -10,11 +10,29 @@ export const PATHS = {
       path:  `home`,
       link:   `admin/home`,
     },
+    academic: {
+      semesters: {
+        path: `academic/semesters`,
+        link: `admin/academic/semesters`,
+      },
+      cardSettings: {
+        path: `academic/student-card`,
+        link: `admin/academic/student-card`,
+      },
+      studentModules: {
+        path: `academic/student-modules`,
+        link: `admin/academic/student-modules`,
+      },
+    },
     users: {
       accounts: {
         path: `users/accounts`,
         link: `admin/users/accounts`,
         sheetPath: `users/accounts/:id`,
+      },
+      cases: {
+        path: `users/cases`,
+        link: `admin/users/cases`,
       },
     },
     dbu: {
@@ -140,6 +158,7 @@ export const PATHS = {
   student: {
     path: `student`,
     card: {
+      path: `card/registration`,
       registration: `student/card/registration`,
     },
     home: {
@@ -222,6 +241,14 @@ export const PATHS = {
     home: {
       path:  `home`,
       link:   `academic/home`,
+    },
+    semesters: {
+      path:  `semesters`,
+      link:   `academic/semesters`,
+    },
+    cardSettings: {
+      path:  `student-card`,
+      link:   `academic/student-card`,
     },
     student: {
       card: {

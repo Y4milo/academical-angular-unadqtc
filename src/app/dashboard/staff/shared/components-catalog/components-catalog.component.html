@@ -105,6 +105,22 @@
           <p-inputnumber [(ngModel)]="minutes" [min]="15" [max]="240" [showButtons]="true" suffix=" min"></p-inputnumber>
         </div>
 
+        <h3>Fecha, fecha con hora y número</h3>
+        <p class="catalog__lead" data-testid="field-pattern">Nunca <code>&lt;input type="date"&gt;</code>, <code>datetime-local</code> ni <code>number</code>: la fecha es <code>p-datepicker</code> (modelo <code>Date</code>; <code>[showTime]="true" hourFormat="24"</code> para la hora; se convierte con <code>core/utils/date-input.util.ts</code>) y el número es <code>p-inputnumber</code> con <code>min</code>, <code>max</code> y <code>suffix</code>.</p>
+        <div class="catalog__row">
+          <p-datepicker [(ngModel)]="sampleDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" ariaLabel="Ejemplo de fecha"></p-datepicker>
+          <p-datepicker [(ngModel)]="sampleDateTime" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" ariaLabel="Ejemplo de fecha con hora"></p-datepicker>
+          <p-inputnumber [(ngModel)]="attempts" [min]="1" [max]="10" [showButtons]="true"></p-inputnumber>
+          <p-inputnumber [(ngModel)]="photoKb" [min]="5" [max]="2048" suffix=" KB"></p-inputnumber>
+        </div>
+
+        <h3>Tarjeta de resumen clicable</h3>
+        <p class="catalog__lead">Un <code>p-card</code> con <code>role="button"</code>, <code>tabindex="0"</code> y <code>(keydown.enter)</code>; la seleccionada lleva un contorno de <code>--p-primary-color</code>. Ejemplo: tipos de caso en Depuración de usuarios.</p>
+        <div class="catalog__row">
+          <p-card styleClass="catalog__tile" role="button" tabindex="0"><strong>48</strong><span>Sin resolver</span></p-card>
+          <p-card styleClass="catalog__tile" role="button" tabindex="0"><strong>47</strong><span>Sin vínculo con Core</span></p-card>
+        </div>
+
         <h3>Avisos</h3>
         <div class="catalog__stack">
           <p-message severity="info" text="Los cambios aplican hacia adelante; las citas ya reservadas no se mueven."></p-message>
@@ -157,11 +173,22 @@
           <li>Se carga una vez por sesión (<code>StaffMenuStore</code>) y se olvida al cerrar sesión.</li>
         </ul>
 
+        <h3>Menú del estudiante</h3>
+        <p class="catalog__lead" data-testid="student-menu-pattern">El estudiante usa el mismo contenedor y la misma barra lateral del personal (<code>staff-role-layout</code> con <code>audience="student"</code>), con un solo grupo, «Mis trámites», con un ítem por módulo. Las opciones salen de <code>GET /students/modules</code> (<code>StudentMenuStore</code>): el carné solo aparece dentro de la ventana de subida del semestre habilitado y, cerrada la ventana, en solo lectura para quien ya lo registró. Un módulo activado sin pantalla (las citas desde la cuenta) no se muestra. No lleva «Cambiar contraseña».</p>
+
+        <h3>Módulo con interruptor general</h3>
+        <p class="catalog__lead">Una fila por módulo con <code>p-toggleswitch</code> en una <code>p-table</code> (tarjetas etiqueta/valor en teléfono). El interruptor general apaga el módulo para todos; lo propio de cada módulo (ventana, intentos, archivos) se configura por semestre en su pantalla. Ejemplo: <code>/admin/academic/student-modules</code> y <code>/admin/academic/student-card</code>.</p>
+
+        <h3>Flujo por pasos del estudiante</h3>
+        <p class="catalog__lead">Cuando hay datos, un documento y una foto, <code>p-steps</code> (solo lectura) con «Atrás» y «Siguiente»; con foto previa aprobada es una sola pantalla. Los datos de identidad van deshabilitados con un aviso; solo se editan contacto y fecha de nacimiento. Ejemplo: <code>/student/card/registration</code>.</p>
+
         <h3>Pantallas de referencia</h3>
         <ul class="catalog__list">
           <li><code>/admin/dbu/config</code>: menú de secciones, filas de ajuste, tablas apiladas y matriz de cupos.</li>
           <li><code>/dbu/citas</code> y <code>/dbu/citas/estado</code>: páginas públicas del alumno, de un solo paso por pantalla, para teléfono.</li>
           <li><code>/admin/accounting/bank/*</code>: listas propias con detalle en <code>p-drawer</code>.</li>
+          <li><code>/admin/academic/semesters</code> y <code>/admin/academic/student-card</code>: fechas con <code>p-datepicker</code>, números con <code>p-inputnumber</code>, interruptores y pagos exportables.</li>
+          <li><code>/student/card/registration</code>: flujo del carné del estudiante.</li>
         </ul>
       </p-tabpanel>
     </p-tabpanels>

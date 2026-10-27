@@ -14,12 +14,14 @@
 .deliverable__title { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .deliverable__due, .deliverable__hint { color: var(--p-text-muted-color); font-size: var(--text-small); }
 .deliverable__activity { margin: 0; font-size: var(--text-small); }
-.deliverable__done { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; font-size: var(--text-small); }
-.inline-icon { display: inline-flex; align-items: center; gap: var(--space-1); }
-.inline-icon .pi { color: var(--p-green-500); }
-.deliverable__actions { display: flex; align-items: center; gap: var(--space-2) var(--space-4); flex-wrap: wrap; }
-.downloads { display: flex; align-items: center; gap: var(--space-2); }
-.downloads__label { color: var(--p-text-muted-color); font-size: var(--text-small); }
+.docs { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--p-content-border-color); }
+.doc { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-1) var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--p-content-border-color); }
+.doc:last-child { border-bottom: 0; padding-bottom: 0; }
+.doc__icon { display: flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md); background: var(--p-content-hover-background); color: var(--p-text-muted-color); }
+.doc__name { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.doc__meta { margin: var(--space-1) 0 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
+.doc__actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+.btn-inline { display: inline-flex; align-items: center; gap: var(--space-2); }
 .dialog-form { display: grid; gap: var(--space-3); }
 .dialog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-4); align-items: start; }
 :host ::ng-deep .p-inputnumber, :host ::ng-deep .p-datepicker { width: 100%; }
@@ -29,6 +31,9 @@
   .summary { padding: var(--space-3); }
   .summary__main h2 { font-size: var(--text-card-title); }
   .dialog-grid { grid-template-columns: minmax(0, 1fr); }
-  .deliverable__actions { flex-direction: column; align-items: stretch; }
-  .downloads { flex-wrap: wrap; }
+  .doc { grid-template-columns: auto minmax(0, 1fr); }
+  .doc__actions { grid-column: 1 / -1; justify-content: flex-start; }
 }
+.sign-option { display: flex; align-items: flex-start; gap: var(--space-2); cursor: pointer; }
+.sign-option span { display: grid; gap: var(--space-1); }
+.sign-option small { color: var(--p-text-muted-color); font-size: var(--text-small); }

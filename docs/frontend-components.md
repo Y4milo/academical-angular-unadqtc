@@ -76,7 +76,13 @@ One definition, in `src/styles.css`, shown live in the catalog (section Escalas)
 
 The staff menu is a `p-panelmenu` in a 17 rem column (`p-drawer` below 900 px) rendered by `staff-role-layout`. Two levels at most: group (module) and screen; one group open at a time, the group of the current screen expanded, the active screen highlighted with `--p-highlight-background`. The person, "Cambiar contraseña" and "Cerrar sesión" sit at the bottom. Loading shows `p-skeleton`; a failure shows a `p-message` with a retry button.
 
-The entries come from the API (`RoleMenus.php` in the backend, one block per module written once and shown with the `/admin/...` routes to the administrator and with its own routes to the module role). The front never adds entries by hand. `StaffMenuStore` loads the menu once per session and forgets it on sign out. New icons are registered in `lucide-icon.util.ts`.
+The student uses the same container and sidebar (`staff-role-layout` with `audience="student"`): one group, "Mis trámites", with one item per module the API returns in `GET /students/modules` (`StudentMenuStore`). The card module only shows inside the upload window of the enabled semester (read-only afterwards for who already registered); a module without a screen yet is not listed; there is no "Cambiar contraseña".
+
+The staff entries come from the API (`RoleMenus.php` in the backend, one block per module written once and shown with the `/admin/...` routes to the administrator and with its own routes to the module role). The front never adds entries by hand. `StaffMenuStore` loads the menu once per session and forgets it on sign out. New icons are registered in `lucide-icon.util.ts`.
+
+## Fields
+
+No native `date`, `datetime-local` or `number` inputs: dates and date-times use `p-datepicker` (model is a `Date`, converted with `core/utils/date-input.util.ts`; `[showTime]="true" hourFormat="24"` for the time) and numbers use `p-inputnumber` with `min`, `max` and `suffix`. Switches are `p-toggleswitch`. A clickable summary tile is a `p-card` with `role="button"`. A module with a general switch is a row in a `p-table` (label/value cards on phones); what belongs to the module is configured per semester in its own screen.
 
 ## Routes grouped by module
 

@@ -1,0 +1,118 @@
+:host {
+  display: block;
+}
+
+.semesters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--page-gutter);
+  color: var(--p-text-color);
+}
+
+.semesters__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.semesters__header h1 {
+  margin: 0;
+}
+
+.semesters__header p {
+  margin: var(--space-1) 0 0;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.semesters__panel {
+  min-width: 0;
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.semesters__skeleton {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.semesters__empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.semesters__empty strong {
+  color: var(--p-text-color);
+}
+
+.semesters__actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.semesters__form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.semesters__error {
+  color: var(--p-red-500);
+}
+
+:host ::ng-deep .semesters__full {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .semesters {
+    padding: var(--space-5);
+  }
+}
+
+/* En teléfono cada semestre es una tarjeta etiqueta/valor, sin desplazamiento horizontal. */
+@media (max-width: 639px) {
+  :host ::ng-deep .semesters__table table {
+    min-width: 0 !important;
+  }
+
+  :host ::ng-deep .semesters__table thead {
+    display: none;
+  }
+
+  :host ::ng-deep .semesters__table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--p-content-border-color);
+  }
+
+  :host ::ng-deep .semesters__table tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  :host ::ng-deep .semesters__table tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--p-text-muted-color);
+    font-size: var(--text-label);
+  }
+
+  :host ::ng-deep .semesters__table tbody td.semesters__actions {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
