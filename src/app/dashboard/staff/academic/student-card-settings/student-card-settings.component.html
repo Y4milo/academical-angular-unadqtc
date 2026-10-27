@@ -1,0 +1,125 @@
+<div class="card-settings">
+  <header class="card-settings__header">
+    <div>
+      <h1>Configuración del carné</h1>
+      <p>Cada semestre tiene su propia configuración. El estudiante ve el módulo solo dentro de la ventana de subida del semestre habilitado.</p>
+    </div>
+    <p-select [options]="selectable()" optionLabel="name" optionValue="id" [ngModel]="semesterId()" (ngModelChange)="pick($event)" placeholder="Semestre" ariaLabel="Semestre" appendTo="body" />
+  </header>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="card-settings__full">
+      No se pudo cargar la configuración. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="loadModule()" />
+    </p-message>
+  }
+
+  @if (!loading() && selectable().length === 0 && !loadError()) {
+    <div class="card-settings__panel card-settings__empty">
+      <app-lucide-icon name="calendar" [size]="28" />
+      <strong>No hay semestres habilitados</strong>
+      <span>Habilita un semestre en Semestres para configurar el carné.</span>
+    </div>
+  }
+
+  @if (loading() && selectable().length === 0) {
+    <div class="card-settings__panel card-settings__skeleton" aria-busy="true">
+      @for (row of skeletonRows; track row) {
+        <p-skeleton width="100%" height="2.5rem" />
+      }
+    </div>
+  }
+
+  @if (module(); as mod) {
+    @if (form) {
+      <section class="card-settings__panel" aria-label="Configuración del semestre">
+        <div class="card-settings__panel-head">
+          <h2>Configuración de {{ mod.semester.name }}</h2>
+          <p-button label="Copiar del semestre anterior" severity="secondary" [outlined]="true" size="small" [loading]="copying" [disabled]="!mod.editable" (onClick)="copyPrevious()">
+            <ng-template #icon><app-lucide-icon name="copy" [size]="16" /></ng-template>
+          </p-button>
+        </div>
+
+        @if (!mod.editable) {
+          <p-message severity="warn" styleClass="card-settings__full">Habilita el semestre en Semestres antes de configurar el carné.</p-message>
+        }
+        @if (mod.locked) {
+          <p-message severity="info" styleClass="card-settings__full">La ventana de subida ya cerró. Para corregir algo hay que escribir el motivo; queda en la auditoría.</p-message>
+        }
+
+        <div class="card-settings__switches">
+          <label class="card-settings__switch"><span><strong>Módulo visible para el estudiante</strong><small>Apagado, no aparece aunque esté dentro de la ventana.</small></span><p-toggleswitch [(ngModel)]="form.enabled" ariaLabel="Módulo visible" /></label>
+          <label class="card-settings__switch"><span><strong>Foto del DNI obligatoria</strong></span><p-toggleswitch [(ngModel)]="form.dni_required" ariaLabel="DNI obligatorio" /></label>
+          <label class="card-settings__switch"><span><strong>Foto del carné obligatoria</strong></span><p-toggleswitch [(ngModel)]="form.photo_required" ariaLabel="Foto obligatoria" /></label>
+          <label class="card-settings__switch"><span><strong>Exigir pago del semestre</strong><small>Estados que valen: pagado y pago utilizado.</small></span><p-toggleswitch [(ngModel)]="form.require_payment" ariaLabel="Exigir pago" /></label>
+        </div>
+
+        <div class="card-settings__grid">
+          <app-form-field label="Subida desde" for="card-start"><input pInputText id="card-start" type="datetime-local" [(ngModel)]="startInput" /></app-form-field>
+          <app-form-field label="Subida hasta" for="card-end"><input pInputText id="card-end" type="datetime-local" [(ngModel)]="endInput" /></app-form-field>
+          <app-form-field label="Intentos por archivo" for="card-attempts"><input pInputText id="card-attempts" type="number" min="1" max="10" [(ngModel)]="form.max_attempts" /></app-form-field>
+          <app-form-field label="Peso mínimo de la foto (KB)" for="card-min"><input pInputText id="card-min" type="number" min="1" [(ngModel)]="form.photo_min_kb" /></app-form-field>
+          <app-form-field label="Peso máximo de la foto (KB)" for="card-max"><input pInputText id="card-max" type="number" min="5" [(ngModel)]="form.photo_max_kb" /></app-form-field>
+          <app-form-field label="Ancho de la foto (px)" for="card-width"><input pInputText id="card-width" type="number" min="100" [(ngModel)]="form.photo_width" /></app-form-field>
+          <app-form-field label="Alto de la foto (px)" for="card-height"><input pInputText id="card-height" type="number" min="100" [(ngModel)]="form.photo_height" /></app-form-field>
+        </div>
+
+        @if (mod.locked) {
+          <app-form-field label="Motivo del cambio" for="card-note" [required]="true">
+            <input pInputText id="card-note" maxlength="255" [(ngModel)]="note" />
+          </app-form-field>
+        }
+        @if (formError) {
+          <small class="card-settings__error" role="alert">{{ formError }}</small>
+        }
+        <div class="card-settings__actions">
+          <p-button label="Guardar configuración" [loading]="saving" [disabled]="!mod.editable" (onClick)="save()" />
+        </div>
+      </section>
+
+      <section class="card-settings__panel" aria-label="Pagos del semestre">
+        <div class="card-settings__panel-head">
+          <h2>Pagos de {{ mod.semester.name }}</h2>
+          <p-button label="Exportar a Excel" severity="secondary" [outlined]="true" size="small" [loading]="exporting()" (onClick)="exportExcel()">
+            <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template>
+          </p-button>
+        </div>
+        <div class="card-settings__filters">
+          <p-select [options]="paymentOptions()" optionLabel="label" optionValue="value" [(ngModel)]="statusFilter" (onChange)="onFilter()" ariaLabel="Estado del pago" appendTo="body" />
+          <p-select [options]="cardOptions()" optionLabel="label" optionValue="value" [(ngModel)]="cardFilter" (onChange)="onFilter()" ariaLabel="Estado del carné" appendTo="body" />
+          <input pInputText type="search" class="card-settings__search" placeholder="DNI o código" aria-label="Buscar por DNI o código" [(ngModel)]="search" (ngModelChange)="onSearch()" />
+        </div>
+
+        @if (paymentsLoading() && payments().length === 0) {
+          <div class="card-settings__skeleton" aria-busy="true">
+            @for (row of skeletonRows; track row) {
+              <p-skeleton width="100%" height="1.5rem" />
+            }
+          </div>
+        } @else if (payments().length === 0) {
+          <div class="card-settings__empty">
+            <strong>No hay pagos con este filtro</strong>
+            <span>Cambia los filtros o el semestre.</span>
+          </div>
+        } @else {
+          <p-table [value]="payments()" dataKey="payment_id" size="small" [tableStyle]="{ 'min-width': '40rem' }" styleClass="card-settings__table">
+            <ng-template pTemplate="header">
+              <tr><th>DNI</th><th>Código</th><th>Pago</th><th>Estudiante</th><th>Carné</th></tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td data-label="DNI">{{ item.number || '—' }}</td>
+                <td data-label="Código">{{ item.code || '—' }}</td>
+                <td data-label="Pago">{{ item.payment_label }}</td>
+                <td data-label="Estudiante">{{ item.student || '—' }}</td>
+                <td data-label="Carné"><app-status-tag [value]="item.card_label" [severity]="cardSeverity(item.card_status)" /></td>
+              </tr>
+            </ng-template>
+          </p-table>
+          <p-paginator [rows]="perPage" [totalRecords]="page()?.total ?? 0" [first]="(pageNumber - 1) * perPage" [showCurrentPageReport]="true"
+            currentPageReportTemplate="{first} a {last} de {totalRecords} pagos" (onPageChange)="onPage($event)" />
+        }
+      </section>
+    }
+  }
+</div>

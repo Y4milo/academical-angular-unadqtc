@@ -1,0 +1,169 @@
+:host {
+  display: block;
+}
+
+.card-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--page-gutter);
+  color: var(--p-text-color);
+}
+
+.card-settings__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.card-settings__header h1 {
+  margin: 0;
+}
+
+.card-settings__header p {
+  margin: var(--space-1) 0 0;
+  max-width: 44rem;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.card-settings__panel {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.card-settings__panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.card-settings__panel-head h2 {
+  margin: 0;
+}
+
+.card-settings__switches {
+  display: grid;
+}
+
+.card-settings__switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--p-content-border-color);
+  cursor: pointer;
+}
+
+.card-settings__switch:first-child {
+  border-top: 0;
+}
+
+.card-settings__switch span {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.card-settings__switch small {
+  color: var(--p-text-muted-color);
+  font-size: var(--text-label);
+}
+
+.card-settings__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-3);
+}
+
+.card-settings__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card-settings__search {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.card-settings__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card-settings__error {
+  color: var(--p-red-500);
+}
+
+.card-settings__skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.card-settings__empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.card-settings__empty strong {
+  color: var(--p-text-color);
+}
+
+:host ::ng-deep .card-settings__full {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .card-settings {
+    padding: var(--space-5);
+  }
+}
+
+/* En teléfono cada pago es una tarjeta etiqueta/valor, sin desplazamiento horizontal. */
+@media (max-width: 639px) {
+  :host ::ng-deep .card-settings__table table {
+    min-width: 0 !important;
+  }
+
+  :host ::ng-deep .card-settings__table thead {
+    display: none;
+  }
+
+  :host ::ng-deep .card-settings__table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--p-content-border-color);
+  }
+
+  :host ::ng-deep .card-settings__table tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  :host ::ng-deep .card-settings__table tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--p-text-muted-color);
+    font-size: var(--text-label);
+  }
+}

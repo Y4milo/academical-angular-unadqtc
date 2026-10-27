@@ -59,6 +59,10 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/academic/semesters/semesters.component').then(m => m.SemestersComponent)
       },
       {
+        path: PATHS.admin.academic.cardSettings.path,
+        loadComponent: () => import('./dashboard/staff/academic/student-card-settings/student-card-settings.component').then(m => m.StudentCardSettingsComponent)
+      },
+      {
         path: PATHS.academic.student.card.panel.path,
         loadComponent: () => import('./dashboard/staff/academic/student-cards/student-cards.component').then(m => m.StudentCardsComponent)
       },
@@ -293,6 +297,10 @@ export const routes: Routes = [
       {
         path: PATHS.academic.semesters.path,
         loadComponent: () => import('./dashboard/staff/academic/semesters/semesters.component').then(m => m.SemestersComponent)
+      },
+      {
+        path: PATHS.academic.cardSettings.path,
+        loadComponent: () => import('./dashboard/staff/academic/student-card-settings/student-card-settings.component').then(m => m.StudentCardSettingsComponent)
       },
       {
         path: PATHS.academic.student.card.panel.path,
