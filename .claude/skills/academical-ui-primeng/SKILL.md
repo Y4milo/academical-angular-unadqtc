@@ -138,3 +138,7 @@ Comprobación de tema, paso a paso (con `javascript_tool` en el navegador integr
 3. Medir el fondo y el texto de cada bloque en los dos temas: `getComputedStyle(el).backgroundColor` y `.color`; en tema oscuro el fondo de una tarjeta no puede ser claro ni el texto oscuro sobre fondo oscuro. Un bloque cuyo fondo es el mismo en los dos temas es sospechoso.
 4. Revisar en pantalla: tarjeta, filas, celdas resaltadas, etiquetas, mensajes, diálogos y menús desplegables (con `appendTo="body"`, el panel nace fuera de la tarjeta y hereda solo el tema global).
 5. Una prueba de componente (`autoDetectChanges` + `whenStable`) asegura que la pantalla termina de dibujarse; no sustituye mirar los dos temas.
+
+## Maquetas fieles a la app
+
+Una maqueta que se muestra al usuario debe parecerse a la pantalla real, no a un boceto genérico. Antes de dibujarla se lee el CSS y el tema reales (`src/styles.css`, `app.config.ts`, el layout y su `.css`) y se copian sus valores literalmente: fuente `'Segoe UI','Selawik',Roboto`, cuerpo 15 px, pequeño 13 px, etiqueta 12 px, h1 28 px/700, título de tarjeta 18 px/600, radio .5rem, barra lateral de 17rem, primario `#d40f1c` (claro) y `#fb7185` (oscuro), fondos y bordes `--p-content-*` en los dos temas. Se reutiliza el layout existente (barra lateral, cajón en teléfono) en lugar de inventar uno y se incluye un interruptor de tema claro/oscuro.
