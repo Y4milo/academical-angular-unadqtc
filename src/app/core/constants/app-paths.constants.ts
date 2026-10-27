@@ -10,6 +10,12 @@ export const PATHS = {
       path:  `home`,
       link:   `admin/home`,
     },
+    academic: {
+      semesters: {
+        path: `academic/semesters`,
+        link: `admin/academic/semesters`,
+      },
+    },
     users: {
       accounts: {
         path: `users/accounts`,
@@ -226,6 +232,10 @@ export const PATHS = {
     home: {
       path:  `home`,
       link:   `academic/home`,
+    },
+    semesters: {
+      path:  `semesters`,
+      link:   `academic/semesters`,
     },
     student: {
       card: {

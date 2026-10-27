@@ -55,6 +55,10 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component').then(m => m.HrReportAttendanceComponentComponent)
       },
       {
+        path: PATHS.admin.academic.semesters.path,
+        loadComponent: () => import('./dashboard/staff/academic/semesters/semesters.component').then(m => m.SemestersComponent)
+      },
+      {
         path: PATHS.academic.student.card.panel.path,
         loadComponent: () => import('./dashboard/staff/academic/student-cards/student-cards.component').then(m => m.StudentCardsComponent)
       },
@@ -285,6 +289,10 @@ export const routes: Routes = [
       {
         path: PATHS.academic.home.path,
         loadComponent: () => import('./dashboard/staff/staff-user/attendance-user/attendance-user.component').then(m => m.AttendanceUserComponent)
+      },
+      {
+        path: PATHS.academic.semesters.path,
+        loadComponent: () => import('./dashboard/staff/academic/semesters/semesters.component').then(m => m.SemestersComponent)
       },
       {
         path: PATHS.academic.student.card.panel.path,
