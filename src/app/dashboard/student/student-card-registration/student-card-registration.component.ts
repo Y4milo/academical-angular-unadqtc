@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -21,11 +22,11 @@ import { FormFieldComponent } from '../../../core/components/form-field.componen
 import { STATUS } from '../../../core/constants/api-status.constants';
 import { dateToIso, isoToDate } from '../../../core/utils/date-input.util';
 import {
-  DEFAULT_REVIEW_THRESHOLDS, PhotoReview, REVIEW_GROUPS, ReviewGroup, reviewFace, reviewFile, serializeReview, warningsOf,
+  DEFAULT_REVIEW_THRESHOLDS, PhotoReview, REVIEW_GROUPS, ReviewGroup, reviewFace, reviewFile, serializeReview, warningsOf, withHints,
 } from '../../../core/utils/photo-review.util';
 import { validatePhotoCardStudent } from '../../../helper/helper.util';
 import { PhotoFaceService } from '../../../services/photo-face.service';
-import { CardFlowState, StudentCardFlowService } from '../../../services/student-card-flow.service';
+import { CardFlowState, CardSubmitResult, StudentCardFlowService } from '../../../services/student-card-flow.service';
 import { StudentCardService } from '../../../services/student-card.service';
 import { StudentService } from '../../../services/student.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -43,7 +44,7 @@ const CARD_STATUS: Record<string, { label: string; severity: Severity }> = {
 @Component({
   selector: 'app-student-card-registration',
   imports: [
-    DatePipe, FormsModule, ReactiveFormsModule, ButtonModule, CardModule, CheckboxModule, DatePickerModule, DialogModule, FileUploadModule, ImageModule,
+    DatePipe, FormsModule, AccordionModule, ReactiveFormsModule, ButtonModule, CardModule, CheckboxModule, DatePickerModule, DialogModule, FileUploadModule, ImageModule,
     InputTextModule, MessageModule, SkeletonModule, StepsModule, TagModule, TextareaModule, AppLucideIconComponent, FormFieldComponent,
   ],
   templateUrl: './student-card-registration.component.html',
@@ -68,6 +69,12 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
   readonly reviewGroups = REVIEW_GROUPS;
   readonly reviewWarnings = computed(() => warningsOf(this.review()?.checks ?? []));
   readonly suneduUrl = 'https://siucarne.sunedu.gob.pe/carne/validacion';
+  /** Grupos de la revisión abiertos: los que tienen avisos; los que están bien quedan plegados. */
+  readonly openGroups = signal<string[]>([]);
+  readonly photoLabel = signal('');
+  /** Tras enviar el carné se muestra la pantalla final con lo que sigue. */
+  readonly justSubmitted = signal(false);
+  readonly submitResult = signal<CardSubmitResult | null>(null);
 
   /** Vista previa del DNI elegido: imagen con `p-image` o PDF en un diálogo con el visor del navegador. */
   readonly dniImageUrl = signal<string | null>(null);
@@ -191,6 +198,7 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     this.photoError = '';
     this.photoFile = file;
     this.photoPreviewUrl.set(URL.createObjectURL(file));
+    this.photoLabel.set(`${file.name} · ${Math.round(file.size / 102.4) / 10} KB`);
     await this.reviewPhoto(file);
   }
 
@@ -205,11 +213,29 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
       const fileChecks = await reviewFile(file, bitmap, rules, thresholds);
       const points = await this.faceService.detect(bitmap);
       bitmap.close();
-      this.review.set({ checks: [...fileChecks, ...reviewFace(points, thresholds)], face: !!points && points.faces > 0 });
+      const checks = withHints([...fileChecks, ...reviewFace(points, thresholds)]);
+      this.review.set({ checks, face: !!points && points.faces > 0, points: points && points.faces > 0 ? points : null });
+      this.openGroups.set(REVIEW_GROUPS.filter(group => warningsOf(checks.filter(check => check.group === group.id)) > 0).map(group => group.id));
     } catch {
       this.review.set(null);
     } finally {
       this.reviewing.set(false);
+    }
+  }
+
+  onGroups(value: string | number | string[] | number[] | null | undefined): void {
+    this.openGroups.set(Array.isArray(value) ? value.map(String) : value == null ? [] : [String(value)]);
+  }
+
+  /** Desde la pantalla final: vuelve al flujo para cambiar la foto. */
+  editAgain(): void {
+    this.justSubmitted.set(false);
+    this.submitResult.set(null);
+
+    if (this.state()?.photo.has_previous) {
+      this.startChangingPhoto();
+    } else {
+      this.step.set(this.steps().length - 1);
     }
   }
 
@@ -342,6 +368,8 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
       this.notifications.notifyApiData(result);
 
       if (result.status === STATUS.success) {
+        this.submitResult.set(result.payload.data ?? null);
+        this.justSubmitted.set(true);
         this.dniFile = null;
         this.photoFile = null;
         this.review.set(null);

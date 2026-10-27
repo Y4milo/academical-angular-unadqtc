@@ -119,7 +119,7 @@ describe('StudentCardRegistrationComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     const link = fixture.nativeElement.querySelector('a[href="https://siucarne.sunedu.gob.pe/carne/validacion"]');
 
-    expect(text).toContain('Requisitos de la foto');
+    expect(text).toContain('Antes de subirla');
     expect(text).toContain('obligatorio');
     expect(link).not.toBeNull();
   });
@@ -147,7 +147,25 @@ describe('StudentCardRegistrationComponent', () => {
     const fixture = await create({ ...baseState, photo: { ...baseState.photo, has_previous: true, previous_semester: '2026-I' }, dni: { ...baseState.dni, required: false } });
 
     expect(fixture.componentInstance.canSubmit).toBeTrue();
-    expect(fixture.nativeElement.textContent).not.toContain('Requisitos de la foto');
+    expect(fixture.nativeElement.textContent).not.toContain('Antes de subirla');
+  });
+
+  it('after sending it shows the final screen with what comes next and lets the student change the photo', async () => {
+    const fixture = await create({ ...baseState, photo: { ...baseState.photo, has_previous: true, previous_semester: '2026-I' }, dni: { ...baseState.dni, required: false } });
+    const component = fixture.componentInstance;
+
+    component.submitResult.set({ status: 'pending', auto_validated: false });
+    component.justSubmitted.set(true);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+
+    expect(text).toContain('Carné enviado');
+    expect(text).toContain('Qué sigue');
+
+    component.editAgain();
+    fixture.detectChanges();
+    expect(component.justSubmitted()).toBeFalse();
+    expect(component.changingPhoto()).toBeTrue();
   });
 
   it('shows the read-only status when the registration is closed', async () => {

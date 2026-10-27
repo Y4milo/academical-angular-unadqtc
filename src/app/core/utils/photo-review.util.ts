@@ -33,12 +33,16 @@ export interface ReviewCheck {
   ok: boolean;
   /** Medida aproximada (lentes): se muestra como estimación. */
   estimate?: boolean;
+  /** Qué hacer cuando el criterio no se cumple. */
+  hint?: string;
 }
 
 export interface PhotoReview {
   checks: ReviewCheck[];
   /** Se encontró un rostro y se pudo medir. */
   face: boolean;
+  /** Puntos del rostro (en píxeles de la imagen) para dibujarlos sobre la foto. */
+  points?: FacePoints | null;
 }
 
 export const REVIEW_GROUPS: { id: ReviewGroup; title: string }[] = [
@@ -210,6 +214,29 @@ export function reviewFace(points: FacePoints | null, thresholds: PhotoReviewThr
 
 /** Por debajo de esta relación (ojos / mejillas) los ojos están muy oscuros: probables lentes oscuros. Estimación, no medida exacta. */
 export const GLASSES_DARKNESS = 0.45;
+
+const HINTS: Record<string, string> = {
+  size: 'Exporta el JPG con otra calidad hasta que quede dentro del rango.',
+  height: 'Recorta o redimensiona la foto a las medidas pedidas.',
+  width: 'Recorta o redimensiona la foto a las medidas pedidas.',
+  ppi: 'Exporta la foto a 300 ppi.',
+  bg_r: 'Usa un fondo blanco o claro y uniforme.',
+  bg_g: 'Usa un fondo blanco o claro y uniforme.',
+  bg_b: 'Usa un fondo blanco o claro y uniforme.',
+  eye_left: 'Centra tu rostro y encuádralo desde los hombros.',
+  eye_right: 'Centra tu rostro y encuádralo desde los hombros.',
+  mouth: 'Centra tu rostro y encuádralo desde los hombros.',
+  faces: 'La foto debe mostrar un solo rostro, bien visible.',
+  yaw: 'Mira de frente a la cámara, sin girar la cabeza.',
+  pitch: 'Mantén la cabeza recta, sin subir ni bajar la barbilla.',
+  roll: 'No inclines la cabeza hacia un lado.',
+  glasses: 'Quítate los lentes oscuros. Es solo una estimación.',
+};
+
+/** Agrega a cada criterio que no se cumple qué hacer para corregirlo. */
+export function withHints(checks: ReviewCheck[]): ReviewCheck[] {
+  return checks.map(check => (check.ok ? check : { ...check, hint: HINTS[check.key] }));
+}
 
 export function warningsOf(checks: ReviewCheck[]): number {
   return checks.filter(check => !check.ok).length;

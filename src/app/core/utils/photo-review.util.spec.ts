@@ -1,4 +1,4 @@
-import { DEFAULT_REVIEW_THRESHOLDS, FacePoints, readResolution, reviewFace, serializeReview, warningsOf } from './photo-review.util';
+import { DEFAULT_REVIEW_THRESHOLDS, FacePoints, readResolution, reviewFace, serializeReview, warningsOf, withHints } from './photo-review.util';
 
 /** Cabecera JFIF mínima: SOI + APP0 con unidades y densidad. */
 function jfif(units: number, density: number): Uint8Array {
@@ -46,6 +46,13 @@ describe('photo review', () => {
     const strict = { ...DEFAULT_REVIEW_THRESHOLDS, pitch_max: 5 };
 
     expect(reviewFace(FRONTAL, strict).find(check => check.key === 'pitch')?.ok).toBeFalse();
+  });
+
+  it('adds what to do only to the criteria that are not met', () => {
+    const checks = withHints(reviewFace({ ...FRONTAL, pitch: -15.7 }, DEFAULT_REVIEW_THRESHOLDS));
+
+    expect(checks.find(check => check.key === 'pitch')?.hint).toContain('cabeza recta');
+    expect(checks.find(check => check.key === 'yaw')?.hint).toBeUndefined();
   });
 
   it('serializes only keys, simple values and the result', () => {
