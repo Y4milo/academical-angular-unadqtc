@@ -175,10 +175,10 @@
           <input pInputText id="holder-os" [(ngModel)]="serviceOrder" placeholder="O/S 0123-2026" maxlength="60" />
         </app-form-field>
         <app-form-field label="Desde" for="holder-from" [required]="true" [error]="validFromError">
-          <input pInputText id="holder-from" type="date" [(ngModel)]="validFrom" />
+          <p-datepicker inputId="holder-from" [(ngModel)]="validFrom" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" styleClass="dialog__full" />
         </app-form-field>
         <app-form-field label="Hasta (fin de la O/S)" for="holder-to" [error]="validToError" hint="Déjalo vacío si la orden no tiene fecha de fin.">
-          <input pInputText id="holder-to" type="date" [(ngModel)]="validTo" />
+          <p-datepicker inputId="holder-to" [(ngModel)]="validTo" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" [minDate]="validFrom" appendTo="body" styleClass="dialog__full" />
         </app-form-field>
       </div>
     }

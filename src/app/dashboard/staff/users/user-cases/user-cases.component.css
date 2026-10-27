@@ -34,35 +34,33 @@
   gap: var(--space-2);
 }
 
-.cases__card {
+/* Tarjetas de resumen: p-card clicable; la seleccionada lleva el borde del color de marca. */
+:host ::ng-deep .cases__card {
+  cursor: pointer;
+}
+
+:host ::ng-deep .cases__card .p-card-body {
   display: grid;
   gap: var(--space-1);
   padding: var(--space-3);
-  text-align: left;
-  color: var(--p-text-color);
-  background: var(--p-content-background);
-  border: 1px solid var(--p-content-border-color);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font: inherit;
 }
 
-.cases__card strong {
+:host ::ng-deep .cases__card strong {
   font-size: 1.5rem;
   line-height: 1.1;
 }
 
-.cases__card span {
+:host ::ng-deep .cases__card span {
   color: var(--p-text-muted-color);
   font-size: var(--text-small);
 }
 
-.cases__card:hover {
+:host ::ng-deep .cases__card:hover {
   background: var(--p-content-hover-background);
 }
 
-.cases__card--on {
-  border-color: var(--p-primary-color);
+:host ::ng-deep p-card.cases__card--on .cases__card {
+  outline: 2px solid var(--p-primary-color);
 }
 
 .cases__filters {
@@ -75,33 +73,6 @@
 .cases__search {
   flex: 1 1 14rem;
   min-width: 0;
-}
-
-.cases__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.cases__chip {
-  padding: var(--space-1) var(--space-3);
-  color: var(--p-text-color);
-  background: transparent;
-  border: 1px solid var(--p-content-border-color);
-  border-radius: 999px;
-  font: inherit;
-  font-size: var(--text-small);
-  cursor: pointer;
-}
-
-.cases__chip:hover {
-  background: var(--p-content-hover-background);
-}
-
-.cases__chip--on {
-  color: var(--p-primary-color);
-  border-color: var(--p-primary-color);
-  background: var(--p-highlight-background);
 }
 
 .cases__bar {
@@ -203,28 +174,9 @@
   border-top: 1px solid var(--p-content-border-color);
 }
 
-.cases__outcome ul {
+.cases__results {
   display: grid;
   gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cases__outcome li {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  font-size: var(--text-small);
-}
-
-.cases__outcome li app-lucide-icon {
-  margin-top: 2px;
-  color: var(--p-green-500);
-}
-
-.cases__outcome li.cases__skipped app-lucide-icon {
-  color: var(--p-orange-500);
 }
 
 :host ::ng-deep .cases__full {

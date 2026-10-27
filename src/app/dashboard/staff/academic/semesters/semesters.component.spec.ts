@@ -55,8 +55,8 @@ describe('SemestersComponent', () => {
     expect(component.formError).toContain('2027-I');
 
     component.name = '2027-I';
-    component.startDate = '2027-07-30';
-    component.endDate = '2027-03-15';
+    component.startDate = new Date(2027, 6, 30);
+    component.endDate = new Date(2027, 2, 15);
     component.save();
     expect(component.formError).toContain('posterior');
     expect(service.create).not.toHaveBeenCalled();
@@ -67,8 +67,8 @@ describe('SemestersComponent', () => {
     const component = fixture.componentInstance;
     component.openCreate();
     component.name = '2027-II';
-    component.startDate = '2027-08-15';
-    component.endDate = '2027-12-15';
+    component.startDate = new Date(2027, 7, 15);
+    component.endDate = new Date(2027, 11, 15);
     component.save();
 
     expect(service.create).toHaveBeenCalledWith('2027-II', '2027-08-15', '2027-12-15');
