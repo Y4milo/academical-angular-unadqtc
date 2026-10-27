@@ -1,7 +1,9 @@
+import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { DEFAULT_REVIEW_THRESHOLDS } from '../../../core/utils/photo-review.util';
 import { NotificationService } from '../../../services/notification.service';
 import { CardFlowState, StudentCardFlowService } from '../../../services/student-card-flow.service';
 import { StudentCardService } from '../../../services/student-card.service';
@@ -11,7 +13,7 @@ import { StudentCardRegistrationComponent } from './student-card-registration.co
 const baseState: CardFlowState = {
   semester: { id: 1, name: '2026-II' },
   availability: { can_register: true, start_date: '2026-11-02 00:00', end_date: '2026-11-13 23:59', message: 'Abierto', enabled: true },
-  rules: { max_attempts: 3, photo_min_kb: 4, photo_max_kb: 50, photo_width: 240, photo_height: 288 },
+  rules: { max_attempts: 3, photo_min_kb: 4, photo_max_kb: 50, photo_width: 240, photo_height: 288, photo_review: DEFAULT_REVIEW_THRESHOLDS },
   student: {
     code: '20260341', number: '70000001', check_digit: '3', names: 'Ana', father_last_name: 'Quispe', mother_last_name: 'Ruiz',
     email: 'ana@gmail.com', cellphone: '987654321', address: 'Av. La Cultura 123', birthdate: '2004-03-14', id_type: 'DNI', gender: 'Femenino', campus: 'Cusco',
@@ -41,6 +43,7 @@ describe('StudentCardRegistrationComponent', () => {
       imports: [StudentCardRegistrationComponent],
       providers: [
         provideNoopAnimations(),
+        provideHttpClient(),
         provideRouter([]),
         { provide: StudentCardFlowService, useValue: flow },
         { provide: StudentCardService, useValue: cards },
@@ -101,6 +104,50 @@ describe('StudentCardRegistrationComponent', () => {
     expect(flow.saveContact).toHaveBeenCalledWith(jasmine.objectContaining({ email: 'ana@gmail.com', birthdate: '2004-03-14' }));
     expect(cards.uploadCardPhoto).not.toHaveBeenCalled();
     expect(flow.submit).toHaveBeenCalled();
+  });
+
+  it('shows the photo and DNI requirements with the SUNEDU link', async () => {
+    const fixture = await create(baseState);
+    const component = fixture.componentInstance;
+
+    component.step.set(1);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Requisitos del DNI');
+
+    component.step.set(2);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    const link = fixture.nativeElement.querySelector('a[href="https://siucarne.sunedu.gob.pe/carne/validacion"]');
+
+    expect(text).toContain('Requisitos de la foto');
+    expect(text).toContain('obligatorio');
+    expect(link).not.toBeNull();
+  });
+
+  it('a new photo needs the SUNEDU confirmation and sends it with the review', async () => {
+    const fixture = await create(baseState);
+    const component = fixture.componentInstance;
+    const file = new File([new Uint8Array(10)], 'foto.jpg', { type: 'image/jpeg' });
+    (component as unknown as { photoFile: File }).photoFile = file;
+    component.review.set({ face: true, checks: [{ key: 'size', group: 'file', label: 'Tamaño', value: '28 KB', ok: true }] });
+
+    expect(component.canSubmit).toBeFalse();
+    component.suneduConfirmed.set(true);
+    expect(component.canSubmit).toBeTrue();
+
+    cards.uploadCardPhoto.and.returnValue(ok(null));
+    await (component as unknown as { upload(type: 'photo', file: File): Promise<boolean> }).upload('photo', file);
+    const sent = cards.uploadCardPhoto.calls.mostRecent().args[0] as FormData;
+
+    expect(sent.get('sunedu_confirmed')).toBe('1');
+    expect(JSON.parse(sent.get('client_review') as string).checks[0].key).toBe('size');
+  });
+
+  it('keeping the previous photo needs no confirmation', async () => {
+    const fixture = await create({ ...baseState, photo: { ...baseState.photo, has_previous: true, previous_semester: '2026-I' }, dni: { ...baseState.dni, required: false } });
+
+    expect(fixture.componentInstance.canSubmit).toBeTrue();
+    expect(fixture.nativeElement.textContent).not.toContain('Requisitos de la foto');
   });
 
   it('shows the read-only status when the registration is closed', async () => {

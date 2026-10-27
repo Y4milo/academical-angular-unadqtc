@@ -84,6 +84,12 @@ The staff entries come from the API (`RoleMenus.php` in the backend, one block p
 
 No native `date`, `datetime-local` or `number` inputs: dates and date-times use `p-datepicker` (model is a `Date`, converted with `core/utils/date-input.util.ts`; `[showTime]="true" hourFormat="24"` for the time) and numbers use `p-inputnumber` with `min`, `max` and `suffix`. Switches are `p-toggleswitch`. A clickable summary tile is a `p-card` with `role="button"`. A module with a general switch is a row in a `p-table` (label/value cards on phones); what belongs to the module is configured per semester in its own screen.
 
+## File previews and pre-submit reviews
+
+- An image the user picks is previewed with `p-image` (`[preview]="true"`: zoom and rotate come with it). A PDF is previewed in a `p-dialog` (`min(94vw, 64rem)`) holding an `<iframe>` with the browser's own viewer plus an "Abrir en otra pestaña" link: PrimeNG has no PDF viewer, and the built-in viewer does not work on iOS, hence the link. The `<iframe>` is the only native element allowed here.
+- A review that runs before sending (photo of the student card) shows a `p-message` with the verdict, then one block per group with a `p-tag` ("Todo bien" success / "N por revisar" warn) and a row per criterion with its value; a criterion that is only an estimate says so in its label. Reviews warn, they never block: the only thing that disables the send button is an unmet mandatory confirmation (a `p-checkbox` with its label). Checks run on the device (`core/utils/photo-review.util.ts`, face with MediaPipe in `services/photo-face.service.ts`, model and engine hosted by the app under `/models` and `/mediapipe/wasm`); the server measures again and stores both as a receipt.
+- Requirements go in their own `p-card` ("Requisitos de la foto", "Requisitos del DNI") as rows with an icon, in a `div` with `role="list"`, above the card that asks for the file.
+
 ## Routes grouped by module
 
 Every module hangs from its own path, public pages included: Bienestar Universitario lives under `/dbu` (`/dbu/citas`, `/dbu/citas/estado`, `/dbu/config`) and the admin copy under `/admin/dbu/...`. Paths are declared once in `src/app/core/constants/app-paths.constants.ts` (`PATHS`) and used by the routes and by the links in templates (`readonly links = ...`), never typed by hand. When a link is renamed, the old one stays as a `redirectTo`.

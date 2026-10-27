@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiData } from '../models/api/api-data.model';
+import { PhotoReviewThresholds } from '../core/utils/photo-review.util';
 
 export interface CardFlowStudent {
   code: string | null;
@@ -31,7 +32,11 @@ export interface CardFlowFileState {
 export interface CardFlowState {
   semester: { id: number; name: string };
   availability: { can_register: boolean; start_date: string | null; end_date: string | null; message: string; enabled: boolean };
-  rules: { max_attempts: number; photo_min_kb: number; photo_max_kb: number; photo_width: number; photo_height: number };
+  rules: {
+    max_attempts: number; photo_min_kb: number; photo_max_kb: number; photo_width: number; photo_height: number;
+    /** Umbrales de la revisión previa de la foto de este semestre. */
+    photo_review: PhotoReviewThresholds;
+  };
   student: CardFlowStudent;
   photo: CardFlowFileState & { previous_semester: string | null };
   dni: CardFlowFileState;

@@ -115,3 +115,122 @@
 :host ::ng-deep .card-page__card textarea {
   width: 100%;
 }
+
+.card-page__card-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) 0;
+}
+
+.card-page__card-title h2 {
+  margin: 0;
+}
+
+.card-page__req {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+}
+
+.card-page__req-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.card-page__req-item app-lucide-icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--p-text-muted-color);
+}
+
+.card-page__link {
+  color: var(--p-primary-color);
+  font-weight: var(--weight-strong);
+  text-decoration: underline;
+}
+
+.card-page__file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card-page__file-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--text-small);
+}
+
+.card-page__pdf {
+  width: 100%;
+  height: min(70vh, 40rem);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.card-page__review {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.card-page__group {
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.card-page__group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-small);
+  font-weight: var(--weight-strong);
+  background: var(--p-content-hover-background);
+}
+
+.card-page__check {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--p-content-border-color);
+  font-size: var(--text-small);
+}
+
+.card-page__check app-lucide-icon {
+  color: var(--p-green-500);
+}
+
+.card-page__check--bad app-lucide-icon {
+  color: var(--p-orange-500);
+}
+
+.card-page__check-value {
+  color: var(--p-text-muted-color);
+  white-space: nowrap;
+}
+
+.card-page__check--bad .card-page__check-value {
+  font-weight: var(--weight-strong);
+}
+
+.card-page__confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+:host ::ng-deep .card-page__photo-img,
+:host ::ng-deep .card-page__dni-img {
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}

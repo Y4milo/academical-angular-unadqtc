@@ -76,6 +76,14 @@
       }
 
       @if (longFlow() && current.dni.required && step() === 1) {
+        <p-card header="Requisitos del DNI" styleClass="card-page__card">
+          <div class="card-page__req" role="list">
+            <div class="card-page__req-item" role="listitem"><app-lucide-icon name="circle-check" [size]="16" /><span>La imagen debe verse completa y legible.</span></div>
+            <div class="card-page__req-item" role="listitem"><app-lucide-icon name="circle-check" [size]="16" /><span>No debe estar cortada, borrosa ni con reflejos.</span></div>
+            <div class="card-page__req-item" role="listitem"><app-lucide-icon name="circle-check" [size]="16" /><span>Formatos permitidos: JPG, JPEG, PNG o PDF.</span></div>
+          </div>
+        </p-card>
+
         <p-card header="Foto de tu DNI" styleClass="card-page__card">
           <p-message severity="warn" styleClass="card-page__full">
             Es obligatoria porque aún no tienes una foto de carné registrada. Sirve para verificar tu identidad.
@@ -83,18 +91,61 @@
           <div class="card-page__drop">
             <p-fileupload mode="basic" name="dni" accept=".jpg,.jpeg,.png,.pdf" [maxFileSize]="20971520" [auto]="false" chooseLabel="Elegir archivo" chooseIcon="pi pi-upload" (onSelect)="onDniSelect($event)" />
             <small class="card-page__muted">JPG, PNG o PDF de hasta 20 MB. Te quedan {{ current.dni.attempts_left }} intentos.</small>
-            @if (dniName(); as name) {
-              <p-tag [value]="name" severity="success" />
+            @if (dniImageUrl(); as dniUrl) {
+              <p-image [src]="dniUrl" alt="Vista previa de tu DNI" [preview]="true" width="240" imageClass="card-page__dni-img" />
+            }
+            @if (dniPdfUrl()) {
+              <div class="card-page__file">
+                <app-lucide-icon name="file-text" [size]="20" />
+                <span class="card-page__file-name">{{ dniName() }}</span>
+                <p-button label="Ver PDF" severity="secondary" [outlined]="true" size="small" (onClick)="pdfOpen.set(true)" />
+              </div>
             }
             @if (dniError) {
               <small class="card-page__error" role="alert">{{ dniError }}</small>
             }
           </div>
         </p-card>
+
+        <p-dialog header="Vista previa del DNI" [visible]="pdfOpen()" (visibleChange)="pdfOpen.set($event)" [modal]="true" [style]="{ width: 'min(94vw, 64rem)' }" [draggable]="false">
+          @if (dniPdfUrl(); as pdf) {
+            <iframe class="card-page__pdf" [src]="pdf" title="Vista previa del DNI en PDF"></iframe>
+            <small class="card-page__muted">Si tu dispositivo no muestra el PDF aquí, ábrelo en otra pestaña.</small>
+          }
+          <ng-template #footer>
+            @if (dniPdfRaw(); as raw) {
+              <a class="card-page__link" [href]="raw" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+            }
+            <p-button label="Cerrar" severity="secondary" [outlined]="true" (onClick)="pdfOpen.set(false)" />
+          </ng-template>
+        </p-dialog>
+      }
+
+      @if ((!longFlow() || step() === steps().length - 1) && !(current.photo.has_previous && !changingPhoto())) {
+        <p-card header="Requisitos de la foto" styleClass="card-page__card">
+          <div class="card-page__req" role="list">
+            <div class="card-page__req-item" role="listitem">
+              <app-lucide-icon name="triangle-alert" [size]="16" />
+              <span>Es <strong>obligatorio</strong> que tu foto esté validada por la SUNEDU: <a class="card-page__link" [href]="suneduUrl" target="_blank" rel="noopener">siucarne.sunedu.gob.pe/carne/validacion</a></span>
+            </div>
+            <div class="card-page__req-item" role="listitem"><app-lucide-icon name="circle-check" [size]="16" /><span>Fondo blanco o claro, de frente y desde los hombros.</span></div>
+            <div class="card-page__req-item" role="listitem"><app-lucide-icon name="circle-check" [size]="16" /><span>Rostro completamente visible y centrado, sin gorra, lentes oscuros ni mascarilla.</span></div>
+            <div class="card-page__req-item" role="listitem"><app-lucide-icon name="circle-check" [size]="16" /><span>Sin sellos ni enmendaduras.</span></div>
+            <div class="card-page__req-item" role="listitem"><app-lucide-icon name="circle-check" [size]="16" /><span>JPG de {{ current.rules.photo_width }} × {{ current.rules.photo_height }} px, entre {{ current.rules.photo_min_kb }} y {{ current.rules.photo_max_kb }} KB.</span></div>
+          </div>
+        </p-card>
       }
 
       @if (!longFlow() || step() === steps().length - 1) {
-        <p-card header="Foto del carné" styleClass="card-page__card">
+        <p-card styleClass="card-page__card">
+          <ng-template #header>
+            <div class="card-page__card-title">
+              <h2>Foto del carné</h2>
+              @if (review() && !reviewing()) {
+                <p-tag [value]="reviewWarnings() === 0 ? 'Lista para enviar' : 'Con avisos'" [severity]="reviewWarnings() === 0 ? 'success' : 'warn'" />
+              }
+            </div>
+          </ng-template>
           @if (current.photo.has_previous && !changingPhoto()) {
             <div class="card-page__photo">
               <div class="card-page__thumb">
@@ -120,7 +171,7 @@
                 Te quedan {{ current.photo.attempts_left }} intentos.
               </small>
               @if (photoPreviewUrl(); as preview) {
-                <div class="card-page__thumb"><img [src]="preview" alt="Vista previa de tu foto" /></div>
+                <p-image [src]="preview" alt="Vista previa de tu foto" [preview]="true" width="120" imageClass="card-page__photo-img" />
               }
               @if (photoError) {
                 <small class="card-page__error" role="alert">{{ photoError }}</small>
@@ -129,6 +180,58 @@
                 <p-button label="Conservar mi foto actual" severity="secondary" [text]="true" size="small" (onClick)="cancelChangingPhoto()" />
               }
             </div>
+
+            @if (reviewing()) {
+              <div class="card-page__review" aria-busy="true">
+                <p-message severity="secondary" variant="simple" styleClass="card-page__full">
+                  Revisando tu foto en este dispositivo. No se envía a ningún sitio hasta que pulses guardar.
+                </p-message>
+                <p-skeleton width="100%" height="1rem" />
+                <p-skeleton width="80%" height="1rem" />
+                <p-skeleton width="90%" height="1rem" />
+              </div>
+            } @else if (review()) {
+              <div class="card-page__review">
+                @if (reviewWarnings() === 0) {
+                  <p-message severity="success" styleClass="card-page__full">
+                    Tu foto cumple los criterios que revisamos. Esta revisión es una guía: la validación oficial es la de la SUNEDU.
+                  </p-message>
+                } @else {
+                  <p-message severity="warn" styleClass="card-page__full">
+                    Encontramos {{ reviewWarnings() }} {{ reviewWarnings() === 1 ? 'punto' : 'puntos' }} por revisar. Puedes enviarla igual, pero Académico podría rechazarla. Te conviene corregirla o validarla en la SUNEDU.
+                  </p-message>
+                }
+                @for (group of reviewGroups; track group.id) {
+                  @if (checksOf(group.id).length) {
+                    <div class="card-page__group">
+                      <div class="card-page__group-head">
+                        <span>{{ group.title }}</span>
+                        @if (warningsOfGroup(group.id) === 0) {
+                          <p-tag value="Todo bien" severity="success" icon="pi pi-check" />
+                        } @else {
+                          <p-tag [value]="warningsOfGroup(group.id) + ' por revisar'" severity="warn" />
+                        }
+                      </div>
+                      @for (check of checksOf(group.id); track check.key) {
+                        <div class="card-page__check" [class.card-page__check--bad]="!check.ok">
+                          <app-lucide-icon [name]="check.ok ? 'circle-check' : 'triangle-alert'" [size]="16" />
+                          <span>{{ check.label }}</span>
+                          <span class="card-page__check-value">{{ check.value }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            }
+
+            @if (photoPreviewUrl()) {
+              <div class="card-page__confirm">
+                <p-checkbox inputId="card-sunedu" [binary]="true" [ngModel]="suneduConfirmed()" (ngModelChange)="suneduConfirmed.set($event)" />
+                <label for="card-sunedu">Confirmo que mi foto fue validada por la SUNEDU (resultado VÁLIDO)</label>
+              </div>
+              <small class="card-page__muted">Valídala en <a class="card-page__link" [href]="suneduUrl" target="_blank" rel="noopener">siucarne.sunedu.gob.pe</a> antes de enviarla. Esta casilla es obligatoria.</small>
+            }
           }
         </p-card>
       }
