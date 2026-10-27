@@ -40,6 +40,26 @@ describe('ComponentsCatalogComponent', () => {
     expect(note?.textContent).toContain('p-panelmenu');
   });
 
+  it('documents the student menu, the date and number fields and the module patterns', async () => {
+    const fixture = TestBed.createComponent(ComponentsCatalogComponent);
+    fixture.autoDetectChanges(true);
+    await fixture.whenStable();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const open = async (name: string) => {
+      Array.from(root.querySelectorAll<HTMLElement>('p-tab')).find(tab => tab.textContent?.includes(name))?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+    };
+
+    await open('Componentes');
+    expect(root.querySelector('[data-testid="field-pattern"]')?.textContent).toContain('p-datepicker');
+    expect(root.querySelector('[data-testid="field-pattern"]')?.textContent).toContain('p-inputnumber');
+
+    await open('Patrones');
+    expect(root.querySelector('[data-testid="student-menu-pattern"]')?.textContent).toContain('audience="student"');
+  });
+
   it('reads every theme token and leaves the theme as it was', () => {
     document.documentElement.classList.add('app-dark');
     const fixture = TestBed.createComponent(ComponentsCatalogComponent);

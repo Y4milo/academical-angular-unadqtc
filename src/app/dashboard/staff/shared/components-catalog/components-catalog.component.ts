@@ -1,6 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DatePickerModule } from 'primeng/datepicker';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
@@ -35,7 +37,7 @@ export interface TokenRow {
 @Component({
   selector: 'app-components-catalog',
   imports: [
-    FormsModule, ButtonModule, InputNumberModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule,
+    FormsModule, ButtonModule, CardModule, DatePickerModule, InputNumberModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule,
     ToggleSwitchModule,
   ],
   templateUrl: './components-catalog.component.html',
@@ -56,6 +58,10 @@ export class ComponentsCatalogComponent implements OnInit {
   selectedDays = ['mon', 'tue'];
   switchOn = true;
   minutes = 60;
+  sampleDate: Date | null = new Date(2026, 10, 2);
+  sampleDateTime: Date | null = new Date(2026, 10, 13, 23, 59);
+  attempts = 3;
+  photoKb = 50;
 
   readonly sampleRows = [
     { name: 'Elena Vargas', types: 'Psicología', schedule: '08:00 a 15:00' },

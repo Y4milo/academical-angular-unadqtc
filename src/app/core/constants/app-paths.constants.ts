@@ -19,6 +19,10 @@ export const PATHS = {
         path: `academic/student-card`,
         link: `admin/academic/student-card`,
       },
+      studentModules: {
+        path: `academic/student-modules`,
+        link: `admin/academic/student-modules`,
+      },
     },
     users: {
       accounts: {
@@ -154,6 +158,7 @@ export const PATHS = {
   student: {
     path: `student`,
     card: {
+      path: `card/registration`,
       registration: `student/card/registration`,
     },
     home: {
