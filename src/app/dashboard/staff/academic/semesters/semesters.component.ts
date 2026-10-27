@@ -3,13 +3,16 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
+import { TableModule } from 'primeng/table';
 import { AppLucideIconComponent } from '../../../../core/components/lucide-icon/lucide-icon.component';
 import { FormFieldComponent } from '../../../../core/components/form-field.component';
 import { StatusTagComponent } from '../../../../core/components/status-tag.component';
+import { dateToIso, isoToDate } from '../../../../core/utils/date-input.util';
 import { ApiData } from '../../../../models/api/api-data.model';
 import { NotificationService } from '../../../../services/notification.service';
 import { Semester, SemesterState, SemestersPayload, SemestersService } from '../../../../services/semesters.service';
@@ -23,7 +26,7 @@ const STATE_SEVERITY: Record<SemesterState, Severity> = { draft: 'warn', enabled
 /** Semestres: se crean en borrador, se habilitan y, al llegar su fecha, quedan vigentes. Solo administrador y académico. */
 @Component({
   selector: 'app-semesters',
-  imports: [DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, MessageModule, SkeletonModule, AppLucideIconComponent, FormFieldComponent, StatusTagComponent],
+  imports: [DatePipe, FormsModule, ButtonModule, DatePickerModule, DialogModule, InputTextModule, MessageModule, SkeletonModule, TableModule, AppLucideIconComponent, FormFieldComponent, StatusTagComponent],
   templateUrl: './semesters.component.html',
   styleUrl: './semesters.component.css',
 })
@@ -36,8 +39,8 @@ export class SemestersComponent implements OnInit {
   dialogVisible = false;
   editing: Semester | null = null;
   name = '';
-  startDate = '';
-  endDate = '';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   formError = '';
   working = false;
   busyId: number | null = null;
@@ -78,8 +81,8 @@ export class SemestersComponent implements OnInit {
   openCreate(): void {
     this.editing = null;
     this.name = '';
-    this.startDate = '';
-    this.endDate = '';
+    this.startDate = null;
+    this.endDate = null;
     this.formError = '';
     this.dialogVisible = true;
   }
@@ -87,8 +90,8 @@ export class SemestersComponent implements OnInit {
   openEdit(semester: Semester): void {
     this.editing = semester;
     this.name = semester.name;
-    this.startDate = semester.start_date ?? '';
-    this.endDate = semester.end_date ?? '';
+    this.startDate = isoToDate(semester.start_date);
+    this.endDate = isoToDate(semester.end_date);
     this.formError = '';
     this.dialogVisible = true;
   }
@@ -103,15 +106,17 @@ export class SemestersComponent implements OnInit {
       this.formError = 'Elige el inicio y el fin de la vigencia.';
       return;
     }
-    if (this.endDate <= this.startDate) {
+    const start = dateToIso(this.startDate);
+    const end = dateToIso(this.endDate);
+    if (end <= start) {
       this.formError = 'El fin de la vigencia debe ser posterior al inicio.';
       return;
     }
 
     this.working = true;
     const request = this.editing
-      ? this.service.update(this.editing.id, this.startDate, this.endDate)
-      : this.service.create(this.name.trim(), this.startDate, this.endDate);
+      ? this.service.update(this.editing.id, start, end)
+      : this.service.create(this.name.trim(), start, end);
 
     request.subscribe({
       next: response => {

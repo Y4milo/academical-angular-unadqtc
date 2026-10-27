@@ -4,7 +4,8 @@ import { of } from 'rxjs';
 import { NotificationService } from '../../../../services/notification.service';
 import { Semester, SemestersService } from '../../../../services/semesters.service';
 import { CardModulePayload, CardPaymentsPage, CardSettings, StudentCardModuleService } from '../../../../services/student-card-module.service';
-import { StudentCardSettingsComponent, fromInput, toInput } from './student-card-settings.component';
+import { StudentCardSettingsComponent } from './student-card-settings.component';
+import { dateToDateTime, dateTimeToDate } from '../../../../core/utils/date-input.util';
 
 const settings: CardSettings = {
   enabled: true, upload_start: '2026-11-02 00:00', upload_end: '2026-11-13 23:59', max_attempts: 3, dni_required: true, photo_required: true,
@@ -46,11 +47,10 @@ describe('StudentCardSettingsComponent', () => {
     return fixture;
   };
 
-  it('converts dates between the API and the datetime-local input', () => {
-    expect(toInput('2026-11-02 00:00')).toBe('2026-11-02T00:00');
-    expect(fromInput('2026-11-02T08:30')).toBe('2026-11-02 08:30');
-    expect(toInput(null)).toBe('');
-    expect(fromInput('')).toBeNull();
+  it('converts dates between the API and the date picker', () => {
+    expect(dateToDateTime(dateTimeToDate('2026-11-02 08:30'))).toBe('2026-11-02 08:30');
+    expect(dateTimeToDate(null)).toBeNull();
+    expect(dateToDateTime(null)).toBeNull();
   });
 
   it('only offers semesters that are not drafts and loads the settings and payments of the first one', () => {
@@ -60,18 +60,18 @@ describe('StudentCardSettingsComponent', () => {
     expect(component.selectable().map(item => item.name)).toEqual(['2026-II']);
     expect(service.show).toHaveBeenCalledWith(1);
     expect(service.payments).toHaveBeenCalled();
-    expect(component.startInput).toBe('2026-11-02T00:00');
+    expect(dateToDateTime(component.startAt)).toBe('2026-11-02 00:00');
     expect(fixture.nativeElement.textContent).toContain('Ana Quispe');
   });
 
   it('validates the dates and the photo size before saving', () => {
     const component = create().componentInstance;
 
-    component.endInput = '2026-10-01T00:00';
+    component.endAt = new Date(2026, 9, 1);
     component.save();
     expect(component.formError).toContain('posterior');
 
-    component.endInput = '2026-11-13T23:59';
+    component.endAt = new Date(2026, 10, 13, 23, 59);
     component.form!.photo_max_kb = 2;
     component.save();
     expect(component.formError).toContain('mínimo');

@@ -18,28 +18,22 @@
 
   @if (summaryCards().length > 0) {
     <section class="cases__summary" aria-label="Resumen por tipo de caso">
-      <button type="button" class="cases__card" [class.cases__card--on]="code() === null" (click)="setCode(null)">
+      <p-card styleClass="cases__card" [class.cases__card--on]="code() === null" role="button" tabindex="0" (click)="setCode(null)" (keydown.enter)="setCode(null)">
         <strong>{{ unresolvedTotal() }}</strong>
         <span>Sin resolver</span>
-      </button>
+      </p-card>
       @for (card of summaryCards(); track card.code) {
-        <button type="button" class="cases__card" [class.cases__card--on]="code() === card.code" (click)="setCode(card.code)">
+        <p-card styleClass="cases__card" [class.cases__card--on]="code() === card.code" role="button" tabindex="0" (click)="setCode(card.code)" (keydown.enter)="setCode(card.code)">
           <strong>{{ card.total }}</strong>
           <span>{{ card.label }}</span>
-        </button>
+        </p-card>
       }
     </section>
   }
 
   <section class="cases__filters" aria-label="Filtros">
     <input pInputText type="search" class="cases__search" placeholder="Buscar por nombre o usuario" aria-label="Buscar por nombre o usuario" [(ngModel)]="search" (ngModelChange)="onSearch()" />
-    <div class="cases__chips" role="group" aria-label="Estado del caso">
-      @for (filter of statusFilters; track filter.value) {
-        <button type="button" class="cases__chip" [class.cases__chip--on]="status() === filter.value" [attr.aria-pressed]="status() === filter.value" (click)="setStatus(filter.value)">
-          {{ filter.label }}
-        </button>
-      }
-    </div>
+    <p-selectbutton [options]="statusFilters" optionLabel="label" optionValue="value" [allowEmpty]="false" [ngModel]="status()" (ngModelChange)="setStatus($event)" ariaLabelledBy="Estado del caso" />
   </section>
 
   @if (selection.length > 0) {
@@ -122,7 +116,7 @@
 
       @if (action === 'postpone') {
         <app-form-field label="Posponer hasta" for="case-until" [required]="true">
-          <input pInputText id="case-until" type="date" [min]="todayIso" [(ngModel)]="until" (ngModelChange)="outcome = null" />
+          <p-datepicker inputId="case-until" [(ngModel)]="until" (ngModelChange)="outcome = null" [minDate]="tomorrow" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" styleClass="cases__full" />
         </app-form-field>
       }
 
@@ -146,14 +140,13 @@
             {{ outcome.dry_run ? 'Simulación, no se cambió nada' : 'Aplicado' }}:
             {{ outcome.dry_run ? outcome.summary.would_apply : outcome.summary.applied }} sí, {{ outcome.summary.skipped }} se omiten
           </strong>
-          <ul>
+          <div class="cases__results">
             @for (result of outcome.results; track result.case_id) {
-              <li [class.cases__skipped]="result.outcome === 'skipped'">
-                <app-lucide-icon [name]="result.outcome === 'skipped' ? 'triangle-alert' : 'circle-check'" [size]="16" />
-                <span><b>{{ result.nick }}</b> {{ outcomeText(result) }}</span>
-              </li>
+              <p-message [severity]="result.outcome === 'skipped' ? 'warn' : 'success'" variant="simple" size="small">
+                <b>{{ result.nick }}</b> {{ outcomeText(result) }}
+              </p-message>
             }
-          </ul>
+          </div>
         </div>
       }
     </div>

@@ -97,7 +97,7 @@ describe('UserCasesComponent', () => {
 
     component.action = 'postpone';
     component.note = 'Contrato en trámite';
-    component.until = '2000-01-01';
+    component.until = new Date(2000, 0, 1);
     component.simulate();
     expect(component.formError).toBe('Elige una fecha posterior a hoy.');
     expect(service.apply).not.toHaveBeenCalled();

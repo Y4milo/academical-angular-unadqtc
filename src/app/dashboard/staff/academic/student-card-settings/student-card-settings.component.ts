@@ -2,6 +2,8 @@ import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription, debounceTime } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
@@ -12,6 +14,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { AppLucideIconComponent } from '../../../../core/components/lucide-icon/lucide-icon.component';
 import { FormFieldComponent } from '../../../../core/components/form-field.component';
 import { StatusTagComponent } from '../../../../core/components/status-tag.component';
+import { dateTimeToDate, dateToDateTime } from '../../../../core/utils/date-input.util';
 import { NotificationService } from '../../../../services/notification.service';
 import { Semester, SemestersService } from '../../../../services/semesters.service';
 import { CardModulePayload, CardPayment, CardPaymentsPage, CardSettings, StudentCardModuleService } from '../../../../services/student-card-module.service';
@@ -20,14 +23,10 @@ type Severity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
 
 const CARD_SEVERITY: Record<string, Severity> = { validated: 'success', pending: 'info', flagged: 'warn', unregistered: 'secondary', no_student: 'danger', deleted: 'secondary', current: 'info' };
 
-/** Convierte "2026-11-02 00:00" en el valor de un input datetime-local ("2026-11-02T00:00") y viceversa. */
-export const toInput = (value: string | null): string => (value ? value.replace(' ', 'T').slice(0, 16) : '');
-export const fromInput = (value: string): string | null => (value ? value.replace('T', ' ') : null);
-
 /** Módulo de carné universitario: configuración del semestre y pagos del semestre. Administrador y académico. */
 @Component({
   selector: 'app-student-card-settings',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, PaginatorModule, SelectModule, SkeletonModule, TableModule, ToggleSwitchModule, AppLucideIconComponent, FormFieldComponent, StatusTagComponent],
+  imports: [FormsModule, ButtonModule, DatePickerModule, InputNumberModule, InputTextModule, MessageModule, PaginatorModule, SelectModule, SkeletonModule, TableModule, ToggleSwitchModule, AppLucideIconComponent, FormFieldComponent, StatusTagComponent],
   templateUrl: './student-card-settings.component.html',
   styleUrl: './student-card-settings.component.css',
 })
@@ -41,10 +40,10 @@ export class StudentCardSettingsComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly loadError = signal(false);
 
-  /** Copia editable de la configuración: los campos de fecha usan el formato del input. */
+  /** Copia editable de la configuración: las fechas de subida van como Date para el selector. */
   form: CardSettings | null = null;
-  startInput = '';
-  endInput = '';
+  startAt: Date | null = null;
+  endAt: Date | null = null;
   note = '';
   formError = '';
   saving = false;
@@ -126,8 +125,8 @@ export class StudentCardSettingsComponent implements OnInit, OnDestroy {
   private apply(payload: CardModulePayload | null): void {
     this.module.set(payload);
     this.form = payload ? { ...payload.settings } : null;
-    this.startInput = toInput(payload?.settings.upload_start ?? null);
-    this.endInput = toInput(payload?.settings.upload_end ?? null);
+    this.startAt = dateTimeToDate(payload?.settings.upload_start);
+    this.endAt = dateTimeToDate(payload?.settings.upload_end);
     this.note = '';
     this.formError = '';
   }
@@ -143,11 +142,11 @@ export class StudentCardSettingsComponent implements OnInit, OnDestroy {
       this.formError = 'La ventana de subida ya cerró. Escribe el motivo del cambio.';
       return;
     }
-    if (!!this.startInput !== !!this.endInput) {
+    if (!!this.startAt !== !!this.endAt) {
       this.formError = 'Indica el inicio y el fin de la subida, o ninguno.';
       return;
     }
-    if (this.startInput && this.endInput <= this.startInput) {
+    if (this.startAt && this.endAt && this.endAt <= this.startAt) {
       this.formError = 'El fin de la subida debe ser posterior al inicio.';
       return;
     }
@@ -157,7 +156,7 @@ export class StudentCardSettingsComponent implements OnInit, OnDestroy {
     }
 
     this.saving = true;
-    this.service.save(id, { ...this.form, upload_start: fromInput(this.startInput), upload_end: fromInput(this.endInput) }, this.note.trim() || null).subscribe({
+    this.service.save(id, { ...this.form, upload_start: dateToDateTime(this.startAt), upload_end: dateToDateTime(this.endAt) }, this.note.trim() || null).subscribe({
       next: response => {
         this.saving = false;
         if (response.status !== 'success') {

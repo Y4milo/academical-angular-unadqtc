@@ -55,13 +55,13 @@
         </div>
 
         <div class="card-settings__grid">
-          <app-form-field label="Subida desde" for="card-start"><input pInputText id="card-start" type="datetime-local" [(ngModel)]="startInput" /></app-form-field>
-          <app-form-field label="Subida hasta" for="card-end"><input pInputText id="card-end" type="datetime-local" [(ngModel)]="endInput" /></app-form-field>
-          <app-form-field label="Intentos por archivo" for="card-attempts"><input pInputText id="card-attempts" type="number" min="1" max="10" [(ngModel)]="form.max_attempts" /></app-form-field>
-          <app-form-field label="Peso mínimo de la foto (KB)" for="card-min"><input pInputText id="card-min" type="number" min="1" [(ngModel)]="form.photo_min_kb" /></app-form-field>
-          <app-form-field label="Peso máximo de la foto (KB)" for="card-max"><input pInputText id="card-max" type="number" min="5" [(ngModel)]="form.photo_max_kb" /></app-form-field>
-          <app-form-field label="Ancho de la foto (px)" for="card-width"><input pInputText id="card-width" type="number" min="100" [(ngModel)]="form.photo_width" /></app-form-field>
-          <app-form-field label="Alto de la foto (px)" for="card-height"><input pInputText id="card-height" type="number" min="100" [(ngModel)]="form.photo_height" /></app-form-field>
+          <app-form-field label="Subida desde" for="card-start"><p-datepicker inputId="card-start" [(ngModel)]="startAt" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" appendTo="body" styleClass="card-settings__full" /></app-form-field>
+          <app-form-field label="Subida hasta" for="card-end"><p-datepicker inputId="card-end" [(ngModel)]="endAt" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" appendTo="body" styleClass="card-settings__full" /></app-form-field>
+          <app-form-field label="Intentos por archivo" for="card-attempts"><p-inputnumber inputId="card-attempts" [(ngModel)]="form.max_attempts" [min]="1" [max]="10" [showButtons]="true" styleClass="card-settings__full" /></app-form-field>
+          <app-form-field label="Peso mínimo de la foto" for="card-min"><p-inputnumber inputId="card-min" [(ngModel)]="form.photo_min_kb" [min]="1" [max]="500" suffix=" KB" styleClass="card-settings__full" /></app-form-field>
+          <app-form-field label="Peso máximo de la foto" for="card-max"><p-inputnumber inputId="card-max" [(ngModel)]="form.photo_max_kb" [min]="5" [max]="2048" suffix=" KB" styleClass="card-settings__full" /></app-form-field>
+          <app-form-field label="Ancho de la foto" for="card-width"><p-inputnumber inputId="card-width" [(ngModel)]="form.photo_width" [min]="100" [max]="2000" suffix=" px" styleClass="card-settings__full" /></app-form-field>
+          <app-form-field label="Alto de la foto" for="card-height"><p-inputnumber inputId="card-height" [(ngModel)]="form.photo_height" [min]="100" [max]="2000" suffix=" px" styleClass="card-settings__full" /></app-form-field>
         </div>
 
         @if (mod.locked) {

@@ -54,41 +54,9 @@
   color: var(--p-text-color);
 }
 
-.semesters__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.semesters__item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--p-content-border-color);
-}
-
-.semesters__item:first-child {
-  border-top: 0;
-}
-
-.semesters__main {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-
-.semesters__dates {
-  color: var(--p-text-muted-color);
-  font-size: var(--text-label);
-}
-
 .semesters__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  grid-column: 1 / -1;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .semesters__form {
@@ -108,13 +76,43 @@
   .semesters {
     padding: var(--space-5);
   }
+}
 
-  .semesters__item {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+/* En teléfono cada semestre es una tarjeta etiqueta/valor, sin desplazamiento horizontal. */
+@media (max-width: 639px) {
+  :host ::ng-deep .semesters__table table {
+    min-width: 0 !important;
   }
 
-  .semesters__actions {
-    grid-column: auto;
-    justify-content: flex-end;
+  :host ::ng-deep .semesters__table thead {
+    display: none;
+  }
+
+  :host ::ng-deep .semesters__table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--p-content-border-color);
+  }
+
+  :host ::ng-deep .semesters__table tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  :host ::ng-deep .semesters__table tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--p-text-muted-color);
+    font-size: var(--text-label);
+  }
+
+  :host ::ng-deep .semesters__table tbody td.semesters__actions {
+    grid-column: 1 / -1;
+    text-align: left;
   }
 }

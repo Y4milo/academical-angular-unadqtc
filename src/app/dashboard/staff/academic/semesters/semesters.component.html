@@ -30,20 +30,17 @@
         <span>Crea el primero para habilitar los módulos del estudiante.</span>
       </div>
     } @else {
-      <ul class="semesters__list">
-        @for (item of semesters(); track item.id) {
-          <li class="semesters__item">
-            <div class="semesters__main">
-              <strong>{{ item.name }}</strong>
-              <span class="semesters__dates">
-                {{ item.start_date ? (item.start_date | date: 'dd/MM/yyyy') : 'Sin fecha' }} – {{ item.end_date ? (item.end_date | date: 'dd/MM/yyyy') : 'Sin fecha' }}
-              </span>
-              @if (item.card_start_date && item.card_end_date) {
-                <span class="semesters__dates">Subida del carné: {{ item.card_start_date | date: 'dd/MM/yyyy' }} – {{ item.card_end_date | date: 'dd/MM/yyyy' }}</span>
-              }
-            </div>
-            <app-status-tag [value]="stateLabel(item.state)" [severity]="stateSeverity(item.state)" />
-            <div class="semesters__actions">
+      <p-table [value]="semesters()" dataKey="id" size="small" [tableStyle]="{ 'min-width': '40rem' }" styleClass="semesters__table">
+        <ng-template pTemplate="header">
+          <tr><th>Semestre</th><th>Vigencia</th><th>Subida del carné</th><th>Estado</th><th class="semesters__actions" aria-label="Acciones"></th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td data-label="Semestre"><strong>{{ item.name }}</strong></td>
+            <td data-label="Vigencia">{{ item.start_date ? (item.start_date | date: 'dd/MM/yyyy') : 'Sin fecha' }} – {{ item.end_date ? (item.end_date | date: 'dd/MM/yyyy') : 'Sin fecha' }}</td>
+            <td data-label="Subida del carné">{{ item.card_start_date && item.card_end_date ? ((item.card_start_date | date: 'dd/MM/yyyy') + ' – ' + (item.card_end_date | date: 'dd/MM/yyyy')) : 'Sin configurar' }}</td>
+            <td data-label="Estado"><app-status-tag [value]="stateLabel(item.state)" [severity]="stateSeverity(item.state)" /></td>
+            <td class="semesters__actions">
               @if (item.state === 'draft') {
                 <p-button label="Habilitar" size="small" [loading]="busyId === item.id" (onClick)="enable(item)" />
               }
@@ -53,10 +50,10 @@
               @if (canEdit(item)) {
                 <p-button label="Editar vigencia" severity="secondary" [text]="true" size="small" (onClick)="openEdit(item)" />
               }
-            </div>
-          </li>
-        }
-      </ul>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
     }
   </section>
 
@@ -68,10 +65,10 @@
         </app-form-field>
       }
       <app-form-field label="Inicio de la vigencia" for="semester-start" [required]="true">
-        <input pInputText id="semester-start" type="date" [(ngModel)]="startDate" />
+        <p-datepicker inputId="semester-start" [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" styleClass="semesters__full" />
       </app-form-field>
       <app-form-field label="Fin de la vigencia" for="semester-end" [required]="true">
-        <input pInputText id="semester-end" type="date" [(ngModel)]="endDate" />
+        <p-datepicker inputId="semester-end" [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" styleClass="semesters__full" />
       </app-form-field>
       @if (!editing) {
         <p-message severity="info" styleClass="semesters__full">El semestre se crea en borrador: nadie lo ve hasta que lo habilites.</p-message>

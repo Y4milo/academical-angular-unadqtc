@@ -3,16 +3,20 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription, debounceTime } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { AppLucideIconComponent } from '../../../../core/components/lucide-icon/lucide-icon.component';
 import { FormFieldComponent } from '../../../../core/components/form-field.component';
 import { StatusTagComponent } from '../../../../core/components/status-tag.component';
+import { dateToIso } from '../../../../core/utils/date-input.util';
 import { NotificationService } from '../../../../services/notification.service';
 import {
   CaseAction,
@@ -68,7 +72,7 @@ const STATUS_FILTERS: { label: string; value: CaseStatus }[] = [
 @Component({
   selector: 'app-user-cases',
   imports: [
-    DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, MessageModule, PaginatorModule, SelectModule, SkeletonModule, TableModule,
+    DatePipe, FormsModule, ButtonModule, CardModule, DatePickerModule, DialogModule, InputTextModule, MessageModule, PaginatorModule, SelectModule, SelectButtonModule, SkeletonModule, TableModule,
     AppLucideIconComponent, FormFieldComponent, StatusTagComponent,
   ],
   templateUrl: './user-cases.component.html',
@@ -103,7 +107,7 @@ export class UserCasesComponent implements OnInit, OnDestroy {
   dialogCases: UserCase[] = [];
   action: CaseAction = 'suspend';
   note = '';
-  until = '';
+  until: Date | null = null;
   formError = '';
   working = false;
   outcome: CaseActionResponse | null = null;
@@ -208,15 +212,19 @@ export class UserCasesComponent implements OnInit, OnDestroy {
     return this.action === 'keep' || this.action === 'postpone';
   }
 
-  get todayIso(): string {
-    return new Date().toISOString().slice(0, 10);
+  /** Mañana: un caso pospuesto vuelve a abrirse desde esa fecha, nunca el mismo día. */
+  get tomorrow(): Date {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 1);
+    return date;
   }
 
   openDialog(cases: UserCase[]): void {
     this.dialogCases = cases;
     this.action = this.actionOptions[0].value;
     this.note = '';
-    this.until = '';
+    this.until = null;
     this.formError = '';
     this.outcome = null;
     this.dialogVisible = true;
@@ -246,13 +254,13 @@ export class UserCasesComponent implements OnInit, OnDestroy {
       this.formError = 'Escribe el motivo.';
       return;
     }
-    if (this.action === 'postpone' && (!this.until || this.until <= this.todayIso)) {
+    if (this.action === 'postpone' && (!this.until || this.until < this.tomorrow)) {
       this.formError = 'Elige una fecha posterior a hoy.';
       return;
     }
 
     this.working = true;
-    const input = { action: this.action, note: this.note.trim() || null, until: this.action === 'postpone' ? this.until : null };
+    const input = { action: this.action, note: this.note.trim() || null, until: this.action === 'postpone' ? dateToIso(this.until) : null };
     this.service.apply(this.dialogCases.map(item => item.id), input, dryRun).subscribe({
       next: response => {
         this.working = false;
