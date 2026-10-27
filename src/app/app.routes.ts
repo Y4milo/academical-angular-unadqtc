@@ -63,6 +63,10 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/academic/student-card-settings/student-card-settings.component').then(m => m.StudentCardSettingsComponent)
       },
       {
+        path: PATHS.admin.academic.studentModules.path,
+        loadComponent: () => import('./dashboard/staff/academic/student-modules/student-modules.component').then(m => m.StudentModulesComponent)
+      },
+      {
         path: PATHS.academic.student.card.panel.path,
         loadComponent: () => import('./dashboard/staff/academic/student-cards/student-cards.component').then(m => m.StudentCardsComponent)
       },
@@ -280,9 +284,15 @@ export const routes: Routes = [
     ]
   },
   {
-    path: PATHS.student.card.registration,
-    loadComponent: () => import('./dashboard/student/student-card-registration/student-card-registration.component').then(m => m.StudentCardRegistrationComponent),
-    canActivate: [AuthStudentGuard]
+    path: PATHS.student.path,
+    loadComponent: () => import('./dashboard/student/student-lay-out/student-lay-out.component').then(m => m.StudentLayOutComponent),
+    canActivate: [AuthStudentGuard],
+    children: [
+      {
+        path: PATHS.student.card.path,
+        loadComponent: () => import('./dashboard/student/student-card-registration/student-card-registration.component').then(m => m.StudentCardRegistrationComponent),
+      },
+    ]
   },
   {
     path: PATHS.academic.path,

@@ -49,7 +49,17 @@ export function decodeApiData<T>(
   }
 }
 
-export async function validatePhotoCardStudent(file: File): Promise<{
+export interface PhotoRules {
+  photo_min_kb: number;
+  photo_max_kb: number;
+  photo_width: number;
+  photo_height: number;
+}
+
+/** Reglas por defecto de la foto del carné; el semestre puede cambiarlas (configuración del carné). */
+export const DEFAULT_PHOTO_RULES: PhotoRules = {photo_min_kb: 4, photo_max_kb: 50, photo_width: 240, photo_height: 288};
+
+export async function validatePhotoCardStudent(file: File, rules: PhotoRules = DEFAULT_PHOTO_RULES): Promise<{
   validated: boolean;
   invalid: { title: string; message: string }[];
 }> {
@@ -64,13 +74,13 @@ export async function validatePhotoCardStudent(file: File): Promise<{
     });
   }
 
-  const maxSize = 50 * 1024;
-  const minSize = 4 * 1024;
+  const maxSize = rules.photo_max_kb * 1024;
+  const minSize = rules.photo_min_kb * 1024;
 
   if (file.size > maxSize || file.size < minSize) {
     invalid.push({
       title: 'Tamano invalido',
-      message: 'La imagen debe pesar entre 4KB y 50KB.'
+      message: `La imagen debe pesar entre ${rules.photo_min_kb}KB y ${rules.photo_max_kb}KB.`
     });
   }
 
@@ -80,10 +90,10 @@ export async function validatePhotoCardStudent(file: File): Promise<{
     const height = bitmap.height;
     bitmap.close();
 
-    if (width !== 240 || height !== 288) {
+    if (width !== rules.photo_width || height !== rules.photo_height) {
       invalid.push({
         title: 'Dimensiones incorrectas',
-        message: `La imagen debe medir 240x288 px. Actual: ${width}x${height}.`
+        message: `La imagen debe medir ${rules.photo_width}x${rules.photo_height} px. Actual: ${width}x${height}.`
       });
     }
   } catch {

@@ -88,9 +88,11 @@
       </div>
     </div>
     <div class="shell__account-actions">
-      <p-button label="Cambiar contraseña" severity="secondary" [text]="true" size="small" data-testid="change-password" (onClick)="openChangePasswordDialog()">
-        <ng-template #icon><app-lucide-icon name="lock" [size]="16"></app-lucide-icon></ng-template>
-      </p-button>
+      @if (audience() === 'staff') {
+        <p-button label="Cambiar contraseña" severity="secondary" [text]="true" size="small" data-testid="change-password" (onClick)="openChangePasswordDialog()">
+          <ng-template #icon><app-lucide-icon name="lock" [size]="16"></app-lucide-icon></ng-template>
+        </p-button>
+      }
       <p-button label="Cerrar sesión" severity="secondary" [text]="true" size="small" [loading]="loggingOut()" data-testid="logout" (onClick)="logout()">
         <ng-template #icon><app-lucide-icon name="log-out" [size]="16"></app-lucide-icon></ng-template>
       </p-button>

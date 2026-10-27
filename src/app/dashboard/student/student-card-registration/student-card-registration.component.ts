@@ -1,637 +1,300 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { AbstractControl, FormBuilder, FormGroup, FormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { StepsModule } from 'primeng/steps';
-import { FileUploadModule } from 'primeng/fileupload';
 import { CardModule } from 'primeng/card';
-import { NotificationService } from '../../../services/notification.service';
-import { ReactiveFormsModule } from '@angular/forms';
-import {Select} from 'primeng/select';
-import { DictionaryService } from '../../../services/dictionary.service';
-import { StudentService } from '../../../services/student.service';
+import { DatePickerModule } from 'primeng/datepicker';
+import { FileUploadModule } from 'primeng/fileupload';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
+import { SkeletonModule } from 'primeng/skeleton';
+import { StepsModule } from 'primeng/steps';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { AppLucideIconComponent } from '../../../core/components/lucide-icon/lucide-icon.component';
+import { FormFieldComponent } from '../../../core/components/form-field.component';
+import { STATUS } from '../../../core/constants/api-status.constants';
+import { dateToIso, isoToDate } from '../../../core/utils/date-input.util';
+import { validatePhotoCardStudent } from '../../../helper/helper.util';
+import { CardFlowState, StudentCardFlowService } from '../../../services/student-card-flow.service';
 import { StudentCardService } from '../../../services/student-card.service';
-import {validatePhotoCardStudent} from '../../../helper/helper.util';
-import {Dictionary} from '../../../models/dictionary.model';
-import {STATUS} from '../../../core/constants/api-status.constants';
-import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constants';
-import {LoginService} from '../../../services/login.service';
-import {HttpResponse} from '@angular/common/http';
-import {StudentUser} from '../../../models/student-user.model';
-import {StudentBasicInfo} from '../../../models/student/student-basic-info.model';
-import {DomSanitizer} from '@angular/platform-browser';
-import {concatMap, finalize, forkJoin, of, switchMap} from 'rxjs';
-import {Router} from '@angular/router';
-import {PATHS} from '../../../core/constants/app-paths.constants';
+import { StudentService } from '../../../services/student.service';
+import { NotificationService } from '../../../services/notification.service';
 
+type Severity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
 
+const CARD_STATUS: Record<string, { label: string; severity: Severity }> = {
+  validated: { label: 'Validado', severity: 'success' },
+  pending: { label: 'Pendiente de validación', severity: 'info' },
+  flagged: { label: 'Observado', severity: 'warn' },
+  unregistered: { label: 'Sin enviar', severity: 'secondary' },
+};
+
+/** Carné universitario del estudiante: datos de contacto, DNI solo sin foto previa y foto del carné. */
 @Component({
-  selector: 'app-student-registration',
-  standalone: true,
+  selector: 'app-student-card-registration',
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    ButtonModule,
-    InputTextModule,
-    StepsModule,
-    FileUploadModule,
-    CardModule,
-    Select,
+    DatePipe, ReactiveFormsModule, ButtonModule, CardModule, DatePickerModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule,
+    StepsModule, TagModule, TextareaModule, AppLucideIconComponent, FormFieldComponent,
   ],
-  templateUrl: 'student-card-registration.component.html',
-  styleUrl: 'student-card-registration.component.css',
+  templateUrl: './student-card-registration.component.html',
+  styleUrl: './student-card-registration.component.css',
 })
 export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
+  private readonly fb = inject(FormBuilder);
 
-  currentStep = 0;
-  steps = [
-    { label: 'Datos Personales' },
-    { label: 'Foto y DNI' },
-    { label: 'Registro completo' }
-  ];
+  readonly maxBirthdate = new Date();
 
-  registrationForm!: FormGroup;
+  readonly loading = signal(true);
+  readonly loadError = signal('');
+  readonly state = signal<CardFlowState | null>(null);
+  readonly submitting = signal(false);
+  readonly step = signal(0);
+  readonly changingPhoto = signal(false);
 
-  campusOptions: Dictionary[] = [];
-  idTypeOptions: Dictionary[] = [];
-  genderOptions: Dictionary[] = [];
-  // Imagen por defecto
+  /** Foto actual del estudiante (la aprobada de un semestre anterior o la recién subida). */
+  readonly currentPhotoUrl = signal<string | null>(null);
+  readonly photoPreviewUrl = signal<string | null>(null);
+  readonly dniName = signal<string | null>(null);
+  photoError = '';
+  dniError = '';
+  private photoFile: File | null = null;
+  private dniFile: File | null = null;
 
-  studentUser!: StudentUser;
+  readonly form = this.fb.group({
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+    cellphone: ['', [Validators.required, Validators.maxLength(20)]],
+    birthdate: [null as Date | null, [Validators.required]],
+    address: ['', [Validators.required, Validators.maxLength(255)]],
+  });
 
-  studentPayloadResponse: boolean = false;
-  photoPayloadResponse: boolean = false;
-  dniPayloadResponse: boolean = false;
+  /** Sin foto previa el flujo tiene tres pasos (datos, DNI, foto); con foto previa es una sola pantalla. */
+  readonly longFlow = computed(() => {
+    const state = this.state();
+    return !!state && !state.photo.has_previous;
+  });
 
-  hasDniPhoto = false;
+  readonly steps = computed(() => (this.state()?.dni.required ? [{ label: 'Datos' }, { label: 'DNI' }, { label: 'Foto' }] : [{ label: 'Datos' }, { label: 'Foto' }]));
 
-  previewUrl: string | null = null;
-  previewObjectUrl: string | null = null;
-  selectedPhotoFile: File | null = null;
-  hasValidatedPhoto = false;
+  readonly cardStatus = computed(() => {
+    const status = this.state()?.card.status ?? 'unregistered';
+    return CARD_STATUS[status] ?? { label: status, severity: 'secondary' as Severity };
+  });
 
-  dniPdfUrl: any | null = null;
-  dniImageUrl: string | null = null;
-  dniObjectUrl: string | null = null;
-  selectedDniFile: File | null = null;
-  isSubmitting = false;
-  registrationOpen = true;
-  registrationAvailabilityMessage = '';
-
-  /**
-   * Constructor - se inyectan FormBuilder y MessageService para formularios y notificaciones
-   */
   constructor(
-    private fb: FormBuilder,
-    private notificationService: NotificationService,
-    private dictionaryService: DictionaryService,
+    private flow: StudentCardFlowService,
     private studentService: StudentService,
-    private studentCardService: StudentCardService,
-    private loginService: LoginService,
-    private sanitizer: DomSanitizer,
-    private router: Router,
-  ) { }
+    private cardService: StudentCardService,
+    private notifications: NotificationService,
+  ) {}
 
   ngOnInit(): void {
-    const studentUser = this.loginService.getStudent();
-
-    if (!studentUser) {
-      this.router.navigate([PATHS.login.student]);
-      return;
-    }
-
-    this.studentUser = studentUser;
-    this.initForm();
-    this.initializeFlow()
-
+    this.load();
   }
 
   ngOnDestroy(): void {
-    this.revokePreviewObjectUrl();
-    this.revokeDniObjectUrl();
+    this.revoke(this.currentPhotoUrl());
+    this.revoke(this.photoPreviewUrl());
   }
 
-  initializeFlow() {
+  async load(): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set('');
 
-    this.dictionaryService.getCurrentSemester().pipe(
-      switchMap((semesterData) => {
-        if (semesterData.status !== STATUS.success) {
-          this.notificationService.notifyApiData(semesterData);
-          throw new Error('registration-closed');
-        }
+    try {
+      // El pago del estudiante se guarda en la sesión del servidor; el flujo lo necesita para el envío.
+      await firstValueFrom(this.studentService.setPaymentSession());
+      const response = await firstValueFrom(this.flow.state());
 
-        const availability = semesterData.payload?.data?.student_card_registration;
-        this.registrationOpen = availability?.can_register ?? false;
-        this.registrationAvailabilityMessage = availability?.message ?? 'El registro de carnet universitario no esta disponible.';
-
-        if (!this.registrationOpen) {
-          throw new Error('registration-closed');
-        }
-
-        return this.studentService.setPaymentSession();
-      }),
-
-      // 🔥 1. GENDER
-      switchMap(() => this.dictionaryService.getGenderList()),
-
-      switchMap((genderData) => {
-        if (genderData.status === STATUS.success) {
-
-          this.genderOptions = genderData.payload!.data.map(g => ({
-            id: g.id,
-            value: g.value,
-            label: g.label,
-          }));
-
-          return this.dictionaryService.getCampusList();
-        }
-
-        throw new Error('Error cargando género');
-      }),
-
-      // 🔥 2. CAMPUS
-      switchMap((campusData) => {
-        if (campusData.status === STATUS.success) {
-
-          this.campusOptions = campusData.payload!.data.map(c => ({
-            id: c.id,
-            value: c.value,
-            label: c.label,
-          }));
-
-          return this.dictionaryService.getIdTypeList();
-        }
-
-        throw new Error('Error cargando campus');
-      }),
-
-      // 🔥 3. ID TYPES
-      switchMap((idTypeData) => {
-        if (idTypeData.status === STATUS.success) {
-
-          this.idTypeOptions = idTypeData.payload!.data.map(type => ({
-            id: type.id,
-            label: `${type.value} - ${type.label}`
-          }));
-
-          return this.studentService.getStudentBasicInfo();
-        }
-
-        throw new Error('Error cargando tipos');
-      }),
-
-      // 🔥 4. STUDENT
-      switchMap((studentData) => {
-        if (studentData.status === STATUS.success) {
-
-          const studentInfo = studentData.payload!.data;
-
-          this.registrationForm.patchValue({
-            ...studentInfo,
-            id_type: studentInfo.id_type?.id ?? null,
-            campus: studentInfo.campus?.id ?? null,
-            gender: studentInfo.gender?.id ?? null
-          });
-
-          return forkJoin({
-            photo: this.studentCardService.downloadFile('photo'),
-            dni: this.studentCardService.downloadFile('dni')
-          });
-        }
-
-        throw new Error('Error cargando estudiante');
-      })
-
-    ).subscribe({
-      next: ({ photo, dni }) => {
-        this.handlePhotoResponse(photo);
-        this.handleDniResponse(dni);
-      },
-      error: (e) => {
-        if (e?.message === 'registration-closed') {
-          return;
-        }
-
-        console.error(e);
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
+      if (response.status !== STATUS.success) {
+        this.loadError.set(response.payload.message);
+        return;
       }
-    });
-  }
 
-  handleDniResponse(response: HttpResponse<Blob>) {
-
-    const blob = response.body;
-    const contentType = response.headers.get('content-type') ?? blob?.type ?? '';
-
-    // 🔥 DETECTAR SI NO HAY ARCHIVO REAL
-    if (!blob || contentType.includes('application/json')) {
-
-      console.log('❌ No hay DNI, mostrando placeholder');
-
-      this.revokeDniObjectUrl();
-      this.dniImageUrl = null;
-      this.dniPdfUrl = null;
-
-      return;
-    }
-
-    this.revokeDniObjectUrl();
-    const url = URL.createObjectURL(blob);
-    this.dniObjectUrl = url;
-
-    if (blob.type === 'application/pdf') {
-      this.dniPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-      this.dniImageUrl = null;
-    } else {
-      this.dniImageUrl = url;
-      this.dniPdfUrl = null;
-    }
-  }
-
-  handlePhotoResponse(response: HttpResponse<Blob>) {
-
-    const photoBlob = response.body;
-    const contentType = response.headers.get('content-type') ?? photoBlob?.type ?? '';
-
-    if (!photoBlob || contentType.includes('application/json')) {
-
-      console.log('❌ No hay foto, limpiando estado');
-
-      this.revokePreviewObjectUrl();
-
-      this.hasValidatedPhoto = false;
-
-      // 🔥 IMAGEN POR DEFECTO
-      this.previewUrl = 'img/card-img.png';
-
-      this.registrationForm.patchValue({ photo: null });
-
-      return;
-    }
-
-    const fileName = this.getPhotoFileName(response);
-
-    const file = new File([photoBlob], fileName, {
-      type: photoBlob.type || 'image/jpeg',
-    });
-
-    this.revokePreviewObjectUrl();
-
-    this.previewObjectUrl = URL.createObjectURL(file);
-    this.previewUrl = this.previewObjectUrl;
-
-    this.hasValidatedPhoto = true;
-
-    this.registrationForm.patchValue({ photo: file });
-    this.registrationForm.get('photo')?.markAsTouched();
-  }
-
-  initForm() {
-    this.registrationForm = this.fb.group({
-      id_type: [null, Validators.required],
-      code: [
-        '',
-        [
-        Validators.required,
-        Validators.maxLength(15),
-        Validators.pattern(/^[0-9]+$/)
-      ]],
-      number: [{ value: '', disabled: true }],
-      names: [{ value: '', disabled: true }],
-      father_last_name: [{ value: '', disabled: true }],
-      mother_last_name: [{ value: '', disabled: true }],
-      check_digit: [
-        null,
-        [
-          Validators.required,
-          Validators.min(0),
-          Validators.max(9),
-          Validators.pattern(/^[0-9]$/)
-        ]
-      ],
-      email: [
-        '',
-        [
-          Validators.required,
-          Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)
-        ]
-      ],
-      cellphone: [
-        '', [
-          Validators.required,
-          Validators.maxLength(9),
-          Validators.pattern(/^[0-9]+$/)
-        ]],
-      address: ['', Validators.required],
-      campus: [null, Validators.required],
-      gender: [null, Validators.required],
-      photo: [null],
-      dni_photo: [null]
-    }, {validators: this.codeMustDifferFromDocumentValidator()});
-
-  }
-
-  get form() {
-    return this.registrationForm.controls;
-  }
-
-  hasCodeDocumentConflict(): boolean {
-    return this.registrationForm.hasError('codeMatchesDocument')
-      && (this.form['code'].dirty || this.form['code'].touched);
-  }
-
-  /** Avanza al siguiente paso si es válido */
-  photoError = '';
-  dniError = '';
-
-  nextStep() {
-    if (this.currentStep === 0 && this.registrationForm.valid) {
-      this.currentStep++;
-    } else if (this.currentStep === 0) {
-      Object.values(this.registrationForm.controls).forEach(control => {
-        control.markAsTouched();
-        control.updateValueAndValidity();
+      const state = response.payload.data!;
+      this.state.set(state);
+      this.form.patchValue({
+        email: state.student.email ?? '',
+        cellphone: state.student.cellphone ?? '',
+        address: state.student.address ?? '',
+        birthdate: isoToDate(state.student.birthdate),
       });
+
+      if (state.photo.has_previous || state.photo.uploaded_now) {
+        await this.loadCurrentPhoto();
+      }
+    } catch {
+      this.loadError.set('No se pudo cargar tu carné. Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      this.loading.set(false);
     }
   }
 
-  /** Regresa al paso anterior */
-  previousStep() {
-    this.currentStep--;
+  private async loadCurrentPhoto(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.cardService.downloadFile('photo'));
+      if (response.body) {
+        this.revoke(this.currentPhotoUrl());
+        this.currentPhotoUrl.set(URL.createObjectURL(response.body));
+      }
+    } catch {
+      this.currentPhotoUrl.set(null);
+    }
   }
 
-  /** Maneja la selección de la foto */
-  async onPhotoSelect(event: any): Promise<void> {
-    const file: File = event.files?.[0];
-    if (!file) return;
-
-    const requirements = await validatePhotoCardStudent(file);
-
-    if (!requirements.validated) {
-      this.hasValidatedPhoto = false;
-
-      this.photoError = requirements.invalid
-        .map(err => `• ${err.message}`)
-        .join('\n');
-
-      // reset UI
-      this.revokePreviewObjectUrl();
-      this.previewUrl = 'img/card-img.png';
-      this.selectedPhotoFile = null;
-      this.registrationForm.patchValue({ photo: null });
-
+  async onPhotoSelect(event: { files?: File[] }): Promise<void> {
+    const file = event.files?.[0];
+    if (!file) {
       return;
     }
 
-    this.revokePreviewObjectUrl();
+    const result = await validatePhotoCardStudent(file, this.state()!.rules);
+    this.revoke(this.photoPreviewUrl());
+
+    if (!result.validated) {
+      this.photoFile = null;
+      this.photoPreviewUrl.set(null);
+      this.photoError = result.invalid.map(item => item.message).join(' ');
+      return;
+    }
 
     this.photoError = '';
-    this.selectedPhotoFile = file;
-    this.hasValidatedPhoto = true;
-    this.previewObjectUrl = URL.createObjectURL(file);
-    this.previewUrl = this.previewObjectUrl;
-
-    this.registrationForm.patchValue({ photo: file });
+    this.photoFile = file;
+    this.photoPreviewUrl.set(URL.createObjectURL(file));
   }
 
-  onDniSelect(event: any) {
+  onDniSelect(event: { files?: File[] }): void {
+    const file = event.files?.[0];
+    if (!file) {
+      return;
+    }
 
-    const file: File = event.files[0];
-
-    if (!file) return;
-
-    // ✅ MAX 20MB
-    const maxSize = 20 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-
-      this.dniError = 'El DNI no debe superar los 20MB.';
-
-      this.selectedDniFile = null;
+    if (file.size > 20 * 1024 * 1024) {
+      this.dniError = 'El DNI no debe superar los 20 MB.';
+      this.dniFile = null;
+      this.dniName.set(null);
       return;
     }
 
     this.dniError = '';
-    this.revokeDniObjectUrl();
-    this.selectedDniFile = file;
-
-    const url = URL.createObjectURL(file);
-    this.dniObjectUrl = url;
-
-    if (file.type === 'application/pdf') {
-      this.dniPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-      this.dniImageUrl = null;
-    } else {
-      this.dniImageUrl = url;
-      this.dniPdfUrl = null;
-    }
+    this.dniFile = file;
+    this.dniName.set(file.name);
   }
 
-  /**
-   * Envía el formulario si es válido y la foto está presente.
-   * También actualiza los datos del estudiante vía Student_cards.
-   */
-  submitForm(): void {
-    if (this.isSubmitting) {
+  startChangingPhoto(): void {
+    this.changingPhoto.set(true);
+  }
+
+  cancelChangingPhoto(): void {
+    this.changingPhoto.set(false);
+    this.photoFile = null;
+    this.photoError = '';
+    this.revoke(this.photoPreviewUrl());
+    this.photoPreviewUrl.set(null);
+  }
+
+  next(): void {
+    if (this.step() === 0 && this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
-    // 1. VALIDAR FORMULARIO
-    if (!this.registrationForm.valid) {
-      Object.values(this.registrationForm.controls).forEach(control => {
-        control.markAsTouched();
-        control.updateValueAndValidity();
-      });
-
+    if (this.step() === 1 && this.state()?.dni.required && !this.dniFile && !this.state()?.dni.uploaded_now) {
+      this.dniError = 'Sube la foto de tu DNI.';
       return;
     }
 
-    // 2. VALIDAR FOTO CARNÉ
-    const missingPhoto = !this.selectedPhotoFile && !this.hasValidatedPhoto;
-    const missingDni = !this.selectedDniFile && !this.dniPdfUrl && !this.dniImageUrl;
+    this.step.update(step => step + 1);
+  }
 
-    if (missingPhoto) {
-      this.photoError = 'Seleccione la foto del carné.';
+  back(): void {
+    this.step.update(step => Math.max(0, step - 1));
+  }
+
+  /** Último paso (foto) del flujo largo, o la única pantalla del flujo corto. */
+  get canSubmit(): boolean {
+    const state = this.state();
+    if (!state) {
+      return false;
     }
+    const photoReady = !!this.photoFile || state.photo.uploaded_now || state.photo.has_previous;
+    return photoReady && !this.submitting();
+  }
 
-    // 3. VALIDAR DNI
-    if (missingDni) {
-      this.dniError = 'Suba el DNI.';
-    }
-
-    if (missingPhoto || missingDni) {
+  async submit(): Promise<void> {
+    const state = this.state();
+    if (!state) {
       return;
     }
 
-    // ✅ 1. EXTRAER SOLO DATOS (SIN ARCHIVOS)
-    const formValues = this.registrationForm.value;
-
-    const payload: StudentBasicInfo = {
-      id_type: formValues.id_type,
-      code: formValues.code,
-      check_digit: formValues.check_digit,
-      email: formValues.email,
-      cellphone: formValues.cellphone,
-      address: formValues.address,
-      campus: formValues.campus,
-      gender: formValues.gender
-    };
-
-    // 🔁 Guardar datos del estudiante
-    // 🔁 Guardar foto del estudiante
-    const formDataPhoto = new FormData();
-    if (this.selectedPhotoFile) {
-      formDataPhoto.append('photo', this.selectedPhotoFile);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.step.set(0);
+      return;
     }
 
-    // 🔁 Guardar dni del estudiante
-    const formDataDni = new FormData();
-
-    if (this.selectedDniFile) {
-      formDataDni.append('dni', this.selectedDniFile);
+    if (!this.photoFile && !state.photo.uploaded_now && !state.photo.has_previous) {
+      this.photoError = 'Sube la foto del carné.';
+      return;
     }
-    this.studentPayloadResponse = false;
-    this.photoPayloadResponse = false;
-    this.dniPayloadResponse = false;
-    this.isSubmitting = true;
 
-    this.studentService.updateBasicInfo(payload).pipe(
-      concatMap((studentResponse) => {
-        this.ensureApiSuccess(studentResponse);
-        this.studentPayloadResponse = true;
-        return this.studentCardService.uploadCardPhoto(formDataPhoto);
-      }),
-      concatMap((cardPhotoResponse) => {
-        this.ensureApiSuccess(cardPhotoResponse);
-        this.photoPayloadResponse = true;
-        return this.studentCardService.uploadDniPhoto(formDataDni);
-      }),
-      concatMap((dniPhotoResponse) => {
-        this.ensureApiSuccess(dniPhotoResponse);
-        this.dniPayloadResponse = true;
-        return of(dniPhotoResponse);
-      }),
-      finalize(() => {
-        this.isSubmitting = false;
-      })
-    ).subscribe({
-      next: () => {
-        this.currentStep = 2;
-      },
-      error: (e) => {
-        if (e?.message === 'api-flow-stopped') {
-          return;
-        }
+    this.submitting.set(true);
 
-        this.notificationService.error(
-          NOTIFICATION_MESSAGE.error_connection.title,
-          NOTIFICATION_MESSAGE.error_connection.message
-        );
-        console.error(e);
+    try {
+      const value = this.form.getRawValue();
+      const contact = await firstValueFrom(this.flow.saveContact({
+        email: value.email ?? '',
+        cellphone: value.cellphone ?? '',
+        address: value.address ?? '',
+        birthdate: dateToIso(value.birthdate),
+      }));
+
+      if (contact.status !== STATUS.success) {
+        this.notifications.notifyApiData(contact);
+        return;
       }
-    });
-  }
 
-  private ensureApiSuccess(response: any): void {
-    if (response.status === STATUS.success) {
-      return;
-    }
+      if (this.dniFile && state.dni.required && !(await this.upload('dni', this.dniFile))) {
+        return;
+      }
 
-    this.notificationService.notifyApiData(response);
-    throw new Error('api-flow-stopped');
-  }
+      if (this.photoFile && !(await this.upload('photo', this.photoFile))) {
+        return;
+      }
 
-  logoutStudent(): void {
-    this.loginService.removeUser();
-    this.router.navigate([PATHS.login.student]);
-  }
+      const result = await firstValueFrom(this.flow.submit());
+      this.notifications.notifyApiData(result);
 
-
-  private getPhotoFileName(response: HttpResponse<Blob>): string {
-    const contentDisposition = response.headers.get('content-disposition') ?? '';
-    const match = contentDisposition.match(/filename="?([^"]+)"?/i);
-
-    if (match?.[1]) {
-      return match[1];
-    }
-
-    return `validated-student-photo-${this.studentUser.number ?? 'student'}.jpg`;
-  }
-
-  private revokePreviewObjectUrl(): void {
-    if (this.previewObjectUrl) {
-      URL.revokeObjectURL(this.previewObjectUrl);
-      this.previewObjectUrl = null;
+      if (result.status === STATUS.success) {
+        this.dniFile = null;
+        this.photoFile = null;
+        this.changingPhoto.set(false);
+        await this.load();
+      }
+    } catch {
+      this.notifications.error('No se pudo enviar', 'Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      this.submitting.set(false);
     }
   }
 
-  private revokeDniObjectUrl(): void {
-    if (this.dniObjectUrl) {
-      URL.revokeObjectURL(this.dniObjectUrl);
-      this.dniObjectUrl = null;
+  private async upload(type: 'dni' | 'photo', file: File): Promise<boolean> {
+    const form = new FormData();
+    form.append(type, file);
+    const response = await firstValueFrom(type === 'dni' ? this.cardService.uploadDniPhoto(form) : this.cardService.uploadCardPhoto(form));
+
+    if (response.status !== STATUS.success) {
+      this.notifications.notifyApiData(response);
+      return false;
     }
+
+    return true;
   }
 
-  onlyNumbers(event: KeyboardEvent) {
-    const allowedKeys = [
-      'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'
-    ];
-
-    if (allowedKeys.includes(event.key)) {
-      return;
+  private revoke(url: string | null): void {
+    if (url) {
+      URL.revokeObjectURL(url);
     }
-
-    if (!/^[0-9]$/.test(event.key)) {
-      event.preventDefault();
-    }
-  }
-
-  onPaste(event: ClipboardEvent) {
-    const pasted = event.clipboardData?.getData('text') || '';
-
-    if (!/^[0-9]+$/.test(pasted)) {
-      event.preventDefault();
-    }
-  }
-
-  onlyOneDigit(event: KeyboardEvent) {
-    const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
-
-    if (allowedKeys.includes(event.key)) return;
-
-    if (!/^[0-9]$/.test(event.key)) {
-      event.preventDefault();
-    }
-
-    const input = event.target as HTMLInputElement;
-
-    // impedir más de 1 dígito
-    if (input.value.length >= 1) {
-      event.preventDefault();
-    }
-  }
-
-  onPasteOneDigit(event: ClipboardEvent) {
-    const pasted = event.clipboardData?.getData('text') || '';
-
-    if (!/^[0-9]$/.test(pasted)) {
-      event.preventDefault();
-    }
-  }
-
-  private codeMustDifferFromDocumentValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const code = control.get('code')?.value?.toString().trim();
-      const documentNumber = control.get('number')?.value?.toString().trim();
-
-      return code && documentNumber && code === documentNumber
-        ? {codeMatchesDocument: true}
-        : null;
-    };
   }
 }

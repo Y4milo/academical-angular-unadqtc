@@ -1,0 +1,37 @@
+<div class="modules">
+  <header class="modules__header">
+    <h1>Módulos del estudiante</h1>
+    <p>Interruptor general de cada módulo. Lo propio de cada uno, como la ventana de subida del carné, se configura en su pantalla.</p>
+  </header>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="modules__full">
+      No se pudieron cargar los módulos. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  }
+
+  <section class="modules__panel" aria-label="Módulos">
+    @if (loading()) {
+      <div class="modules__skeleton" aria-busy="true">
+        <p-skeleton width="100%" height="2.5rem" />
+        <p-skeleton width="100%" height="2.5rem" />
+      </div>
+    } @else {
+      <p-table [value]="modules()" dataKey="key" size="small" styleClass="modules__table">
+        <ng-template pTemplate="header">
+          <tr><th>Módulo</th><th>Qué hace</th><th class="modules__switch">Activado</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td data-label="Módulo"><strong>{{ item.label }}</strong></td>
+            <td data-label="Qué hace">{{ item.description }}</td>
+            <td data-label="Activado" class="modules__switch">
+              <p-toggleswitch [ngModel]="item.enabled" (ngModelChange)="toggle(item, $event)" [disabled]="busyKey() === item.key" [ariaLabel]="item.label" />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </section>
+</div>
