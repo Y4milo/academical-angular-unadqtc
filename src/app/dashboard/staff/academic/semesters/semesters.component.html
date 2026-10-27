@@ -1,0 +1,88 @@
+<div class="semesters">
+  <header class="semesters__header">
+    <div>
+      <h1>Semestres</h1>
+      <p>Cada semestre tiene su vigencia. Al habilitarlo quedan disponibles los módulos que dependen de él, como el carné universitario.</p>
+    </div>
+    <p-button label="Nuevo semestre" (onClick)="openCreate()">
+      <ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template>
+    </p-button>
+  </header>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="semesters__full">
+      No se pudieron cargar los semestres. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  }
+
+  <section class="semesters__panel" aria-label="Lista de semestres">
+    @if (loading()) {
+      <div class="semesters__skeleton" aria-busy="true">
+        @for (row of skeletonRows; track row) {
+          <p-skeleton width="100%" height="2.5rem" />
+        }
+      </div>
+    } @else if (semesters().length === 0 && !loadError()) {
+      <div class="semesters__empty">
+        <app-lucide-icon name="calendar" [size]="28" />
+        <strong>Aún no hay semestres</strong>
+        <span>Crea el primero para habilitar los módulos del estudiante.</span>
+      </div>
+    } @else {
+      <ul class="semesters__list">
+        @for (item of semesters(); track item.id) {
+          <li class="semesters__item">
+            <div class="semesters__main">
+              <strong>{{ item.name }}</strong>
+              <span class="semesters__dates">
+                {{ item.start_date ? (item.start_date | date: 'dd/MM/yyyy') : 'Sin fecha' }} – {{ item.end_date ? (item.end_date | date: 'dd/MM/yyyy') : 'Sin fecha' }}
+              </span>
+              @if (item.card_start_date && item.card_end_date) {
+                <span class="semesters__dates">Subida del carné: {{ item.card_start_date | date: 'dd/MM/yyyy' }} – {{ item.card_end_date | date: 'dd/MM/yyyy' }}</span>
+              }
+            </div>
+            <app-status-tag [value]="stateLabel(item.state)" [severity]="stateSeverity(item.state)" />
+            <div class="semesters__actions">
+              @if (item.state === 'draft') {
+                <p-button label="Habilitar" size="small" [loading]="busyId === item.id" (onClick)="enable(item)" />
+              }
+              @if (item.state === 'enabled') {
+                <p-button label="Volver a borrador" severity="secondary" [outlined]="true" size="small" [loading]="busyId === item.id" (onClick)="backToDraft(item)" />
+              }
+              @if (canEdit(item)) {
+                <p-button label="Editar vigencia" severity="secondary" [text]="true" size="small" (onClick)="openEdit(item)" />
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <p-dialog [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '30rem', maxWidth: '95vw' }" [header]="editing ? 'Editar vigencia de ' + editing.name : 'Nuevo semestre'">
+    <div class="semesters__form">
+      @if (!editing) {
+        <app-form-field label="Nombre" for="semester-name" [required]="true" hint="Por ejemplo 2027-I.">
+          <input pInputText id="semester-name" maxlength="10" [(ngModel)]="name" />
+        </app-form-field>
+      }
+      <app-form-field label="Inicio de la vigencia" for="semester-start" [required]="true">
+        <input pInputText id="semester-start" type="date" [(ngModel)]="startDate" />
+      </app-form-field>
+      <app-form-field label="Fin de la vigencia" for="semester-end" [required]="true">
+        <input pInputText id="semester-end" type="date" [(ngModel)]="endDate" />
+      </app-form-field>
+      @if (!editing) {
+        <p-message severity="info" styleClass="semesters__full">El semestre se crea en borrador: nadie lo ve hasta que lo habilites.</p-message>
+      }
+      @if (formError) {
+        <small class="semesters__error" role="alert">{{ formError }}</small>
+      }
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogVisible = false" />
+      <p-button [label]="editing ? 'Guardar' : 'Crear borrador'" [loading]="working" (onClick)="save()" />
+    </ng-template>
+  </p-dialog>
+</div>
