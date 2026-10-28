@@ -23,49 +23,80 @@
           <div><dt>Notificación</dt><dd>{{ shortDate(o.notified_at) }}</dd></div>
           <div><dt>Monto por entregable</dt><dd>S/ {{ o.amount_per_deliverable }}</dd></div>
         </dl>
+        <div class="progress" role="group" aria-label="Avance de la orden">
+          <div class="progress__label"><span>Avance</span><span>{{ finishedCount() }} de {{ o.deliverables.length }} entregables finalizados</span></div>
+          <div class="progress__track" role="progressbar" [attr.aria-valuenow]="finishedCount()" aria-valuemin="0" [attr.aria-valuemax]="o.deliverables.length">
+            <span [style.width.%]="(finishedCount() / o.deliverables.length) * 100"></span>
+          </div>
+        </div>
       </header>
+
+      @if (nextStep(); as next) {
+        <section class="next" aria-label="Siguiente paso">
+          <div class="next__text">
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            <div><strong>Siguiente paso</strong><span>{{ next.title }}</span></div>
+          </div>
+          <p-button [label]="next.label" [icon]="next.icon" (onClick)="next.run()"></p-button>
+        </section>
+      }
 
       <ol class="deliverables">
         @for (d of o.deliverables; track d.id) {
           <li class="deliverable" [class.deliverable--locked]="d.status === 'locked'">
             <div class="deliverable__head">
-              <div class="deliverable__title">
-                <strong>{{ ordinal(d) }} entregable</strong>
-                <p-tag [severity]="statusOf(d).severity" [value]="statusOf(d).label"></p-tag>
-              </div>
+              <span class="deliverable__num" [class.deliverable__num--done]="d.status === 'finished'" aria-hidden="true">
+                @if (d.status === 'finished') {
+                  <i class="pi pi-check"></i>
+                } @else if (d.status === 'locked') {
+                  <i class="pi pi-lock"></i>
+                } @else {
+                  {{ d.position }}
+                }
+              </span>
+              <strong class="deliverable__title">{{ ordinal(d) }} entregable</strong>
+              <p-tag [severity]="statusOf(d).severity" [value]="statusOf(d).label"></p-tag>
               <span class="deliverable__due">Vence {{ dayText(d.due_date) }}</span>
             </div>
 
-            @if (d.activity) {
-              <p class="deliverable__activity">{{ d.activity }}</p>
-            }
+            @if (d.status === 'locked') {
+              <p class="deliverable__hint"><i class="pi pi-info-circle" aria-hidden="true"></i>Se habilita al finalizar el entregable anterior.</p>
+            } @else {
+              @if (d.activity) {
+                <p class="deliverable__activity">{{ d.activity }}</p>
+              }
+              @if (d.non_working_reason) {
+                <p class="deliverable__note">
+                  <i class="pi pi-calendar" aria-hidden="true"></i>
+                  El vencimiento cae {{ d.non_working_reason === 'sábado' || d.non_working_reason === 'domingo' ? 'en ' + d.non_working_reason : 'en feriado (' + d.non_working_reason + ')' }}: se presenta el {{ dayText(d.working_date) }}.
+                </p>
+              }
 
-            @if (d.non_working_reason) {
-              <p-message severity="info" variant="simple" icon="pi pi-calendar" styleClass="deliverable__note">
-                El vencimiento cae {{ d.non_working_reason === 'sábado' || d.non_working_reason === 'domingo' ? 'en ' + d.non_working_reason : 'en feriado (' + d.non_working_reason + ')' }}: se presenta el {{ dayText(d.working_date) }}.
-              </p-message>
-            }
+              <ol class="steps" aria-label="Pasos del entregable">
+                <li [class.steps__done]="d.status !== 'pending_letter'" [class.steps__current]="d.status === 'pending_letter'"><span class="steps__dot">{{ d.status === 'pending_letter' ? '1' : '✓' }}</span>Carta</li>
+                <li class="steps__line" aria-hidden="true"></li>
+                <li [class.steps__done]="d.status === 'finished'" [class.steps__current]="d.status === 'pending_conformity'"><span class="steps__dot">{{ d.status === 'finished' ? '✓' : '2' }}</span>Informe</li>
+                <li class="steps__line" aria-hidden="true"></li>
+                <li [class.steps__done]="d.status === 'finished'"><span class="steps__dot">{{ d.status === 'finished' ? '✓' : '3' }}</span>Finalizado</li>
+              </ol>
 
-            @if (docs()[d.id]?.length) {
-              <ul class="docs" [attr.aria-label]="'Documentos del ' + ordinal(d).toLowerCase() + ' entregable'">
+              <div class="tiles">
                 @for (doc of docs()[d.id]; track doc.kind) {
-                  <li class="doc">
-                    <span class="doc__icon"><i class="pi" [class]="'pi ' + doc.icon" aria-hidden="true"></i></span>
-                    <div class="doc__main">
-                      <div class="doc__name">
-                        <strong>{{ doc.title }}</strong>
-                        @if (doc.tag) {
-                          <p-tag [severity]="doc.tag.severity" [value]="doc.tag.label"></p-tag>
-                        }
-                      </div>
-                      <p class="doc__meta">{{ doc.meta }}</p>
+                  <article class="tile" [class.tile--todo]="!doc.issued">
+                    <div class="tile__head">
+                      <i class="pi tile__icon" [class]="'pi tile__icon ' + doc.icon" aria-hidden="true"></i>
+                      <strong>{{ doc.title }}</strong>
+                      @if (doc.tag) {
+                        <p-tag [severity]="doc.tag.severity" [value]="doc.tag.label"></p-tag>
+                      }
                     </div>
-                    <div class="doc__actions">
+                    <p class="tile__meta">{{ doc.meta }}</p>
+                    <div class="tile__actions">
                       @if (doc.emit === 'letter') {
-                        <p-button label="Emitir carta" icon="pi pi-file-edit" (onClick)="openLetter(d)"></p-button>
+                        <p-button label="Emitir carta" severity="secondary" [outlined]="true" size="small" (onClick)="openLetter(d)"></p-button>
                       }
                       @if (doc.emit === 'conformity') {
-                        <p-button label="Emitir conformidad" icon="pi pi-file-check" (onClick)="openConformity(d)"></p-button>
+                        <p-button label="Emitir conformidad" severity="secondary" [outlined]="true" size="small" (onClick)="openConformity(d)"></p-button>
                       }
                       @if (doc.issued) {
                         @if (canSign && !doc.signed) {
@@ -75,19 +106,13 @@
                         <p-button severity="secondary" [outlined]="true" size="small" [loading]="!!downloading()?.startsWith(d.id + '-' + doc.kind)" aria-haspopup="true" [attr.aria-label]="'Descargar ' + doc.title" (onClick)="downloadMenu.toggle($event)">
                           <span class="btn-inline"><i class="pi pi-download" aria-hidden="true"></i>Descargar<i class="pi pi-chevron-down" aria-hidden="true"></i></span>
                         </p-button>
-                        @if (doc.signed && canSign) {
-                          <p-menu #moreMenu [model]="menus()[d.id + '-' + doc.kind + '-more']" [popup]="true" appendTo="body"></p-menu>
-                          <p-button icon="pi pi-ellipsis-h" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)"></p-button>
-                        }
+                        <p-menu #moreMenu [model]="menus()[d.id + '-' + doc.kind + '-more']" [popup]="true" appendTo="body"></p-menu>
+                        <p-button icon="pi pi-ellipsis-h" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)"></p-button>
                       }
                     </div>
-                  </li>
+                  </article>
                 }
-              </ul>
-            }
-
-            @if (d.status === 'locked') {
-              <span class="deliverable__hint">Se habilita al emitir la conformidad del entregable anterior.</span>
+              </div>
             }
           </li>
         }
@@ -96,20 +121,22 @@
   }
 </div>
 
-<p-dialog header="Emitir carta" [(visible)]="letterDialog" [modal]="true" [draggable]="false" [style]="{ width: 'min(94vw, 38rem)' }" appendTo="body">
+<p-dialog [header]="letterEditing ? 'Editar datos de la carta' : 'Emitir carta'" [(visible)]="letterDialog" [modal]="true" [draggable]="false" [style]="{ width: 'min(94vw, 38rem)' }" appendTo="body">
   @if (letterTarget; as t) {
     <div class="dialog-form">
       <p class="hint">{{ ordinal(t) }} entregable · vence {{ dayText(t.due_date) }}</p>
       <app-form-field label="Fecha de la carta" for="letter-date" [required]="true" [hint]="t.non_working_reason ? 'El vencimiento no es día laborable: se sugiere el siguiente día hábil.' : ''">
-        <p-datepicker inputId="letter-date" name="letterDate" [(ngModel)]="letterForm.date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+        <p-datepicker inputId="letter-date" name="letterDate" [(ngModel)]="letterForm.date" [disabled]="letterLocked" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
       </app-form-field>
-      <app-form-field label="N° de carta" for="letter-number" [hint]="'Si lo dejas vacío se asigna el N°' + (config()?.next_letter_number ?? '') + '.'">
-        <p-inputNumber inputId="letter-number" name="letterNumber" [(ngModel)]="letterForm.number" [useGrouping]="false" [min]="1"></p-inputNumber>
+      <app-form-field label="N° de carta" for="letter-number" [hint]="letterLocked ? 'El informe ya cita este número y esta fecha: no se pueden cambiar.' : (letterEditing ? '' : 'Si lo dejas vacío se asigna el N°' + (config()?.next_letter_number ?? '') + '.')">
+        <p-inputNumber inputId="letter-number" name="letterNumber" [(ngModel)]="letterForm.number" [disabled]="letterLocked" [useGrouping]="false" [min]="1"></p-inputNumber>
       </app-form-field>
       <app-form-field label="Actividad" for="letter-activity" hint="Es la actividad que se detalla en la carta.">
         <textarea pTextarea id="letter-activity" name="letterActivity" [(ngModel)]="letterForm.activity" rows="2" [autoResize]="true"></textarea>
       </app-form-field>
-      @if (hasSignatureImages) {
+      @if (letterEditing) {
+        <p class="hint">El Word y el PDF se vuelven a generar con estos datos.</p>
+      } @else if (hasSignatureImages) {
         <label class="sign-option" for="letter-signed">
           <p-checkbox inputId="letter-signed" name="letterSigned" [(ngModel)]="letterForm.signed" [binary]="true"></p-checkbox>
           <span>Incluir firma y huella<small>Salen en el Word y en el PDF. Sin marcar, la carta sale limpia para firmarla a mano.</small></span>
@@ -124,11 +151,11 @@
   }
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="letterDialog = false"></p-button>
-    <p-button label="Emitir carta" icon="pi pi-check" [loading]="saving()" (onClick)="saveLetter()"></p-button>
+    <p-button [label]="letterEditing ? 'Guardar cambios' : 'Emitir carta'" icon="pi pi-check" [loading]="saving()" (onClick)="saveLetter()"></p-button>
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Emitir conformidad" [(visible)]="conformityDialog" [modal]="true" [draggable]="false" [style]="{ width: 'min(94vw, 38rem)' }" appendTo="body">
+<p-dialog [header]="conformityEditing ? 'Editar datos del informe' : 'Emitir conformidad'" [(visible)]="conformityDialog" [modal]="true" [draggable]="false" [style]="{ width: 'min(94vw, 38rem)' }" appendTo="body">
   @if (conformityTarget; as t) {
     <div class="dialog-form">
       <p class="hint">{{ ordinal(t) }} entregable · {{ letterTitle(t) }}</p>
@@ -139,7 +166,7 @@
         <app-form-field label="Fecha del informe" for="conf-report-date" [required]="true">
           <p-datepicker inputId="conf-report-date" name="confReportDate" [(ngModel)]="conformityForm.reportDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
         </app-form-field>
-        <app-form-field label="N° de informe" for="conf-report-number" [hint]="'Vacío: se asigna el N°' + (config()?.next_report_number ?? '') + '.'">
+        <app-form-field label="N° de informe" for="conf-report-number" [hint]="conformityEditing ? '' : 'Vacío: se asigna el N°' + (config()?.next_report_number ?? '') + '.'">
           <p-inputNumber inputId="conf-report-number" name="confReportNumber" [(ngModel)]="conformityForm.reportNumber" [useGrouping]="false" [min]="1"></p-inputNumber>
         </app-form-field>
         <app-form-field label="N° de acta" for="conf-record" [required]="true">
@@ -165,7 +192,7 @@
   }
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="conformityDialog = false"></p-button>
-    <p-button label="Emitir conformidad" icon="pi pi-check" [loading]="saving()" (onClick)="saveConformity()"></p-button>
+    <p-button [label]="conformityEditing ? 'Guardar cambios' : 'Emitir conformidad'" icon="pi pi-check" [loading]="saving()" (onClick)="saveConformity()"></p-button>
   </ng-template>
 </p-dialog>
 

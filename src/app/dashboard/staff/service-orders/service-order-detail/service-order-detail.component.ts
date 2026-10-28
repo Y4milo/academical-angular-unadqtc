@@ -99,6 +99,32 @@ export class ServiceOrderDetailComponent implements OnInit {
     return result;
   });
 
+  /** Cuántos entregables ya terminaron, para la barra de avance. */
+  readonly finishedCount = computed(() => (this.order()?.deliverables ?? []).filter(d => d.status === 'finished').length);
+
+  /** El paso que sigue en toda la orden: emitir lo que falta y, al final, firmar lo que quedó sin firmar. */
+  readonly nextStep = computed<{ title: string; label: string; icon: string; run: () => void } | null>(() => {
+    const deliverables = this.order()?.deliverables ?? [];
+    const current = deliverables.find(d => d.status !== 'finished');
+    if (current?.status === 'pending_letter') {
+      return { title: `Emitir la carta del ${this.ordinal(current).toLowerCase()} entregable`, label: 'Emitir carta', icon: 'pi pi-file-edit', run: () => this.openLetter(current) };
+    }
+    if (current?.status === 'pending_conformity') {
+      return { title: `Emitir la conformidad del ${this.ordinal(current).toLowerCase()} entregable`, label: 'Emitir conformidad', icon: 'pi pi-file-check', run: () => this.openConformity(current) };
+    }
+    if (!current && this.canSign) {
+      for (const d of [...deliverables].reverse()) {
+        if (!d.conformity_signature.signed) {
+          return { title: `Firmar el informe N°${d.report_number}-${d.report_year}`, label: 'Firmar informe', icon: 'pi pi-pencil', run: () => this.openSign(d, 'conformity') };
+        }
+        if (!d.letter_signature.signed) {
+          return { title: `Firmar la ${this.letterTitle(d).toLowerCase()}`, label: 'Firmar carta', icon: 'pi pi-pencil', run: () => this.openSign(d, 'letter') };
+        }
+      }
+    }
+    return null;
+  });
+
   /** Menús de descarga y de más acciones de cada documento, armados una sola vez por cambio de datos. */
   readonly menus = computed<Record<string, MenuItem[]>>(() => {
     const result: Record<string, MenuItem[]> = {};
@@ -110,13 +136,22 @@ export class ServiceOrderDetailComponent implements OnInit {
           { label: 'Word', icon: 'pi pi-file-word', command: () => this.download(d, kind, 'docx') },
           { label: signed ? 'PDF firmado' : 'PDF', icon: 'pi pi-file-pdf', command: () => this.download(d, kind, 'pdf') },
         ];
-        result[`${d.id}-${kind}-more`] = canSign ? [{ label: 'Agregar otra firma', icon: 'pi pi-pencil', command: () => this.openSign(d, kind) }] : [];
+        const items: MenuItem[] = [{
+          label: 'Editar datos', icon: 'pi pi-pencil', disabled: signed,
+          title: signed ? 'Está firmada: el PDF no se puede cambiar.' : undefined,
+          command: () => (kind === 'letter' ? this.openLetterEdit(d) : this.openConformityEdit(d)),
+        } as MenuItem];
+        if (canSign && signed) {
+          items.push({ label: 'Agregar otra firma', icon: 'pi pi-signature', command: () => this.openSign(d, kind) });
+        }
+        result[`${d.id}-${kind}-more`] = items;
       }
     }
     return result;
   });
 
   letterDialog = false;
+  letterEditing = false;
   letterTarget: ServiceOrderDeliverable | null = null;
   letterForm: { date: Date | null; number: number | null; activity: string; signed: boolean } = { date: null, number: null, activity: '', signed: false };
   letterError = '';
@@ -126,6 +161,7 @@ export class ServiceOrderDetailComponent implements OnInit {
   signKind: DocumentKind = 'letter';
 
   conformityDialog = false;
+  conformityEditing = false;
   conformityTarget: ServiceOrderDeliverable | null = null;
   conformityForm = this.emptyConformity();
   conformityError = '';
@@ -231,10 +267,24 @@ export class ServiceOrderDetailComponent implements OnInit {
   }
 
   openLetter(deliverable: ServiceOrderDeliverable): void {
+    this.letterEditing = false;
     this.letterTarget = deliverable;
     this.letterForm = { date: fromIsoDate(deliverable.suggested_letter_date), number: null, activity: deliverable.activity ?? '', signed: this.hasSignatureImages };
     this.letterError = '';
     this.letterDialog = true;
+  }
+
+  openLetterEdit(deliverable: ServiceOrderDeliverable): void {
+    this.letterEditing = true;
+    this.letterTarget = deliverable;
+    this.letterForm = { date: fromIsoDate(deliverable.letter_date), number: deliverable.letter_number, activity: deliverable.activity ?? '', signed: deliverable.letter_signed };
+    this.letterError = '';
+    this.letterDialog = true;
+  }
+
+  /** Con el informe ya emitido, el N° y la fecha de la carta no cambian: el informe los cita. */
+  get letterLocked(): boolean {
+    return this.letterEditing && this.letterTarget?.status === 'finished';
   }
 
   saveLetter(): void {
@@ -244,6 +294,18 @@ export class ServiceOrderDetailComponent implements OnInit {
     }
     if (!this.letterForm.date) {
       this.letterError = 'Elige la fecha de la carta.';
+      return;
+    }
+    if (this.letterEditing) {
+      this.saving.set(true);
+      this.service.updateLetter(target.id, {
+        letter_date: toIsoDate(this.letterForm.date),
+        letter_number: this.letterForm.number ?? target.letter_number ?? 1,
+        activity: this.letterForm.activity.trim() || null,
+      }).subscribe({
+        next: response => this.afterSave(response, () => (this.letterDialog = false)),
+        error: error => this.failSave(error),
+      });
       return;
     }
     this.saving.set(true);
@@ -258,7 +320,20 @@ export class ServiceOrderDetailComponent implements OnInit {
     });
   }
 
+  openConformityEdit(deliverable: ServiceOrderDeliverable): void {
+    this.conformityEditing = true;
+    this.conformityTarget = deliverable;
+    this.conformityForm = {
+      conformityDate: fromIsoDate(deliverable.conformity_date), reportDate: fromIsoDate(deliverable.report_date), reportNumber: deliverable.report_number,
+      recordNumber: deliverable.record_number ?? '', recordYear: deliverable.record_year, penalty: deliverable.penalty, delayDays: deliverable.delay_days,
+      observation: deliverable.observation ?? '',
+    };
+    this.conformityError = '';
+    this.conformityDialog = true;
+  }
+
   openConformity(deliverable: ServiceOrderDeliverable): void {
+    this.conformityEditing = false;
     this.conformityTarget = deliverable;
     const today = new Date();
     this.conformityForm = {
@@ -283,8 +358,7 @@ export class ServiceOrderDetailComponent implements OnInit {
       this.conformityError = 'Elige la fecha de la conformidad y la del informe.';
       return;
     }
-    this.saving.set(true);
-    this.service.issueConformity(target.id, {
+    const body = {
       conformity_date: toIsoDate(form.conformityDate),
       report_date: toIsoDate(form.reportDate),
       report_number: form.reportNumber,
@@ -293,7 +367,12 @@ export class ServiceOrderDetailComponent implements OnInit {
       penalty: form.penalty.trim() || '-',
       delay_days: form.delayDays.trim() || '-',
       observation: form.observation.trim() || '-',
-    }).subscribe({
+    };
+    this.saving.set(true);
+    const request = this.conformityEditing
+      ? this.service.updateConformity(target.id, { ...body, report_number: form.reportNumber ?? target.report_number ?? 1 })
+      : this.service.issueConformity(target.id, body);
+    request.subscribe({
       next: response => this.afterSave(response, () => (this.conformityDialog = false)),
       error: error => this.failSave(error),
     });
