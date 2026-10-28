@@ -111,6 +111,8 @@ export interface LetterBody {
   include_signature: boolean;
 }
 
+export type LetterUpdate = { letter_date: string | null; letter_number: number; activity: string | null };
+
 export interface ConformityBody {
   conformity_date: string | null;
   report_date: string | null;
@@ -232,5 +234,13 @@ export class ServiceOrdersService {
 
   signatureStatus(deliverableId: number, kind: DocumentKind): Observable<ApiData<SignatureStatus>> {
     return this.http.get<ApiData<SignatureStatus>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/${kind}/signature`);
+  }
+
+  updateLetter(deliverableId: number, body: LetterUpdate): Observable<ApiData<ServiceOrder>> {
+    return this.http.patch<ApiData<ServiceOrder>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/letter`, body);
+  }
+
+  updateConformity(deliverableId: number, body: ConformityBody & { report_number: number }): Observable<ApiData<ServiceOrder>> {
+    return this.http.patch<ApiData<ServiceOrder>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/conformity`, body);
   }
 }
