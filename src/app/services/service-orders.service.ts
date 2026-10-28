@@ -28,6 +28,18 @@ export interface DocumentSigner {
   signed_at: string;
 }
 
+/** Una firma anulada para corregir el documento: queda en el historial con su motivo. */
+export interface DocumentVoid {
+  id: number;
+  signers: DocumentSigner[];
+  reason: string;
+  detail: string;
+  voided_by: string | null;
+  voided_at: string | null;
+}
+
+export type VoidReason = 'typing' | 'missing' | 'other';
+
 export interface DocumentSignature {
   signed: boolean;
   signers: DocumentSigner[];
@@ -69,6 +81,8 @@ export interface ServiceOrderDeliverable {
   letter_signed: boolean;
   letter_signature: DocumentSignature;
   conformity_signature: DocumentSignature;
+  letter_history: DocumentVoid[];
+  conformity_history: DocumentVoid[];
 }
 
 export interface ServiceOrder {
@@ -242,5 +256,13 @@ export class ServiceOrdersService {
 
   updateConformity(deliverableId: number, body: ConformityBody & { report_number: number }): Observable<ApiData<ServiceOrder>> {
     return this.http.patch<ApiData<ServiceOrder>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/conformity`, body);
+  }
+
+  voidSignature(deliverableId: number, kind: DocumentKind, body: { reason_type: VoidReason; detail: string }): Observable<ApiData<{ voided: boolean }>> {
+    return this.http.post<ApiData<{ voided: boolean }>>(`${this.apiURL}/service-orders/deliverables/${deliverableId}/${kind}/signature/void`, body);
+  }
+
+  downloadVoid(deliverableId: number, kind: DocumentKind, voidId: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiURL}/service-orders/deliverables/${deliverableId}/${kind}/voids/${voidId}`, { observe: 'response', responseType: 'blob' });
   }
 }
