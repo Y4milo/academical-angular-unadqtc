@@ -91,7 +91,7 @@
                       }
                     </div>
                     <p class="tile__meta">{{ doc.meta }}</p>
-                    <div class="tile__actions">
+                    <div class="tile__actions" [class.tile__actions--x1]="doc.extras === 1" [class.tile__actions--x2]="doc.extras === 2">
                       @if (doc.emit === 'letter') {
                         <p-button label="Emitir carta" severity="secondary" [outlined]="true" size="small" (onClick)="openLetter(d)"></p-button>
                       }
@@ -106,10 +106,35 @@
                         <p-button severity="secondary" [outlined]="true" size="small" [loading]="!!downloading()?.startsWith(d.id + '-' + doc.kind)" aria-haspopup="true" [attr.aria-label]="'Descargar ' + doc.title" (onClick)="downloadMenu.toggle($event)">
                           <span class="btn-inline"><i class="pi pi-download" aria-hidden="true"></i>Descargar<i class="pi pi-chevron-down" aria-hidden="true"></i></span>
                         </p-button>
+                        @if (doc.signed) {
+                          <p-button class="tile__inline" label="Corregir…" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="openCorrect(d, doc.kind)"></p-button>
+                          @if (canSign) {
+                            <p-button class="tile__inline" label="Agregar otra firma" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="openSign(d, doc.kind)"></p-button>
+                          }
+                        } @else {
+                          <p-button class="tile__inline" label="Editar datos" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="doc.kind === 'letter' ? openLetterEdit(d) : openConformityEdit(d)"></p-button>
+                        }
                         <p-menu #moreMenu [model]="menus()[d.id + '-' + doc.kind + '-more']" [popup]="true" appendTo="body"></p-menu>
-                        <p-button icon="pi pi-ellipsis-h" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)"></p-button>
+                        <p-button class="tile__more" icon="pi pi-ellipsis-h" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)"></p-button>
                       }
                     </div>
+                    @if (doc.history.length) {
+                      <div class="tile__history">
+                        <p-button [label]="'Historial de versiones (' + doc.history.length + ')'" icon="pi pi-history" severity="secondary" [text]="true" size="small" [attr.aria-expanded]="isHistoryOpen(d, doc.kind)" (onClick)="toggleHistory(d, doc.kind)"></p-button>
+                        @if (isHistoryOpen(d, doc.kind)) {
+                          <ul class="history">
+                            @for (entry of doc.history; track entry.id) {
+                              <li class="history__item">
+                                <div class="history__head"><p-tag severity="danger" value="Anulada"></p-tag><span>{{ historyWhen(entry.voided_at) }}{{ entry.voided_by ? ' · ' + entry.voided_by : '' }}</span></div>
+                                <p class="history__text"><strong>{{ entry.reason }}.</strong> {{ entry.detail }}</p>
+                                <p class="history__text">Estaba firmada por {{ historySigners(entry) }}.</p>
+                                <p-button label="PDF anulado" icon="pi pi-download" severity="secondary" [outlined]="true" size="small" (onClick)="downloadVoided(d, doc.kind, entry)"></p-button>
+                              </li>
+                            }
+                          </ul>
+                        }
+                      </div>
+                    }
                   </article>
                 }
               </div>
@@ -199,3 +224,26 @@
 @if (signTarget && config()?.signing; as signing) {
   <app-document-sign-dialog [(visible)]="signDialog" [deliverable]="signTarget" [kind]="signKind" [signing]="signing" (signed)="afterSigned()"></app-document-sign-dialog>
 }
+
+<p-dialog header="Corregir un documento firmado" [(visible)]="correctDialog" [modal]="true" [draggable]="false" [style]="{ width: 'min(94vw, 34rem)' }" appendTo="body">
+  @if (correctTarget; as t) {
+    <div class="dialog-form">
+      <p-message severity="warn" variant="simple" icon="pi pi-exclamation-triangle">
+        La firma digital de {{ historySigners({ id: 0, signers: signatureOf(t, correctKind).signers, reason: '', detail: '', voided_by: null, voided_at: null }) }} quedará anulada. El PDF firmado se conserva en el historial y habrá que firmar de nuevo.
+      </p-message>
+      <app-form-field label="Motivo de la corrección" for="correct-reason" [required]="true">
+        <p-select inputId="correct-reason" name="correctReason" [options]="correctReasons" optionLabel="label" optionValue="value" [(ngModel)]="correctForm.reason" appendTo="body" styleClass="w-full"></p-select>
+      </app-form-field>
+      <app-form-field label="Detalle" for="correct-detail" [required]="true" hint="Queda registrado con tu usuario y la fecha.">
+        <textarea pTextarea id="correct-detail" name="correctDetail" [(ngModel)]="correctForm.detail" rows="3" [autoResize]="true" maxlength="500"></textarea>
+      </app-form-field>
+      @if (correctError) {
+        <p-message severity="error" variant="simple">{{ correctError }}</p-message>
+      }
+    </div>
+  }
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="correctDialog = false"></p-button>
+    <p-button label="Anular firma y editar" icon="pi pi-pencil" [loading]="saving()" (onClick)="saveCorrect()"></p-button>
+  </ng-template>
+</p-dialog>

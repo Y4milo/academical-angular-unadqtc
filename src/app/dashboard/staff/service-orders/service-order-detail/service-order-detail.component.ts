@@ -11,6 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
+import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -22,7 +23,7 @@ import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import {
-  DeliverableStatus, DocumentFormat, DocumentKind, DocumentSignature, ServiceOrder, ServiceOrderDeliverable, ServiceOrdersConfig,
+  DeliverableStatus, DocumentFormat, DocumentKind, DocumentSignature, DocumentVoid, VoidReason, ServiceOrder, ServiceOrderDeliverable, ServiceOrdersConfig,
   ServiceOrdersService, fromIsoDate, toIsoDate,
 } from '../../../../services/service-orders.service';
 
@@ -46,6 +47,10 @@ interface DocRow {
   tag: { label: string; severity: TagSeverity } | null;
   /** Si el documento todavía no existe, el paso que lo emite. */
   emit: DocumentKind | null;
+  /** Firmas anuladas de este documento, de la más reciente a la más antigua. */
+  history: DocumentVoid[];
+  /** Cuántas acciones extra caben como botones cuando hay espacio (si no, van al menú ⋯). */
+  extras: number;
 }
 
 const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -54,7 +59,7 @@ const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes
 @Component({
   selector: 'app-service-order-detail',
   imports: [
-    FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MenuModule, MessageModule,
+    FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MenuModule, MessageModule, SelectModule,
     SkeletonModule, TagModule, TextareaModule, TooltipModule, FormFieldComponent, DocumentSignDialogComponent,
   ],
   templateUrl: './service-order-detail.component.html',
@@ -77,22 +82,22 @@ export class ServiceOrderDetailComponent implements OnInit {
       if (d.letter_number) {
         const signed = d.letter_signature.signed;
         rows.push({
-          kind: 'letter', icon: 'pi-file', title: this.letterTitle(d), issued: true, signed, emit: null,
+          kind: 'letter', icon: 'pi-file', title: this.letterTitle(d), issued: true, signed, emit: null, history: d.letter_history, extras: this.extrasOf(signed),
           meta: `${this.shortDate(d.letter_date)}${d.letter_signed ? ' · con firma y huella' : ''}${this.signedText(d.letter_signature)}`,
           tag: canSign ? (signed ? { label: 'Firmada', severity: 'success' } : { label: 'Sin firmar', severity: 'warn' }) : null,
         });
       } else if (d.status === 'pending_letter') {
-        rows.push({ kind: 'letter', icon: 'pi-file', title: 'Carta', issued: false, signed: false, emit: 'letter', meta: 'Aún no se emite.', tag: null });
+        rows.push({ kind: 'letter', icon: 'pi-file', title: 'Carta', issued: false, signed: false, emit: 'letter', meta: 'Aún no se emite.', tag: null, history: d.letter_history, extras: 0 });
       }
       if (d.status === 'finished') {
         const signed = d.conformity_signature.signed;
         rows.push({
-          kind: 'conformity', icon: 'pi-file-check', title: `Informe N°${d.report_number}-${d.report_year}`, issued: true, signed, emit: null,
+          kind: 'conformity', icon: 'pi-file-check', title: `Informe N°${d.report_number}-${d.report_year}`, issued: true, signed, emit: null, history: d.conformity_history, extras: this.extrasOf(signed),
           meta: `Acta ${d.record_number}-${d.record_year} · ${this.shortDate(d.conformity_date)}${this.signedText(d.conformity_signature)}`,
           tag: canSign ? (signed ? { label: 'Firmado', severity: 'success' } : { label: 'Sin firmar', severity: 'warn' }) : null,
         });
       } else if (d.status === 'pending_conformity') {
-        rows.push({ kind: 'conformity', icon: 'pi-file-check', title: 'Informe de conformidad', issued: false, signed: false, emit: 'conformity', meta: 'Se emite con el N° de acta de conformidad.', tag: null });
+        rows.push({ kind: 'conformity', icon: 'pi-file-check', title: 'Informe de conformidad', issued: false, signed: false, emit: 'conformity', meta: 'Se emite con el N° de acta de conformidad.', tag: null, history: d.conformity_history, extras: 0 });
       }
       result[d.id] = rows;
     }
@@ -136,11 +141,9 @@ export class ServiceOrderDetailComponent implements OnInit {
           { label: 'Word', icon: 'pi pi-file-word', command: () => this.download(d, kind, 'docx') },
           { label: signed ? 'PDF firmado' : 'PDF', icon: 'pi pi-file-pdf', command: () => this.download(d, kind, 'pdf') },
         ];
-        const items: MenuItem[] = [{
-          label: 'Editar datos', icon: 'pi pi-pencil', disabled: signed,
-          title: signed ? 'Está firmada: el PDF no se puede cambiar.' : undefined,
-          command: () => (kind === 'letter' ? this.openLetterEdit(d) : this.openConformityEdit(d)),
-        } as MenuItem];
+        const items: MenuItem[] = signed
+          ? [{ label: 'Corregir…', icon: 'pi pi-pencil', command: () => this.openCorrect(d, kind) }]
+          : [{ label: 'Editar datos', icon: 'pi pi-pencil', command: () => (kind === 'letter' ? this.openLetterEdit(d) : this.openConformityEdit(d)) }];
         if (canSign && signed) {
           items.push({ label: 'Agregar otra firma', icon: 'pi pi-signature', command: () => this.openSign(d, kind) });
         }
@@ -149,6 +152,20 @@ export class ServiceOrderDetailComponent implements OnInit {
     }
     return result;
   });
+
+  /** Historiales abiertos, por entregable y documento. */
+  readonly openHistories = signal<ReadonlySet<string>>(new Set());
+
+  correctDialog = false;
+  correctTarget: ServiceOrderDeliverable | null = null;
+  correctKind: DocumentKind = 'letter';
+  correctForm: { reason: VoidReason; detail: string } = { reason: 'typing', detail: '' };
+  correctError = '';
+  readonly correctReasons: { label: string; value: VoidReason }[] = [
+    { label: 'Error de digitación', value: 'typing' },
+    { label: 'Falta de datos', value: 'missing' },
+    { label: 'Otro motivo', value: 'other' },
+  ];
 
   letterDialog = false;
   letterEditing = false;
@@ -250,6 +267,94 @@ export class ServiceOrderDetailComponent implements OnInit {
     const name = last.name.replace(/\s+(FIR|FAU)\b.*$/, '');
     const note = signers.some(signer => signer.holder_matches === false) ? ' (titular distinto del esperado)' : '';
     return signers.length === 1 ? ` · Firmó ${name} el ${stamp}${note}` : ` · Firmado por ${signers.length} personas, la última el ${stamp}${note}`;
+  }
+
+  /** Botones sueltos cuando hay lugar: sin firmar, "Editar datos"; firmado, "Corregir…" y, si se puede, "Agregar otra firma". */
+  private extrasOf(signed: boolean): number {
+    return signed ? (this.canSign ? 2 : 1) : 1;
+  }
+
+  isHistoryOpen(deliverable: ServiceOrderDeliverable, kind: DocumentKind): boolean {
+    return this.openHistories().has(`${deliverable.id}-${kind}`);
+  }
+
+  toggleHistory(deliverable: ServiceOrderDeliverable, kind: DocumentKind): void {
+    const key = `${deliverable.id}-${kind}`;
+    this.openHistories.update(current => {
+      const next = new Set(current);
+      if (!next.delete(key)) {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
+  historyWhen(iso: string | null): string {
+    if (!iso) {
+      return '';
+    }
+    const when = new Date(iso);
+    return `${String(when.getDate()).padStart(2, '0')}/${String(when.getMonth() + 1).padStart(2, '0')}/${when.getFullYear()} ${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}`;
+  }
+
+  historySigners(entry: DocumentVoid): string {
+    return entry.signers.map(signer => signer.name.replace(/\s+(FIR|FAU)\b.*$/, '')).join(', ');
+  }
+
+  openCorrect(deliverable: ServiceOrderDeliverable, kind: DocumentKind): void {
+    this.correctTarget = deliverable;
+    this.correctKind = kind;
+    this.correctForm = { reason: 'typing', detail: '' };
+    this.correctError = '';
+    this.correctDialog = true;
+  }
+
+  /** Anula la firma con su motivo y abre la edición de datos del documento, ya sin firma. */
+  saveCorrect(): void {
+    const target = this.correctTarget;
+    if (!target) {
+      return;
+    }
+    if (this.correctForm.detail.trim().length < 5) {
+      this.correctError = 'Escribe el detalle del motivo (al menos 5 letras).';
+      return;
+    }
+    this.saving.set(true);
+    this.service.voidSignature(target.id, this.correctKind, { reason_type: this.correctForm.reason, detail: this.correctForm.detail.trim() }).subscribe({
+      next: response => {
+        if (response.status !== STATUS.success) {
+          this.saving.set(false);
+          this.notificationService.notifyApiData(response);
+          return;
+        }
+        this.service.show(this.order()!.id).subscribe({
+          next: refreshed => {
+            this.saving.set(false);
+            if (refreshed.status === STATUS.success) {
+              this.order.set(refreshed.payload.data);
+              this.correctDialog = false;
+              const updated = refreshed.payload.data.deliverables.find(d => d.id === target.id);
+              if (updated) {
+                if (this.correctKind === 'letter') {
+                  this.openLetterEdit(updated);
+                } else {
+                  this.openConformityEdit(updated);
+                }
+              }
+            }
+          },
+          error: error => this.failSave(error),
+        });
+      },
+      error: error => this.failSave(error),
+    });
+  }
+
+  downloadVoided(deliverable: ServiceOrderDeliverable, kind: DocumentKind, entry: DocumentVoid): void {
+    this.service.downloadVoid(deliverable.id, kind, entry.id).subscribe({
+      next: response => this.save(response, `documento-anulado-${entry.id}.pdf`),
+      error: async error => this.notificationService.error('No se pudo descargar', await this.messageOf(error)),
+    });
   }
 
   openSign(deliverable: ServiceOrderDeliverable, kind: DocumentKind): void {
