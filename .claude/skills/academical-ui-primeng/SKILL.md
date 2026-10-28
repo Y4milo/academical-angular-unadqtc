@@ -90,6 +90,10 @@ Basado en el skill `primeng-ux-design` de `events-unadqtc-angular` y `core-angul
 - **Lista de revisión antes de dar una pantalla por terminada:** etiquetas ligadas a su campo (`for`/`id`), `aria-label` en botones de solo ícono, orden de foco lógico, contraste en claro y oscuro, funciona a 375 px y 1440 px, sin scroll horizontal de página (`scrollWidth === innerWidth`), acciones alcanzables con teclado, diálogos que cierran con Esc.
 - **Si el código existente se sale de la escala, no se copia:** se usa la escala en lo que se toca y se menciona la desviación grande sin reescribirla en silencio.
 
+## Vista previa de archivos y revisiones previas
+
+Imagen elegida: `p-image` con `[preview]="true"` (ampliar y girar). PDF: `p-dialog` con un `<iframe>` (visor del navegador) y el enlace «Abrir en otra pestaña», porque PrimeNG no tiene visor de PDF y en iOS el visor integrado no sirve. Una revisión previa al envío (foto del carné) muestra el veredicto en `p-message`, un bloque por grupo con `p-tag` («Todo bien» / «N por revisar») y una fila por criterio; avisa, no bloquea: solo una confirmación obligatoria (`p-checkbox` con su `label`) deshabilita el envío. Lo medido aproximado (lentes) se rotula «estimado». Ver `docs/frontend-components.md`.
+
 ## Menú lateral del personal
 
 `staff-role-layout` es el shell de todas las pantallas del personal: `p-panelmenu` en una columna de 17rem (`p-drawer` bajo 900px), máximo dos niveles (grupo y pantalla), un grupo abierto a la vez y abierto el de la pantalla actual. Persona, «Cambiar contraseña» y «Cerrar sesión» al pie. Las opciones vienen del API (`RoleMenus.php`, un bloque por módulo); no se agregan opciones a mano en el front. `StaffMenuStore` carga el menú una vez por sesión. Íconos nuevos: registrarlos en `lucide-icon.util.ts`; sin registro se ve un círculo.

@@ -1,11 +1,16 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
 import { FileUploadModule } from 'primeng/fileupload';
+import { ImageModule } from 'primeng/image';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -16,8 +21,12 @@ import { AppLucideIconComponent } from '../../../core/components/lucide-icon/luc
 import { FormFieldComponent } from '../../../core/components/form-field.component';
 import { STATUS } from '../../../core/constants/api-status.constants';
 import { dateToIso, isoToDate } from '../../../core/utils/date-input.util';
+import {
+  DEFAULT_REVIEW_THRESHOLDS, PhotoReview, REVIEW_GROUPS, ReviewGroup, reviewFace, reviewFile, serializeReview, warningsOf, withHints,
+} from '../../../core/utils/photo-review.util';
 import { validatePhotoCardStudent } from '../../../helper/helper.util';
-import { CardFlowState, StudentCardFlowService } from '../../../services/student-card-flow.service';
+import { PhotoFaceService } from '../../../services/photo-face.service';
+import { CardFlowState, CardSubmitResult, StudentCardFlowService } from '../../../services/student-card-flow.service';
 import { StudentCardService } from '../../../services/student-card.service';
 import { StudentService } from '../../../services/student.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -35,8 +44,8 @@ const CARD_STATUS: Record<string, { label: string; severity: Severity }> = {
 @Component({
   selector: 'app-student-card-registration',
   imports: [
-    DatePipe, ReactiveFormsModule, ButtonModule, CardModule, DatePickerModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule,
-    StepsModule, TagModule, TextareaModule, AppLucideIconComponent, FormFieldComponent,
+    DatePipe, FormsModule, AccordionModule, ReactiveFormsModule, ButtonModule, CardModule, CheckboxModule, DatePickerModule, DialogModule, FileUploadModule, ImageModule,
+    InputTextModule, MessageModule, SkeletonModule, StepsModule, TagModule, TextareaModule, AppLucideIconComponent, FormFieldComponent,
   ],
   templateUrl: './student-card-registration.component.html',
   styleUrl: './student-card-registration.component.css',
@@ -52,6 +61,26 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
   readonly submitting = signal(false);
   readonly step = signal(0);
   readonly changingPhoto = signal(false);
+
+  /** Revisión previa de la foto elegida (criterios de la SUNEDU): avisa, no bloquea. */
+  readonly review = signal<PhotoReview | null>(null);
+  readonly reviewing = signal(false);
+  readonly suneduConfirmed = signal(false);
+  readonly reviewGroups = REVIEW_GROUPS;
+  readonly reviewWarnings = computed(() => warningsOf(this.review()?.checks ?? []));
+  readonly suneduUrl = 'https://siucarne.sunedu.gob.pe/carne/validacion';
+  /** Grupos de la revisión abiertos: los que tienen avisos; los que están bien quedan plegados. */
+  readonly openGroups = signal<string[]>([]);
+  readonly photoLabel = signal('');
+  /** Tras enviar el carné se muestra la pantalla final con lo que sigue. */
+  readonly justSubmitted = signal(false);
+  readonly submitResult = signal<CardSubmitResult | null>(null);
+
+  /** Vista previa del DNI elegido: imagen con `p-image` o PDF en un diálogo con el visor del navegador. */
+  readonly dniImageUrl = signal<string | null>(null);
+  readonly dniPdfUrl = signal<SafeResourceUrl | null>(null);
+  readonly dniPdfRaw = signal<string | null>(null);
+  readonly pdfOpen = signal(false);
 
   /** Foto actual del estudiante (la aprobada de un semestre anterior o la recién subida). */
   readonly currentPhotoUrl = signal<string | null>(null);
@@ -87,6 +116,8 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     private studentService: StudentService,
     private cardService: StudentCardService,
     private notifications: NotificationService,
+    private faceService: PhotoFaceService,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -96,6 +127,8 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.revoke(this.currentPhotoUrl());
     this.revoke(this.photoPreviewUrl());
+    this.revoke(this.dniImageUrl());
+    this.revoke(this.dniPdfRaw());
   }
 
   async load(): Promise<void> {
@@ -152,6 +185,9 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     const result = await validatePhotoCardStudent(file, this.state()!.rules);
     this.revoke(this.photoPreviewUrl());
 
+    this.review.set(null);
+    this.suneduConfirmed.set(false);
+
     if (!result.validated) {
       this.photoFile = null;
       this.photoPreviewUrl.set(null);
@@ -162,6 +198,53 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     this.photoError = '';
     this.photoFile = file;
     this.photoPreviewUrl.set(URL.createObjectURL(file));
+    this.photoLabel.set(`${file.name} · ${Math.round(file.size / 102.4) / 10} KB`);
+    await this.reviewPhoto(file);
+  }
+
+  /** Revisión previa en el dispositivo: archivo y fondo con las reglas del semestre, rostro con MediaPipe. */
+  private async reviewPhoto(file: File): Promise<void> {
+    const rules = this.state()!.rules;
+    const thresholds = rules.photo_review ?? DEFAULT_REVIEW_THRESHOLDS;
+    this.reviewing.set(true);
+
+    try {
+      const bitmap = await createImageBitmap(file);
+      const fileChecks = await reviewFile(file, bitmap, rules, thresholds);
+      const points = await this.faceService.detect(bitmap);
+      bitmap.close();
+      const checks = withHints([...fileChecks, ...reviewFace(points, thresholds)]);
+      this.review.set({ checks, face: !!points && points.faces > 0, points: points && points.faces > 0 ? points : null });
+      this.openGroups.set(REVIEW_GROUPS.filter(group => warningsOf(checks.filter(check => check.group === group.id)) > 0).map(group => group.id));
+    } catch {
+      this.review.set(null);
+    } finally {
+      this.reviewing.set(false);
+    }
+  }
+
+  onGroups(value: string | number | string[] | number[] | null | undefined): void {
+    this.openGroups.set(Array.isArray(value) ? value.map(String) : value == null ? [] : [String(value)]);
+  }
+
+  /** Desde la pantalla final: vuelve al flujo para cambiar la foto. */
+  editAgain(): void {
+    this.justSubmitted.set(false);
+    this.submitResult.set(null);
+
+    if (this.state()?.photo.has_previous) {
+      this.startChangingPhoto();
+    } else {
+      this.step.set(this.steps().length - 1);
+    }
+  }
+
+  checksOf(group: ReviewGroup) {
+    return (this.review()?.checks ?? []).filter(check => check.group === group);
+  }
+
+  warningsOfGroup(group: ReviewGroup): number {
+    return warningsOf(this.checksOf(group));
   }
 
   onDniSelect(event: { files?: File[] }): void {
@@ -180,6 +263,20 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     this.dniError = '';
     this.dniFile = file;
     this.dniName.set(file.name);
+    this.revoke(this.dniImageUrl());
+    this.revoke(this.dniPdfRaw());
+    this.dniImageUrl.set(null);
+    this.dniPdfRaw.set(null);
+    this.dniPdfUrl.set(null);
+
+    const url = URL.createObjectURL(file);
+
+    if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+      this.dniPdfRaw.set(url);
+      this.dniPdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+    } else {
+      this.dniImageUrl.set(url);
+    }
   }
 
   startChangingPhoto(): void {
@@ -192,6 +289,8 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
     this.photoError = '';
     this.revoke(this.photoPreviewUrl());
     this.photoPreviewUrl.set(null);
+    this.review.set(null);
+    this.suneduConfirmed.set(false);
   }
 
   next(): void {
@@ -219,7 +318,9 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
       return false;
     }
     const photoReady = !!this.photoFile || state.photo.uploaded_now || state.photo.has_previous;
-    return photoReady && !this.submitting();
+    // Una foto nueva exige confirmar que la SUNEDU la validó; conservar la anterior no.
+    const confirmed = !this.photoFile || this.suneduConfirmed();
+    return photoReady && confirmed && !this.reviewing() && !this.submitting();
   }
 
   async submit(): Promise<void> {
@@ -267,8 +368,12 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
       this.notifications.notifyApiData(result);
 
       if (result.status === STATUS.success) {
+        this.submitResult.set(result.payload.data ?? null);
+        this.justSubmitted.set(true);
         this.dniFile = null;
         this.photoFile = null;
+        this.review.set(null);
+        this.suneduConfirmed.set(false);
         this.changingPhoto.set(false);
         await this.load();
       }
@@ -282,6 +387,15 @@ export class StudentCardRegistrationComponent implements OnInit, OnDestroy {
   private async upload(type: 'dni' | 'photo', file: File): Promise<boolean> {
     const form = new FormData();
     form.append(type, file);
+
+    if (type === 'photo') {
+      form.append('sunedu_confirmed', '1');
+      const review = this.review();
+      if (review) {
+        form.append('client_review', serializeReview(review));
+      }
+    }
+
     const response = await firstValueFrom(type === 'dni' ? this.cardService.uploadDniPhoto(form) : this.cardService.uploadCardPhoto(form));
 
     if (response.status !== STATUS.success) {
