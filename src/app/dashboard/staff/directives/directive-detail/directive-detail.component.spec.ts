@@ -268,8 +268,8 @@ describe('DirectiveDetailComponent', () => {
 
     it('lists the versions and opens the PDF of a chosen one', async () => {
       const versions = [
-        { version: 2, current: true, created_at: '2026-11-16T10:00:00Z', directive: { name: 'directiva-v2.pdf', size: 1, pages: 14 }, resolution: { name: 'resolucion.pdf', size: 1, pages: 3 } },
-        { version: 1, current: false, created_at: '2026-11-12T08:50:00Z', directive: { name: 'directiva.pdf', size: 1, pages: 14 }, resolution: { name: 'resolucion.pdf', size: 1, pages: 3 } },
+        { version: 2, current: true, signed: false, created_at: '2026-11-16T10:00:00Z', directive: { name: 'directiva-v2.pdf', size: 1, pages: 14 }, resolution: { name: 'resolucion.pdf', size: 1, pages: 3 } },
+        { version: 1, current: false, signed: false, created_at: '2026-11-12T08:50:00Z', directive: { name: 'directiva.pdf', size: 1, pages: 14 }, resolution: { name: 'resolucion.pdf', size: 1, pages: 3 } },
       ];
       service.detail.and.returnValue(of(ok(detail({ status: 'in_signature', status_label: 'En firma', can_edit: false, versions, version: 2 }))));
       service.file.and.returnValue(of(new Blob(['%PDF'])));
@@ -439,6 +439,123 @@ describe('DirectiveDetailComponent', () => {
 
       expect(text('directive-event')).toContain('Aviso enviado: la directiva fue anulada');
       expect(text('event-detail')).toBe('Para Carlos Paucar V. · Asesoría Jurídica');
+    });
+  });
+
+  describe('the signed document', () => {
+    const signed = (overrides = {}) => ({
+      version: 2, code: 'K7F9M-2QXP4', signatures: 4, verify_url: 'https://firmas.unadqtc.test/verifica/K7F9M-2QXP4', can_download: true, available: true,
+      name: 'Directiva_bienes_2026_v2_firmada.pdf', size: 2_100_000, sha256: 'f'.repeat(64), ...overrides,
+    });
+    const completed = (overrides = {}) => detail({ status: 'signed', status_label: 'Firmada', can_edit: false, version: 2, signed: signed(), ...overrides });
+
+    it('shows the key, the number of signatures, the file and the public verification link', async () => {
+      service.detail.and.returnValue(of(ok(completed())));
+      await create();
+
+      expect(text('signed-panel')).toContain('Versión 2 · 4 firmas');
+      expect(text('signed-code')).toBe('K7F9M-2QXP4');
+      expect(text('signed-name')).toContain('Directiva_bienes_2026_v2_firmada.pdf');
+      expect(text('signed-hash')).toContain('f'.repeat(64));
+      const link = html().querySelector('[data-testid="verify-link"]') as HTMLAnchorElement;
+      expect(link.href).toBe('https://firmas.unadqtc.test/verifica/K7F9M-2QXP4');
+      expect(link.rel).toContain('noopener');
+    });
+
+    it('shows no signed panel while the directive has not been signed by everybody', async () => {
+      service.detail.and.returnValue(of(ok(detail({ status: 'in_signature', status_label: 'En firma', can_edit: false }))));
+      await create();
+
+      expect(html().querySelector('[data-testid="signed-panel"]')).toBeNull();
+    });
+
+    it('downloads the signed file with its name', async () => {
+      service.detail.and.returnValue(of(ok(completed())));
+      service.file.and.returnValue(of(new Blob(['%PDF'])));
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:pdf');
+      const click = spyOn(HTMLAnchorElement.prototype, 'click').and.stub();
+      await create();
+
+      (html().querySelector('[data-testid="download-signed"] button') as HTMLButtonElement).click();
+
+      expect(service.file).toHaveBeenCalledWith(7, 'signed', 2);
+      expect(click).toHaveBeenCalled();
+      expect(fixture.componentInstance.signedLoading()).toBeFalse();
+    });
+
+    it('says the copy is not stored yet, and after a failure shows what the server said and offers to try again', async () => {
+      service.detail.and.returnValue(of(ok(completed({ signed: signed({ available: false, name: null, size: null, sha256: null }) }))));
+      const body = new Blob([JSON.stringify({ payload: { message: 'No se pudo traer el documento firmado: el firmador no respondió. Tus firmas están a salvo allá.' } })]);
+      service.file.and.returnValue(throwError(() => ({ status: 503, error: body })));
+      await create();
+      expect(text('signed-panel')).toContain('todavía no se guardó la copia en Academical');
+
+      fixture.componentInstance.downloadSigned();
+      await new Promise(resolve => setTimeout(resolve, 30));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(text('signed-error')).toContain('el firmador no respondió');
+      expect(text('download-signed')).toContain('Reintentar descarga');
+      expect(fixture.componentInstance.signedLoading()).toBeFalse();
+    });
+
+    it('keeps the key visible but offers no download to an office that may not read the PDF', async () => {
+      service.detail.and.returnValue(of(ok(completed({ viewer: 'pending', signed: signed({ can_download: false, available: false, name: null, size: null, sha256: null }) }))));
+      await create();
+
+      expect(text('signed-no-access')).toContain('el administrador lo tiene configurado así');
+      expect(text('signed-code')).toBe('K7F9M-2QXP4');
+      expect(html().querySelector('[data-testid="download-signed"]')).toBeNull();
+      expect(html().querySelector('[data-testid="signed-hash"]')).toBeNull();
+    });
+
+    it('shows only the key when there is no public verification address configured', async () => {
+      service.detail.and.returnValue(of(ok(completed({ signed: signed({ verify_url: null }) }))));
+      await create();
+
+      expect(html().querySelector('[data-testid="verify-link"]')).toBeNull();
+      expect(text('signed-code')).toBe('K7F9M-2QXP4');
+    });
+
+    it('copies the key', async () => {
+      service.detail.and.returnValue(of(ok(completed())));
+      const write = jasmine.createSpy('writeText').and.resolveTo();
+      spyOnProperty(navigator, 'clipboard', 'get').and.returnValue({ writeText: write } as unknown as Clipboard);
+      await create();
+
+      fixture.componentInstance.copyCode();
+      await fixture.whenStable();
+
+      expect(write).toHaveBeenCalledWith('K7F9M-2QXP4');
+      expect(fixture.componentInstance.codeCopied()).toBeTrue();
+    });
+
+    it('marks which version has the signed document in the list of versions', async () => {
+      const versions = [
+        { version: 2, current: true, signed: true, created_at: '2026-11-16T10:00:00Z', directive: { name: 'd2.pdf', size: 1, pages: 14 }, resolution: { name: 'r.pdf', size: 1, pages: 3 } },
+        { version: 1, current: false, signed: false, created_at: '2026-11-12T08:50:00Z', directive: { name: 'd1.pdf', size: 1, pages: 14 }, resolution: { name: 'r.pdf', size: 1, pages: 3 } },
+      ];
+      service.detail.and.returnValue(of(ok(completed({ versions }))));
+      await create();
+
+      const rows = html().querySelectorAll('[data-testid="version-row"]');
+      expect(rows[0].textContent).toContain('Firmada');
+      expect(rows[1].textContent).toContain('Sin documento firmado');
+    });
+
+    it('records in the timeline when the signed copy was saved and why it could not be fetched', async () => {
+      const event = (type: string, data: Record<string, unknown>) => ({ type, version: 2, at: '2026-11-18T10:25:00Z', by: null, data });
+      service.detail.and.returnValue(of(ok(completed({ events: [event('signed_copy_failed', { reason: 'hash_mismatch' }), event('signed_copy_saved', { signatures: 4 })] }))));
+      await create();
+
+      const events = Array.from(html().querySelectorAll('[data-testid="directive-event"]')).map(row => row.textContent);
+      expect(events[0]).toContain('No se pudo traer el documento firmado: la huella no coincide con la que declara el firmador');
+      expect(events[0]).toContain('Academical');
+      expect(events[0]).toContain('se vuelve a intentar al pulsar «Descargar firmada»');
+      expect(events[0]).not.toContain('hash_mismatch');
+      expect(events[1]).toContain('Se guardó la copia del documento firmado');
+      expect(events[1]).toContain('4 firmas');
     });
   });
 });

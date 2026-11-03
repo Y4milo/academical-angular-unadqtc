@@ -40,6 +40,8 @@ export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
   resubmitted: 'Corrigió y reenvió la directiva a firma',
   notice_sent: 'Aviso enviado',
   notice_failed: 'No se pudo avisar',
+  signed_copy_saved: 'Se guardó la copia del documento firmado',
+  signed_copy_failed: 'No se pudo traer el documento firmado',
   cancelled: 'Se anuló la directiva',
   expired: 'La directiva venció sin completar las firmas',
   step_activated: 'Le tocó firmar',
@@ -65,6 +67,15 @@ export const DIRECTIVE_NOTICE_LABELS: Record<string, string> = {
 export const DIRECTIVE_NOTICE_FAILURES: Record<string, string> = {
   no_email: 'la persona no tiene correo institucional en Core',
   mail_error: 'el servidor de correo no respondió',
+};
+
+/** Por qué no se pudo traer el documento firmado. */
+export const DIRECTIVE_SIGNED_FAILURES: Record<string, string> = {
+  unreachable: 'el firmador no respondió',
+  signer_error: 'el firmador devolvió un error',
+  not_pdf: 'lo recibido no es un PDF',
+  hash_mismatch: 'la huella no coincide con la que declara el firmador',
+  no_document: 'la directiva no tiene el documento registrado en el firmador',
 };
 
 export function formatBytes(size: number): string {

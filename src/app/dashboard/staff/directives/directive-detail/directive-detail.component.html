@@ -51,6 +51,32 @@
       <p-message severity="info" data-testid="viewer-note">{{ viewerNote() }}</p-message>
     }
 
+    @if (current.signed; as signed) {
+      <section class="signed" aria-labelledby="signed-title" data-testid="signed-panel">
+        <h3 id="signed-title">Documento firmado</h3>
+        @if (signed.can_download) {
+          <p class="muted">Versión {{ signed.version }}{{ signed.signatures ? ' · ' + signed.signatures + ' firmas' : '' }}{{ signed.available ? '' : ' · todavía no se guardó la copia en Academical' }}</p>
+          <div class="signed__actions">
+            <p-button [label]="signedLoading() ? 'Trayendo el documento del firmador…' : (signedError() ? 'Reintentar descarga' : 'Descargar firmada')" [loading]="signedLoading()" data-testid="download-signed" (onClick)="downloadSigned()"></p-button>
+            @if (signed.name) { <span class="muted" data-testid="signed-name">{{ signed.name }}{{ signed.size ? ' · ' + formatBytes(signed.size) : '' }}</span> }
+          </div>
+          @if (signedError()) { <p-message severity="error" data-testid="signed-error">{{ signedError() }}</p-message> }
+        } @else {
+          <p-message severity="info" data-testid="signed-no-access">Tu oficina ve el estado de la directiva, pero no sus documentos: el administrador lo tiene configurado así.</p-message>
+        }
+        @if (signed.code) {
+          <div class="signed__key">
+            <span>Clave de verificación <code data-testid="signed-code">{{ signed.code }}</code></span>
+            <p-button [label]="codeCopied() ? 'Copiada' : 'Copiar'" size="small" severity="secondary" [outlined]="true" data-testid="copy-code" (onClick)="copyCode()"></p-button>
+            @if (signed.verify_url) {
+              <a class="signed__verify" [href]="signed.verify_url" target="_blank" rel="noopener noreferrer" data-testid="verify-link">Verificar en el sitio público</a>
+            }
+          </div>
+        }
+        @if (signed.sha256) { <small class="muted hash" data-testid="signed-hash">Huella SHA-256 del documento firmado: {{ signed.sha256 }}</small> }
+      </section>
+    }
+
     @if (current.cancelled; as cancelled) {
       <section class="cancelled" aria-labelledby="cancelled-title" data-testid="cancelled-panel">
         <h3 id="cancelled-title">Anulada{{ cancelled.office ? ' por ' + cancelled.office : '' }}</h3>
@@ -119,7 +145,7 @@
             @for (item of current.versions; track item.version) {
               <div class="file-row" data-testid="version-row">
                 <div class="file-info">
-                  <strong>Versión {{ item.version }}{{ item.current ? ' · vigente' : '' }}</strong>
+                  <strong>Versión {{ item.version }}{{ item.current ? ' · vigente' : '' }} @if (current.status === 'signed') { <p-tag [value]="item.signed ? 'Firmada' : 'Sin documento firmado'" [severity]="item.signed ? 'success' : 'secondary'"></p-tag> }</strong>
                   <span class="muted">{{ item.directive.name }}{{ item.created_at ? ' · ' + (item.created_at | date: 'dd/MM/yyyy') : '' }}</span>
                 </div>
                 <div class="version-actions">
