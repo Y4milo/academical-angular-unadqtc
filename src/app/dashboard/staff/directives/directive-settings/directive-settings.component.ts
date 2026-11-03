@@ -43,11 +43,12 @@ export const NOTICE_RULES: { key: keyof DirectiveSettingsValues; title: string; 
   { key: 'notify_returned', title: 'Directiva devuelta', hint: 'A quien la envió, con el motivo.' },
   { key: 'notify_void', title: 'Firma sin efecto', hint: 'A las oficinas que ya habían firmado la versión devuelta, sin motivo.' },
   { key: 'notify_completed', title: 'Firmaron todas las oficinas', hint: 'A quien envió la directiva.' },
+  { key: 'notify_cancelled', title: 'Directiva anulada', hint: 'A la persona con el turno y a las oficinas que ya firmaron; a quien la envió si otra persona la anuló.' },
 ];
 
 const KEY_LABELS: Record<string, string> = {
   pending_docs: 'Documentos sin turno', signed_versions: 'Versiones de quien firmó', reason_visibility: 'Motivo del rechazo',
-  notify_turn: 'Aviso: le toca firmar', notify_returned: 'Aviso: directiva devuelta', notify_void: 'Aviso: firma sin efecto', notify_completed: 'Aviso: firmaron todas',
+  notify_turn: 'Aviso: le toca firmar', notify_returned: 'Aviso: directiva devuelta', notify_void: 'Aviso: firma sin efecto', notify_completed: 'Aviso: firmaron todas', notify_cancelled: 'Aviso: directiva anulada',
 };
 const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'Solo el estado', own: 'Solo la que firmaron', all: 'Todas las versiones', origin: 'Origen y quien rechazó', route: 'Toda la ruta' };
 

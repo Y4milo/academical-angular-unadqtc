@@ -19,6 +19,12 @@ export const DIRECTIVE_PROGRESS: Record<ProgressState, { label: string; severity
 };
 
 /** Con la directiva devuelta lo que se firmó quedó en la versión anterior y quien no llegó a firmar no tiene turno. */
+/** Con la directiva anulada, quien no llegó a firmar ya no va a firmar. */
+export const DIRECTIVE_PROGRESS_CANCELLED: Partial<Record<ProgressState, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }>> = {
+  waiting: { label: 'No llegó a firmar', severity: 'secondary' },
+  active: { label: 'Ya no firma', severity: 'secondary' },
+};
+
 export const DIRECTIVE_PROGRESS_RETURNED: Partial<Record<ProgressState, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }>> = {
   signed: { label: 'Firmó la versión anterior', severity: 'secondary' },
   waiting: { label: 'Sin turno', severity: 'secondary' },
@@ -52,6 +58,7 @@ export const DIRECTIVE_NOTICE_LABELS: Record<string, string> = {
   returned: 'la directiva fue devuelta',
   void: 'tu firma quedó sin efecto',
   completed: 'firmaron todas las oficinas',
+  cancelled: 'la directiva fue anulada',
 };
 
 /** Por qué no salió un aviso. */

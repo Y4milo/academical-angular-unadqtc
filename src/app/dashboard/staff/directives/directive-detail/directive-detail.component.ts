@@ -2,11 +2,15 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, PrimeTemplate } from 'primeng/api';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { TooltipModule } from 'primeng/tooltip';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
@@ -14,7 +18,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveEvent, DirectiveFileKind, DirectiveProgressStep, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
-import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
+import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
 
 /**
  * Una directiva: su estado, los dos PDF, la ruta de firmas con la persona designada en cada oficina y su línea de tiempo. El borrador se corrige
@@ -22,7 +26,7 @@ import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LAB
  */
 @Component({
   selector: 'app-directive-detail',
-  imports: [DatePipe, PrimeTemplate, ButtonModule, ConfirmDialogModule, MessageModule, SkeletonModule, TagModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent],
+  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, ConfirmDialogModule, DialogModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent],
   providers: [ConfirmationService],
   templateUrl: './directive-detail.component.html',
   styleUrl: './directive-detail.component.css',
@@ -38,6 +42,15 @@ export class DirectiveDetailComponent implements OnInit {
   readonly deleting = signal(false);
   readonly sending = signal(false);
   readonly sendError = signal('');
+
+  readonly cancelOpen = signal(false);
+  readonly cancelReason = signal('');
+  readonly cancelAck = signal(false);
+  readonly cancelSending = signal(false);
+  readonly cancelError = signal('');
+  readonly reasonMax = 500;
+  readonly reasonTooShort = computed(() => this.cancelReason().length > 0 && this.cancelReason().trim().length < 10);
+  readonly canConfirmCancel = computed(() => this.cancelReason().trim().length >= 10 && this.cancelAck() && !this.cancelSending());
 
   readonly statuses = DIRECTIVE_STATUS;
   readonly formatBytes = formatBytes;
@@ -111,6 +124,9 @@ export class DirectiveDetailComponent implements OnInit {
 
   progressOf(step: DirectiveProgressStep) {
     const current = this.directive();
+    const cancelled = current?.status === 'cancelled' ? DIRECTIVE_PROGRESS_CANCELLED[step.state] : undefined;
+    if (cancelled) return cancelled;
+
     const returned = current?.status === 'returned' ? DIRECTIVE_PROGRESS_RETURNED[step.state] : undefined;
     if (!returned) return DIRECTIVE_PROGRESS[step.state];
 
@@ -187,6 +203,43 @@ export class DirectiveDetailComponent implements OnInit {
 
   edit(): void {
     this.router.navigateByUrl(`${PATHS.directives.link}/${this.directive()!.id}/editar`);
+  }
+
+  openCancel(): void {
+    this.cancelError.set('');
+    this.cancelOpen.set(true);
+  }
+
+  closeCancel(): void {
+    if (!this.cancelSending()) this.cancelOpen.set(false);
+  }
+
+  /** Anula la directiva con el motivo: se cancela en el firmador, se avisa a la ruta y ya no se puede reabrir. */
+  cancel(): void {
+    const directive = this.directive();
+    if (!directive || !this.canConfirmCancel()) return;
+
+    this.cancelSending.set(true);
+    this.cancelError.set('');
+    this.service.cancel(directive.id, this.cancelReason().trim()).subscribe({
+      next: response => {
+        this.cancelSending.set(false);
+        if (response.status === STATUS.success) {
+          this.cancelOpen.set(false);
+          this.cancelReason.set('');
+          this.cancelAck.set(false);
+          this.directive.set(response.payload.data);
+          this.notificationService.notifyApiData(response);
+        } else {
+          this.cancelError.set(response.payload?.message || 'No se pudo anular la directiva.');
+        }
+      },
+      error: error => {
+        this.cancelSending.set(false);
+        const firstValidation = error?.error?.errors ? (Object.values(error.error.errors) as string[][])[0]?.[0] : null;
+        this.cancelError.set(error?.error?.payload?.message || firstValidation || 'No se pudo anular la directiva. Inténtalo nuevamente.');
+      },
+    });
   }
 
   resubmit(): void {
