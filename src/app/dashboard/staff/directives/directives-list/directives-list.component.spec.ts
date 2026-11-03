@@ -22,7 +22,8 @@ describe('DirectivesListComponent', () => {
   }
 
   beforeEach(async () => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'list']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'list', 'pending']);
+    service.pending.and.returnValue(of(ok([])));
     service.access.and.returnValue(of(ok(access)));
     service.list.and.returnValue(of(ok([summary(), summary({ id: 8, title: 'Directiva de viáticos', status: 'in_signature', status_label: 'En firma' })])));
     await TestBed.configureTestingModule({
@@ -70,12 +71,38 @@ describe('DirectivesListComponent', () => {
     expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Sube tu primera directiva');
   });
 
-  it('explains that Core does not authorize requesting, and does not ask for the list', async () => {
-    service.access.and.returnValue(of(ok({ ...access, can_request: false, request_units: [], can_sign: true, sign_units: ['oaj'] })));
+  it('explains that Core authorizes neither requesting nor signing, and does not ask for anything else', async () => {
+    service.access.and.returnValue(of(ok({ ...access, can_request: false, request_units: [] })));
     await create();
 
-    expect(html().querySelector('[data-testid="no-request-access"]')?.textContent).toContain('Core no te autoriza a pedir directivas');
+    expect(html().querySelector('[data-testid="no-request-access"]')?.textContent).toContain('Core no te autoriza a pedir ni a firmar directivas');
     expect(service.list).not.toHaveBeenCalled();
+    expect(service.pending).not.toHaveBeenCalled();
+  });
+
+  it('a signer who cannot request goes straight to what is waiting for the signature', async () => {
+    service.access.and.returnValue(of(ok({ ...access, can_request: false, request_units: [], can_sign: true, sign_units: ['oaj'] })));
+    service.pending.and.returnValue(of(ok([{ ...summary({ id: 9, status: 'in_signature', status_label: 'En firma' }), step: { label: 'Asesoría Jurídica', position: 2, total: 4 } }])));
+    const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    await create();
+
+    expect(service.list).not.toHaveBeenCalled();
+    expect(html().querySelectorAll('[data-testid="pending-row"]').length).toBe(1);
+    expect(html().querySelector('[data-testid="pending-row"]')?.textContent).toContain('Paso 2 de 4');
+    (html().querySelector('[data-testid="sign-pending"] button') as HTMLButtonElement).click();
+    expect(navigate).toHaveBeenCalledWith('directivas/9/firmar');
+  });
+
+  it('who also requests can switch between their directives and what waits for their signature, and an empty inbox says so', async () => {
+    service.access.and.returnValue(of(ok({ ...access, can_sign: true, sign_units: ['adm'] })));
+    await create();
+
+    expect(html().querySelector('[data-testid="section-switch"]')).not.toBeNull();
+    expect(rows().length).toBe(2);
+
+    fixture.componentInstance.section.set('pending');
+    fixture.detectChanges();
+    expect(html().querySelector('[data-testid="pending-empty"]')?.textContent).toContain('No tienes firmas pendientes');
   });
 
   it('shows the error with a way to retry', async () => {

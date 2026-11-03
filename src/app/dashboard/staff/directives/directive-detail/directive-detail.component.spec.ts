@@ -174,6 +174,35 @@ describe('DirectiveDetailComponent', () => {
     expect(notifications.error).toHaveBeenCalled();
   });
 
+  it('shows who signed, whose turn it is and who waits, and lets the person whose turn it is go and sign', async () => {
+    service.detail.and.returnValue(of(ok(detail({
+      status: 'in_signature', status_label: 'En firma', can_edit: false, can_sign: true, active_office: 'Asesoría Jurídica',
+      progress: [
+        { key: 'origin', label: 'Oficina de Administración', person: 'Ana Torres', title: 'Jefa', state: 'signed' },
+        { key: 'quality', label: 'Gestión de la Calidad', person: null, title: null, state: 'skipped' },
+        { key: 'legal', label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: 'Jefe encargado', state: 'active' },
+        { key: 'presidency', label: 'Presidencia', person: 'Rosa Quispe', title: 'Presidenta', state: 'waiting' },
+      ],
+    }))));
+    await create();
+    const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+
+    const steps = Array.from(html().querySelectorAll('[data-testid="progress-step"]')).map(step => step.textContent ?? '');
+    expect(steps.length).toBe(4);
+    expect(steps[0]).toContain('Firmó');
+    expect(steps[2]).toContain('Le toca');
+    expect(steps[3]).toContain('Espera su turno');
+    (html().querySelector('[data-testid="sign-directive"] button') as HTMLButtonElement).click();
+    expect(navigate).toHaveBeenCalledWith('directivas/7/firmar');
+  });
+
+  it('offers no signing to someone whose turn it is not', async () => {
+    service.detail.and.returnValue(of(ok(detail({ status: 'in_signature', status_label: 'En firma', can_edit: false, can_sign: false }))));
+    await create();
+
+    expect(html().querySelector('[data-testid="sign-directive"]')).toBeNull();
+  });
+
   it('says so when the directive is not found or not of the office', async () => {
     service.detail.and.returnValue(throwError(() => ({ status: 404 })));
     await create();

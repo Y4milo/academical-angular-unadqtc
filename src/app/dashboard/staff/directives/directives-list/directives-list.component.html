@@ -4,7 +4,7 @@
       <h2>Directivas</h2>
       <p>Cada directiva pasa por la firma de las oficinas que Core tiene designadas, en orden.</p>
     </div>
-    @if (canRequest() && directives().length > 0) {
+    @if (canRequest() && section() === 'mine' && directives().length > 0) {
       <p-button label="Nueva directiva" icon="pi pi-plus" data-testid="new-directive" (onClick)="create()"></p-button>
     }
   </div>
@@ -12,11 +12,58 @@
   @if (loadError()) {
     <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
     <div><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button></div>
-  } @else if (!loading() && !canRequest()) {
-    <p-message severity="info" data-testid="no-request-access">
-      Core no te autoriza a pedir directivas. Si firmas por tu oficina, tus firmas pendientes aparecerán aquí cuando se conecte el firmador.
-    </p-message>
+  } @else if (!loading() && !canRequest() && !canSign()) {
+    <p-message severity="info" data-testid="no-request-access">Core no te autoriza a pedir ni a firmar directivas.</p-message>
   } @else {
+    @if (canRequest() && canSign()) {
+      <div class="filters" role="group" aria-label="Qué directivas ver">
+        <p-selectbutton [options]="sectionOptions()" optionLabel="label" optionValue="value" [ngModel]="section()" (ngModelChange)="section.set($event ?? 'mine')" [allowEmpty]="false" size="small" data-testid="section-switch"></p-selectbutton>
+      </div>
+    }
+
+    @if (section() === 'pending' && canSign()) {
+      <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="pending()" [tableStyle]="{ 'min-width': '44rem' }">
+        <ng-template #header>
+          <tr>
+            <th>Directiva</th>
+            <th>Oficina de origen</th>
+            <th>Tu turno</th>
+            <th>Actualizada</th>
+            <th class="actions-col"><span class="sr-only">Firmar</span></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-directive>
+          <tr data-testid="pending-row">
+            <td>
+              <div class="cell-stack">
+                <strong>{{ directive.title }}</strong>
+                <span class="muted">Versión {{ directive.version }}{{ directive.is_quality ? ' · Proceso de calidad' : '' }}</span>
+              </div>
+            </td>
+            <td>{{ directive.origin.name }}</td>
+            <td>
+              <div class="cell-stack">
+                <strong>{{ directive.step.label }}</strong>
+                <span class="muted">Paso {{ directive.step.position }} de {{ directive.step.total }}</span>
+              </div>
+            </td>
+            <td>{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions-col"><p-button label="Firmar" size="small" data-testid="sign-pending" (onClick)="sign(directive)"></p-button></td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="5">
+              <div class="empty" data-testid="pending-empty">
+                <i class="pi pi-check-circle empty__icon" aria-hidden="true"></i>
+                <h3>No tienes firmas pendientes</h3>
+                <p>Cuando una directiva llegue a tu oficina, aparecerá aquí.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else {
     <div class="filters" role="group" aria-label="Filtrar por estado">
       <p-selectbutton [options]="filterOptions" optionLabel="label" optionValue="value" [ngModel]="filter()" (ngModelChange)="filter.set($event ?? 'all')" [allowEmpty]="false" size="small" ariaLabelledBy="directives-filter"></p-selectbutton>
     </div>
@@ -75,5 +122,6 @@
         </tr>
       </ng-template>
     </p-table>
+    }
   }
 </div>

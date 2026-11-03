@@ -45,10 +45,44 @@ export interface DirectiveEvent {
   data: Record<string, unknown>;
 }
 
+/** Cómo va una oficina de la ruta que ya se envió: firmó, le toca ahora, espera su turno o no firma. */
+export type ProgressState = 'signed' | 'active' | 'waiting' | 'skipped';
+
+export interface DirectiveProgressStep {
+  key: string;
+  label: string;
+  person: string | null;
+  title: string | null;
+  state: ProgressState;
+}
+
 export interface DirectiveDetail extends DirectiveSummary {
   sha256: { directive: string; resolution: string } | null;
   events: DirectiveEvent[];
+  /** La ruta enviada con el estado de cada oficina; vacía mientras es borrador. */
+  progress: DirectiveProgressStep[];
+  /** ¿Le toca firmar ahora a quien consulta? */
+  can_sign: boolean;
+  active_office: string | null;
 }
+
+/** Una directiva que espera la firma de la persona, con el lugar que ocupa su oficina en la ruta. */
+export interface PendingDirective extends DirectiveSummary {
+  step: { label: string; position: number; total: number };
+}
+
+/** Lo que la página necesita para llamar al firmador local de Firma Perú; el servidor abre la sesión en el firmador. */
+export interface SigningSession {
+  session_id: string;
+  expires_at: string | null;
+  stamp_reason: string | null;
+  office: string;
+  document: string;
+  firmaperu: { script_url: string; port: number; param: string };
+}
+
+/** Cómo terminó la sesión, visto desde la página: el firmador no lo puede ver por sí mismo, así que se le avisa. */
+export type SessionEventType = 'started' | 'ok_reported' | 'cancelled' | 'timeout' | 'error';
 
 /** La persona que Core tiene designada hoy en una oficina, con el cargo ya escrito y su resolución. */
 export interface RouteHolder {
@@ -111,6 +145,21 @@ export class DirectivesService {
   /** Envía el borrador al firmador con la ruta que Core tiene hoy; el servidor explica qué falta si no se puede. */
   send(id: number): Observable<ApiData<DirectiveDetail>> {
     return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}/send`, {});
+  }
+
+  /** Lo que le toca firmar hoy a la persona; viene de la ruta que se envió, no del rol. */
+  pending(): Observable<ApiData<PendingDirective[]>> {
+    return this.http.get<ApiData<PendingDirective[]>>(`${this.apiURL}/directives/signing/pending`);
+  }
+
+  /** Abre la sesión de firma en el firmador (desde el servidor) y devuelve lo que Firma Perú necesita. */
+  openSigningSession(id: number): Observable<ApiData<SigningSession>> {
+    return this.http.post<ApiData<SigningSession>>(`${this.apiURL}/directives/${id}/signing-sessions`, {});
+  }
+
+  /** Avisa cómo terminó la sesión; cancelar, tiempo agotado y error son obligatorios. `seq` crece en cada aviso de la sesión. */
+  reportSigningEvent(id: number, sessionId: string, seq: number, type: SessionEventType, detail?: string): Observable<ApiData<unknown>> {
+    return this.http.post<ApiData<unknown>>(`${this.apiURL}/directives/${id}/signing-sessions/${encodeURIComponent(sessionId)}/events`, { seq, type, ...(detail ? { detail } : {}) });
   }
 
   remove(id: number): Observable<ApiData<unknown>> {

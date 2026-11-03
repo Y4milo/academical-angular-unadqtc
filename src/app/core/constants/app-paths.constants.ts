@@ -200,6 +200,7 @@ export const PATHS = {
     },
     detailPath: `directivas/:id`,
     editPath: `directivas/:id/editar`,
+    signPath: `directivas/:id/firmar`,
   },
   dbu: {
     path: `dbu`,
