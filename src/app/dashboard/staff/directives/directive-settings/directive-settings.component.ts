@@ -7,6 +7,7 @@ import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TimelineModule } from 'primeng/timeline';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveSettings, DirectiveSettingsValues, DirectivesService } from '../../../../services/directives.service';
@@ -36,7 +37,18 @@ export const SETTING_RULES: { key: keyof DirectiveSettingsValues; title: string;
   },
 ];
 
-const KEY_LABELS: Record<string, string> = { pending_docs: 'Documentos sin turno', signed_versions: 'Versiones de quien firmó', reason_visibility: 'Motivo del rechazo' };
+/** Los avisos por correo que el administrador puede apagar; todos vienen encendidos. */
+export const NOTICE_RULES: { key: keyof DirectiveSettingsValues; title: string; hint: string }[] = [
+  { key: 'notify_turn', title: 'Le toca firmar', hint: 'A la persona designada de la oficina a la que llega el turno.' },
+  { key: 'notify_returned', title: 'Directiva devuelta', hint: 'A quien la envió, con el motivo.' },
+  { key: 'notify_void', title: 'Firma sin efecto', hint: 'A las oficinas que ya habían firmado la versión devuelta, sin motivo.' },
+  { key: 'notify_completed', title: 'Firmaron todas las oficinas', hint: 'A quien envió la directiva.' },
+];
+
+const KEY_LABELS: Record<string, string> = {
+  pending_docs: 'Documentos sin turno', signed_versions: 'Versiones de quien firmó', reason_visibility: 'Motivo del rechazo',
+  notify_turn: 'Aviso: le toca firmar', notify_returned: 'Aviso: directiva devuelta', notify_void: 'Aviso: firma sin efecto', notify_completed: 'Aviso: firmaron todas',
+};
 const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'Solo el estado', own: 'Solo la que firmaron', all: 'Todas las versiones', origin: 'Origen y quien rechazó', route: 'Toda la ruta' };
 
 /**
@@ -46,12 +58,13 @@ const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'S
  */
 @Component({
   selector: 'app-directive-settings',
-  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TimelineModule],
+  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TimelineModule, ToggleSwitchModule],
   templateUrl: './directive-settings.component.html',
   styleUrl: './directive-settings.component.css',
 })
 export class DirectiveSettingsComponent implements OnInit {
   readonly rules = SETTING_RULES;
+  readonly notices = NOTICE_RULES;
   readonly saved = signal<DirectiveSettings | null>(null);
   readonly values = signal<DirectiveSettingsValues | null>(null);
   readonly loading = signal(true);
@@ -63,7 +76,7 @@ export class DirectiveSettingsComponent implements OnInit {
     const saved = this.saved()?.values;
     const current = this.values();
 
-    return !!saved && !!current && SETTING_RULES.some(rule => saved[rule.key] !== current[rule.key]);
+    return !!saved && !!current && [...SETTING_RULES, ...NOTICE_RULES].some(rule => saved[rule.key] !== current[rule.key]);
   });
   readonly preview = computed(() => {
     const current = this.values();
@@ -109,6 +122,10 @@ export class DirectiveSettingsComponent implements OnInit {
     this.values.set({ ...settings.values });
   }
 
+  toggleNotice(key: keyof DirectiveSettingsValues, on: boolean): void {
+    this.choose(key, on ? 'yes' : 'no');
+  }
+
   choose(key: keyof DirectiveSettingsValues, value: string | null): void {
     if (value === null) return;
     this.values.update(current => (current ? ({ ...current, [key]: value } as DirectiveSettingsValues) : current));
@@ -146,7 +163,10 @@ export class DirectiveSettingsComponent implements OnInit {
     return KEY_LABELS[key] ?? key;
   }
 
-  valueLabel(value: string | null): string {
-    return value === null ? '—' : (VALUE_LABELS[value] ?? value);
+  valueLabel(value: string | null, key?: string): string {
+    if (value === null) return '—';
+    if (key?.startsWith('notify_')) return value === 'yes' ? 'Encendido' : 'Apagado';
+
+    return VALUE_LABELS[value] ?? value;
   }
 }

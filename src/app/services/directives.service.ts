@@ -98,6 +98,10 @@ export interface DirectiveSettingsValues {
   pending_docs: 'yes' | 'no';
   signed_versions: 'own' | 'all';
   reason_visibility: 'origin' | 'route';
+  notify_turn: 'yes' | 'no';
+  notify_returned: 'yes' | 'no';
+  notify_void: 'yes' | 'no';
+  notify_completed: 'yes' | 'no';
 }
 
 export interface DirectiveSettingsChange {

@@ -10,6 +10,9 @@
 .panel { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
 .panel h3 { margin: 0; font-size: var(--text-card-title); }
 .hint { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
+.switch-row { display: flex; align-items: flex-start; gap: var(--space-3); }
+.switch-row > div { display: grid; gap: var(--space-1); }
+.switch-row label { font-weight: 600; cursor: pointer; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .history-item { display: grid; gap: var(--space-1); padding-bottom: var(--space-3); }
 .history-marker { display: block; width: .75rem; height: .75rem; border-radius: 50%; border: 2px solid var(--p-primary-color); background: var(--p-content-background); }

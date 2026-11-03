@@ -32,6 +32,8 @@ export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
   signed: 'Firmó',
   rejected: 'Devolvió la directiva con observaciones',
   resubmitted: 'Corrigió y reenvió la directiva a firma',
+  notice_sent: 'Aviso enviado',
+  notice_failed: 'No se pudo avisar',
   cancelled: 'Se anuló la directiva',
   expired: 'La directiva venció sin completar las firmas',
   step_activated: 'Le tocó firmar',
@@ -42,6 +44,20 @@ export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
   session_cancelled: 'Cerró la firma sin terminar',
   session_timeout: 'Se agotó el tiempo de la firma',
   session_error: 'Hubo un error al firmar',
+};
+
+/** Qué dice cada aviso por correo, con el nombre que se le da en la línea de tiempo. */
+export const DIRECTIVE_NOTICE_LABELS: Record<string, string> = {
+  turn: 'te toca firmar',
+  returned: 'la directiva fue devuelta',
+  void: 'tu firma quedó sin efecto',
+  completed: 'firmaron todas las oficinas',
+};
+
+/** Por qué no salió un aviso. */
+export const DIRECTIVE_NOTICE_FAILURES: Record<string, string> = {
+  no_email: 'la persona no tiene correo institucional en Core',
+  mail_error: 'el servidor de correo no respondió',
 };
 
 export function formatBytes(size: number): string {

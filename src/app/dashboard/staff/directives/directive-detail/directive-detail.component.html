@@ -147,7 +147,7 @@
             <div class="event" data-testid="directive-event">
               <strong>{{ eventLabel(event) }}</strong>
               @if (eventDetail(event); as detail) { <span data-testid="event-detail">{{ detail }}</span> }
-              <span class="muted">{{ event.by?.nick || 'Firmador' }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span class="muted">{{ eventAuthor(event) }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
             </div>
           </ng-template>
         </p-timeline>

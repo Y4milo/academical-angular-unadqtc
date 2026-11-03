@@ -29,6 +29,20 @@
             </section>
           }
 
+          <section class="panel" aria-labelledby="notices-title" data-testid="notices-panel">
+            <h3 id="notices-title">Avisos por correo</h3>
+            <p class="hint">Al buzón institucional de la persona. Fuera de producción todo llega al buzón de prueba.</p>
+            @for (notice of notices; track notice.key) {
+              <div class="switch-row" [attr.data-testid]="'notice-' + notice.key">
+                <p-toggleswitch [inputId]="'switch-' + notice.key" [ngModel]="current[notice.key] === 'yes'" (ngModelChange)="toggleNotice(notice.key, $event)"></p-toggleswitch>
+                <div>
+                  <label [for]="'switch-' + notice.key">{{ notice.title }}</label>
+                  <span class="hint">{{ notice.hint }}</span>
+                </div>
+              </div>
+            }
+          </section>
+
           @if (saveError()) { <p-message severity="error" data-testid="save-error">{{ saveError() }}</p-message> }
           <div class="actions">
             <p-button label="Guardar cambios" [disabled]="!dirty()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
@@ -56,7 +70,7 @@
                 <ng-template pTemplate="content" let-change>
                   <div class="history-item" data-testid="history-row">
                     <strong>{{ keyLabel(change.key) }}</strong>
-                    <span>{{ valueLabel(change.old) }} → {{ valueLabel(change.new) }}</span>
+                    <span>{{ valueLabel(change.old, change.key) }} → {{ valueLabel(change.new, change.key) }}</span>
                     <span class="hint">{{ change.by || 'Sistema' }} · {{ change.at | date: 'dd/MM/yyyy HH:mm' }}</span>
                   </div>
                 </ng-template>
