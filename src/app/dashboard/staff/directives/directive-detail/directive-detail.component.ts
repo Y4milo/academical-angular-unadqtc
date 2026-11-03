@@ -36,15 +36,19 @@ export class DirectiveDetailComponent implements OnInit {
   readonly routeError = signal('');
   readonly opening = signal<DirectiveFileKind | null>(null);
   readonly deleting = signal(false);
+  readonly sending = signal(false);
+  readonly sendError = signal('');
 
   readonly statuses = DIRECTIVE_STATUS;
   readonly formatBytes = formatBytes;
   readonly isDraft = computed(() => this.directive()?.status === 'draft');
+  readonly canSend = computed(() => this.isDraft() && this.route()?.can_send === true);
   readonly sendBlockedReason = computed(() => {
-    if (!this.isDraft()) return '';
+    if (!this.isDraft() || this.canSend()) return '';
+    if (this.routeLoading()) return 'Consultando a Core quién firma en cada oficina.';
     if (this.route() && !this.route()!.can_send) return 'Core no tiene a alguien designado en toda la ruta.';
 
-    return 'Se habilita cuando se conecte el firmador.';
+    return 'No se pudo comprobar la ruta de firmas.';
   });
 
   constructor(
@@ -109,6 +113,13 @@ export class DirectiveDetailComponent implements OnInit {
     return DIRECTIVE_EVENT_LABELS[event.type] ?? event.type;
   }
 
+  /** Lo que el hecho cuenta además: la oficina, la persona y, si la devolvió, su motivo. */
+  eventDetail(event: DirectiveEvent): string {
+    const data = event.data as { office?: string; person?: string; reason?: string };
+
+    return [data.office, data.person, data.reason].filter(Boolean).join(' · ');
+  }
+
   openFile(kind: DirectiveFileKind): void {
     const directive = this.directive();
     if (!directive || this.opening()) return;
@@ -141,6 +152,38 @@ export class DirectiveDetailComponent implements OnInit {
 
   back(): void {
     this.router.navigateByUrl(PATHS.directives.link);
+  }
+
+  askSend(): void {
+    this.confirmation.confirm({
+      header: 'Enviar a firma',
+      message: `Se enviará la directiva con su resolución a ${this.route()?.steps.filter(step => !step.skipped).length ?? 0} oficinas, en orden. Después de enviarla ya no se puede corregir.`,
+      acceptLabel: 'Enviar a firma',
+      rejectLabel: 'Cancelar',
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this.send(),
+    });
+  }
+
+  private send(): void {
+    this.sending.set(true);
+    this.sendError.set('');
+    this.service.send(this.directive()!.id).subscribe({
+      next: response => {
+        this.sending.set(false);
+        if (response.status === STATUS.success) {
+          this.notificationService.notifyApiData(response);
+          this.directive.set(response.payload.data);
+          this.route.set(null);
+        } else {
+          this.sendError.set(response.payload?.message || 'No se pudo enviar la directiva.');
+        }
+      },
+      error: error => {
+        this.sending.set(false);
+        this.sendError.set(error?.error?.payload?.message || 'No se pudo enviar la directiva. Inténtalo nuevamente.');
+      },
+    });
   }
 
   askDelete(): void {

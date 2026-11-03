@@ -28,11 +28,15 @@
         }
         @if (isDraft()) {
           <span [pTooltip]="sendBlockedReason()" tooltipPosition="top">
-            <p-button label="Enviar a firma" [disabled]="true" data-testid="send-directive"></p-button>
+            <p-button label="Enviar a firma" [disabled]="!canSend()" [loading]="sending()" data-testid="send-directive" (onClick)="askSend()"></p-button>
           </span>
         }
       </div>
     </div>
+
+    @if (sendError()) {
+      <p-message severity="error" data-testid="send-error">{{ sendError() }}</p-message>
+    }
 
     <div class="layout">
       <div class="column">
@@ -76,7 +80,8 @@
           <ng-template pTemplate="content" let-event>
             <div class="event" data-testid="directive-event">
               <strong>{{ eventLabel(event) }}</strong>
-              <span class="muted">{{ event.by?.nick || 'Sistema' }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+              @if (eventDetail(event); as detail) { <span data-testid="event-detail">{{ detail }}</span> }
+              <span class="muted">{{ event.by?.nick || 'Firmador' }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
             </div>
           </ng-template>
         </p-timeline>

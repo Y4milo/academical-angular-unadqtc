@@ -51,6 +51,14 @@ describe('DirectivesService', () => {
     expect(http.expectOne(`${api}/directives/7`).request.method).toBe('DELETE');
   });
 
+  it('sends a draft to signature with a POST on its own address', () => {
+    service.send(7).subscribe();
+    const request = http.expectOne(`${api}/directives/7/send`);
+
+    expect(request.request.method).toBe('POST');
+    request.flush({});
+  });
+
   it('asks the route with the office and the quality flag as 1 or 0', () => {
     service.route('adm', true).subscribe();
     const yes = http.expectOne(request => request.url === `${api}/directives/route`);
