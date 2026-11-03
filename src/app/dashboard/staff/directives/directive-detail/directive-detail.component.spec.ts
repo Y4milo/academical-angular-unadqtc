@@ -34,7 +34,7 @@ describe('DirectiveDetailComponent', () => {
   }
 
   beforeEach(() => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'route', 'file', 'remove', 'send']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'route', 'file', 'remove', 'send', 'cancel']);
     notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['notifyApiData', 'error']);
     service.detail.and.returnValue(of(ok(detail())));
     service.route.and.returnValue(of(ok(route())));
@@ -330,6 +330,115 @@ describe('DirectiveDetailComponent', () => {
 
       expect(text('directive-event')).toContain('el servidor de correo no respondió');
       expect(text('event-detail')).not.toContain('Por firmar');
+    });
+  });
+
+  describe('cancelling', () => {
+    const REASON = 'La directiva se reemplaza por la Directiva 012-2026; esta ya no debe circular.';
+    const inSignature = (overrides = {}) =>
+      detail({
+        status: 'in_signature', status_label: 'En firma', can_edit: false, can_cancel: true,
+        progress: [
+          { key: 'origin', label: 'Oficina de Administración', person: 'Ana Torres', title: 'Jefa', state: 'signed' as const },
+          { key: 'legal', label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: 'Jefe', state: 'active' as const },
+          { key: 'president', label: 'Presidencia', person: 'Rosa Quispe', title: 'Presidenta', state: 'waiting' as const },
+        ], ...overrides,
+      });
+
+    it('offers to cancel only when the server allows it', async () => {
+      service.detail.and.returnValue(of(ok(inSignature({ can_cancel: false }))));
+      await create();
+      expect(html().querySelector('[data-testid="cancel-directive"]')).toBeNull();
+
+      service.detail.and.returnValue(of(ok(inSignature())));
+      fixture.componentInstance.load();
+      fixture.detectChanges();
+      expect(html().querySelector('[data-testid="cancel-directive"]')).not.toBeNull();
+    });
+
+    it('needs a reason of at least 10 characters and the acknowledgment', async () => {
+      service.detail.and.returnValue(of(ok(inSignature())));
+      await create();
+      const component = fixture.componentInstance;
+      component.openCancel();
+
+      expect(component.canConfirmCancel()).toBeFalse();
+      component.cancelReason.set('corto');
+      component.cancelAck.set(true);
+      expect(component.reasonTooShort()).toBeTrue();
+      expect(component.canConfirmCancel()).toBeFalse();
+      component.cancelReason.set(REASON);
+      expect(component.canConfirmCancel()).toBeTrue();
+      component.cancelAck.set(false);
+      expect(component.canConfirmCancel()).toBeFalse();
+    });
+
+    it('sends the reason, closes the dialog and shows the directive as cancelled with the reason', async () => {
+      service.detail.and.returnValue(of(ok(inSignature())));
+      service.cancel.and.returnValue(of(ok(detail({
+        status: 'cancelled', status_label: 'Anulada', can_edit: false, can_cancel: false,
+        cancelled: { version: 1, office: 'Oficina de Administración', at: '2026-11-14T10:20:00Z', person: 'ana', reason: REASON },
+        progress: [
+          { key: 'origin', label: 'Oficina de Administración', person: 'Ana Torres', title: 'Jefa', state: 'signed' as const },
+          { key: 'legal', label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: 'Jefe', state: 'waiting' as const },
+        ],
+      }))));
+      await create();
+      const component = fixture.componentInstance;
+      component.openCancel();
+      component.cancelReason.set(`  ${REASON}  `);
+      component.cancelAck.set(true);
+
+      component.cancel();
+      fixture.detectChanges();
+
+      expect(service.cancel).toHaveBeenCalledOnceWith(7, REASON);
+      expect(component.cancelOpen()).toBeFalse();
+      expect(notifications.notifyApiData).toHaveBeenCalled();
+      expect(text('cancelled-panel')).toContain('Anulada por Oficina de Administración');
+      expect(text('cancelled-reason')).toContain(REASON);
+      expect(html().querySelector('[data-testid="cancel-directive"]')).toBeNull();
+      expect(Array.from(html().querySelectorAll('[data-testid="progress-step"]'))[1].textContent).toContain('No llegó a firmar');
+    });
+
+    it('keeps the dialog and shows what the server said when the signer does not let it', async () => {
+      service.detail.and.returnValue(of(ok(inSignature())));
+      service.cancel.and.returnValue(throwError(() => ({ status: 409, error: { payload: { message: 'En el firmador esta directiva ya no se puede cancelar.' } } })));
+      await create();
+      const component = fixture.componentInstance;
+      component.openCancel();
+      component.cancelReason.set(REASON);
+      component.cancelAck.set(true);
+
+      component.cancel();
+
+      expect(component.cancelOpen()).toBeTrue();
+      expect(component.cancelError()).toContain('ya no se puede cancelar');
+      expect(component.cancelSending()).toBeFalse();
+      expect(component.directive()?.status).toBe('in_signature');
+    });
+
+    it('tells a route office who cancelled without the reason', async () => {
+      service.detail.and.returnValue(of(ok(detail({
+        status: 'cancelled', status_label: 'Anulada', can_edit: false, viewer: 'signed',
+        cancelled: { version: 1, office: 'Oficina de Administración', at: '2026-11-14T10:20:00Z', person: null, reason: null },
+      }))));
+      await create();
+
+      expect(text('cancelled-panel')).toContain('Anulada por Oficina de Administración');
+      expect(text('cancelled-no-reason')).toContain('El motivo lo ve la oficina de origen');
+      expect(html().querySelector('[data-testid="cancelled-reason"]')).toBeNull();
+    });
+
+    it('shows the cancel notice in the timeline', async () => {
+      service.detail.and.returnValue(of(ok(detail({
+        status: 'cancelled', status_label: 'Anulada', can_edit: false,
+        events: [{ type: 'notice_sent', version: 1, at: '2026-11-14T10:20:00Z', by: null, data: { notice: 'cancelled', office: 'Asesoría Jurídica', person: 'Carlos Paucar V.' } }],
+      }))));
+      await create();
+
+      expect(text('directive-event')).toContain('Aviso enviado: la directiva fue anulada');
+      expect(text('event-detail')).toBe('Para Carlos Paucar V. · Asesoría Jurídica');
     });
   });
 });

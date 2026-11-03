@@ -28,6 +28,9 @@
         @if (current.can_resubmit) {
           <p-button label="Corregir y reenviar" data-testid="resubmit-directive" (onClick)="resubmit()"></p-button>
         }
+        @if (current.can_cancel) {
+          <p-button label="Anular directiva" severity="danger" [outlined]="true" data-testid="cancel-directive" (onClick)="openCancel()"></p-button>
+        }
         @if (current.can_edit) {
           <p-button label="Corregir" severity="secondary" [outlined]="true" data-testid="edit-directive" (onClick)="edit()"></p-button>
           <p-button label="Eliminar borrador" severity="danger" [outlined]="true" [loading]="deleting()" data-testid="delete-directive" (onClick)="askDelete()"></p-button>
@@ -46,6 +49,21 @@
 
     @if (viewerNote()) {
       <p-message severity="info" data-testid="viewer-note">{{ viewerNote() }}</p-message>
+    }
+
+    @if (current.cancelled; as cancelled) {
+      <section class="cancelled" aria-labelledby="cancelled-title" data-testid="cancelled-panel">
+        <h3 id="cancelled-title">Anulada{{ cancelled.office ? ' por ' + cancelled.office : '' }}</h3>
+        @if (cancelled.reason) {
+          <blockquote class="returned__reason" data-testid="cancelled-reason">
+            {{ cancelled.reason }}
+            <footer class="muted">{{ cancelled.person ? cancelled.person + ' · ' : '' }}{{ cancelled.at | date: 'dd/MM/yyyy HH:mm' }}</footer>
+          </blockquote>
+        } @else {
+          <p class="muted" data-testid="cancelled-no-reason">El motivo lo ve la oficina de origen.</p>
+        }
+        <p class="muted">Las firmas ya hechas quedan archivadas con sus documentos. La directiva ya no espera firmas y no se puede reabrir.</p>
+      </section>
     }
 
     @if (current.returned; as returned) {
@@ -155,6 +173,31 @@
     </div>
 
     <p-confirmdialog></p-confirmdialog>
+
+    <p-dialog header="Anular directiva" [visible]="cancelOpen()" (visibleChange)="!$event && closeCancel()" [modal]="true" [draggable]="false" [closable]="!cancelSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="cancel-dialog">
+      <div class="cancel-form">
+        <p-message severity="warn" size="small">
+          <span>Se cancela la solicitud en el firmador. <strong>No se puede reabrir ni reenviar.</strong> Las firmas ya hechas quedan archivadas y se avisa a las oficinas de la ruta.</span>
+        </p-message>
+        <div class="field">
+          <label for="cancel-reason">Motivo de la anulación *</label>
+          <textarea pTextarea id="cancel-reason" rows="5" [maxlength]="reasonMax" [fluid]="true" [ngModel]="cancelReason()" (ngModelChange)="cancelReason.set($event)" [attr.aria-invalid]="reasonTooShort()" placeholder="Explica por qué se anula. Queda en el seguimiento." data-testid="cancel-reason"></textarea>
+          <div class="cancel-counter">
+            @if (reasonTooShort()) { <span class="field-error" role="alert" data-testid="cancel-reason-error">Escribe al menos 10 caracteres.</span> } @else { <span>Mínimo 10 caracteres</span> }
+            <span data-testid="cancel-count">{{ cancelReason().length }} / {{ reasonMax }}</span>
+          </div>
+        </div>
+        <div class="cancel-ack">
+          <p-checkbox inputId="cancel-ack" [binary]="true" [ngModel]="cancelAck()" (ngModelChange)="cancelAck.set($event)" data-testid="cancel-ack"></p-checkbox>
+          <label for="cancel-ack">Entiendo que la anulación no se puede deshacer.</label>
+        </div>
+        @if (cancelError()) { <p-message severity="error" data-testid="cancel-error">{{ cancelError() }}</p-message> }
+      </div>
+      <ng-template #footer>
+        <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="cancelSending()" (onClick)="closeCancel()"></p-button>
+        <p-button label="Anular directiva" severity="danger" [loading]="cancelSending()" [disabled]="!canConfirmCancel()" data-testid="cancel-confirm" (onClick)="cancel()"></p-button>
+      </ng-template>
+    </p-dialog>
    }
   }
 </div>

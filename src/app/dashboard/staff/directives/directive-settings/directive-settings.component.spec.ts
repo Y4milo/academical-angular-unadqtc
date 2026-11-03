@@ -11,7 +11,7 @@ describe('DirectiveSettingsComponent', () => {
   let service: jasmine.SpyObj<DirectivesService>;
   let notifications: jasmine.SpyObj<NotificationService>;
 
-  const defaults = { pending_docs: 'yes', signed_versions: 'own', reason_visibility: 'origin', notify_turn: 'yes', notify_returned: 'yes', notify_void: 'yes', notify_completed: 'yes' } as const;
+  const defaults = { pending_docs: 'yes', signed_versions: 'own', reason_visibility: 'origin', notify_turn: 'yes', notify_returned: 'yes', notify_void: 'yes', notify_completed: 'yes', notify_cancelled: 'yes' } as const;
   const settings = (overrides: Partial<DirectiveSettings> = {}): DirectiveSettings => ({ values: { ...defaults }, defaults: { ...defaults }, history: [], ...overrides });
   const html = () => fixture.nativeElement as HTMLElement;
   const text = (testId: string) => html().querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
@@ -88,10 +88,11 @@ describe('DirectiveSettingsComponent', () => {
     expect(text('history-row')).toContain('admin');
   });
 
-  it('shows the four kinds of notice, all on, and a change in one is a change to save', async () => {
+  it('shows the five kinds of notice, all on, and a change in one is a change to save', async () => {
     await create();
 
-    expect(html().querySelectorAll('[data-testid^="notice-"]').length).toBe(4);
+    expect(html().querySelectorAll('[data-testid^="notice-"]').length).toBe(5);
+    expect(text('notice-notify_cancelled')).toContain('Directiva anulada');
     expect(text('notice-notify_void')).toContain('Firma sin efecto');
     expect(fixture.componentInstance.dirty()).toBeFalse();
 

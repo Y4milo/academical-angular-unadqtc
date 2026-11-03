@@ -77,6 +77,15 @@ export interface DirectiveReturn {
   reason: string | null;
 }
 
+/** Quién anuló la directiva y cuándo; la persona y el motivo solo los ve quien tiene permiso. */
+export interface DirectiveCancelled {
+  version: number;
+  office: string | null;
+  at: string | null;
+  person: string | null;
+  reason: string | null;
+}
+
 export interface DirectiveDetail extends DirectiveSummary {
   sha256: { directive: string; resolution: string } | null;
   files_visible: boolean;
@@ -85,6 +94,8 @@ export interface DirectiveDetail extends DirectiveSummary {
   viewer: DirectiveViewer;
   can_reject: boolean;
   can_resubmit: boolean;
+  can_cancel: boolean;
+  cancelled: DirectiveCancelled | null;
   events: DirectiveEvent[];
   /** La ruta enviada con el estado de cada oficina; vacía mientras es borrador. */
   progress: DirectiveProgressStep[];
@@ -102,6 +113,7 @@ export interface DirectiveSettingsValues {
   notify_returned: 'yes' | 'no';
   notify_void: 'yes' | 'no';
   notify_completed: 'yes' | 'no';
+  notify_cancelled: 'yes' | 'no';
 }
 
 export interface DirectiveSettingsChange {
@@ -207,6 +219,11 @@ export class DirectivesService {
   /** Quien tiene el turno rechaza la directiva con su motivo: vuelve a la oficina de origen. */
   reject(id: number, reason: string): Observable<ApiData<DirectiveDetail>> {
     return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}/reject`, { reason });
+  }
+
+  /** La oficina de origen anula una directiva en firma o devuelta, con el motivo: se cancela en el firmador y se avisa a la ruta. */
+  cancel(id: number, reason: string): Observable<ApiData<DirectiveDetail>> {
+    return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}/cancel`, { reason });
   }
 
   /** La oficina de origen reenvía una directiva devuelta con la directiva corregida; la resolución se conserva si no se sube otra. */
