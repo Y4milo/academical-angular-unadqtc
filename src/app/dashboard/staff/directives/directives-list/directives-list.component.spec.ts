@@ -22,8 +22,9 @@ describe('DirectivesListComponent', () => {
   }
 
   beforeEach(async () => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'list', 'pending']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'list', 'pending', 'participating']);
     service.pending.and.returnValue(of(ok([])));
+    service.participating.and.returnValue(of(ok([])));
     service.access.and.returnValue(of(ok(access)));
     service.list.and.returnValue(of(ok([summary(), summary({ id: 8, title: 'Directiva de viáticos', status: 'in_signature', status_label: 'En firma' })])));
     await TestBed.configureTestingModule({
@@ -103,6 +104,24 @@ describe('DirectivesListComponent', () => {
     fixture.componentInstance.section.set('pending');
     fixture.detectChanges();
     expect(html().querySelector('[data-testid="pending-empty"]')?.textContent).toContain('No tienes firmas pendientes');
+  });
+
+  it('offers the directives of the route as a consultation section only when the person is in one', async () => {
+    await create();
+    expect(html().querySelector('[data-testid="section-switch"]')).toBeNull();
+
+    service.participating.and.returnValue(of(ok([summary({ id: 12, title: 'Directiva de viáticos', status: 'returned', status_label: 'Devuelta', can_edit: false })])));
+    const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    fixture.componentInstance.load();
+    fixture.detectChanges();
+    expect(html().querySelector('[data-testid="section-switch"]')?.textContent).toContain('En tu ruta (1)');
+
+    fixture.componentInstance.section.set('route');
+    fixture.detectChanges();
+    expect(html().querySelectorAll('[data-testid="route-row"]').length).toBe(1);
+    expect(html().querySelector('[data-testid="route-row"]')?.textContent).toContain('Devuelta');
+    (html().querySelector('[data-testid="open-route"] button') as HTMLButtonElement).click();
+    expect(navigate).toHaveBeenCalledWith('directivas/12');
   });
 
   it('shows the error with a way to retry', async () => {

@@ -15,6 +15,13 @@ export const DIRECTIVE_PROGRESS: Record<ProgressState, { label: string; severity
   active: { label: 'Le toca', severity: 'info' },
   waiting: { label: 'Espera su turno', severity: 'secondary' },
   skipped: { label: 'Omitida', severity: 'secondary' },
+  rejected: { label: 'Devolvió', severity: 'danger' },
+};
+
+/** Con la directiva devuelta lo que se firmó quedó en la versión anterior y quien no llegó a firmar no tiene turno. */
+export const DIRECTIVE_PROGRESS_RETURNED: Partial<Record<ProgressState, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }>> = {
+  signed: { label: 'Firmó la versión anterior', severity: 'secondary' },
+  waiting: { label: 'Sin turno', severity: 'secondary' },
 };
 
 /** Lo que dice cada hecho de la línea de tiempo. */
@@ -24,6 +31,7 @@ export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
   sent: 'Envió la directiva a firma',
   signed: 'Firmó',
   rejected: 'Devolvió la directiva con observaciones',
+  resubmitted: 'Corrigió y reenvió la directiva a firma',
   cancelled: 'Se anuló la directiva',
   expired: 'La directiva venció sin completar las firmas',
   step_activated: 'Le tocó firmar',

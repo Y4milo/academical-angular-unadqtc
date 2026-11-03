@@ -25,6 +25,9 @@
         @if (current.can_sign) {
           <p-button label="Firmar" data-testid="sign-directive" (onClick)="sign()"></p-button>
         }
+        @if (current.can_resubmit) {
+          <p-button label="Corregir y reenviar" data-testid="resubmit-directive" (onClick)="resubmit()"></p-button>
+        }
         @if (current.can_edit) {
           <p-button label="Corregir" severity="secondary" [outlined]="true" data-testid="edit-directive" (onClick)="edit()"></p-button>
           <p-button label="Eliminar borrador" severity="danger" [outlined]="true" [loading]="deleting()" data-testid="delete-directive" (onClick)="askDelete()"></p-button>
@@ -41,10 +44,36 @@
       <p-message severity="error" data-testid="send-error">{{ sendError() }}</p-message>
     }
 
+    @if (viewerNote()) {
+      <p-message severity="info" data-testid="viewer-note">{{ viewerNote() }}</p-message>
+    }
+
+    @if (current.returned; as returned) {
+      <section class="returned" aria-labelledby="returned-title" data-testid="returned-panel">
+        <h3 id="returned-title">Devuelta{{ returned.office ? ' por ' + returned.office : '' }}</h3>
+        @if (returned.reason) {
+          <blockquote class="returned__reason" data-testid="returned-reason">
+            {{ returned.reason }}
+            <footer class="muted">{{ returned.person ? returned.person + ' · ' : '' }}{{ returned.at | date: 'dd/MM/yyyy HH:mm' }}</footer>
+          </blockquote>
+        } @else {
+          <p class="muted" data-testid="returned-no-reason">El motivo lo ven la oficina de origen y quien la devolvió.</p>
+        }
+        @if (current.can_resubmit) {
+          <p class="muted">Al corregirla se crea la versión {{ current.version + 1 }}: la ruta empieza de cero y todas las oficinas firman otra vez.</p>
+        } @else if (current.viewer === 'signed') {
+          <p class="muted">Tu firma de la versión {{ returned.version }} no vale para la versión nueva: volverás a firmar cuando la corrijan.</p>
+        }
+      </section>
+    }
+
     <div class="layout">
       <div class="column">
         <section class="panel" aria-labelledby="files-title" data-testid="files-panel">
           <h3 id="files-title">Documentos</h3>
+          @if (!current.files_visible) {
+            <p-message severity="info" data-testid="files-hidden">Los documentos se habilitan cuando te toque firmar.</p-message>
+          }
           @if (current.files; as files) {
             <div class="file-row">
               <div class="file-info">
@@ -65,6 +94,24 @@
             <small class="muted hash" data-testid="directive-hash">Huella de la directiva (SHA-256): {{ hashes.directive }}</small>
           }
         </section>
+
+        @if (current.versions.length > 1) {
+          <section class="panel" aria-labelledby="versions-title" data-testid="versions-panel">
+            <h3 id="versions-title">Versiones</h3>
+            @for (item of current.versions; track item.version) {
+              <div class="file-row" data-testid="version-row">
+                <div class="file-info">
+                  <strong>Versión {{ item.version }}{{ item.current ? ' · vigente' : '' }}</strong>
+                  <span class="muted">{{ item.directive.name }}{{ item.created_at ? ' · ' + (item.created_at | date: 'dd/MM/yyyy') : '' }}</span>
+                </div>
+                <div class="version-actions">
+                  <p-button label="Directiva" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive-' + item.version" (onClick)="openFile('directive', item.version)"></p-button>
+                  <p-button label="Resolución" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'resolution-' + item.version" (onClick)="openFile('resolution', item.version)"></p-button>
+                </div>
+              </div>
+            }
+          </section>
+        }
 
         <section class="panel" aria-labelledby="route-title" data-testid="route-panel">
           <h3 id="route-title">Ruta de firmas</h3>

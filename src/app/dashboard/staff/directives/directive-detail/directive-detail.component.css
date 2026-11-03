@@ -20,6 +20,13 @@
 .progress-marker { display: block; width: .75rem; height: .75rem; border-radius: 50%; border: 2px solid var(--p-content-border-color); background: var(--p-content-background); }
 .progress-marker[data-state='signed'] { border-color: var(--p-green-500); background: var(--p-green-500); }
 .progress-marker[data-state='active'] { border-color: var(--p-primary-color); background: var(--p-primary-color); }
+.progress-marker[data-state='rejected'] { border-color: var(--p-red-500); background: var(--p-red-500); }
+.returned { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-orange-400); border-radius: var(--radius-md); }
+.returned h3 { margin: 0; font-size: var(--text-card-title); }
+.returned p { margin: 0; }
+.returned__reason { display: grid; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-4); border-left: 4px solid var(--p-red-500); border-radius: 0 var(--radius-md) var(--radius-md) 0; background: var(--p-content-hover-background); white-space: pre-line; overflow-wrap: anywhere; }
+.returned__reason footer { white-space: normal; }
+.version-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 :host ::ng-deep .route-timeline .p-timeline-event-opposite { flex: 0; padding: 0; }
 .event { display: grid; gap: var(--space-1); padding-bottom: var(--space-3); }
 .event-marker { display: block; width: .75rem; height: .75rem; border-radius: 50%; border: 2px solid var(--p-primary-color); background: var(--p-content-background); }

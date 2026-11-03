@@ -20,7 +20,13 @@
       <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
     </div>
 
-    @if (!current.can_sign && phase() !== 'done') {
+    @if (rejectedDone()) {
+      <section class="panel" aria-labelledby="rejected-title" data-testid="rejected-done">
+        <h3 id="rejected-title">Directiva devuelta</h3>
+        <p-message severity="success">Volvió a la oficina de origen con tu motivo. Ya no tienes nada pendiente en ella.</p-message>
+        <div><p-button label="Volver a las directivas" (onClick)="backToList()"></p-button></div>
+      </section>
+    } @else if (!current.can_sign && phase() !== 'done') {
       <p-message severity="info" data-testid="not-your-turn">
         Esta directiva no espera tu firma{{ current.active_office ? ': ahora le toca a ' + current.active_office : '' }}.
       </p-message>
@@ -31,6 +37,9 @@
           <p-selectbutton [options]="kindOptions" optionLabel="label" optionValue="value" [ngModel]="kind()" (ngModelChange)="$event && preview($event)" [allowEmpty]="false" size="small" aria-label="Documento que se muestra"></p-selectbutton>
           @if (previewError()) {
             <p-message severity="error" data-testid="preview-error">{{ previewError() }}</p-message>
+          } @else if (rejectOpen()) {
+            <!-- El visor de PDF se pinta por encima de cualquier ventana: se oculta mientras el diálogo está abierto. -->
+            <p-skeleton height="26rem" data-testid="preview-paused"></p-skeleton>
           } @else if (previewLoading() || !previewUrl()) {
             <p-skeleton height="26rem" data-testid="preview-skeleton"></p-skeleton>
           } @else {
@@ -66,6 +75,9 @@
                 @case ('confirming') { <p class="status" role="status" data-testid="status-confirming">Confirmando tu firma con el firmador…</p> }
               }
               <p-button label="Firmar con Firma Perú" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
+              @if (current.can_reject) {
+                <p-button label="Rechazar y devolver" styleClass="reject-button" severity="danger" [outlined]="true" [disabled]="busy()" data-testid="reject-button" (onClick)="openReject()"></p-button>
+              }
             }
           </section>
 
@@ -87,4 +99,29 @@
     }
    }
   }
+
+  <p-dialog header="Rechazar directiva" [visible]="rejectOpen()" (visibleChange)="!$event && closeReject()" [modal]="true" [draggable]="false" [closable]="!rejectSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="reject-dialog">
+    <div class="reject-form">
+      <p-message severity="warn" size="small">
+        <span>Volverá a la oficina de origen para corregirla. La ruta se detiene y, con la versión nueva, <strong>todas las oficinas firmarán otra vez</strong>.</span>
+      </p-message>
+      <div class="field">
+        <label for="reject-reason">Motivo del rechazo *</label>
+        <textarea pTextarea id="reject-reason" rows="5" [maxlength]="reasonMax" [fluid]="true" [ngModel]="rejectReason()" (ngModelChange)="rejectReason.set($event)" [attr.aria-invalid]="reasonTooShort()" placeholder="Explica qué debe corregirse. Lo verán la oficina de origen y tú." data-testid="reject-reason"></textarea>
+        <div class="reject-counter">
+          @if (reasonTooShort()) { <span class="field-error" role="alert" data-testid="reject-reason-error">Escribe al menos 10 caracteres.</span> } @else { <span>Mínimo 10 caracteres</span> }
+          <span data-testid="reject-count">{{ rejectReason().length }} / {{ reasonMax }}</span>
+        </div>
+      </div>
+      <div class="reject-ack">
+        <p-checkbox inputId="reject-ack" [binary]="true" [ngModel]="rejectAck()" (ngModelChange)="rejectAck.set($event)" data-testid="reject-ack"></p-checkbox>
+        <label for="reject-ack">Entiendo que la ruta se detiene y vuelve a empezar con la versión nueva.</label>
+      </div>
+      @if (rejectError()) { <p-message severity="error" data-testid="reject-error">{{ rejectError() }}</p-message> }
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="rejectSending()" (onClick)="closeReject()"></p-button>
+      <p-button label="Rechazar directiva" severity="danger" [loading]="rejectSending()" [disabled]="!canReject()" data-testid="reject-confirm" (onClick)="reject()"></p-button>
+    </ng-template>
+  </p-dialog>
 </div>

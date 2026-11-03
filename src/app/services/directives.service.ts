@@ -46,7 +46,7 @@ export interface DirectiveEvent {
 }
 
 /** Cómo va una oficina de la ruta que ya se envió: firmó, le toca ahora, espera su turno o no firma. */
-export type ProgressState = 'signed' | 'active' | 'waiting' | 'skipped';
+export type ProgressState = 'signed' | 'active' | 'waiting' | 'skipped' | 'rejected';
 
 export interface DirectiveProgressStep {
   key: string;
@@ -56,14 +56,62 @@ export interface DirectiveProgressStep {
   state: ProgressState;
 }
 
+/** Quién consulta la directiva: la pide (origin), la rechazó, ya firmó o aún espera su turno; decide qué ve. */
+export type DirectiveViewer = 'origin' | 'rejecter' | 'signed' | 'pending' | 'none';
+
+/** Una versión de la directiva que quien consulta puede ver. */
+export interface DirectiveVersionInfo {
+  version: number;
+  current: boolean;
+  created_at: string | null;
+  directive: DirectiveFileInfo;
+  resolution: DirectiveFileInfo;
+}
+
+/** Quién devolvió la directiva y cuándo; la persona y el motivo solo los ve quien tiene permiso. */
+export interface DirectiveReturn {
+  version: number;
+  office: string | null;
+  at: string | null;
+  person: string | null;
+  reason: string | null;
+}
+
 export interface DirectiveDetail extends DirectiveSummary {
   sha256: { directive: string; resolution: string } | null;
+  files_visible: boolean;
+  versions: DirectiveVersionInfo[];
+  returned: DirectiveReturn | null;
+  viewer: DirectiveViewer;
+  can_reject: boolean;
+  can_resubmit: boolean;
   events: DirectiveEvent[];
   /** La ruta enviada con el estado de cada oficina; vacía mientras es borrador. */
   progress: DirectiveProgressStep[];
   /** ¿Le toca firmar ahora a quien consulta? */
   can_sign: boolean;
   active_office: string | null;
+}
+
+/** Lo que el administrador decide sobre qué ve cada oficina de la ruta; aplica a todas las directivas. */
+export interface DirectiveSettingsValues {
+  pending_docs: 'yes' | 'no';
+  signed_versions: 'own' | 'all';
+  reason_visibility: 'origin' | 'route';
+}
+
+export interface DirectiveSettingsChange {
+  key: keyof DirectiveSettingsValues;
+  old: string | null;
+  new: string;
+  by: string | null;
+  at: string | null;
+}
+
+export interface DirectiveSettings {
+  values: DirectiveSettingsValues;
+  defaults: DirectiveSettingsValues;
+  history: DirectiveSettingsChange[];
 }
 
 /** Una directiva que espera la firma de la persona, con el lugar que ocupa su oficina en la ruta. */
@@ -147,6 +195,29 @@ export class DirectivesService {
     return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}/send`, {});
   }
 
+  /** Las directivas ya enviadas en cuya ruta de firmas está la persona, para seguirlas aunque no las pida. */
+  participating(): Observable<ApiData<DirectiveSummary[]>> {
+    return this.http.get<ApiData<DirectiveSummary[]>>(`${this.apiURL}/directives/participating`);
+  }
+
+  /** Quien tiene el turno rechaza la directiva con su motivo: vuelve a la oficina de origen. */
+  reject(id: number, reason: string): Observable<ApiData<DirectiveDetail>> {
+    return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}/reject`, { reason });
+  }
+
+  /** La oficina de origen reenvía una directiva devuelta con la directiva corregida; la resolución se conserva si no se sube otra. */
+  resubmit(id: number, body: FormData): Observable<ApiData<DirectiveDetail>> {
+    return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}/resubmit`, body);
+  }
+
+  settings(): Observable<ApiData<DirectiveSettings>> {
+    return this.http.get<ApiData<DirectiveSettings>>(`${this.apiURL}/directives/settings`);
+  }
+
+  updateSettings(values: Partial<DirectiveSettingsValues>): Observable<ApiData<DirectiveSettings>> {
+    return this.http.patch<ApiData<DirectiveSettings>>(`${this.apiURL}/directives/settings`, values);
+  }
+
   /** Lo que le toca firmar hoy a la persona; viene de la ruta que se envió, no del rol. */
   pending(): Observable<ApiData<PendingDirective[]>> {
     return this.http.get<ApiData<PendingDirective[]>>(`${this.apiURL}/directives/signing/pending`);
@@ -173,7 +244,9 @@ export class DirectivesService {
     return this.http.get<ApiData<DirectiveRoute>>(`${this.apiURL}/directives/route`, { params });
   }
 
-  file(id: number, kind: DirectiveFileKind): Observable<Blob> {
-    return this.http.get(`${this.apiURL}/directives/${id}/files/${kind}`, { responseType: 'blob' });
+  file(id: number, kind: DirectiveFileKind, version?: number): Observable<Blob> {
+    const params = version ? new HttpParams().set('version', version) : undefined;
+
+    return this.http.get(`${this.apiURL}/directives/${id}/files/${kind}`, { params, responseType: 'blob' });
   }
 }
