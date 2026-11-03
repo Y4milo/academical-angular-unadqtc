@@ -1,0 +1,98 @@
+<div class="directive-form">
+  <div class="page-heading">
+    <div>
+      <h2>{{ editing() ? 'Corregir el borrador' : 'Nueva directiva' }}</h2>
+      <p>Sube la directiva y la resolución que la aprueba. Antes de enviarla verás quién firma en cada oficina.</p>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Volver a las directivas" severity="secondary" [outlined]="true" size="small" (onClick)="cancel()"></p-button></div>
+  } @else if (loading()) {
+    <div class="form-skeleton" aria-busy="true" data-testid="form-skeleton">
+      <p-skeleton height="3rem"></p-skeleton>
+      <p-skeleton height="3rem"></p-skeleton>
+      <p-skeleton height="8rem"></p-skeleton>
+    </div>
+  } @else {
+    <div class="layout">
+      <section class="panel" aria-labelledby="data-title">
+        <h3 id="data-title">Datos</h3>
+
+        <div class="field">
+          <label for="directive-title">Título de la directiva *</label>
+          <input pInputText id="directive-title" type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" [class.p-invalid]="submitted() && !!errors()['title']" [attr.aria-invalid]="submitted() && !!errors()['title']" />
+          @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
+        </div>
+
+        <div class="field">
+          <label for="directive-origin">Oficina de origen *</label>
+          <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)"
+            [disabled]="editing()" placeholder="Elige la oficina" [fluid]="true" appendTo="body" [styleClass]="submitted() && !!errors()['origin'] ? 'p-invalid' : ''"></p-select>
+          <small class="field-hint">Solo las oficinas por las que Core te autoriza a pedir directivas.</small>
+          @if (submitted() && errors()['origin']; as message) { <small class="field-error" role="alert" data-testid="error-origin">{{ message }}</small> }
+        </div>
+
+        <div class="switch-row">
+          <p-toggleswitch inputId="directive-quality" [ngModel]="quality()" (ngModelChange)="quality.set($event)"></p-toggleswitch>
+          <div>
+            <label for="directive-quality">Es de un proceso de calidad</label>
+            <small class="field-hint">Si lo activas, la Oficina de Gestión de la Calidad firma antes de Asesoría Jurídica.</small>
+          </div>
+        </div>
+
+        <div class="files">
+          <div class="field">
+            <span class="label" id="directive-file-label">Directiva (PDF){{ editing() ? '' : ' *' }}</span>
+            <input #directivePicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('directive', $event)" />
+            <div class="pick">
+              <p-button [label]="directiveFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" icon="pi pi-upload" severity="secondary" [outlined]="true" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onClick)="directivePicker.click()"></p-button>
+            </div>
+            @if (directiveFile(); as file) {
+              <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>
+            } @else if (existing()) {
+              <small class="file-name">{{ existing()?.files?.directive?.name }} · se mantiene si no eliges otro</small>
+            }
+            <small class="field-hint">Sin firmar: la firman las oficinas desde Academical.</small>
+            @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
+          </div>
+
+          <div class="field">
+            <span class="label" id="resolution-file-label">Resolución que la aprueba (PDF){{ editing() ? '' : ' *' }}</span>
+            <input #resolutionPicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('resolution', $event)" />
+            <div class="pick">
+              <p-button [label]="resolutionFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" icon="pi pi-upload" severity="secondary" [outlined]="true" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onClick)="resolutionPicker.click()"></p-button>
+            </div>
+            @if (resolutionFile(); as file) {
+              <small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>
+            } @else if (existing()) {
+              <small class="file-name">{{ existing()?.files?.resolution?.name }} · se mantiene si no eliges otro</small>
+            }
+            <small class="field-hint">Solo se adjunta, no se firma. Puede venir ya firmada.</small>
+            @if ((submitted() || fileError().resolution) && errors()['resolution']; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
+          </div>
+        </div>
+
+        @if (serverError()) {
+          <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
+        }
+
+        <div class="actions">
+          <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="cancel()"></p-button>
+          <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="route-title">
+        <h3 id="route-title">Ruta de firmas</h3>
+        <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</p>
+        @if (!origin()) {
+          <p-message severity="info" data-testid="route-pick-origin">Elige la oficina de origen para ver la ruta.</p-message>
+        } @else {
+          <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+        }
+      </section>
+    </div>
+  }
+</div>

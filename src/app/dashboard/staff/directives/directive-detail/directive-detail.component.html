@@ -1,0 +1,89 @@
+<div class="directive-detail">
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Volver a las directivas" severity="secondary" [outlined]="true" size="small" (onClick)="back()"></p-button></div>
+  } @else if (loading()) {
+    <div class="detail-skeleton" aria-busy="true" data-testid="detail-skeleton">
+      <p-skeleton width="min(26rem, 100%)" height="2rem"></p-skeleton>
+      <p-skeleton height="7rem"></p-skeleton>
+      <p-skeleton height="10rem"></p-skeleton>
+    </div>
+  } @else {
+   @if (directive(); as current) {
+    <div class="page-heading">
+      <div>
+        <p class="caption">Directiva · {{ current.origin.name }}</p>
+        <h2 data-testid="directive-title">{{ current.title }}</h2>
+        <p class="meta">
+          <p-tag [value]="statuses[current.status].label" [severity]="statuses[current.status].severity" data-testid="directive-status"></p-tag>
+          <span>Versión {{ current.version }}</span>
+          @if (current.is_quality) { <p-tag value="Proceso de calidad" severity="info"></p-tag> }
+        </p>
+      </div>
+      <div class="header-actions">
+        <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
+        @if (current.can_edit) {
+          <p-button label="Corregir" severity="secondary" [outlined]="true" data-testid="edit-directive" (onClick)="edit()"></p-button>
+          <p-button label="Eliminar borrador" severity="danger" [outlined]="true" [loading]="deleting()" data-testid="delete-directive" (onClick)="askDelete()"></p-button>
+        }
+        @if (isDraft()) {
+          <span [pTooltip]="sendBlockedReason()" tooltipPosition="top">
+            <p-button label="Enviar a firma" [disabled]="true" data-testid="send-directive"></p-button>
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="column">
+        <section class="panel" aria-labelledby="files-title" data-testid="files-panel">
+          <h3 id="files-title">Documentos</h3>
+          @if (current.files; as files) {
+            <div class="file-row">
+              <div class="file-info">
+                <strong>Directiva</strong>
+                <span class="muted">{{ files.directive.name }} · {{ formatBytes(files.directive.size) }}{{ files.directive.pages ? ' · ' + files.directive.pages + ' páginas' : '' }}</span>
+              </div>
+              <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive'" data-testid="open-directive" (onClick)="openFile('directive')"></p-button>
+            </div>
+            <div class="file-row">
+              <div class="file-info">
+                <strong>Resolución que la aprueba</strong>
+                <span class="muted">{{ files.resolution.name }} · {{ formatBytes(files.resolution.size) }}{{ files.resolution.pages ? ' · ' + files.resolution.pages + ' páginas' : '' }}</span>
+              </div>
+              <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'resolution'" data-testid="open-resolution" (onClick)="openFile('resolution')"></p-button>
+            </div>
+          }
+          @if (current.sha256; as hashes) {
+            <small class="muted hash" data-testid="directive-hash">Huella de la directiva (SHA-256): {{ hashes.directive }}</small>
+          }
+        </section>
+
+        <section class="panel" aria-labelledby="route-title" data-testid="route-panel">
+          <h3 id="route-title">Ruta de firmas</h3>
+          @if (isDraft()) {
+            <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+          } @else {
+            <p-message severity="info">La ruta de esta directiva queda registrada al enviarla a firma.</p-message>
+          }
+        </section>
+      </div>
+
+      <section class="panel" aria-labelledby="timeline-title" data-testid="timeline-panel">
+        <h3 id="timeline-title">Seguimiento</h3>
+        <p-timeline [value]="current.events" align="left" styleClass="events-timeline">
+          <ng-template pTemplate="marker"><span class="event-marker" aria-hidden="true"></span></ng-template>
+          <ng-template pTemplate="content" let-event>
+            <div class="event" data-testid="directive-event">
+              <strong>{{ eventLabel(event) }}</strong>
+              <span class="muted">{{ event.by?.nick || 'Sistema' }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </ng-template>
+        </p-timeline>
+      </section>
+    </div>
+
+    <p-confirmdialog></p-confirmdialog>
+   }
+  }
+</div>

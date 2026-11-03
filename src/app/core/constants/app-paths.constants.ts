@@ -190,6 +190,17 @@ export const PATHS = {
       // link:   `staff/attendance/user`,
     },
   },
+  // Directivas con firma digital: una sola ruta para todo el personal; quién entra lo decide Core, no el rol.
+  directives: {
+    path: `directivas`,
+    link: `directivas`,
+    new: {
+      path: `directivas/nueva`,
+      link: `directivas/nueva`,
+    },
+    detailPath: `directivas/:id`,
+    editPath: `directivas/:id/editar`,
+  },
   dbu: {
     path: `dbu`,
     // Páginas públicas del alumno (sin cuenta): reservar y consultar o cancelar una cita.

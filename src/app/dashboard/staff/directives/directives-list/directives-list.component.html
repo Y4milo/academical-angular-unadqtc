@@ -1,0 +1,79 @@
+<div class="directives">
+  <div class="page-heading">
+    <div>
+      <h2>Directivas</h2>
+      <p>Cada directiva pasa por la firma de las oficinas que Core tiene designadas, en orden.</p>
+    </div>
+    @if (canRequest() && directives().length > 0) {
+      <p-button label="Nueva directiva" icon="pi pi-plus" data-testid="new-directive" (onClick)="create()"></p-button>
+    }
+  </div>
+
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button></div>
+  } @else if (!loading() && !canRequest()) {
+    <p-message severity="info" data-testid="no-request-access">
+      Core no te autoriza a pedir directivas. Si firmas por tu oficina, tus firmas pendientes aparecerán aquí cuando se conecte el firmador.
+    </p-message>
+  } @else {
+    <div class="filters" role="group" aria-label="Filtrar por estado">
+      <p-selectbutton [options]="filterOptions" optionLabel="label" optionValue="value" [ngModel]="filter()" (ngModelChange)="filter.set($event ?? 'all')" [allowEmpty]="false" size="small" ariaLabelledBy="directives-filter"></p-selectbutton>
+    </div>
+
+    <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="rows()" [tableStyle]="{ 'min-width': '44rem' }" [attr.aria-busy]="loading()">
+      <ng-template #header>
+        <tr>
+          <th>Directiva</th>
+          <th>Oficina de origen</th>
+          <th>Estado</th>
+          <th>Actualizada</th>
+          <th class="actions-col"><span class="sr-only">Abrir</span></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-directive>
+        @if (loading()) {
+          <tr aria-hidden="true">
+            <td><p-skeleton width="16rem" height="1rem"></p-skeleton></td>
+            <td><p-skeleton width="10rem" height="1rem"></p-skeleton></td>
+            <td><p-skeleton width="5rem" height="1.25rem"></p-skeleton></td>
+            <td><p-skeleton width="6rem" height="1rem"></p-skeleton></td>
+            <td><p-skeleton width="4rem" height="1.75rem"></p-skeleton></td>
+          </tr>
+        } @else {
+          <tr data-testid="directive-row">
+            <td>
+              <div class="cell-stack">
+                <strong>{{ directive.title }}</strong>
+                <span class="muted">
+                  {{ directive.files?.directive?.pages ? directive.files.directive.pages + ' páginas · ' : '' }}Versión {{ directive.version }}{{ directive.is_quality ? ' · Proceso de calidad' : '' }}
+                </span>
+              </div>
+            </td>
+            <td>{{ directive.origin.name }}</td>
+            <td><p-tag [value]="statusOf(directive.status).label" [severity]="statusOf(directive.status).severity" data-testid="directive-status"></p-tag></td>
+            <td>{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions-col"><p-button label="Abrir" size="small" severity="secondary" [outlined]="true" (onClick)="open(directive)"></p-button></td>
+          </tr>
+        }
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5">
+            <div class="empty" data-testid="directives-empty">
+              <i class="pi pi-file-edit empty__icon" aria-hidden="true"></i>
+              @if (filter() === 'all') {
+                <h3>Sube tu primera directiva</h3>
+                <p>Con la directiva y la resolución que la aprueba, Academical arma la ruta de firmas con las personas que Core tiene designadas.</p>
+                <p-button label="Nueva directiva" icon="pi pi-plus" (onClick)="create()"></p-button>
+              } @else {
+                <h3>Ninguna directiva en este estado</h3>
+                <p>Cambia el filtro para ver las demás.</p>
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

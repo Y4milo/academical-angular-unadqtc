@@ -1,0 +1,51 @@
+@if (error()) {
+  <p-message severity="error" data-testid="route-error">{{ error() }}</p-message>
+} @else if (loading()) {
+  <div class="route-skeleton" aria-busy="true" aria-label="Consultando a Core quién firma en cada oficina" data-testid="route-skeleton">
+    @for (row of skeletonRows; track row) { <p-skeleton height="2.5rem"></p-skeleton> }
+  </div>
+} @else {
+  @if (route(); as current) {
+  @if (!current.can_send) {
+    <p-message severity="warn" data-testid="route-blocked">
+      Core no tiene a nadie designado en {{ current.issues.length === 1 ? 'una oficina' : current.issues.length + ' oficinas' }} de la ruta. La directiva no se puede enviar hasta que OTI designe a quien firma.
+    </p-message>
+  }
+  <p-timeline [value]="current.steps" align="left" styleClass="route-timeline">
+    <ng-template pTemplate="marker" let-step>
+      <span class="route-marker" [attr.data-state]="step.skipped ? 'skipped' : step.holder ? 'ready' : 'missing'" aria-hidden="true"></span>
+    </ng-template>
+    <ng-template pTemplate="content" let-step>
+      <div class="route-step" [class.route-step--skipped]="step.skipped" data-testid="route-step">
+        <div class="route-step__main">
+          <strong>{{ step.label }}</strong>
+          @if (step.skipped) {
+            <span class="muted">No firma: la directiva no es de un proceso de calidad.</span>
+          } @else {
+            @if (step.holder; as holder) {
+              <span data-testid="route-holder">{{ holder.full_name }}</span>
+              <span class="muted">{{ holder.title }}</span>
+              @if (holder.note) { <span class="muted">{{ holder.note }}</span> }
+              @if (holder.expires_at) { <span class="muted">Hasta {{ holder.expires_at | date: 'dd/MM/yyyy' }}</span> }
+              @if (step.next; as next) { <span class="muted">Después: {{ next.full_name }} desde {{ next.starts_at | date: 'dd/MM/yyyy' }}</span> }
+            } @else {
+              <span class="muted" data-testid="route-missing">Sin persona designada en Core</span>
+            }
+          }
+        </div>
+        <div class="route-step__tags">
+          @if (step.skipped) {
+            <p-tag value="Omitida" severity="secondary"></p-tag>
+          } @else {
+            @if (step.holder; as holder) {
+              <p-tag [value]="conditions[holder.condition ?? 'titular']" [severity]="holder.condition === 'titular' ? 'info' : 'warn'"></p-tag>
+            } @else {
+              <p-tag value="Falta" severity="danger"></p-tag>
+            }
+          }
+        </div>
+      </div>
+    </ng-template>
+  </p-timeline>
+}
+}

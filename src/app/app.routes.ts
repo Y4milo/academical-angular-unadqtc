@@ -228,6 +228,31 @@ export const routes: Routes = [
     ]
   },
   {
+    // Directivas con firma digital: las ve quien Core autoriza (el menú y el API lo deciden); cualquier rol del personal puede entrar.
+    path: PATHS.directives.path,
+    canActivate: [AuthRoleGuard],
+    data: {roles: [ROLE.admin, ROLE.administrative, ROLE.professor, ROLE.accounting, ROLE.academic, ROLE.degrees_titles, ROLE.hr, ROLE.dbu_admin, ROLE.dbu]},
+    loadComponent: () => import('./dashboard/staff-menu-base/staff-menu-base.component').then(m => m.StaffMenuBaseComponent),
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./dashboard/staff/directives/directives-list/directives-list.component').then(m => m.DirectivesListComponent)
+      },
+      {
+        path: 'nueva',
+        loadComponent: () => import('./dashboard/staff/directives/directive-form/directive-form.component').then(m => m.DirectiveFormComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./dashboard/staff/directives/directive-detail/directive-detail.component').then(m => m.DirectiveDetailComponent)
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () => import('./dashboard/staff/directives/directive-form/directive-form.component').then(m => m.DirectiveFormComponent)
+      },
+    ]
+  },
+  {
     // Todo lo de Bienestar Universitario vive bajo /dbu: las páginas públicas del alumno y el panel del personal.
     path: PATHS.dbu.path,
     children: [
