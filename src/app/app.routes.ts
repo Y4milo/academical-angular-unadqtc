@@ -160,7 +160,7 @@ export const routes: Routes = [
   {
     path: PATHS.degreesTitles.path,
     canActivate: [AuthRoleGuard],
-    data: {roles: [ROLE.degrees_titles]},
+    data: {roles: [ROLE.degrees_titles], permissions: ['degrees_titles.manage']},
     loadComponent: () => import('./dashboard/staff/degrees-titles/degrees-titles-layout.component').then(m => m.DegreesTitlesLayoutComponent),
     children: [
       {
@@ -190,7 +190,7 @@ export const routes: Routes = [
   {
     path: PATHS.hr.path,
     canActivate: [AuthRoleGuard],
-    data: {roles: [ROLE.hr]},
+    data: {roles: [ROLE.hr], permissions: ['attendance.manage']},
     loadComponent: () => import('./dashboard/staff/hr-admin/hr-lay-out-component/hr-lay-out-component.component').then(m => m.HrLayOutComponentComponent),
     children: [
       {
@@ -219,7 +219,7 @@ export const routes: Routes = [
     path: PATHS.staff.path,
     loadComponent: () => import('./dashboard/staff/staff-user/staff-user-lay-out-component/staff-user-lay-out-component.component').then(m => m.StaffUserLayOutComponentComponent),
     canActivate: [AuthRoleGuard],
-    data: {roles: [ROLE.professor, ROLE.administrative]},
+    data: {roles: [ROLE.professor, ROLE.administrative], permissions: ['attendance.view']},
     children: [
       {
         path: PATHS.staff.home.path,
@@ -246,7 +246,7 @@ export const routes: Routes = [
         // Qué ve cada oficina de la ruta: solo el administrador del sistema (el API también lo exige).
         path: 'configuracion',
         canActivate: [AuthRoleGuard],
-        data: {roles: [ROLE.admin]},
+        data: {roles: [ROLE.admin], permissions: ['directives.settings']},
         loadComponent: () => import('./dashboard/staff/directives/directive-settings/directive-settings.component').then(m => m.DirectiveSettingsComponent)
       },
       {
@@ -277,7 +277,7 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./dashboard/staff/dbu/dbu-lay-out-component/dbu-lay-out.component').then(m => m.DbuLayOutComponent),
         canActivate: [AuthRoleGuard],
-        data: {roles: [ROLE.dbu_admin, ROLE.dbu, ROLE.admin]},
+        data: {roles: [ROLE.dbu_admin, ROLE.dbu, ROLE.admin], permissions: ['welfare.attend']},
         children: [
           {
             path: '',
@@ -292,7 +292,7 @@ export const routes: Routes = [
             path: PATHS.dbu.config.path,
             loadComponent: () => import('./dashboard/staff/dbu/dbu-config/dbu-config.component').then(m => m.DbuConfigComponent),
             canActivate: [AuthRoleGuard],
-            data: {roles: [ROLE.dbu_admin, ROLE.admin]},
+            data: {roles: [ROLE.dbu_admin, ROLE.admin], permissions: ['welfare.administer']},
           },
         ]
       },
@@ -302,7 +302,7 @@ export const routes: Routes = [
     path: PATHS.accounting.path,
     loadComponent: () => import('./dashboard/staff/accounting/accounting-lay-out-component/accounting-lay-out-component.component').then(m => m.AccountingLayOutComponentComponent),
     canActivate: [AuthRoleGuard],
-    data: {roles: [ROLE.accounting, ROLE.admin]},
+    data: {roles: [ROLE.accounting, ROLE.admin], permissions: ['accounting.bank']},
     children: [
       {
         path: '',
@@ -338,7 +338,7 @@ export const routes: Routes = [
     path: PATHS.academic.path,
     loadComponent: () => import('./dashboard/staff/academic/academic-lay-out-component/academic-lay-out-component.component').then(m => m.AcademicLayOutComponentComponent),
     canActivate: [AuthRoleGuard],
-    data: {roles: [ROLE.academic]},
+    data: {roles: [ROLE.academic], permissions: ['academic.semesters', 'student_card.manage']},
     children: [
       {
         path: PATHS.academic.home.path,
