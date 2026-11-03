@@ -11,7 +11,7 @@ describe('DirectiveSettingsComponent', () => {
   let service: jasmine.SpyObj<DirectivesService>;
   let notifications: jasmine.SpyObj<NotificationService>;
 
-  const defaults = { pending_docs: 'yes', signed_versions: 'own', reason_visibility: 'origin' } as const;
+  const defaults = { pending_docs: 'yes', signed_versions: 'own', reason_visibility: 'origin', notify_turn: 'yes', notify_returned: 'yes', notify_void: 'yes', notify_completed: 'yes' } as const;
   const settings = (overrides: Partial<DirectiveSettings> = {}): DirectiveSettings => ({ values: { ...defaults }, defaults: { ...defaults }, history: [], ...overrides });
   const html = () => fixture.nativeElement as HTMLElement;
   const text = (testId: string) => html().querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
@@ -86,6 +86,37 @@ describe('DirectiveSettingsComponent', () => {
     expect(text('history-row')).toContain('Documentos sin turno');
     expect(text('history-row')).toContain('Pueden ver los PDF → Solo el estado');
     expect(text('history-row')).toContain('admin');
+  });
+
+  it('shows the four kinds of notice, all on, and a change in one is a change to save', async () => {
+    await create();
+
+    expect(html().querySelectorAll('[data-testid^="notice-"]').length).toBe(4);
+    expect(text('notice-notify_void')).toContain('Firma sin efecto');
+    expect(fixture.componentInstance.dirty()).toBeFalse();
+
+    fixture.componentInstance.toggleNotice('notify_void', false);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.values()?.notify_void).toBe('no');
+    expect(fixture.componentInstance.dirty()).toBeTrue();
+    expect(saveButton().disabled).toBeFalse();
+  });
+
+  it('saves the notice switches with the rest and names them in the history', async () => {
+    service.updateSettings.and.returnValue(of(ok(settings({
+      values: { ...defaults, notify_turn: 'no' },
+      history: [{ key: 'notify_turn', old: 'yes', new: 'no', by: 'admin', at: '2026-11-16T09:30:00Z' }],
+    }))));
+    await create();
+
+    fixture.componentInstance.toggleNotice('notify_turn', false);
+    fixture.componentInstance.save();
+    fixture.detectChanges();
+
+    expect(service.updateSettings).toHaveBeenCalledOnceWith({ ...defaults, notify_turn: 'no' });
+    expect(text('history-row')).toContain('Aviso: le toca firmar');
+    expect(text('history-row')).toContain('Encendido → Apagado');
   });
 
   it('goes back to the defaults without saving', async () => {

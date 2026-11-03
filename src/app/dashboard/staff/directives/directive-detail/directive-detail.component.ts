@@ -14,7 +14,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveEvent, DirectiveFileKind, DirectiveProgressStep, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
-import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
+import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
 
 /**
  * Una directiva: su estado, los dos PDF, la ruta de firmas con la persona designada en cada oficina y su línea de tiempo. El borrador se corrige
@@ -132,12 +132,29 @@ export class DirectiveDetailComponent implements OnInit {
   });
 
   eventLabel(event: DirectiveEvent): string {
+    const data = event.data as { notice?: string; reason?: string };
+    if (event.type === 'notice_sent') return `Aviso enviado: ${DIRECTIVE_NOTICE_LABELS[data.notice ?? ''] ?? 'aviso'}`;
+    if (event.type === 'notice_failed') return `No se pudo avisar: ${DIRECTIVE_NOTICE_FAILURES[data.reason ?? ''] ?? 'no salió el correo'}`;
+
     return DIRECTIVE_EVENT_LABELS[event.type] ?? event.type;
+  }
+
+  /** Los avisos los envía Academical; los demás hechos los cuenta el firmador o una persona. */
+  eventAuthor(event: DirectiveEvent): string {
+    if (event.by?.nick) return event.by.nick;
+
+    return event.type.startsWith('notice_') ? 'Academical' : 'Firmador';
   }
 
   /** Lo que el hecho cuenta además: la oficina, la persona y, si la devolvió, su motivo. */
   eventDetail(event: DirectiveEvent): string {
-    const data = event.data as { office?: string; person?: string; reason?: string };
+    const data = event.data as { office?: string; person?: string; reason?: string; notice?: string };
+    if (event.type.startsWith('notice_')) {
+      const to = [data.person ? `Para ${data.person}` : null, data.office].filter(Boolean).join(' · ');
+      const pending = event.type === 'notice_failed' && data.notice === 'turn' ? 'la firma pendiente le aparece igual en «Por firmar»' : '';
+
+      return [to, pending].filter(Boolean).join(' · ');
+    }
 
     return [data.office, data.person, data.reason].filter(Boolean).join(' · ');
   }

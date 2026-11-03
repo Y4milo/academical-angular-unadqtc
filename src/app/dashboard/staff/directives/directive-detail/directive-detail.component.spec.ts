@@ -292,4 +292,44 @@ describe('DirectiveDetailComponent', () => {
       expect(html().querySelector('[data-testid="versions-panel"]')).toBeNull();
     });
   });
+
+  describe('the notices in the timeline', () => {
+    const notice = (type: string, data: Record<string, unknown>) => ({ type, version: 1, at: '2026-11-13T08:41:00Z', by: null, data });
+
+    it('shows each notice sent with who it went to and that Academical sent it', async () => {
+      service.detail.and.returnValue(of(ok(detail({
+        status: 'in_signature', status_label: 'En firma', can_edit: false,
+        events: [notice('notice_sent', { notice: 'void', office: 'Gestión de la Calidad', person: 'Laura Mendoza R.' })],
+      }))));
+      await create();
+
+      expect(text('directive-event')).toContain('Aviso enviado: tu firma quedó sin efecto');
+      expect(text('event-detail')).toBe('Para Laura Mendoza R. · Gestión de la Calidad');
+      expect(text('directive-event')).toContain('Academical');
+      expect(text('directive-event')).not.toContain('Firmador');
+    });
+
+    it('says why a notice did not go out, without the address, and that the pending signature still shows', async () => {
+      service.detail.and.returnValue(of(ok(detail({
+        status: 'in_signature', status_label: 'En firma', can_edit: false,
+        events: [notice('notice_failed', { notice: 'turn', office: 'Asesoría Jurídica', person: 'Carlos Paucar V.', reason: 'no_email' })],
+      }))));
+      await create();
+
+      expect(text('directive-event')).toContain('No se pudo avisar: la persona no tiene correo institucional en Core');
+      expect(text('event-detail')).toContain('Para Carlos Paucar V. · Asesoría Jurídica');
+      expect(text('event-detail')).toContain('«Por firmar»');
+    });
+
+    it('names a mail server failure as such', async () => {
+      service.detail.and.returnValue(of(ok(detail({
+        status: 'in_signature', status_label: 'En firma', can_edit: false,
+        events: [notice('notice_failed', { notice: 'returned', office: 'Oficina de Administración', person: 'Ana Torres V.', reason: 'mail_error' })],
+      }))));
+      await create();
+
+      expect(text('directive-event')).toContain('el servidor de correo no respondió');
+      expect(text('event-detail')).not.toContain('Por firmar');
+    });
+  });
 });
