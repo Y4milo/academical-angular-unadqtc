@@ -14,9 +14,15 @@ export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
   created: 'Creó el borrador',
   edited: 'Corrigió el borrador',
   sent: 'Envió la directiva a firma',
-  signed: 'Firmó la directiva',
-  rejected: 'Devolvió la directiva',
-  cancelled: 'Anuló la directiva',
+  signed: 'Firmó',
+  rejected: 'Devolvió la directiva con observaciones',
+  cancelled: 'Se anuló la directiva',
+  expired: 'La directiva venció sin completar las firmas',
+  step_activated: 'Le tocó firmar',
+  completed: 'Todas las oficinas firmaron',
+  signature_invalid: 'Una firma no pasó la validación',
+  session_abandoned: 'Abrió la firma y no la terminó',
+  send_failed: 'No se pudo enviar a firma',
 };
 
 export function formatBytes(size: number): string {

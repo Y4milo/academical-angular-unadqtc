@@ -34,7 +34,7 @@ describe('DirectiveDetailComponent', () => {
   }
 
   beforeEach(() => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'route', 'file', 'remove']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'route', 'file', 'remove', 'send']);
     notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['notifyApiData', 'error']);
     service.detail.and.returnValue(of(ok(detail())));
     service.route.and.returnValue(of(ok(route())));
@@ -61,17 +61,60 @@ describe('DirectiveDetailComponent', () => {
     expect(service.route).toHaveBeenCalledWith('adm', false);
   });
 
-  it('keeps sending disabled and says why: Core has nobody in an office, or the signer is not connected', async () => {
+  it('keeps sending disabled while Core has nobody in an office, and says why', async () => {
     await create();
     const button = html().querySelector('[data-testid="send-directive"] button') as HTMLButtonElement;
 
     expect(button.disabled).toBeTrue();
+    expect(fixture.componentInstance.canSend()).toBeFalse();
     expect(fixture.componentInstance.sendBlockedReason()).toContain('Core no tiene a alguien designado');
+  });
 
+  it('enables sending when every office has its person, and asks before sending', async () => {
     service.route.and.returnValue(of(ok(route({ can_send: true, issues: [] }))));
-    fixture.componentInstance.load();
+    service.send.and.returnValue(of(ok(detail({ status: 'in_signature', status_label: 'En firma', can_edit: false }))));
+    await create();
+    const button = html().querySelector('[data-testid="send-directive"] button') as HTMLButtonElement;
+    expect(button.disabled).toBeFalse();
+
+    const confirmation = fixture.debugElement.injector.get(ConfirmationService);
+    const confirm = spyOn(confirmation, 'confirm').and.callFake(options => { options.accept?.(); return confirmation; });
+    fixture.componentInstance.askSend();
     fixture.detectChanges();
-    expect(fixture.componentInstance.sendBlockedReason()).toContain('firmador');
+
+    expect(confirm.calls.mostRecent().args[0].message).toContain('4 oficinas');
+    expect(service.send).toHaveBeenCalledWith(7);
+    expect(text('directive-status')).toBe('En firma');
+    expect(html().querySelector('[data-testid="send-directive"]')).toBeNull();
+    expect(notifications.notifyApiData).toHaveBeenCalled();
+  });
+
+  it('shows what the server answers when it cannot send, and keeps the draft', async () => {
+    service.route.and.returnValue(of(ok(route({ can_send: true, issues: [] }))));
+    service.send.and.returnValue(throwError(() => ({ status: 503, error: { payload: { message: 'El firmador todavía no está conectado.' } } })));
+    await create();
+    const confirmation = fixture.debugElement.injector.get(ConfirmationService);
+    spyOn(confirmation, 'confirm').and.callFake(options => { options.accept?.(); return confirmation; });
+
+    fixture.componentInstance.askSend();
+    fixture.detectChanges();
+
+    expect(text('send-error')).toContain('El firmador todavía no está conectado');
+    expect(text('directive-status')).toBe('Borrador');
+    expect(fixture.componentInstance.sending()).toBeFalse();
+  });
+
+  it('tells what each notice of the signer means: office, person and reason', async () => {
+    service.detail.and.returnValue(of(ok(detail({ status: 'returned', status_label: 'Devuelta', can_edit: false, events: [
+      { type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana' }, data: {} },
+      { type: 'rejected', version: 1, at: '2026-11-04T10:00:00Z', by: null, data: { office: 'Oficina de Asesoría Jurídica', person: 'Carlos Paucar', reason: 'Falta el anexo de costos' } },
+    ] }))));
+    await create();
+
+    const events = Array.from(html().querySelectorAll('[data-testid="directive-event"]'));
+    expect(events[1].textContent).toContain('Devolvió la directiva con observaciones');
+    expect(events[1].querySelector('[data-testid="event-detail"]')?.textContent).toBe('Oficina de Asesoría Jurídica · Carlos Paucar · Falta el anexo de costos');
+    expect(events[1].textContent).toContain('Firmador');
   });
 
   it('offers to correct and delete only the draft the person can edit', async () => {

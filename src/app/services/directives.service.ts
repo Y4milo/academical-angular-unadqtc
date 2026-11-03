@@ -108,6 +108,11 @@ export class DirectivesService {
     return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}`, body);
   }
 
+  /** Envía el borrador al firmador con la ruta que Core tiene hoy; el servidor explica qué falta si no se puede. */
+  send(id: number): Observable<ApiData<DirectiveDetail>> {
+    return this.http.post<ApiData<DirectiveDetail>>(`${this.apiURL}/directives/${id}/send`, {});
+  }
+
   remove(id: number): Observable<ApiData<unknown>> {
     return this.http.delete<ApiData<unknown>>(`${this.apiURL}/directives/${id}`);
   }
