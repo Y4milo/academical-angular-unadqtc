@@ -18,7 +18,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveEvent, DirectiveFileKind, DirectiveProgressStep, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
-import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
+import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_SIGNED_FAILURES, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
 
 /**
  * Una directiva: su estado, los dos PDF, la ruta de firmas con la persona designada en cada oficina y su línea de tiempo. El borrador se corrige
@@ -42,6 +42,10 @@ export class DirectiveDetailComponent implements OnInit {
   readonly deleting = signal(false);
   readonly sending = signal(false);
   readonly sendError = signal('');
+
+  readonly signedLoading = signal(false);
+  readonly signedError = signal('');
+  readonly codeCopied = signal(false);
 
   readonly cancelOpen = signal(false);
   readonly cancelReason = signal('');
@@ -150,6 +154,7 @@ export class DirectiveDetailComponent implements OnInit {
   eventLabel(event: DirectiveEvent): string {
     const data = event.data as { notice?: string; reason?: string };
     if (event.type === 'notice_sent') return `Aviso enviado: ${DIRECTIVE_NOTICE_LABELS[data.notice ?? ''] ?? 'aviso'}`;
+    if (event.type === 'signed_copy_failed') return `No se pudo traer el documento firmado: ${DIRECTIVE_SIGNED_FAILURES[data.reason ?? ''] ?? 'error desconocido'}`;
     if (event.type === 'notice_failed') return `No se pudo avisar: ${DIRECTIVE_NOTICE_FAILURES[data.reason ?? ''] ?? 'no salió el correo'}`;
 
     return DIRECTIVE_EVENT_LABELS[event.type] ?? event.type;
@@ -159,12 +164,14 @@ export class DirectiveDetailComponent implements OnInit {
   eventAuthor(event: DirectiveEvent): string {
     if (event.by?.nick) return event.by.nick;
 
-    return event.type.startsWith('notice_') ? 'Academical' : 'Firmador';
+    return event.type.startsWith('notice_') || event.type.startsWith('signed_copy_') ? 'Academical' : 'Firmador';
   }
 
   /** Lo que el hecho cuenta además: la oficina, la persona y, si la devolvió, su motivo. */
   eventDetail(event: DirectiveEvent): string {
-    const data = event.data as { office?: string; person?: string; reason?: string; notice?: string };
+    const data = event.data as { office?: string; person?: string; reason?: string; notice?: string; signatures?: number };
+    if (event.type === 'signed_copy_saved') return data.signatures ? `${data.signatures} firmas` : '';
+    if (event.type === 'signed_copy_failed') return 'se vuelve a intentar al pulsar «Descargar firmada»';
     if (event.type.startsWith('notice_')) {
       const to = [data.person ? `Para ${data.person}` : null, data.office].filter(Boolean).join(' · ');
       const pending = event.type === 'notice_failed' && data.notice === 'turn' ? 'la firma pendiente le aparece igual en «Por firmar»' : '';
@@ -203,6 +210,64 @@ export class DirectiveDetailComponent implements OnInit {
 
   edit(): void {
     this.router.navigateByUrl(`${PATHS.directives.link}/${this.directive()!.id}/editar`);
+  }
+
+  /** Descarga la directiva firmada. Si Academical aún no tiene la copia, la pide al firmador en ese momento; si no responde, se puede volver a intentar. */
+  downloadSigned(): void {
+    const directive = this.directive();
+    if (!directive || this.signedLoading()) return;
+
+    this.signedLoading.set(true);
+    this.signedError.set('');
+    this.service.file(directive.id, 'signed', directive.signed?.version).subscribe({
+      next: blob => {
+        this.signedLoading.set(false);
+        const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = directive.signed?.name || 'directiva_firmada.pdf';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        if (directive.signed && !directive.signed.available) this.refresh();
+      },
+      error: async error => {
+        this.signedLoading.set(false);
+        this.signedError.set(await this.messageOf(error));
+        this.refresh();
+      },
+    });
+  }
+
+  /** Vuelve a pedir la directiva sin mostrar la pantalla de carga: lo que cambió (la copia guardada, el intento fallido en el seguimiento) se ve en su sitio. */
+  private refresh(): void {
+    this.service.detail(this.id).subscribe({
+      next: response => {
+        if (response.status === STATUS.success) this.directive.set(response.payload.data);
+      },
+      error: () => undefined,
+    });
+  }
+
+  copyCode(): void {
+    const code = this.directive()?.signed?.code;
+    if (!code) return;
+
+    navigator.clipboard?.writeText(code).then(() => {
+      this.codeCopied.set(true);
+      setTimeout(() => this.codeCopied.set(false), 2000);
+    }).catch(() => undefined);
+  }
+
+  /** El cuerpo de un error de descarga llega como archivo: se lee para mostrar lo que dijo el servidor. */
+  private async messageOf(error: { error?: unknown }): Promise<string> {
+    const fallback = 'No se pudo traer el documento firmado. Inténtalo de nuevo en unos minutos.';
+    try {
+      const body = error?.error instanceof Blob ? JSON.parse(await error.error.text()) : error?.error;
+
+      return (body as { payload?: { message?: string } })?.payload?.message || fallback;
+    } catch {
+      return fallback;
+    }
   }
 
   openCancel(): void {

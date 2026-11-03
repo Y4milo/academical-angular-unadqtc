@@ -22,6 +22,13 @@
 .progress-marker[data-state='active'] { border-color: var(--p-primary-color); background: var(--p-primary-color); }
 .progress-marker[data-state='rejected'] { border-color: var(--p-red-500); background: var(--p-red-500); }
 .returned { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-orange-400); border-radius: var(--radius-md); }
+.signed { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-left: 4px solid var(--p-green-500); border-radius: var(--radius-md); }
+.signed h3 { margin: 0; font-size: var(--text-card-title); }
+.signed p { margin: 0; }
+.signed__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.signed__key { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.signed__key code { font-family: var(--font-mono, monospace); letter-spacing: .08em; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm, 6px); background: var(--p-content-hover-background); }
+.signed__verify { color: var(--p-primary-color); font-weight: 600; font-size: var(--text-small); }
 .cancelled { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-left: 4px solid var(--p-red-500); border-radius: var(--radius-md); }
 .cancelled h3 { margin: 0; font-size: var(--text-card-title); }
 .cancelled p { margin: 0; }

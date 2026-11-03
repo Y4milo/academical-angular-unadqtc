@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 import { ApiData } from '../models/api/api-data.model';
 
 export type DirectiveStatus = 'draft' | 'in_signature' | 'returned' | 'signed' | 'cancelled';
-export type DirectiveFileKind = 'directive' | 'resolution';
+export type DirectiveFileKind = 'directive' | 'resolution' | 'signed';
 
 /** Lo que Core autoriza a la persona con las directivas, y el nombre de cada oficina por la que puede pedirlas. */
 export interface DirectiveAccess {
@@ -63,6 +63,8 @@ export type DirectiveViewer = 'origin' | 'rejecter' | 'signed' | 'pending' | 'no
 export interface DirectiveVersionInfo {
   version: number;
   current: boolean;
+  /** ¿Es la versión que firmaron todas las oficinas? Solo ella tiene documento firmado. */
+  signed: boolean;
   created_at: string | null;
   directive: DirectiveFileInfo;
   resolution: DirectiveFileInfo;
@@ -86,6 +88,23 @@ export interface DirectiveCancelled {
   reason: string | null;
 }
 
+/**
+ * El documento firmado de una directiva completa. La clave y las firmas las ve quien consulta la directiva (la verificación pública es abierta);
+ * el archivo, su huella y su tamaño solo quien puede leer los PDF de esa versión.
+ */
+export interface DirectiveSigned {
+  version: number;
+  code: string | null;
+  signatures: number | null;
+  verify_url: string | null;
+  can_download: boolean;
+  /** ¿Ya hay copia guardada en Academical? Si no, la descarga la pide al firmador en ese momento. */
+  available: boolean;
+  name: string | null;
+  size: number | null;
+  sha256: string | null;
+}
+
 export interface DirectiveDetail extends DirectiveSummary {
   sha256: { directive: string; resolution: string } | null;
   files_visible: boolean;
@@ -96,6 +115,7 @@ export interface DirectiveDetail extends DirectiveSummary {
   can_resubmit: boolean;
   can_cancel: boolean;
   cancelled: DirectiveCancelled | null;
+  signed: DirectiveSigned | null;
   events: DirectiveEvent[];
   /** La ruta enviada con el estado de cada oficina; vacía mientras es borrador. */
   progress: DirectiveProgressStep[];

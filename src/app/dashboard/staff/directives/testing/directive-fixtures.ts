@@ -40,7 +40,7 @@ export function detail(overrides: Partial<DirectiveDetail> = {}): DirectiveDetai
   return {
     ...summary(), sha256: { directive: 'a'.repeat(64), resolution: 'b'.repeat(64) },
     events: [{ type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana' }, data: {} }],
-    files_visible: true, versions: [], returned: null, viewer: 'origin', can_reject: false, can_resubmit: false, can_cancel: false, cancelled: null,
+    files_visible: true, versions: [], returned: null, viewer: 'origin', can_reject: false, can_resubmit: false, can_cancel: false, cancelled: null, signed: null,
     progress: [], can_sign: false, active_office: null, ...overrides,
   };
 }
