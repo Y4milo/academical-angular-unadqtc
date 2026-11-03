@@ -35,6 +35,7 @@ describe('DirectiveFormComponent', () => {
   }
 
   beforeEach(() => {
+    localStorage.removeItem('directives.lastOrigin');
     service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'detail', 'route', 'create', 'update']);
     service.access.and.returnValue(of(ok(access)));
     service.route.and.returnValue(of(ok(route())));
@@ -45,6 +46,64 @@ describe('DirectiveFormComponent', () => {
 
     expect(fixture.componentInstance.originOptions()).toEqual([{ code: 'adm', name: 'Oficina de Administración' }, { code: 'adm_sub', name: 'Unidad de Logística' }]);
     expect(text('route-pick-origin')).toContain('Elige la oficina de origen');
+  });
+
+  it('does not ask the office when Core authorizes only one: it shows it as a fixed fact from the profile', async () => {
+    service.access.and.returnValue(of(ok({ ...access, request_units: ['adm'] })));
+    await create();
+
+    expect(text('origin-name')).toBe('Oficina de Administración');
+    expect(text('origin-tag')).toContain('Por tu perfil');
+    expect(html().querySelector('[data-testid="origin-choice"]')).toBeNull();
+    expect(html().querySelector('[data-testid="route-pick-origin"]')).toBeNull();
+  });
+
+  it('with two to four offices it offers them as cards, and the route follows the choice', async () => {
+    await create();
+
+    expect(html().querySelector('[data-testid="origin-cards"]')).not.toBeNull();
+    expect(html().querySelector('[data-testid="origin-card"]')).toBeNull();
+
+    fixture.componentInstance.origin.set('adm_sub');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(service.route).toHaveBeenCalledWith('adm_sub', false);
+  });
+
+  it('with five offices or more it goes back to a searchable select', async () => {
+    const units = ['a', 'b', 'c', 'd', 'e'];
+    service.access.and.returnValue(of(ok({ ...access, request_units: units, request_unit_names: {} })));
+    await create();
+
+    expect(html().querySelector('[data-testid="origin-cards"]')).toBeNull();
+    expect(html().querySelector('[data-testid="origin-choice"] p-select')).not.toBeNull();
+  });
+
+  it('remembers the office of the last directive and starts with it', async () => {
+    await create();
+    const form = fixture.componentInstance;
+    form.origin.set('adm_sub');
+    form.title.set('Directiva de logística interna');
+    form.pick('directive', { files: [new File(['%PDF'], 'd.pdf', { type: 'application/pdf' })] });
+    form.pick('resolution', { files: [new File(['%PDF'], 'r.pdf', { type: 'application/pdf' })] });
+    service.create.and.returnValue(of(ok(detail({ id: 9 }))));
+    spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    form.save();
+    fixture.destroy();
+
+    fixture = TestBed.createComponent(DirectiveFormComponent);
+    fixture.autoDetectChanges();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.origin()).toBe('adm_sub');
+  });
+
+  it('summarizes the route in its header', async () => {
+    await create();
+    fixture.componentInstance.origin.set('adm');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(text('route-summary')).toBe('Falta 1');
   });
 
   it('picks the office by itself when Core authorizes only one', async () => {
@@ -145,6 +204,8 @@ describe('DirectiveFormComponent', () => {
     expect(form.title()).toBe('Directiva para el control de bienes patrimoniales');
     expect(form.origin()).toBe('adm');
     expect(form.quality()).toBeTrue();
+    expect(text('origin-tag')).toContain('No editable');
+    expect(text('origin-card')).toContain('elimina el borrador y crea uno nuevo');
 
     form.title.set('Directiva corregida de bienes');
     form.save();

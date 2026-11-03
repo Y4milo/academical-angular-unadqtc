@@ -4,6 +4,15 @@
 .page-heading p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .form-skeleton { display: grid; gap: var(--space-3); max-width: 40rem; }
 .layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.column { display: grid; gap: var(--space-4); min-width: 0; }
+.origin-card { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-left: 4px solid var(--p-primary-color); border-radius: var(--radius-md); }
+.origin-card__icon { font-size: var(--text-card-title); color: var(--p-text-muted-color); }
+.origin-card__text { display: grid; gap: var(--space-1); min-width: 0; flex: 1; }
+.origin-card__text strong { font-size: var(--text-card-title); }
+:host ::ng-deep .origin-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+:host ::ng-deep .origin-options .p-togglebutton { flex: 1 1 14rem; justify-content: flex-start; min-height: 3rem; }
+.route-head { display: flex; align-items: center; gap: var(--space-2); }
+.route-head h3 { margin: 0; font-size: var(--text-card-title); }
 .panel { display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
 .panel h3 { margin: 0; font-size: var(--text-card-title); }
 .field { display: grid; gap: var(--space-1); min-width: 0; }
