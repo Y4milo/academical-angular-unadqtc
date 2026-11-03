@@ -72,6 +72,24 @@ describe('DirectivesService', () => {
     no.flush({});
   });
 
+  it('asks what waits for the signature, opens the session and reports how it ended', () => {
+    service.pending().subscribe();
+    expect(http.expectOne(`${api}/directives/signing/pending`).request.method).toBe('GET');
+
+    service.openSigningSession(7).subscribe();
+    const open = http.expectOne(`${api}/directives/7/signing-sessions`);
+    expect(open.request.method).toBe('POST');
+    open.flush({});
+
+    service.reportSigningEvent(7, 'ses_1', 2, 'cancelled', 'cerró').subscribe();
+    const report = http.expectOne(`${api}/directives/7/signing-sessions/ses_1/events`);
+    expect(report.request.body).toEqual({ seq: 2, type: 'cancelled', detail: 'cerró' });
+    report.flush({});
+
+    service.reportSigningEvent(7, 'ses_1', 3, 'timeout').subscribe();
+    expect(http.expectOne(`${api}/directives/7/signing-sessions/ses_1/events`).request.body).toEqual({ seq: 3, type: 'timeout' });
+  });
+
   it('downloads a file as a blob', () => {
     service.file(7, 'resolution').subscribe();
     const request = http.expectOne(`${api}/directives/7/files/resolution`);

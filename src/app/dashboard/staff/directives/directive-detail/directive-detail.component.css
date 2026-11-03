@@ -14,6 +14,13 @@
 .file-info { display: grid; gap: var(--space-1); min-width: 0; }
 .muted { color: var(--p-text-muted-color); font-size: var(--text-small); word-break: break-word; }
 .hash { font-family: var(--font-mono, monospace); }
+.progress-step { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); padding-bottom: var(--space-3); }
+.progress-step--skipped strong { color: var(--p-text-muted-color); font-weight: 400; }
+.progress-step__main { display: grid; gap: var(--space-1); min-width: 0; }
+.progress-marker { display: block; width: .75rem; height: .75rem; border-radius: 50%; border: 2px solid var(--p-content-border-color); background: var(--p-content-background); }
+.progress-marker[data-state='signed'] { border-color: var(--p-green-500); background: var(--p-green-500); }
+.progress-marker[data-state='active'] { border-color: var(--p-primary-color); background: var(--p-primary-color); }
+:host ::ng-deep .route-timeline .p-timeline-event-opposite { flex: 0; padding: 0; }
 .event { display: grid; gap: var(--space-1); padding-bottom: var(--space-3); }
 .event-marker { display: block; width: .75rem; height: .75rem; border-radius: 50%; border: 2px solid var(--p-primary-color); background: var(--p-content-background); }
 :host ::ng-deep .events-timeline .p-timeline-event-opposite { flex: 0; padding: 0; }

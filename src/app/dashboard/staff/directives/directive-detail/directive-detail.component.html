@@ -22,6 +22,9 @@
       </div>
       <div class="header-actions">
         <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
+        @if (current.can_sign) {
+          <p-button label="Firmar" data-testid="sign-directive" (onClick)="sign()"></p-button>
+        }
         @if (current.can_edit) {
           <p-button label="Corregir" severity="secondary" [outlined]="true" data-testid="edit-directive" (onClick)="edit()"></p-button>
           <p-button label="Eliminar borrador" severity="danger" [outlined]="true" [loading]="deleting()" data-testid="delete-directive" (onClick)="askDelete()"></p-button>
@@ -67,6 +70,22 @@
           <h3 id="route-title">Ruta de firmas</h3>
           @if (isDraft()) {
             <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+          } @else if (current.progress.length > 0) {
+            <p-timeline [value]="current.progress" align="left" styleClass="route-timeline">
+              <ng-template pTemplate="marker" let-step>
+                <span class="progress-marker" [attr.data-state]="step.state" aria-hidden="true"></span>
+              </ng-template>
+              <ng-template pTemplate="content" let-step>
+                <div class="progress-step" [class.progress-step--skipped]="step.state === 'skipped'" data-testid="progress-step">
+                  <div class="progress-step__main">
+                    <strong>{{ step.label }}</strong>
+                    @if (step.person) { <span>{{ step.person }}</span> }
+                    @if (step.title) { <span class="muted">{{ step.title }}</span> }
+                  </div>
+                  <p-tag [value]="progressOf(step).label" [severity]="progressOf(step).severity"></p-tag>
+                </div>
+              </ng-template>
+            </p-timeline>
           } @else {
             <p-message severity="info">La ruta de esta directiva queda registrada al enviarla a firma.</p-message>
           }

@@ -250,6 +250,10 @@ export const routes: Routes = [
         path: ':id/editar',
         loadComponent: () => import('./dashboard/staff/directives/directive-form/directive-form.component').then(m => m.DirectiveFormComponent)
       },
+      {
+        path: ':id/firmar',
+        loadComponent: () => import('./dashboard/staff/directives/directive-sign/directive-sign.component').then(m => m.DirectiveSignComponent)
+      },
     ]
   },
   {

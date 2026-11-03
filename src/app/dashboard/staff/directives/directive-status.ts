@@ -1,4 +1,4 @@
-import { DirectiveStatus } from '../../../services/directives.service';
+import { DirectiveStatus, ProgressState } from '../../../services/directives.service';
 
 /** El color de cada estado lo decide su significado, igual en toda la aplicación. */
 export const DIRECTIVE_STATUS: Record<DirectiveStatus, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }> = {
@@ -7,6 +7,14 @@ export const DIRECTIVE_STATUS: Record<DirectiveStatus, { label: string; severity
   returned: { label: 'Devuelta', severity: 'warn' },
   signed: { label: 'Firmada', severity: 'success' },
   cancelled: { label: 'Anulada', severity: 'secondary' },
+};
+
+/** El estado de cada oficina en la ruta ya enviada. */
+export const DIRECTIVE_PROGRESS: Record<ProgressState, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }> = {
+  signed: { label: 'Firmó', severity: 'success' },
+  active: { label: 'Le toca', severity: 'info' },
+  waiting: { label: 'Espera su turno', severity: 'secondary' },
+  skipped: { label: 'Omitida', severity: 'secondary' },
 };
 
 /** Lo que dice cada hecho de la línea de tiempo. */
@@ -23,6 +31,9 @@ export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
   signature_invalid: 'Una firma no pasó la validación',
   session_abandoned: 'Abrió la firma y no la terminó',
   send_failed: 'No se pudo enviar a firma',
+  session_cancelled: 'Cerró la firma sin terminar',
+  session_timeout: 'Se agotó el tiempo de la firma',
+  session_error: 'Hubo un error al firmar',
 };
 
 export function formatBytes(size: number): string {

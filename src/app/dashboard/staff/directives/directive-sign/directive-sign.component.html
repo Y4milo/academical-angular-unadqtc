@@ -1,0 +1,90 @@
+<div class="directive-sign">
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Volver a las directivas" severity="secondary" [outlined]="true" size="small" (onClick)="backToList()"></p-button></div>
+  } @else if (loading()) {
+    <div class="sign-skeleton" aria-busy="true" data-testid="sign-skeleton">
+      <p-skeleton width="min(22rem, 100%)" height="2rem"></p-skeleton>
+      <p-skeleton height="18rem"></p-skeleton>
+    </div>
+  } @else {
+   @if (directive(); as current) {
+    <div class="page-heading">
+      <div>
+        <p class="caption">Firmas pendientes</p>
+        <h2>Firmar directiva</h2>
+        @if (current.can_sign) {
+          <p class="meta" data-testid="turn">Es tu turno: paso {{ position().number }} de {{ position().total }} · {{ current.active_office }}</p>
+        }
+      </div>
+      <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
+    </div>
+
+    @if (!current.can_sign && phase() !== 'done') {
+      <p-message severity="info" data-testid="not-your-turn">
+        Esta directiva no espera tu firma{{ current.active_office ? ': ahora le toca a ' + current.active_office : '' }}.
+      </p-message>
+    } @else {
+      <div class="layout">
+        <section class="panel" aria-labelledby="doc-title">
+          <h3 id="doc-title">{{ current.title }}</h3>
+          <p-selectbutton [options]="kindOptions" optionLabel="label" optionValue="value" [ngModel]="kind()" (ngModelChange)="$event && preview($event)" [allowEmpty]="false" size="small" aria-label="Documento que se muestra"></p-selectbutton>
+          @if (previewError()) {
+            <p-message severity="error" data-testid="preview-error">{{ previewError() }}</p-message>
+          } @else if (previewLoading() || !previewUrl()) {
+            <p-skeleton height="26rem" data-testid="preview-skeleton"></p-skeleton>
+          } @else {
+            <iframe class="preview" [src]="previewUrl()!" title="Vista previa del documento" data-testid="preview"></iframe>
+          }
+        </section>
+
+        <div class="side">
+          <section class="panel" aria-labelledby="sign-title">
+            <h3 id="sign-title">Tu firma</h3>
+
+            @if (phase() === 'done') {
+              @if (confirmed()) {
+                <p-message severity="success" data-testid="signed-ok">Tu firma quedó registrada. La directiva sigue con la siguiente oficina.</p-message>
+              } @else {
+                <p-message severity="info" data-testid="signed-pending">Tu firma se envió. La confirmación puede tardar unos segundos: revísala en el seguimiento.</p-message>
+              }
+              <p-button label="Ver el seguimiento" (onClick)="back()" data-testid="go-detail"></p-button>
+            } @else {
+              @if (session()?.stamp_reason; as reason) {
+                <p class="reason" data-testid="stamp-reason"><span class="muted">Motivo de la firma</span>{{ reason }}</p>
+              }
+              <p-message severity="info" size="small">Usa el certificado a tu nombre. Si es de otra persona, la firma se rechaza.</p-message>
+              @if (!environment().recommended || !environment().windows) {
+                <p-message severity="warn" size="small" data-testid="environment-warning">
+                  Estás en {{ environment().browser }}. Para firmar usa Microsoft Edge en Windows, con el firmador de Firma Perú abierto.
+                </p-message>
+              }
+              @if (signError()) { <p-message severity="error" data-testid="sign-error">{{ signError() }}</p-message> }
+              @if (notice()) { <p-message severity="warn" data-testid="sign-notice">{{ notice() }}</p-message> }
+              @switch (phase()) {
+                @case ('waiting') { <p class="status" role="status" data-testid="status-waiting">Elige tu certificado en la ventana de Firma Perú y escribe tu PIN.</p> }
+                @case ('confirming') { <p class="status" role="status" data-testid="status-confirming">Confirmando tu firma con el firmador…</p> }
+              }
+              <p-button label="Firmar con Firma Perú" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
+            }
+          </section>
+
+          @if (before().length > 0) {
+            <section class="panel" aria-labelledby="before-title">
+              <h3 id="before-title">Antes de ti</h3>
+              <ul class="before">
+                @for (step of before(); track step.key) {
+                  <li data-testid="before-step">
+                    <strong>{{ step.person }}</strong>
+                    <span class="muted">{{ step.label }}</span>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+      </div>
+    }
+   }
+  }
+</div>

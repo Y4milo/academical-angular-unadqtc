@@ -118,7 +118,7 @@ Referencia en `dashboard/staff/accounting/{bn-incidents,bn-files,bn-traces,bn-co
 - **Sesión:** el usuario vive en `sessionStorage` (por pestaña); abrir una URL en otra pestaña manda al login con `returnUrl`, que vuelve a la página pedida. Para revisar en el navegador integrado sin perder la sesión, navegar con `history.pushState` + `popstate`; `ng.getComponent` sirve en desarrollo. Si `ng serve` deja de reaccionar a los cambios, reiniciarlo (`npm start`).
 
 ## Directivas con firma digital
-Módulo en `dashboard/staff/directives` (lista, formulario, detalle y `directive-route-steps`), ruta única `/directivas` para todo el personal: quién entra lo decide Core y el ítem de menú sale del API solo para esa persona. La ruta de firmas es un `p-timeline` (con `pTemplate`, no `#content`, dentro de pestañas o paneles). El selector de PDF es un `p-button` secundario con un `input type=file` oculto (el modo básico de `p-fileupload` deja texto nativo). Detalle en `docs/frontend-components.md`.
+Módulo en `dashboard/staff/directives` (lista, formulario, detalle y `directive-route-steps`), ruta única `/directivas` para todo el personal: quién entra lo decide Core y el ítem de menú sale del API solo para esa persona. La ruta de firmas es un `p-timeline` (con `pTemplate`, no `#content`, dentro de pestañas o paneles). El selector de PDF es un `p-button` secundario con un `input type=file` oculto (el modo básico de `p-fileupload` deja texto nativo). La firma (`directive-sign`) reutiliza `FirmaPeruSignerService`, avisa al servidor cómo terminó la sesión (cancelar, tiempo agotado y error son obligatorios) y corre sus temporizadores fuera de la zona de Angular. Detalle en `docs/frontend-components.md`.
 
 ## Typography
 

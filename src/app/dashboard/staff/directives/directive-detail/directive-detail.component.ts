@@ -11,10 +11,10 @@ import { TimelineModule } from 'primeng/timeline';
 import { TooltipModule } from 'primeng/tooltip';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
-import { DirectiveDetail, DirectiveEvent, DirectiveFileKind, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
+import { DirectiveDetail, DirectiveEvent, DirectiveFileKind, DirectiveProgressStep, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
-import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
+import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
 
 /**
  * Una directiva: su estado, los dos PDF, la ruta de firmas con la persona designada en cada oficina y su línea de tiempo. El borrador se corrige
@@ -109,6 +109,10 @@ export class DirectiveDetailComponent implements OnInit {
     });
   }
 
+  progressOf(step: DirectiveProgressStep) {
+    return DIRECTIVE_PROGRESS[step.state];
+  }
+
   eventLabel(event: DirectiveEvent): string {
     return DIRECTIVE_EVENT_LABELS[event.type] ?? event.type;
   }
@@ -148,6 +152,10 @@ export class DirectiveDetailComponent implements OnInit {
 
   edit(): void {
     this.router.navigateByUrl(`${PATHS.directives.link}/${this.directive()!.id}/editar`);
+  }
+
+  sign(): void {
+    this.router.navigateByUrl(`${PATHS.directives.link}/${this.directive()!.id}/firmar`);
   }
 
   back(): void {

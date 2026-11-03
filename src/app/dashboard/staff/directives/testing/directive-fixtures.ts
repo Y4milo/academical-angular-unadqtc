@@ -39,6 +39,7 @@ export function summary(overrides: Partial<DirectiveSummary> = {}): DirectiveSum
 export function detail(overrides: Partial<DirectiveDetail> = {}): DirectiveDetail {
   return {
     ...summary(), sha256: { directive: 'a'.repeat(64), resolution: 'b'.repeat(64) },
-    events: [{ type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana' }, data: {} }], ...overrides,
+    events: [{ type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana' }, data: {} }],
+    progress: [], can_sign: false, active_office: null, ...overrides,
   };
 }
