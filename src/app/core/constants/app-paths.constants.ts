@@ -201,6 +201,8 @@ export const PATHS = {
     detailPath: `directivas/:id`,
     editPath: `directivas/:id/editar`,
     signPath: `directivas/:id/firmar`,
+    resubmitPath: `directivas/:id/corregir`,
+    settingsPath: `directivas/configuracion`,
   },
   dbu: {
     path: `dbu`,

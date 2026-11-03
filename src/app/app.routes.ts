@@ -243,8 +243,19 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/directives/directive-form/directive-form.component').then(m => m.DirectiveFormComponent)
       },
       {
+        // Qué ve cada oficina de la ruta: solo el administrador del sistema (el API también lo exige).
+        path: 'configuracion',
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin]},
+        loadComponent: () => import('./dashboard/staff/directives/directive-settings/directive-settings.component').then(m => m.DirectiveSettingsComponent)
+      },
+      {
         path: ':id',
         loadComponent: () => import('./dashboard/staff/directives/directive-detail/directive-detail.component').then(m => m.DirectiveDetailComponent)
+      },
+      {
+        path: ':id/corregir',
+        loadComponent: () => import('./dashboard/staff/directives/directive-resubmit/directive-resubmit.component').then(m => m.DirectiveResubmitComponent)
       },
       {
         path: ':id/editar',

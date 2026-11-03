@@ -44,7 +44,7 @@ describe('DirectiveSignComponent', () => {
   }
 
   beforeEach(async () => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'file', 'openSigningSession', 'reportSigningEvent']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'file', 'openSigningSession', 'reportSigningEvent', 'reject']);
     signer = jasmine.createSpyObj<FirmaPeruSignerService>('FirmaPeruSignerService', ['environment', 'load', 'start']);
     service.detail.and.returnValue(of(ok(turn())));
     service.file.and.returnValue(of(new Blob(['%PDF'])));
@@ -85,6 +85,85 @@ describe('DirectiveSignComponent', () => {
     expect(service.file).toHaveBeenCalledWith(7, 'directive');
     expect(html().querySelector('[data-testid="preview"]')).not.toBeNull();
     expect(text('before-step')).toContain('Ana Torres');
+  });
+
+  describe('rejecting', () => {
+    const REASON = 'El artículo 5 contradice la Directiva 003-2025.';
+    const rejectable = () => detail({ ...turn(), can_reject: true });
+
+    it('offers to reject only to who has the turn and can reject', async () => {
+      await create();
+      expect(html().querySelector('[data-testid="reject-button"]')).toBeNull();
+
+      service.detail.and.returnValue(of(ok(rejectable())));
+      fixture.componentInstance.load();
+      fixture.detectChanges();
+      expect(html().querySelector('[data-testid="reject-button"]')).not.toBeNull();
+    });
+
+    it('needs a reason of at least 10 characters and the acknowledgment before it can be confirmed', async () => {
+      service.detail.and.returnValue(of(ok(rejectable())));
+      await create();
+      const component = fixture.componentInstance;
+      component.openReject();
+      fixture.detectChanges();
+
+      expect(component.canReject()).toBeFalse();
+      component.rejectReason.set('corto');
+      component.rejectAck.set(true);
+      expect(component.reasonTooShort()).toBeTrue();
+      expect(component.canReject()).toBeFalse();
+      component.rejectReason.set(REASON);
+      expect(component.reasonTooShort()).toBeFalse();
+      expect(component.canReject()).toBeTrue();
+      component.rejectAck.set(false);
+      expect(component.canReject()).toBeFalse();
+    });
+
+    it('sends the reason, closes the dialog and says the directive went back', async () => {
+      service.detail.and.returnValue(of(ok(rejectable())));
+      service.reject.and.returnValue(of(ok(detail({ status: 'returned', status_label: 'Devuelta' }))));
+      await create();
+      const component = fixture.componentInstance;
+      component.openReject();
+      component.rejectReason.set(`  ${REASON}  `);
+      component.rejectAck.set(true);
+
+      component.reject();
+      fixture.detectChanges();
+
+      expect(service.reject).toHaveBeenCalledOnceWith(7, REASON);
+      expect(component.rejectOpen()).toBeFalse();
+      expect(text('rejected-done')).toContain('Volvió a la oficina de origen');
+      expect(html().querySelector('[data-testid="sign-button"]')).toBeNull();
+    });
+
+    it('keeps the dialog and shows what the server said when it cannot reject', async () => {
+      service.detail.and.returnValue(of(ok(rejectable())));
+      service.reject.and.returnValue(throwError(() => ({ status: 409, error: { payload: { message: 'En el firmador esta directiva ya no está esperando tu firma.' } } })));
+      await create();
+      const component = fixture.componentInstance;
+      component.openReject();
+      component.rejectReason.set(REASON);
+      component.rejectAck.set(true);
+
+      component.reject();
+
+      expect(component.rejectOpen()).toBeTrue();
+      expect(component.rejectError()).toContain('ya no está esperando tu firma');
+      expect(component.rejectSending()).toBeFalse();
+      expect(component.rejectedDone()).toBeFalse();
+    });
+
+    it('does not open the dialog while a signature is in progress', async () => {
+      service.detail.and.returnValue(of(ok(rejectable())));
+      await create();
+      fixture.componentInstance.phase.set('waiting');
+
+      fixture.componentInstance.openReject();
+
+      expect(fixture.componentInstance.rejectOpen()).toBeFalse();
+    });
   });
 
   it('shows the other document when asked', async () => {

@@ -1,0 +1,89 @@
+<div class="directive-resubmit">
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Volver a la directiva" severity="secondary" [outlined]="true" size="small" (onClick)="cancel()"></p-button></div>
+  } @else if (loading()) {
+    <div class="form-skeleton" aria-busy="true" data-testid="resubmit-skeleton">
+      <p-skeleton height="3rem"></p-skeleton>
+      <p-skeleton height="8rem"></p-skeleton>
+    </div>
+  } @else {
+   @if (directive(); as current) {
+    <div class="page-heading">
+      <p class="caption">Directiva · {{ current.origin.name }}</p>
+      <h2>Corregir y reenviar</h2>
+      <p>Vas a crear la <strong>versión {{ nextVersion() }}</strong>. La ruta empieza de cero y todas las oficinas vuelven a firmar.</p>
+    </div>
+
+    @if (current.returned?.reason; as reason) {
+      <p-message severity="error" data-testid="returned-reason">
+        <span><strong>Motivo de la devolución{{ current.returned?.office ? ' · ' + current.returned?.office : '' }}:</strong> {{ reason }}</span>
+      </p-message>
+    }
+
+    <div class="layout">
+      <div class="column">
+        <section class="panel" aria-labelledby="data-title">
+          <h3 id="data-title">Datos</h3>
+          <div class="field">
+            <label for="resubmit-title">Título de la directiva *</label>
+            <input pInputText id="resubmit-title" type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" [attr.aria-invalid]="submitted() && !!errors()['title']" />
+            @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
+          </div>
+          <div class="field">
+            <span class="label">Oficina de origen</span>
+            <strong>{{ current.origin.name }}</strong>
+            <small class="field-hint">No cambia al corregir.</small>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="files-title">
+          <h3 id="files-title">Documentos de la versión {{ nextVersion() }}</h3>
+          <div class="field">
+            <span class="label" id="resubmit-directive-label">Directiva corregida (PDF) *</span>
+            <input #directivePicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('directive', $event)" />
+            <div class="pick">
+              <p-button [label]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" icon="pi pi-upload" severity="secondary" [outlined]="true" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onClick)="directivePicker.click()"></p-button>
+            </div>
+            @if (directiveFile(); as file) { <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small> }
+            <small class="field-hint">Sin firmar: la firman las oficinas desde Academical.</small>
+            @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
+          </div>
+
+          <div class="field">
+            <span class="label" id="resubmit-resolution-label">Resolución que la aprueba (PDF) <p-tag value="Opcional" severity="secondary"></p-tag></span>
+            <input #resolutionPicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('resolution', $event)" />
+            @if (resolutionFile(); as file) {
+              <small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }} · reemplaza a la anterior</small>
+              <div class="pick">
+                <p-button label="Volver a la anterior" severity="secondary" [outlined]="true" size="small" data-testid="keep-resolution" (onClick)="keepResolution()"></p-button>
+              </div>
+            } @else {
+              <small class="file-name" data-testid="resolution-kept">{{ current.files?.resolution?.name ?? 'La resolución anterior' }} · se conserva la de la versión {{ current.version }}</small>
+              <div class="pick">
+                <p-button label="Reemplazar" severity="secondary" [outlined]="true" size="small" [attr.aria-labelledby]="'resubmit-resolution-label'" data-testid="pick-resolution" (onClick)="resolutionPicker.click()"></p-button>
+              </div>
+            }
+            @if (fileError().resolution; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
+          </div>
+
+          @if (serverError()) {
+            <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
+          }
+
+          <div class="actions">
+            <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="sending()" (onClick)="cancel()"></p-button>
+            <p-button [label]="'Enviar versión ' + nextVersion() + ' a firma'" [loading]="sending()" data-testid="resubmit-send" (onClick)="send()"></p-button>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel" aria-labelledby="route-title" data-testid="route-panel">
+        <h3 id="route-title">Ruta que empezará de cero</h3>
+        <p class="field-hint">Con las personas que Core tiene designadas hoy, no las de la versión {{ current.version }}.</p>
+        <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+      </section>
+    </div>
+   }
+  }
+</div>

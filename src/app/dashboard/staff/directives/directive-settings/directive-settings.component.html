@@ -1,0 +1,72 @@
+<div class="directive-settings">
+  <div class="page-heading">
+    <div>
+      <p class="caption">Administración · Directivas</p>
+      <h2>Visibilidad de directivas</h2>
+      <p>Qué ve cada oficina de la ruta cuando una directiva circula o es devuelta. Aplica a todas las directivas, nuevas y en curso.</p>
+    </div>
+    <p-tag value="Solo administradores" severity="secondary"></p-tag>
+  </div>
+
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button></div>
+  } @else if (loading()) {
+    <div class="settings-skeleton" aria-busy="true" data-testid="settings-skeleton">
+      <p-skeleton height="6rem"></p-skeleton>
+      <p-skeleton height="6rem"></p-skeleton>
+      <p-skeleton height="6rem"></p-skeleton>
+    </div>
+  } @else {
+    @if (values(); as current) {
+      <div class="layout">
+        <div class="column">
+          @for (rule of rules; track rule.key) {
+            <section class="panel" [attr.aria-labelledby]="'rule-' + rule.key" [attr.data-testid]="'rule-' + rule.key">
+              <h3 [id]="'rule-' + rule.key">{{ rule.title }}</h3>
+              <p class="hint">{{ rule.hint }}</p>
+              <p-selectbutton [options]="rule.options" optionLabel="label" optionValue="value" [ngModel]="current[rule.key]" (ngModelChange)="choose(rule.key, $event)" [allowEmpty]="false" size="small" [ariaLabelledBy]="'rule-' + rule.key"></p-selectbutton>
+            </section>
+          }
+
+          @if (saveError()) { <p-message severity="error" data-testid="save-error">{{ saveError() }}</p-message> }
+          <div class="actions">
+            <p-button label="Guardar cambios" [disabled]="!dirty()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
+            <p-button label="Restablecer" severity="secondary" [outlined]="true" [disabled]="saving()" data-testid="reset-settings" (onClick)="reset()"></p-button>
+            <span class="hint" data-testid="settings-state">{{ dirty() ? 'Tienes cambios sin guardar.' : 'Sin cambios sin guardar.' }}</span>
+          </div>
+        </div>
+
+        <div class="column">
+          <section class="panel" aria-labelledby="preview-title" data-testid="preview-panel">
+            <h3 id="preview-title">Así lo vería una oficina sin turno</h3>
+            <p class="hint">Por ejemplo, Presidencia. Se actualiza al elegir.</p>
+            @if (preview(); as view) {
+              <p-message severity="info" data-testid="preview-text">
+                La directiva no llegó a su turno. Ve su estado y que fue devuelta; {{ view.documents ? 'puede consultar los PDF' : 'no ve los PDF' }}{{ view.reason ? ' y ve el motivo.' : ', no el motivo.' }}
+              </p-message>
+            }
+          </section>
+
+          <section class="panel" aria-labelledby="history-title" data-testid="history-panel">
+            <h3 id="history-title">Registro de cambios</h3>
+            @if (saved()?.history?.length) {
+              <p-timeline [value]="saved()!.history" align="left" styleClass="history-timeline">
+                <ng-template pTemplate="marker"><span class="history-marker" aria-hidden="true"></span></ng-template>
+                <ng-template pTemplate="content" let-change>
+                  <div class="history-item" data-testid="history-row">
+                    <strong>{{ keyLabel(change.key) }}</strong>
+                    <span>{{ valueLabel(change.old) }} → {{ valueLabel(change.new) }}</span>
+                    <span class="hint">{{ change.by || 'Sistema' }} · {{ change.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </ng-template>
+              </p-timeline>
+            } @else {
+              <p class="hint" data-testid="history-empty">Todavía no se cambió nada: rigen los valores predeterminados.</p>
+            }
+          </section>
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -14,7 +14,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveEvent, DirectiveFileKind, DirectiveProgressStep, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
-import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
+import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
 
 /**
  * Una directiva: su estado, los dos PDF, la ruta de firmas con la persona designada en cada oficina y su línea de tiempo. El borrador se corrige
@@ -34,7 +34,7 @@ export class DirectiveDetailComponent implements OnInit {
   readonly route = signal<DirectiveRoute | null>(null);
   readonly routeLoading = signal(false);
   readonly routeError = signal('');
-  readonly opening = signal<DirectiveFileKind | null>(null);
+  readonly opening = signal<string | null>(null);
   readonly deleting = signal(false);
   readonly sending = signal(false);
   readonly sendError = signal('');
@@ -110,8 +110,26 @@ export class DirectiveDetailComponent implements OnInit {
   }
 
   progressOf(step: DirectiveProgressStep) {
-    return DIRECTIVE_PROGRESS[step.state];
+    const current = this.directive();
+    const returned = current?.status === 'returned' ? DIRECTIVE_PROGRESS_RETURNED[step.state] : undefined;
+    if (!returned) return DIRECTIVE_PROGRESS[step.state];
+
+    return step.state === 'signed' ? { ...returned, label: `Firmó la versión ${current!.returned?.version ?? current!.version}` } : returned;
   }
+
+  /** Lo que explica por qué quien consulta ve esta directiva como la ve: no es de su oficina, es de su ruta. */
+  readonly viewerNote = computed(() => {
+    switch (this.directive()?.viewer) {
+      case 'signed':
+        return 'Tu oficina ya firmó esta directiva. La ves en modo consulta: solo puedes leerla.';
+      case 'rejecter':
+        return 'Tú devolviste esta directiva. La ves en modo consulta.';
+      case 'pending':
+        return 'Esta directiva pasará por tu oficina. La ves en modo consulta hasta que te toque firmar.';
+      default:
+        return '';
+    }
+  });
 
   eventLabel(event: DirectiveEvent): string {
     return DIRECTIVE_EVENT_LABELS[event.type] ?? event.type;
@@ -124,14 +142,14 @@ export class DirectiveDetailComponent implements OnInit {
     return [data.office, data.person, data.reason].filter(Boolean).join(' · ');
   }
 
-  openFile(kind: DirectiveFileKind): void {
+  openFile(kind: DirectiveFileKind, version?: number): void {
     const directive = this.directive();
     if (!directive || this.opening()) return;
     // La pestaña se abre en el clic (antes de la espera) para que el navegador no la bloquee.
     const tab = window.open('', '_blank');
-    this.opening.set(kind);
+    this.opening.set(version ? `${kind}-${version}` : kind);
 
-    this.service.file(directive.id, kind).subscribe({
+    this.service.file(directive.id, kind, version).subscribe({
       next: blob => {
         this.opening.set(null);
         const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
@@ -152,6 +170,10 @@ export class DirectiveDetailComponent implements OnInit {
 
   edit(): void {
     this.router.navigateByUrl(`${PATHS.directives.link}/${this.directive()!.id}/editar`);
+  }
+
+  resubmit(): void {
+    this.router.navigateByUrl(`${PATHS.directives.link}/${this.directive()!.id}/corregir`);
   }
 
   sign(): void {

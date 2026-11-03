@@ -15,7 +15,7 @@ import { NotificationService } from '../../../../services/notification.service';
 import { DIRECTIVE_STATUS } from '../directive-status';
 
 type StatusFilter = DirectiveStatus | 'all';
-type Section = 'mine' | 'pending';
+type Section = 'mine' | 'pending' | 'route';
 
 /**
  * Las directivas de las oficinas por las que Core autoriza a pedirlas (estado y a dónde llegó) y, para quien Core designa a firmar, las que
@@ -35,6 +35,8 @@ export class DirectivesListComponent implements OnInit {
   readonly filter = signal<StatusFilter>('all');
   readonly pending = signal<PendingDirective[]>([]);
   readonly section = signal<Section>('mine');
+  /** Las directivas enviadas en cuya ruta de firmas está la persona, para seguirlas en modo consulta aunque no las pida. */
+  readonly participating = signal<DirectiveSummary[]>([]);
 
   readonly skeletonRows = [1, 2, 3, 4];
   readonly filterOptions: { label: string; value: StatusFilter }[] = [
@@ -49,8 +51,9 @@ export class DirectivesListComponent implements OnInit {
   readonly canRequest = computed(() => this.access()?.can_request === true);
   readonly canSign = computed(() => this.access()?.can_sign === true);
   readonly sectionOptions = computed<{ label: string; value: Section }[]>(() => [
-    { label: 'Mis directivas', value: 'mine' },
-    { label: `Por firmar${this.pending().length > 0 ? ` (${this.pending().length})` : ''}`, value: 'pending' },
+    ...(this.canRequest() ? [{ label: 'Mis directivas', value: 'mine' as Section }] : []),
+    ...(this.canSign() ? [{ label: `Por firmar${this.pending().length > 0 ? ` (${this.pending().length})` : ''}`, value: 'pending' as Section }] : []),
+    ...(this.participating().length > 0 ? [{ label: `En tu ruta (${this.participating().length})`, value: 'route' as Section }] : []),
   ]);
 
   constructor(
@@ -77,6 +80,7 @@ export class DirectivesListComponent implements OnInit {
 
         this.access.set(response.payload.data);
         if (response.payload.data.can_sign) this.loadPending();
+        if (response.payload.data.can_sign || response.payload.data.can_request) this.loadParticipating();
 
         if (!response.payload.data.can_request) {
           this.loading.set(false);
@@ -109,6 +113,15 @@ export class DirectivesListComponent implements OnInit {
           // Quien tiene algo por firmar y nada propio empieza por lo que le toca.
           if (response.payload.data.length > 0 && this.directives().length === 0) this.section.set('pending');
         }
+      },
+      error: () => undefined,
+    });
+  }
+
+  private loadParticipating(): void {
+    this.service.participating().subscribe({
+      next: response => {
+        if (response.status === STATUS.success) this.participating.set(response.payload.data);
       },
       error: () => undefined,
     });

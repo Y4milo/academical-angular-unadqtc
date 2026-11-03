@@ -3,9 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
+import { TextareaModule } from 'primeng/textarea';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SigningSession } from '../../../../services/directives.service';
@@ -13,6 +16,10 @@ import { FirmaPeruSignerService } from '../../../../services/firma-peru-signer.s
 
 /** En qué va la firma: nada empezado, abriendo la sesión, esperando al firmador local, confirmando con el servidor o terminada. */
 export type SignPhase = 'idle' | 'opening' | 'waiting' | 'confirming' | 'done';
+
+/** Largo del motivo del rechazo, igual que en el servidor. */
+export const REASON_MIN = 10;
+export const REASON_MAX = 1000;
 
 const CONFIRM_TRIES = 10;
 const CONFIRM_EVERY_MS = 3000;
@@ -24,7 +31,7 @@ const CONFIRM_EVERY_MS = 3000;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [FormsModule, ButtonModule, MessageModule, SelectButtonModule, SkeletonModule],
+  imports: [FormsModule, ButtonModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })
@@ -41,6 +48,16 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
   readonly previewLoading = signal(false);
   readonly previewError = signal('');
   readonly confirmed = signal(false);
+
+  readonly rejectOpen = signal(false);
+  readonly rejectReason = signal('');
+  readonly rejectAck = signal(false);
+  readonly rejectSending = signal(false);
+  readonly rejectError = signal('');
+  readonly rejectedDone = signal(false);
+  readonly reasonMax = REASON_MAX;
+  readonly reasonTooShort = computed(() => this.rejectReason().length > 0 && this.rejectReason().trim().length < REASON_MIN);
+  readonly canReject = computed(() => this.rejectReason().trim().length >= REASON_MIN && this.rejectAck() && !this.rejectSending());
 
   readonly kindOptions: { label: string; value: DirectiveFileKind }[] = [
     { label: 'Directiva', value: 'directive' },
@@ -149,6 +166,41 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
         this.startSigner(response.payload.data);
       },
       error: error => this.failToOpen(error?.error?.payload?.message),
+    });
+  }
+
+  openReject(): void {
+    if (this.busy()) return;
+    this.rejectError.set('');
+    this.rejectOpen.set(true);
+  }
+
+  closeReject(): void {
+    if (this.rejectSending()) return;
+    this.rejectOpen.set(false);
+  }
+
+  /** Rechaza la directiva con el motivo: vuelve a la oficina de origen y a quien rechaza ya no le queda nada pendiente en ella. */
+  reject(): void {
+    if (!this.canReject()) return;
+    this.rejectSending.set(true);
+    this.rejectError.set('');
+
+    this.service.reject(this.id, this.rejectReason().trim()).subscribe({
+      next: response => {
+        this.rejectSending.set(false);
+        if (response.status === STATUS.success) {
+          this.rejectOpen.set(false);
+          this.rejectedDone.set(true);
+          this.directive.update(current => (current ? { ...current, can_sign: false, can_reject: false, status: 'returned' } : current));
+        } else {
+          this.rejectError.set(response.payload?.message || 'No se pudo rechazar la directiva.');
+        }
+      },
+      error: error => {
+        this.rejectSending.set(false);
+        this.rejectError.set(error?.error?.payload?.message || error?.error?.message || 'No se pudo rechazar la directiva. Inténtalo nuevamente.');
+      },
     });
   }
 

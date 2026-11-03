@@ -15,13 +15,39 @@
   } @else if (!loading() && !canRequest() && !canSign()) {
     <p-message severity="info" data-testid="no-request-access">Core no te autoriza a pedir ni a firmar directivas.</p-message>
   } @else {
-    @if (canRequest() && canSign()) {
+    @if (sectionOptions().length > 1) {
       <div class="filters" role="group" aria-label="Qué directivas ver">
         <p-selectbutton [options]="sectionOptions()" optionLabel="label" optionValue="value" [ngModel]="section()" (ngModelChange)="section.set($event ?? 'mine')" [allowEmpty]="false" size="small" data-testid="section-switch"></p-selectbutton>
       </div>
     }
 
-    @if (section() === 'pending' && canSign()) {
+    @if (section() === 'route') {
+      <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="participating()" [tableStyle]="{ 'min-width': '44rem' }">
+        <ng-template #header>
+          <tr>
+            <th>Directiva</th>
+            <th>Oficina de origen</th>
+            <th>Estado</th>
+            <th>Actualizada</th>
+            <th class="actions-col"><span class="sr-only">Abrir</span></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-directive>
+          <tr data-testid="route-row">
+            <td>
+              <div class="cell-stack">
+                <strong>{{ directive.title }}</strong>
+                <span class="muted">Versión {{ directive.version }}{{ directive.is_quality ? ' · Proceso de calidad' : '' }}</span>
+              </div>
+            </td>
+            <td>{{ directive.origin.name }}</td>
+            <td><p-tag [value]="statusOf(directive.status).label" [severity]="statusOf(directive.status).severity"></p-tag></td>
+            <td>{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions-col"><p-button label="Consultar" size="small" severity="secondary" [outlined]="true" data-testid="open-route" (onClick)="open(directive)"></p-button></td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else if (section() === 'pending' && canSign()) {
       <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="pending()" [tableStyle]="{ 'min-width': '44rem' }">
         <ng-template #header>
           <tr>

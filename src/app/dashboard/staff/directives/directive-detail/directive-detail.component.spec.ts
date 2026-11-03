@@ -165,7 +165,7 @@ describe('DirectiveDetailComponent', () => {
     await create();
 
     fixture.componentInstance.openFile('resolution');
-    expect(service.file).toHaveBeenCalledWith(7, 'resolution');
+    expect(service.file).toHaveBeenCalledWith(7, 'resolution', undefined);
     expect(tab.location.href).toBe('blob:pdf');
 
     service.file.and.returnValue(throwError(() => ({ status: 404 })));
@@ -208,5 +208,88 @@ describe('DirectiveDetailComponent', () => {
     await create();
 
     expect(text('load-error')).toContain('No encontramos esa directiva');
+  });
+
+  describe('a returned directive', () => {
+    const REASON = 'El artículo 5 contradice la Directiva 003-2025.';
+    const progress = [
+      { key: 'origin', label: 'Oficina de Administración', person: 'Ana Torres', title: 'Jefa', state: 'signed' as const },
+      { key: 'legal', label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: 'Jefe', state: 'rejected' as const },
+      { key: 'presidency', label: 'Presidencia', person: 'Rosa Quispe', title: 'Presidenta', state: 'waiting' as const },
+    ];
+    const returned = (overrides = {}) =>
+      detail({
+        status: 'returned', status_label: 'Devuelta', can_edit: false, progress, returned: { version: 1, office: 'Asesoría Jurídica', at: '2026-11-13T08:40:00Z', person: 'Carlos Paucar', reason: REASON },
+        events: [{ type: 'rejected', version: 1, at: '2026-11-13T08:40:00Z', by: null, data: { office: 'Asesoría Jurídica', reason: REASON } }], ...overrides,
+      });
+
+    it('shows the reason to the origin and offers to correct and resend', async () => {
+      service.detail.and.returnValue(of(ok(returned({ can_resubmit: true }))));
+      await create();
+
+      expect(text('returned-panel')).toContain('Devuelta por Asesoría Jurídica');
+      expect(text('returned-reason')).toContain(REASON);
+      expect(text('returned-panel')).toContain('versión 2');
+      expect(html().querySelector('[data-testid="resubmit-directive"]')).not.toBeNull();
+
+      const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+      (html().querySelector('[data-testid="resubmit-directive"] button') as HTMLButtonElement).click();
+      expect(navigate).toHaveBeenCalledWith('directivas/7/corregir');
+    });
+
+    it('marks what was signed as the previous version and who has no turn', async () => {
+      service.detail.and.returnValue(of(ok(returned({ can_resubmit: true }))));
+      await create();
+
+      const steps = Array.from(html().querySelectorAll('[data-testid="progress-step"]')).map(step => step.textContent);
+      expect(steps[0]).toContain('Firmó la versión 1');
+      expect(steps[1]).toContain('Devolvió');
+      expect(steps[2]).toContain('Sin turno');
+    });
+
+    it('tells an office that already signed who returned it, without the reason, and that it will sign again', async () => {
+      service.detail.and.returnValue(of(ok(returned({ viewer: 'signed', returned: { version: 1, office: 'Asesoría Jurídica', at: '2026-11-13T08:40:00Z', person: null, reason: null } }))));
+      await create();
+
+      expect(text('viewer-note')).toContain('modo consulta');
+      expect(text('returned-no-reason')).toContain('El motivo lo ven la oficina de origen');
+      expect(html().querySelector('[data-testid="returned-reason"]')).toBeNull();
+      expect(text('returned-panel')).toContain('volverás a firmar');
+      expect(html().querySelector('[data-testid="resubmit-directive"]')).toBeNull();
+    });
+
+    it('says the documents are enabled on the turn when the viewer may not read them', async () => {
+      service.detail.and.returnValue(of(ok(returned({ viewer: 'pending', files: null, sha256: null, files_visible: false }))));
+      await create();
+
+      expect(text('files-hidden')).toContain('cuando te toque firmar');
+      expect(html().querySelector('[data-testid="open-directive"]')).toBeNull();
+    });
+
+    it('lists the versions and opens the PDF of a chosen one', async () => {
+      const versions = [
+        { version: 2, current: true, created_at: '2026-11-16T10:00:00Z', directive: { name: 'directiva-v2.pdf', size: 1, pages: 14 }, resolution: { name: 'resolucion.pdf', size: 1, pages: 3 } },
+        { version: 1, current: false, created_at: '2026-11-12T08:50:00Z', directive: { name: 'directiva.pdf', size: 1, pages: 14 }, resolution: { name: 'resolucion.pdf', size: 1, pages: 3 } },
+      ];
+      service.detail.and.returnValue(of(ok(detail({ status: 'in_signature', status_label: 'En firma', can_edit: false, versions, version: 2 }))));
+      service.file.and.returnValue(of(new Blob(['%PDF'])));
+      spyOn(window, 'open').and.returnValue({ location: { href: '' }, close: () => undefined } as unknown as Window);
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:pdf');
+      await create();
+
+      const rows = html().querySelectorAll('[data-testid="version-row"]');
+      expect(rows.length).toBe(2);
+      expect(rows[0].textContent).toContain('Versión 2 · vigente');
+      (rows[1].querySelector('button') as HTMLButtonElement).click();
+
+      expect(service.file).toHaveBeenCalledWith(7, 'directive', 1);
+    });
+
+    it('shows no versions panel while there is only one', async () => {
+      service.detail.and.returnValue(of(ok(detail())));
+      await create();
+
+      expect(html().querySelector('[data-testid="versions-panel"]')).toBeNull();
+    });
   });
 });

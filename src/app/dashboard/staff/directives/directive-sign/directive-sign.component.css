@@ -16,6 +16,13 @@
 .before { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
 .before li { display: grid; gap: var(--space-1); }
 :host ::ng-deep .sign-button { width: 100%; justify-content: center; }
+:host ::ng-deep .reject-button { width: 100%; justify-content: center; }
+.reject-form { display: grid; gap: var(--space-3); }
+.reject-form p { margin: 0; }
+.reject-counter { display: flex; justify-content: space-between; gap: var(--space-2); color: var(--p-text-muted-color); font-size: var(--text-small); }
+.reject-ack { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--text-small); }
+.reject-ack label { cursor: pointer; }
+.field-error { color: var(--p-red-500); font-size: var(--text-small); }
 
 @media (max-width: 900px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
