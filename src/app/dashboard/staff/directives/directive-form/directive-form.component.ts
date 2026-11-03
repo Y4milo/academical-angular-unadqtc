@@ -4,8 +4,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
+import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
@@ -14,17 +17,23 @@ import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
 import { formatBytes } from '../directive-status';
 
+/** Hasta cuántas oficinas se muestran como tarjetas de elección; con más vuelve el desplegable con buscador. */
+export const MAX_ORIGIN_CARDS = 4;
+
+const LAST_ORIGIN_KEY = 'directives.lastOrigin';
+
 /** El PDF más grande que se acepta, igual que en el servidor (`DIRECTIVES_MAX_PDF_KB`). */
 export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 
 /**
- * Crear una directiva (o corregir su borrador): el título, la oficina de origen que Core autoriza, si es de un proceso de calidad y los dos PDF,
- * la directiva sin firmar y la resolución que la aprueba, que son obligatorios. A un lado se ve la ruta de firmas con la persona designada en
+ * Crear una directiva (o corregir su borrador): el título, si es de un proceso de calidad y los dos PDF, la directiva sin firmar y la resolución
+ * que la aprueba, que son obligatorios. La oficina de origen viene del perfil que Core le dio a la persona: con una sola no se pregunta (se
+ * muestra como dato), con varias se elige (tarjetas hasta 4, desplegable desde 5) y al corregir un borrador queda fija. A un lado se ve la ruta de firmas con la persona designada en
  * cada oficina, que cambia con la oficina y con la opción de calidad.
  */
 @Component({
   selector: 'app-directive-form',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, SelectModule, SkeletonModule, ToggleSwitchModule, DirectiveRouteStepsComponent],
+  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, PanelModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, DirectiveRouteStepsComponent],
   templateUrl: './directive-form.component.html',
   styleUrl: './directive-form.component.css',
 })
@@ -54,6 +63,19 @@ export class DirectiveFormComponent implements OnInit {
     const access = this.access();
 
     return (access?.request_units ?? []).map(code => ({ code, name: access?.request_unit_names?.[code] ?? code }));
+  });
+  readonly fixedOrigin = computed(() => this.editing() || this.originOptions().length === 1);
+  readonly originName = computed(() => this.originOptions().find(option => option.code === this.origin())?.name ?? this.existing()?.origin.name ?? this.origin() ?? '');
+  readonly originAsCards = computed(() => !this.fixedOrigin() && this.originOptions().length <= MAX_ORIGIN_CARDS);
+  /** En el celular la ruta empieza plegada para no empujar el formulario; el resumen de su cabecera dice cómo está. */
+  readonly routeCollapsed = signal(typeof window !== 'undefined' && window.innerWidth <= 640);
+  readonly routeSummary = computed<{ label: string; severity: 'success' | 'warn' } | null>(() => {
+    const route = this.route();
+    if (!route) return null;
+    const missing = route.issues.length;
+    const ready = route.steps.filter(step => !step.skipped).length - missing;
+
+    return missing > 0 ? { label: missing === 1 ? 'Falta 1' : `Faltan ${missing}`, severity: 'warn' } : { label: ready === 1 ? '1 lista' : `${ready} listas`, severity: 'success' };
   });
   readonly errors = computed<Record<string, string>>(() => {
     const errors: Record<string, string> = {};
@@ -110,7 +132,7 @@ export class DirectiveFormComponent implements OnInit {
         if (this.id() === null) {
           const units = response.payload.data.request_units;
           this.loading.set(false);
-          if (units.length === 1) this.origin.set(units[0]);
+          this.origin.set(units.length === 1 ? units[0] : this.lastOrigin(units));
 
           return;
         }
@@ -134,6 +156,25 @@ export class DirectiveFormComponent implements OnInit {
       },
       error: () => this.fail('No se pudo consultar a Core. Inténtalo nuevamente.'),
     });
+  }
+
+  /** La oficina por la que la persona pidió la última vez, si sigue autorizada; es solo comodidad, así que no falla si el navegador no deja guardar. */
+  private lastOrigin(units: string[]): string | null {
+    try {
+      const last = localStorage.getItem(LAST_ORIGIN_KEY);
+
+      return last !== null && units.includes(last) ? last : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private rememberOrigin(origin: string): void {
+    try {
+      localStorage.setItem(LAST_ORIGIN_KEY, origin);
+    } catch {
+      /* sin almacenamiento solo se pierde la comodidad */
+    }
   }
 
   private fail(message: string): void {
@@ -204,6 +245,7 @@ export class DirectiveFormComponent implements OnInit {
       next: response => {
         this.saving.set(false);
         if (response.status === STATUS.success) {
+          if (!this.editing()) this.rememberOrigin(this.origin()!);
           this.notificationService.notifyApiData(response);
           this.router.navigateByUrl(`${PATHS.directives.link}/${response.payload.data.id}`);
         } else {

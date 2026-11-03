@@ -17,6 +17,30 @@
     </div>
   } @else {
     <div class="layout">
+     <div class="column">
+      @if (fixedOrigin()) {
+        <div class="origin-card" data-testid="origin-card">
+          <span class="pi pi-building origin-card__icon" aria-hidden="true"></span>
+          <div class="origin-card__text">
+            <small class="field-hint">Origen de la directiva</small>
+            <strong data-testid="origin-name">{{ originName() }}</strong>
+            <small class="field-hint">{{ editing() ? 'Fijado al crear el borrador. Si necesitas otra oficina, elimina el borrador y crea uno nuevo.' : 'Tu perfil en Core te autoriza a pedir directivas por esta oficina.' }}</small>
+          </div>
+          <p-tag [value]="editing() ? 'No editable' : 'Por tu perfil'" [severity]="editing() ? 'secondary' : 'info'" icon="pi pi-lock" data-testid="origin-tag"></p-tag>
+        </div>
+      } @else {
+        <section class="panel" aria-labelledby="origin-title" data-testid="origin-choice">
+          <h3 id="origin-title">¿Por qué oficina es esta directiva? *</h3>
+          <p class="field-hint">Solo ves las oficinas por las que Core te autoriza a pedir directivas. La ruta cambia con tu elección.</p>
+          @if (originAsCards()) {
+            <p-selectbutton styleClass="origin-options" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [allowEmpty]="false" ariaLabelledBy="origin-title" data-testid="origin-cards"></p-selectbutton>
+          } @else {
+            <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [filter]="true" placeholder="Elige la oficina" [fluid]="true" appendTo="body" ariaLabelledBy="origin-title"></p-select>
+          }
+          @if (submitted() && errors()['origin']; as message) { <small class="field-error" role="alert" data-testid="error-origin">{{ message }}</small> }
+        </section>
+      }
+
       <section class="panel" aria-labelledby="data-title">
         <h3 id="data-title">Datos</h3>
 
@@ -24,14 +48,6 @@
           <label for="directive-title">Título de la directiva *</label>
           <input pInputText id="directive-title" type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" [class.p-invalid]="submitted() && !!errors()['title']" [attr.aria-invalid]="submitted() && !!errors()['title']" />
           @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
-        </div>
-
-        <div class="field">
-          <label for="directive-origin">Oficina de origen *</label>
-          <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)"
-            [disabled]="editing()" placeholder="Elige la oficina" [fluid]="true" appendTo="body" [styleClass]="submitted() && !!errors()['origin'] ? 'p-invalid' : ''"></p-select>
-          <small class="field-hint">Solo las oficinas por las que Core te autoriza a pedir directivas.</small>
-          @if (submitted() && errors()['origin']; as message) { <small class="field-error" role="alert" data-testid="error-origin">{{ message }}</small> }
         </div>
 
         <div class="switch-row">
@@ -83,16 +99,22 @@
           <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
         </div>
       </section>
+     </div>
 
-      <section class="panel" aria-labelledby="route-title">
-        <h3 id="route-title">Ruta de firmas</h3>
+      <p-panel [toggleable]="true" [(collapsed)]="routeCollapsed" styleClass="route-panel" data-testid="route-panel">
+        <ng-template #header>
+          <div class="route-head">
+            <h3 id="route-title">Ruta de firmas</h3>
+            @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
+          </div>
+        </ng-template>
         <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</p>
         @if (!origin()) {
           <p-message severity="info" data-testid="route-pick-origin">Elige la oficina de origen para ver la ruta.</p-message>
         } @else {
           <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
         }
-      </section>
+      </p-panel>
     </div>
   }
 </div>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Origen de la directiva - Maqueta</title>
+<style>
+:root{--p-50:#fff1f2;--p-400:#f0505b;--p-600:#bd0d19;--p-700:#a50812;--primary:#d40f1c;
+--page:#f8fafc;--card:#fff;--hover:#f1f5f9;--border:#e2e8f0;--text:#334155;--muted:#64748b;--head:#0f172a;
+--ok-bg:#dcfce7;--ok:#15803d;--warn-bg:#fef3c7;--warn:#b45309;--bad-bg:#fee2e2;--bad:#b91c1c;--info-bg:#e0f2fe;--info:#0369a1;--sec-bg:#f1f5f9;--sec:#475569;--hl-bg:#fff1f2;--hl:#a50812}
+:root[data-theme=dark]{--page:#09090b;--card:#18181b;--hover:#27272a;--border:#3f3f46;--text:#e4e4e7;--muted:#a1a1aa;--head:#fff;
+--ok-bg:rgba(34,197,94,.16);--ok:#86efac;--warn-bg:rgba(245,158,11,.16);--warn:#fcd34d;--bad-bg:rgba(239,68,68,.16);--bad:#fca5a5;--info-bg:rgba(14,165,233,.16);--info:#7dd3fc;--sec-bg:rgba(161,161,170,.16);--sec:#d4d4d8;--hl-bg:rgba(240,80,91,.16);--hl:#f0505b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font:15px/1.5 "Segoe UI",Selawik,system-ui,sans-serif}
+h1,h2,h3{color:var(--head);margin:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:5}
+.bar .t{font-weight:700;color:var(--head);margin-right:8px}
+.ph{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:7px 12px;font:inherit;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.ph b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--hover);font-size:12px}
+.ph[aria-selected=true]{border-color:var(--primary);background:var(--hl-bg);color:var(--hl)}
+.ph[aria-selected=true] b{background:var(--primary);color:#fff}
+.sp{flex:1}
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px)}
+aside{border-right:1px solid var(--border);background:var(--card);padding:16px 12px}
+aside .logo{font-weight:800;color:var(--primary);letter-spacing:.02em;margin:0 8px 16px;display:flex;gap:8px;align-items:center}
+aside a{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:14px}
+aside a.on{background:var(--hl-bg);color:var(--hl);font-weight:600}
+main{padding:24px;max-width:1040px;width:100%}
+.crumb{color:var(--muted);font-size:13px}
+.sub{color:var(--muted);margin:4px 0 20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h3{font-size:16px;margin-bottom:4px}
+.card .hint{color:var(--muted);font-size:13px;margin-bottom:14px}
+.btn{display:inline-flex;gap:8px;align-items:center;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.p:hover{background:var(--p-600)}
+.btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.tag{display:inline-flex;gap:6px;align-items:center;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600}
+.ok{background:var(--ok-bg);color:var(--ok)}.warn{background:var(--warn-bg);color:var(--warn)}.bad{background:var(--bad-bg);color:var(--bad)}.info{background:var(--info-bg);color:var(--info)}.sec{background:var(--sec-bg);color:var(--sec)}
+label.l{display:block;font-weight:600;font-size:13px;margin-bottom:6px;color:var(--head)}
+.in{width:100%;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:9px 12px;font:inherit}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.drop{border:2px dashed var(--border);border-radius:12px;padding:18px;display:flex;gap:14px;align-items:center;background:var(--page)}
+.drop.done{border-style:solid;border-color:var(--ok);background:var(--ok-bg)}
+.drop.req{border-color:var(--bad)}
+.ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--hover);flex:none;font-weight:700;color:var(--muted)}
+.drop.done .ico{background:var(--ok);color:#fff}
+.msg{border-radius:8px;padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.switch{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--border);border-radius:12px}
+.sw{width:40px;height:22px;border-radius:99px;background:var(--border);position:relative;flex:none;cursor:pointer;border:0;margin-top:2px}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.sw[aria-checked=true]{background:var(--primary)}.sw[aria-checked=true]::after{left:21px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--border)}
+td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.av{width:34px;height:34px;border-radius:50%;background:var(--hl-bg);color:var(--hl);display:inline-grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.who{display:flex;gap:10px;align-items:center}
+.who small{display:block;color:var(--muted);font-size:12px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:grid;grid-template-columns:36px 1fr auto;gap:14px;padding:14px 0;position:relative}
+.steps li:not(:last-child)::before{content:"";position:absolute;left:17px;top:50px;bottom:-4px;width:2px;background:var(--border)}
+.dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--hover);color:var(--muted);border:2px solid var(--border);z-index:1}
+.dot.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.dot.now{background:var(--primary);border-color:var(--primary);color:#fff}
+.dot.skip{border-style:dashed}
+.dot.err{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.steps h4{margin:0;font-size:15px;color:var(--head)}
+.steps .s{color:var(--muted);font-size:13px}
+.steps li.skipped h4{color:var(--muted)}
+.doc{background:#fff;border:1px solid var(--border);border-radius:8px;padding:22px 26px;color:#334155;min-height:260px;font-size:12px;position:relative}
+.doc i{display:block;height:7px;background:#e2e8f0;border-radius:4px;margin:9px 0}
+.doc .hd{font-size:9px;color:#64748b;border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:12px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tabs button{border:0;background:none;color:var(--muted);font:inherit;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--hl);border-color:var(--primary);font-weight:600}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.key{font-family:Consolas,monospace;letter-spacing:.1em;background:var(--hover);border-radius:6px;padding:3px 8px}
+.qr{width:92px;height:92px;background:repeating-conic-gradient(#0f172a 0 25%,#fff 0 50%) 0 0/18px 18px;border:6px solid #fff;border-radius:4px}
+.pane{display:none}.pane.on{display:block}
+.note{background:var(--info-bg);color:var(--info)}
+.note.w{background:var(--warn-bg);color:var(--warn)}
+.note.b{background:var(--bad-bg);color:var(--bad)}
+.note.g{background:var(--ok-bg);color:var(--ok)}
+.pv{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:820px){.shell{grid-template-columns:1fr}aside{display:none}.grid2{grid-template-columns:1fr}main{padding:16px}.steps li{grid-template-columns:36px 1fr}.steps li>div:last-child{grid-column:2}table.rs thead{display:none}table.rs tr{display:block;padding:10px 0;border-bottom:1px solid var(--border)}table.rs td{display:block;border:0;padding:4px 0}}
+@media (prefers-color-scheme: dark){:root{--page:#09090b;--card:#18181b;--hover:#27272a;--border:#3f3f46;--text:#e4e4e7;--muted:#a1a1aa;--head:#fff;
+--ok-bg:rgba(34,197,94,.16);--ok:#86efac;--warn-bg:rgba(245,158,11,.16);--warn:#fcd34d;--bad-bg:rgba(239,68,68,.16);--bad:#fca5a5;--info-bg:rgba(14,165,233,.16);--info:#7dd3fc;--sec-bg:rgba(161,161,170,.16);--sec:#d4d4d8;--hl-bg:rgba(240,80,91,.16);--hl:#f0505b}}
+.pane{display:block;margin-bottom:56px;padding-top:20px;border-top:2px dashed var(--border);scroll-margin-top:70px}.pane:first-of-type{border-top:0}html{scroll-behavior:smooth}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+h1{font-size:24px}
+.origin{display:flex;gap:14px;align-items:center;padding:16px 18px;border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:12px;background:var(--card)}
+.origin small{display:block;color:var(--muted);font-size:12px}.origin b{display:block;font-size:16px;color:var(--head)}.origin .tag{margin-left:auto;white-space:nowrap}
+.radios{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rc{display:flex;gap:12px;align-items:center;text-align:left;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--text);font:inherit;cursor:pointer}
+.rc b{display:block;color:var(--head)}.rc small{color:var(--muted);font-size:12px}
+.rc[aria-checked=true]{border-color:var(--primary);background:var(--hl-bg);box-shadow:0 0 0 1px var(--primary)}
+.rc[aria-checked=true] .ico{background:var(--primary);color:#fff}
+.note2{margin-top:18px;padding:12px 14px;border-radius:8px;background:var(--info-bg);color:var(--info);font-size:13px}
+.phone{max-width:375px;margin:0 auto;border:1px solid var(--border);border-radius:24px;padding:16px;background:var(--page)}
+@media(max-width:800px){.shell{grid-template-columns:1fr}aside{display:none}.grid2,.radios{grid-template-columns:1fr!important}}
+
+.switch{cursor:pointer;position:relative}
+.tg,.rd{position:absolute;opacity:0;pointer-events:none}
+.sw2{width:40px;height:22px;border-radius:99px;background:var(--border);position:relative;flex:none;margin-top:2px;transition:.15s}
+.sw2::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.tg:checked+.sw2{background:var(--primary)}.tg:checked+.sw2::after{left:21px}
+.tg:focus-visible+.sw2,.rd:focus-visible+.rc{outline:2px solid var(--primary);outline-offset:2px}
+.steps li.q-on{display:none}
+#pa:has(.tg:checked) .steps li.q-on{display:grid}
+#pa:has(.tg:checked) .steps li.q-off{display:none}
+.rd:checked+.rc{border-color:var(--primary);background:var(--hl-bg);box-shadow:0 0 0 1px var(--primary)}
+.rd:checked+.rc .ico{background:var(--primary);color:#fff}
+.o2{display:none}
+#pb:has(#of2:checked) .o1{display:none}
+#pb:has(#of2:checked) .o2{display:block}
+</style>
+</head>
+<body>
+<div class="bar" role="tablist">
+  <span class="t">Directivas · origen desde el perfil</span>
+  <a class="ph" href="#pa"><b>A</b> Una oficina (lo normal)</a>
+  <a class="ph" href="#pb"><b>B</b> Varias oficinas</a>
+  <a class="ph" href="#pc"><b>C</b> Corregir borrador</a>
+  <a class="ph" href="#pd"><b>D</b> Celular</a>
+  <span class="sp"></span>
+  <span class="hint" style="margin:0">Sigue el tema de tu sistema</span>
+</div>
+<div class="shell">
+<aside><div class="logo"><span>UNADQTC</span></div><a href="#">Inicio</a><a href="#">Órdenes de servicio</a><a class="on" href="#">Directivas</a></aside>
+<main>
+
+<section class="pane on" id="pa">
+  <div class="crumb">Directivas › Nueva</div>
+  <h1>Nueva directiva</h1>
+  <p class="sub">Sube la directiva y la resolución que la aprueba. La ruta de firmas se arma sola.</p>
+  <div class="grid2" style="grid-template-columns:1.2fr 1fr;align-items:start">
+    <div>
+      <div class="origin">
+        <span class="ico">OA</span>
+        <div><small>Origen de la directiva</small><b>Oficina de Administración</b><small>Tu perfil en Core: Solicitante de directivas</small></div>
+        <span class="tag info">🔒 Por tu perfil</span>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>Datos</h3>
+        <div style="margin:14px 0"><label class="l">Título de la directiva *</label><input class="in" placeholder="Ej.: Directiva para el control de bienes patrimoniales"></div>
+        <label class="switch"><input type="checkbox" class="tg" aria-label="Proceso de calidad"><span class="sw2"></span><div><b>Es de un proceso de calidad</b><div class="hint" style="margin:2px 0 0">Si lo activas, la Oficina de Gestión de la Calidad firma antes de Asesoría Jurídica.</div></div></label>
+      </div>
+      <div class="card">
+        <h3>Documentos</h3>
+        <div class="grid2" style="margin-top:12px">
+          <div class="drop"><span class="ico">PDF</span><div><b>Directiva</b><div class="hint" style="margin:0">Sin firmar · hasta 20 MB</div><button class="btn" style="margin-top:8px">Elegir PDF</button></div></div>
+          <div class="drop"><span class="ico">PDF</span><div><b>Resolución que la aprueba</b><div class="hint" style="margin:0">Solo se adjunta · puede venir firmada</div><button class="btn" style="margin-top:8px">Elegir PDF</button></div></div>
+        </div>
+      </div>
+      <div class="row"><button class="btn">Cancelar</button><button class="btn p">Guardar borrador</button></div>
+    </div>
+    <div class="card" style="position:sticky;top:76px">
+      <h3>Ruta de firmas</h3><div class="hint">Cada oficina firma en este orden con la persona que Core tiene designada hoy.</div>
+      <ul class="steps">
+        <li><div class="dot now">1</div><div><h4>Oficina de Administración</h4><div class="s">Ana Torres V. · Jefa · Titular</div></div><span class="tag info">Origen</span></li>
+        <li class="skipped q-off"><div class="dot skip">2</div><div><h4>Gestión de la Calidad</h4><div class="s">Solo si es de calidad</div></div><span class="tag sec">Omitida</span></li><li class="q-on"><div class="dot">2</div><div><h4>Gestión de la Calidad</h4><div class="s">Laura Mendoza R. · Jefa · Titular</div></div><span class="tag ok">Lista</span></li>
+        <li><div class="dot">3</div><div><h4>Asesoría Jurídica</h4><div class="s">Carlos Paucar V. · Encargado</div></div><span class="tag ok">Lista</span></li>
+        <li><div class="dot">4</div><div><h4>Unidad de Modernización</h4><div class="s">Mario Huamán C. · Titular</div></div><span class="tag ok">Lista</span></li>
+        <li><div class="dot">5</div><div><h4>Presidencia de la Comisión Organizadora</h4><div class="s">Rosa Quispe H. · Presidenta</div></div><span class="tag ok">Lista</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="note2"><b>Qué cambia:</b> desaparece el desplegable «Oficina de origen». Con una sola oficina, el origen es un dato del contexto (solo lectura, con candado y la razón: «Por tu perfil»), y la ruta ya aparece completa desde el primer momento, sin el mensaje «Elige la oficina».</div>
+</section>
+
+<section class="pane" id="pb">
+  <div class="crumb">Directivas › Nueva</div>
+  <h1>Nueva directiva</h1>
+  <p class="sub">Core te autoriza a pedir directivas por más de una oficina.</p>
+  <div class="card">
+    <h3>¿Por qué oficina es esta directiva?</h3><div class="hint">Solo ves las oficinas que Core te autoriza. La ruta cambia con tu elección.</div>
+    <div class="radios" role="radiogroup" aria-label="Oficina de origen"><input type="radio" name="of" id="of1" class="rd" checked><label for="of1" class="rc"><span class="ico">OA</span><span><b>Oficina de Administración</b><small>Ana Torres V. firma por esta oficina</small></span></label><input type="radio" name="of" id="of2" class="rd"><label for="of2" class="rc"><span class="ico">UL</span><span><b>Unidad de Logística</b><small>Luis Ramos P. firma por esta oficina</small></span></label></div></div><div class="card"><h3>Ruta de firmas</h3><div class="hint">Cambia con la oficina que elijas.</div><ul class="steps"><li><div class="dot now">1</div><div><h4 class="o1">Oficina de Administración</h4><h4 class="o2">Unidad de Logística</h4><div class="s o1">Ana Torres V. · Jefa · Titular</div><div class="s o2">Luis Ramos P. · Jefe · Titular</div></div><span class="tag info">Origen</span></li><li><div class="dot">2</div><div><h4>Asesoría Jurídica</h4><div class="s">Carlos Paucar V. · Encargado</div></div><span class="tag ok">Lista</span></li><li><div class="dot">3</div><div><h4>Unidad de Modernización</h4><div class="s">Mario Huamán C. · Titular</div></div><span class="tag ok">Lista</span></li><li><div class="dot">4</div><div><h4>Presidencia de la Comisión Organizadora</h4><div class="s">Rosa Quispe H. · Presidenta</div></div><span class="tag ok">Lista</span></li></ul></div><div class="note2"><b>De dos a cuatro oficinas:</b> tarjetas de elección (todas visibles, un clic, con quién firma). Desde cinco, vuelve el desplegable con buscador. La última usada queda marcada de inicio.</div>
+</section>
+
+<section class="pane" id="pc">
+  <div class="crumb">Directivas › Control de bienes › Corregir</div>
+  <h1>Corregir el borrador</h1>
+  <p class="sub">Puedes cambiar el título, la calidad y los PDF. La oficina de origen no se cambia.</p>
+  <div class="origin">
+    <span class="ico">OA</span>
+    <div><small>Origen de la directiva</small><b>Oficina de Administración</b><small>Fijado al crear el borrador. Si necesitas otra oficina, elimina el borrador y crea uno nuevo.</small></div>
+    <span class="tag sec">🔒 No editable</span>
+  </div>
+  <div class="note2"><b>Por qué:</b> la oficina define quién ve la directiva y quién firma primero. En vez de un campo deshabilitado sin explicación, se dice qué hacer.</div>
+</section>
+
+<section class="pane" id="pd">
+  <div class="phone">
+    <div class="origin" style="padding:12px"><span class="ico">OA</span><div><small>Origen</small><b>Oficina de Administración</b></div><span class="tag info">🔒</span></div>
+    <div class="card" style="margin-top:12px"><label class="l">Título *</label><input class="in" placeholder="Título de la directiva"></div>
+    <div class="card"><b>Ruta de firmas</b> <span class="tag ok">4 listas</span><div class="hint" style="margin:6px 0 0">Toca para ver quién firma en cada oficina.</div><button class="btn" style="margin-top:8px;width:100%;justify-content:center">Ver la ruta ▾</button></div>
+    <button class="btn p" style="width:100%;justify-content:center">Guardar borrador</button>
+  </div>
+  <div class="note2"><b>En celular:</b> una columna; el origen queda como cabecera compacta; la ruta pasa a un bloque plegable con el resumen («4 listas» o «Falta 1») para no empujar el formulario.</div>
+</section>
+
+</main></div>
+
+</body></html>
