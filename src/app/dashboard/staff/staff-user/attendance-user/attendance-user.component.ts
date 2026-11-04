@@ -1,8 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {DropdownModule} from 'primeng/dropdown';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {NgIf} from '@angular/common';
-import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
 import {Attendance} from '../../../../models/attendance.model';
 import {AttendanceService} from '../../../../services/attendance.service';
@@ -17,11 +15,9 @@ import {StaffAttendanceSkeletonComponent} from '../../shared/staff-attendance-sk
 @Component({
   selector: 'app-attendance-user',
   imports: [
-    DropdownModule,
     ReactiveFormsModule,
     NgIf,
     FormsModule,
-    CalendarModule,
     ButtonModule,
     DatePicker,
     StaffAttendanceCardsComponent,

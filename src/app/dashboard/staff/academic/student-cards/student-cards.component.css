@@ -704,9 +704,7 @@
 }
 
 /* El filtro por indicadores reemplaza las pestañas: se oculta su barra y quedan solo los paneles. */
-:host ::ng-deep .sc-tabs .p-tablist,
-:host ::ng-deep .sc-tabs .p-tabview-nav-container,
-:host ::ng-deep .sc-tabs .p-tabview-nav {
+:host ::ng-deep .sc-tabs .p-tablist {
   display: none;
 }
 

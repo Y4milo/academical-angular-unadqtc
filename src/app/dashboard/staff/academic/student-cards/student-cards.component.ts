@@ -5,15 +5,14 @@ import {TableModule} from 'primeng/table';
 import {StudentCardService} from '../../../../services/student-card.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {CardModule} from 'primeng/card';
-import {TabViewModule} from 'primeng/tabview';
+import {TabsModule} from 'primeng/tabs';
 import {ButtonModule} from 'primeng/button';
 import {BadgeModule} from 'primeng/badge';
 import {TooltipModule} from 'primeng/tooltip';
 import {MultiSelect, MultiSelectModule} from 'primeng/multiselect';
-import {OverlayPanel, OverlayPanelModule} from 'primeng/overlaypanel';
+import {Popover, PopoverModule} from 'primeng/popover';
 import {DictionaryService} from '../../../../services/dictionary.service';
 import {Dictionary} from '../../../../models/dictionary.model';
-import {PopoverModule} from 'primeng/popover';
 import {FileUpload, FileUploadModule} from 'primeng/fileupload';
 import {ApiData} from '../../../../models/api/api-data.model';
 import {STATUS} from '../../../../core/constants/api-status.constants';
@@ -53,12 +52,11 @@ import {MenuItem} from 'primeng/api';
     ReactiveFormsModule,
     TableModule,
     CardModule,
-    TabViewModule,
+    TabsModule,
     ButtonModule,
     BadgeModule,
     TooltipModule,
     MultiSelectModule,
-    OverlayPanelModule,
     PopoverModule,
     FileUploadModule,
     DialogModule,
@@ -545,7 +543,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
   // ================= Indicadores, filtros y menú de acciones =================
 
-  /** Los indicadores de arriba hacen de pestañas: el orden coincide con el de los paneles del `p-tabView`. */
+  /** Los indicadores de arriba hacen de pestañas: el orden coincide con el de los paneles del `p-tabs`. */
   get kpiCards(): Array<{index: number; list: 'pending' | 'validated' | 'flagged' | 'unmatched'; label: string; icon: string; tone: string; count: number; hint: string}> {
     return [
       {index: 0, list: 'pending', label: 'Pendientes de validar', icon: 'pi pi-clock', tone: 'info', count: this.pendingStudents.length, hint: 'Requieren su revisión'},
@@ -1868,7 +1866,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     });
   }
 
-  @ViewChild('overlayObservations') overlayObservations!: OverlayPanel;
+  @ViewChild('overlayObservations') overlayObservations!: Popover;
   @ViewChild('observationsMultiSelect') observationsMultiSelect!: MultiSelect;
 
   openObservationPanel(event: Event, student: StudentCard) {
@@ -1951,7 +1949,7 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     this.overlayObservations.hide();
   }
 
-  @ViewChild('overlayUploadPhoto') overlayUploadPhoto!: OverlayPanel;
+  @ViewChild('overlayUploadPhoto') overlayUploadPhoto!: Popover;
   @ViewChild('fileUploader') fileUploader!: FileUpload;
 
   async onFileSelect(event: any): Promise<void> {

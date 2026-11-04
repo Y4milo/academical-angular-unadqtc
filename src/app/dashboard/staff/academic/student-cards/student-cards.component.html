@@ -329,19 +329,46 @@
         </div>
       }
     </div>
-    <p-tabView
-      styleClass="sc-tabs"
-      [(activeIndex)]="activeTabIndex"
+    <p-tabs
+      class="sc-tabs"
+      [value]="activeTabIndex"
       [class.semester-read-only]="isHistoricalSemester">
-      <p-tabPanel>
-        <ng-template pTemplate="header">
+      <p-tablist>
+        <p-tab [value]="0">
           Pendientes de validar
           @if (loadingLists.pending) {
             <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
           } @else {
             <p-badge [value]="pendingStudents.length" severity="info" />
           }
-        </ng-template>
+        </p-tab>
+        <p-tab [value]="1">
+          Validados
+          @if (loadingLists.validated) {
+            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
+          } @else {
+            <p-badge [value]="validatedStudents.length" severity="success" />
+          }
+        </p-tab>
+        <p-tab [value]="2">
+          Observados
+          @if (loadingLists.flagged) {
+            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
+          } @else {
+            <p-badge [value]="flaggedStudents.length" severity="warn" />
+          }
+        </p-tab>
+        <p-tab [value]="3">
+          Sin registro
+          @if (loadingLists.unmatched) {
+            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
+          } @else {
+            <p-badge [value]="unmatchedStudent.length" severity="danger" />
+          }
+        </p-tab>
+      </p-tablist>
+      <p-tabpanels>
+      <p-tabpanel [value]="0">
         <div class="sc-grid">
           @if (loadingLists.pending) {
             @for (item of [1, 2, 3, 4]; track item) {
@@ -358,17 +385,9 @@
         @if (!loadingLists.pending) {
           <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'pending', total: filtered(pendingStudents).length, sizes: pageSizes }"></ng-container>
         }
-      </p-tabPanel>
+      </p-tabpanel>
 
-      <p-tabPanel>
-        <ng-template pTemplate="header">
-          Validados
-          @if (loadingLists.validated) {
-            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
-          } @else {
-            <p-badge [value]="validatedStudents.length" severity="success" />
-          }
-        </ng-template>
+      <p-tabpanel [value]="1">
         <!-- Lista de validados -->
         <div class="sc-validated-toolbar">
           <div class="sc-validated-count">
@@ -514,17 +533,9 @@
         @if (!loadingLists.validated) {
           <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'validated', total: filtered(validatedStudents).length, sizes: validatedPageSizes }"></ng-container>
         }
-      </p-tabPanel>
+      </p-tabpanel>
 
-      <p-tabPanel>
-        <ng-template pTemplate="header">
-          Observados
-          @if (loadingLists.flagged) {
-            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
-          } @else {
-            <p-badge [value]="flaggedStudents.length" severity="warn" />
-          }
-        </ng-template>
+      <p-tabpanel [value]="2">
         <div class="sc-grid">
           @if (loadingLists.flagged) {
             @for (item of [1, 2, 3, 4]; track item) {
@@ -541,17 +552,9 @@
         @if (!loadingLists.flagged) {
           <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'flagged', total: filtered(flaggedStudents).length, sizes: pageSizes }"></ng-container>
         }
-      </p-tabPanel>
+      </p-tabpanel>
 
-      <p-tabPanel>
-        <ng-template pTemplate="header">
-          Sin registro
-          @if (loadingLists.unmatched) {
-            <p-skeleton width="1.6rem" height="1.4rem" borderRadius="999px" />
-          } @else {
-            <p-badge [value]="unmatchedStudent.length" severity="danger" />
-          }
-        </ng-template>
+      <p-tabpanel [value]="3">
         <div class="sc-grid">
           @if (loadingLists.unmatched) {
             @for (item of [1, 2, 3, 4]; track item) {
@@ -568,8 +571,9 @@
         @if (!loadingLists.unmatched) {
           <ng-container *ngTemplateOutlet="resultsBar; context: { key: 'unmatched', total: filtered(unmatchedStudent).length, sizes: pageSizes }"></ng-container>
         }
-      </p-tabPanel>
-    </p-tabView>
+      </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
     <p-menu #rowMenu [popup]="true" [model]="rowMenuItems" appendTo="body" />
     <p-drawer
       [(visible)]="detailVisible"
@@ -1240,8 +1244,9 @@
       </ng-template>
     </p-dialog>
 
-    <p-overlayPanel #overlayObservations [showCloseIcon]="true" appendTo="body" (onHide)="clearObservationPanelState()">
+    <p-popover #overlayObservations appendTo="body" (onHide)="clearObservationPanelState()">
       <div class="flex flex-column gap-3" style="width: 18rem">
+        <p-button icon="pi pi-times" [rounded]="true" [text]="true" size="small" severity="secondary" ariaLabel="Cerrar" class="align-self-end" (onClick)="overlayObservations.hide()" />
         <p-multiSelect
           #observationsMultiSelect
           [options]="statusStudentCardOptions"
@@ -1276,10 +1281,11 @@
         </p-multiSelect>
 
       </div>
-    </p-overlayPanel>
+    </p-popover>
 
-    <p-overlayPanel #overlayUploadPhoto [showCloseIcon]="true" appendTo="body">
+    <p-popover #overlayUploadPhoto appendTo="body">
       <div class="flex flex-column gap-3" style="width: 18rem">
+        <p-button icon="pi pi-times" [rounded]="true" [text]="true" size="small" severity="secondary" ariaLabel="Cerrar" class="align-self-end" (onClick)="overlayUploadPhoto.hide()" />
         <img [src]="previewUrl" alt="Vista previa" width="120" height="140" class="align-self-center" />
         <p-fileUpload
           #fileUploader
@@ -1305,7 +1311,7 @@
           ></p-button>
         </div>
       </div>
-    </p-overlayPanel>
+    </p-popover>
   </p-card>
 </div>
 
