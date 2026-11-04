@@ -18,14 +18,34 @@ export const CORE_SSO_GENERIC_ERROR = 'No se pudo completar el ingreso con Core.
 
 export const coreSsoErrorMessage = (code: string | null): string => (code ? CORE_SSO_ERRORS[code] ?? CORE_SSO_GENERIC_ERROR : '');
 
+export interface CoreSsoStatus {
+  enabled: boolean;
+  required?: boolean;
+  portal_url?: string | null;
+}
+
+export interface CoreSsoFailure {
+  reason: string;
+  reference: string;
+  account: { name: string | null; email: string | null } | null;
+}
+
 /** El ingreso con la cuenta de Core: si Academical está integrada, a dónde mandar a la persona y cómo armar su sesión al volver. */
 @Injectable({ providedIn: 'root' })
 export class CoreSsoService {
   private readonly http = inject(HttpClient);
 
-  /** `enabled` es verdadero solo si Academical está integrada a Core para el ingreso. */
-  status(): Observable<{ enabled: boolean }> {
-    return this.http.get<{ enabled: boolean }>(`${environment.apiUrl}/auth/core/status`);
+  /**
+   * `enabled`: Academical está integrada a Core para el ingreso. `required`: además el ingreso de Academical no debe aparecer (modo obligatorio y
+   * Core responde). `portal_url`: la pantalla de Core a la que se vuelve.
+   */
+  status(): Observable<CoreSsoStatus> {
+    return this.http.get<CoreSsoStatus>(`${environment.apiUrl}/auth/core/status`);
+  }
+
+  /** Qué pasó en el último intento de ingreso con Core de este navegador (motivo, código de referencia y quién entró en Core). */
+  failure(): Observable<{ failure: CoreSsoFailure | null }> {
+    return this.http.get<{ failure: CoreSsoFailure | null }>(`${environment.apiUrl}/auth/core/failure`);
   }
 
   /** La dirección del API que manda a Core; es una navegación completa, no una llamada XHR. */
