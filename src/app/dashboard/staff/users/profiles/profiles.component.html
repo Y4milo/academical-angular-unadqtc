@@ -1,0 +1,122 @@
+<div class="profiles">
+  <header class="profiles__header">
+    <div>
+      <h1>Perfiles</h1>
+      <p>Un perfil es un paquete con nombre de permisos, por módulo. Una persona puede tener varios a la vez.</p>
+    </div>
+    <p-button label="Nuevo perfil" icon="pi pi-plus" (onClick)="create()" />
+  </header>
+
+  <p-message severity="info" styleClass="profiles__notice">
+    <span><b>Core activa los perfiles.</b> Lo que crees aquí se publicará a Core como solicitud y quedará Pendiente hasta que quien administra Core lo active. Un perfil ya sirve dentro de Academical aunque Core no lo haya activado.</span>
+  </p-message>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="profiles__notice">
+      No se pudieron cargar los perfiles. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  }
+
+  <section class="profiles__panel" aria-label="Lista de perfiles">
+    <div class="profiles__filters">
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input pInputText type="text" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Buscar perfil" aria-label="Buscar perfil" />
+      </p-iconfield>
+      <div class="profiles__chips">
+        <p-selectbutton [options]="moduleOptions()" optionLabel="label" optionValue="value" [ngModel]="moduleFilter()" (ngModelChange)="moduleFilter.set($event ?? 'all')" [allowEmpty]="false" ariaLabelledBy="Módulo" />
+        <p-selectbutton [options]="originOptions" optionLabel="label" optionValue="value" [ngModel]="originFilter()" (ngModelChange)="originFilter.set($event ?? 'all')" [allowEmpty]="false" ariaLabelledBy="Origen" />
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="profiles__skeleton" aria-busy="true">
+        @for (row of skeletonRows; track row) {
+          <div class="profiles__skeleton-row">
+            <p-skeleton width="36%" height="1rem" />
+            <p-skeleton width="14%" height="1.25rem" />
+            <p-skeleton width="10%" height="1rem" />
+          </div>
+        }
+      </div>
+    } @else if (visible().length === 0 && !loadError()) {
+      <div class="profiles__empty">
+        <app-lucide-icon name="users" [size]="28" />
+        <strong>No hay perfiles con esos filtros</strong>
+        <span>Cambia la búsqueda o crea un perfil propio.</span>
+      </div>
+    } @else if (visible().length > 0) {
+      <p-table [value]="visible()" size="small" [tableStyle]="{ 'min-width': '44rem' }" styleClass="profiles__table" dataKey="code">
+        <ng-template #header>
+          <tr>
+            <th>Perfil</th>
+            <th>Módulo</th>
+            <th>Origen</th>
+            <th>Permisos</th>
+            <th>Personas</th>
+            <th>En Core</th>
+            <th class="profiles__actions" aria-label="Acciones"></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-profile>
+          <tr>
+            <td class="profiles__cell-main">
+              <span class="profiles__name">{{ profile.name }}</span>
+              <span class="profiles__code">{{ profile.code }}</span>
+            </td>
+            <td data-label="Módulo">{{ moduleLabel(profile.module) }}</td>
+            <td data-label="Origen"><app-status-tag [value]="originLabel(profile)" [severity]="originSeverity(profile)" /></td>
+            <td data-label="Permisos">{{ profile.permission_count }}</td>
+            <td data-label="Personas">{{ profile.people }}</td>
+            <td data-label="En Core"><app-status-tag [value]="coreTag(profile).label" [severity]="coreTag(profile).severity" /></td>
+            <td class="profiles__actions">
+              <p-button [label]="profile.can_edit ? 'Editar' : 'Ver'" [severity]="profile.can_edit ? 'primary' : 'secondary'" [outlined]="profile.can_edit" [text]="!profile.can_edit" size="small" (onClick)="open(profile)" />
+              @if (profile.can_edit) {
+                <p-button label="Retirar" severity="danger" [text]="true" size="small" (onClick)="askRetire(profile)" />
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </section>
+</div>
+
+<p-dialog [visible]="retiring() !== null" (visibleChange)="$event ? null : closeRetire()" [modal]="true" [draggable]="false" [style]="{ width: 'min(32rem, 94vw)' }" appendTo="body" [header]="'Retirar «' + (retiring()?.name ?? '') + '»'">
+  @if (retireLoading()) {
+    <p-skeleton height="5rem" />
+  } @else {
+    @if (retireDetail(); as detail) {
+      @if (detail.people_count > 0) {
+        <p-message severity="error" styleClass="profiles__notice">
+          <span><b>{{ detail.people_count === 1 ? '1 persona lo tiene vigente.' : detail.people_count + ' personas lo tienen vigente.' }}</b> Si lo retiras, dejan de recibir sus permisos.</span>
+        </p-message>
+        <p-table [value]="detail.people" size="small" styleClass="profiles__people">
+          <ng-template #header><tr><th>Persona</th><th>Otros perfiles que conservan</th></tr></ng-template>
+          <ng-template #body let-person>
+            <tr><td>{{ person.name || person.nick }}</td><td>{{ person.other_profiles.length ? person.other_profiles.join(', ') : 'Ninguno' }}</td></tr>
+          </ng-template>
+        </p-table>
+        @if (detail.people_count > detail.people.length) {
+          <small class="profiles__more">y {{ detail.people_count - detail.people.length }} más</small>
+        }
+        <p-message severity="info" styleClass="profiles__notice">Quien ya no trabaja no aparece en Core; esos casos se resuelven en Depuración de usuarios.</p-message>
+      } @else {
+        <p class="profiles__lead">Nadie tiene este perfil hoy. Retirarlo lo deja sin efecto y queda en el historial.</p>
+      }
+    }
+    <label class="profiles__field">
+      <span>Motivo *</span>
+      <textarea pTextarea rows="2" [(ngModel)]="reason" name="reason" aria-label="Motivo del retiro"></textarea>
+      <small>Mínimo {{ minReason }} caracteres. Queda en el historial de accesos.</small>
+    </label>
+    @if (retireError()) {
+      <p-message severity="error" styleClass="profiles__notice">{{ retireError() }}</p-message>
+    }
+  }
+  <ng-template #footer>
+    <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="closeRetire()" />
+    <p-button label="Retirar perfil" severity="danger" [disabled]="!canRetire" [loading]="retireSaving()" (onClick)="confirmRetire()" />
+  </ng-template>
+</p-dialog>
