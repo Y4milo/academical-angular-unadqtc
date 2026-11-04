@@ -558,4 +558,51 @@ describe('DirectiveDetailComponent', () => {
       expect(events[1]).toContain('4 firmas');
     });
   });
+
+  describe('collapsible cards', () => {
+    const toggle = (testId: string) => html().querySelector<HTMLElement>(`[data-testid="${testId}"] .p-panel-toggler, [data-testid="${testId}"] .p-panel-header-icon`);
+
+    it('draws the route and the follow-up as collapsible panels that start open', async () => {
+      await create();
+      const component = fixture.componentInstance;
+
+      expect(html().querySelector('p-panel[data-testid="route-panel"]')).not.toBeNull();
+      expect(html().querySelector('p-panel[data-testid="timeline-panel"]')).not.toBeNull();
+      expect(toggle('route-panel')).not.toBeNull();
+      expect(toggle('timeline-panel')).not.toBeNull();
+      expect(component.routeCollapsed()).toBeFalse();
+      expect(component.timelineCollapsed()).toBeFalse();
+      expect(text('route-panel')).toContain('Ruta de firmas');
+      expect(text('timeline-panel')).toContain('Seguimiento');
+    });
+
+    it('collapses each card on its own', async () => {
+      await create();
+      const component = fixture.componentInstance;
+
+      toggle('timeline-panel')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(component.timelineCollapsed()).toBeTrue();
+      expect(component.routeCollapsed()).toBeFalse();
+
+      toggle('route-panel')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(component.routeCollapsed()).toBeTrue();
+
+      toggle('timeline-panel')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(component.timelineCollapsed()).toBeFalse();
+    });
+
+    it('keeps both cards open on a phone width', async () => {
+      spyOnProperty(window, 'innerWidth', 'get').and.returnValue(375);
+      await create();
+
+      expect(fixture.componentInstance.routeCollapsed()).toBeFalse();
+      expect(fixture.componentInstance.timelineCollapsed()).toBeFalse();
+    });
+  });
 });

@@ -56,3 +56,9 @@
   .directive-detail { padding: var(--space-2); }
   .header-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
 }
+
+/* Las tarjetas plegables de la ruta y del seguimiento se ven como las demás tarjetas. */
+:host ::ng-deep .detail-panel.p-panel { background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
+:host ::ng-deep .detail-panel .p-panel-header { padding: var(--space-3) var(--space-4); }
+:host ::ng-deep .detail-panel .p-panel-content { padding: 0 var(--space-4) var(--space-4); }
+:host ::ng-deep .detail-panel h3 { margin: 0; font-size: var(--text-card-title); }
