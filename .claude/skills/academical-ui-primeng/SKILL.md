@@ -28,6 +28,8 @@ El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-cat
 | Fecha o fecha con hora | `p-datepicker` (modelo `Date`; `[showTime]="true" hourFormat="24"` para la hora; convertir con `src/app/core/utils/date-input.util.ts`). Nunca `<input type="date">` ni `datetime-local` |
 | Número (intentos, tamaños, cantidades) | `p-inputnumber` (`[min]`, `[max]`, `suffix`, `[showButtons]`). Nunca `<input type="number">` |
 | Interruptor sí/no | `p-toggleswitch` (casillas sueltas solo con `p-checkbox`) |
+| Elegir un archivo (PDF, imagen) | `p-fileupload` con `mode="basic"`, `[customUpload]="true"`, `[auto]="false"`, `accept`, `chooseIcon`, `[chooseButtonProps]="{severity: 'secondary', outlined: true}"` y `(onSelect)`; leer `event.currentFiles` y llamar a `upload.clear()` para poder elegir el mismo archivo otra vez; el nombre elegido lo muestra la pantalla (vaciar la etiqueta de PrimeNG con `<ng-template #filelabel></ng-template>`; si no, dice «No file chosen»); en las pruebas hace falta `provideHttpClient()`. Nunca un `<input type="file">` oculto detrás de un botón |
+| Lista corta de personas o pasos | `p-timeline` (marcador y contenido por plantilla) o `p-dataview`; nunca `<ul>`/`<ol>` a mano |
 | Listado de filas con acciones | `p-table` con la tarjeta etiqueta/valor en teléfono; nunca `<ul>`/`<table>` a mano |
 | Tarjeta de resumen clicable | `p-card` con `role="button"` y `(keydown.enter)` |
 | Paginación | `p-paginator` (`rowsPerPageOptions`, `showCurrentPageReport`) |
@@ -39,6 +41,8 @@ El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-cat
 | Separadores | `p-divider` |
 | Ayudas | `pTooltip` |
 | Acciones | `pButton` / `p-button` (uno solo `primary` por vista; el resto `severity="secondary"`, `[text]="true"`) |
+
+**Regla permanente (el usuario la repitió el 2026-11-04, ya es la segunda vez):** TODO en PrimeNG, sin excepciones y sin «copiar el patrón del código viejo». Antes de cada PR de front, correr `grep -rnE 'type="(date|datetime-local|number|checkbox|radio|file)"|<select|<button|<table|<ul|<ol|<progress|<dialog' <carpetas tocadas> --include=*.html` y explicar o corregir cada resultado en el PR. Solo valen como excepción `pInputText` y `pTextarea` (directivas de PrimeNG) y los enlaces `<a>`.
 
 Antes de escribir CSS para algo, revisa `node_modules/primeng` (carpeta del componente) o la documentación de PrimeNG 19.
 

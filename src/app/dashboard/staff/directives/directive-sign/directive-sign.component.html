@@ -84,14 +84,15 @@
           @if (before().length > 0) {
             <section class="panel" aria-labelledby="before-title">
               <h3 id="before-title">Antes de ti</h3>
-              <ul class="before">
-                @for (step of before(); track step.key) {
-                  <li data-testid="before-step">
+              <p-timeline [value]="before()" align="left" styleClass="before-timeline">
+                <ng-template pTemplate="marker"><span class="before-marker" aria-hidden="true"></span></ng-template>
+                <ng-template pTemplate="content" let-step>
+                  <div class="before-step" data-testid="before-step">
                     <strong>{{ step.person }}</strong>
                     <span class="muted">{{ step.label }}</span>
-                  </li>
-                }
-              </ul>
+                  </div>
+                </ng-template>
+              </p-timeline>
             </section>
           }
         </div>

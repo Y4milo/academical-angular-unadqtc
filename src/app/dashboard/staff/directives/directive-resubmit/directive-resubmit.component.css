@@ -26,3 +26,4 @@
   .directive-resubmit { padding: var(--space-2); }
   .actions { display: grid; grid-template-columns: 1fr; }
 }
+:host ::ng-deep .p-fileupload-basic { justify-content: flex-start; }

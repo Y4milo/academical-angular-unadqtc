@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -37,7 +39,7 @@ describe('DirectiveResubmitComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DirectiveResubmitComponent],
       providers: [
-        provideRouter([]), provideNoopAnimations(),
+        provideRouter([]), provideNoopAnimations(), provideHttpClient(), provideHttpClientTesting(),
         { provide: DirectivesService, useValue: service },
         { provide: NotificationService, useValue: notifications },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },
@@ -82,16 +84,26 @@ describe('DirectiveResubmitComponent', () => {
   it('rejects what is not a PDF and what is too big', async () => {
     await create();
     const component = fixture.componentInstance;
-    const input = (file: File) => ({ target: { files: [file], value: 'x' } }) as unknown as Event;
 
-    component.pickFromInput('directive', input(new File(['x'], 'nota.txt', { type: 'text/plain' })));
+    component.pick('directive', new File(['x'], 'nota.txt', { type: 'text/plain' }));
     expect(component.errors()['directive']).toContain('debe ser un PDF');
     const big = new File(['x'], 'grande.pdf', { type: 'application/pdf' });
     Object.defineProperty(big, 'size', { value: 21 * 1024 * 1024 });
-    component.pickFromInput('directive', input(big));
+    component.pick('directive', big);
     expect(component.errors()['directive']).toContain('el máximo es');
-    component.pickFromInput('directive', input(pdf()));
+    component.pick('directive', pdf());
     expect(component.errors()['directive']).toBeUndefined();
+  });
+
+  it('takes the file chosen in the PrimeNG uploader and empties it so the same file can be chosen again', async () => {
+    await create();
+    const clear = jasmine.createSpy('clear');
+    const file = pdf('elegido.pdf');
+
+    fixture.componentInstance.pickFromUpload('directive', { currentFiles: [file], files: [file] } as never, { clear } as never);
+
+    expect(fixture.componentInstance.directiveFile()?.name).toBe('elegido.pdf');
+    expect(clear).toHaveBeenCalled();
   });
 
   it('sends the corrected directive without a resolution when none is chosen and goes back to the directive', async () => {

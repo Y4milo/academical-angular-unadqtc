@@ -2,6 +2,7 @@ import { Component, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -21,7 +22,7 @@ import { formatBytes } from '../directive-status';
  */
 @Component({
   selector: 'app-directive-resubmit',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent],
+  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent],
   templateUrl: './directive-resubmit.component.html',
   styleUrl: './directive-resubmit.component.css',
 })
@@ -111,10 +112,13 @@ export class DirectiveResubmitComponent implements OnInit {
     });
   }
 
-  /** El PDF elegido con el selector del navegador (oculto tras el botón); se vacía para poder elegir el mismo otra vez. */
-  pickFromInput(kind: 'directive' | 'resolution', event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+  /** El PDF elegido con `p-fileupload`; se vacía el componente para poder elegir el mismo archivo otra vez. */
+  pickFromUpload(kind: 'directive' | 'resolution', event: FileSelectEvent, upload: FileUpload): void {
+    this.pick(kind, (event.currentFiles ?? event.files)[0] ?? null);
+    upload.clear();
+  }
+
+  pick(kind: 'directive' | 'resolution', file: File | null): void {
     const label = kind === 'directive' ? 'La directiva' : 'La resolución';
     let problem = '';
 
@@ -126,7 +130,6 @@ export class DirectiveResubmitComponent implements OnInit {
 
     this.fileError.update(current => ({ ...current, [kind]: problem }));
     (kind === 'directive' ? this.directiveFile : this.resolutionFile).set(problem ? null : file);
-    input.value = '';
   }
 
   keepResolution(): void {

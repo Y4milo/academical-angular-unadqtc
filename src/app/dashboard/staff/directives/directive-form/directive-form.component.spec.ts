@@ -139,6 +139,25 @@ describe('DirectiveFormComponent', () => {
     expect(text('error-resolution')).toContain('la resolución que la aprueba: es obligatoria');
   });
 
+  it('takes the file chosen in the PrimeNG uploader and empties it so the same file can be chosen again', async () => {
+    await create();
+    const clear = jasmine.createSpy('clear');
+    const file = pdf('elegido.pdf');
+
+    fixture.componentInstance.pickFromUpload('directive', { currentFiles: [file], files: [file] } as never, { clear } as never);
+
+    expect(fixture.componentInstance.directiveFile()?.name).toBe('elegido.pdf');
+    expect(clear).toHaveBeenCalled();
+  });
+
+  it('uses PrimeNG file pickers and no native file inputs', async () => {
+    await create();
+
+    expect(html().querySelectorAll('p-fileupload').length).toBe(2);
+    // PrimeNG lleva su propio <input> dentro del componente; fuera de él no debe haber ninguno.
+    expect(Array.from(html().querySelectorAll('input[type="file"]')).filter(input => !input.closest('p-fileupload')).length).toBe(0);
+  });
+
   it('refuses a file that is not a PDF or is too big, before sending anything', async () => {
     await create();
     fixture.componentInstance.pick('directive', { files: [new File(['x'], 'directiva.docx', { type: 'application/msword' })] });

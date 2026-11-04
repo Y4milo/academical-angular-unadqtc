@@ -2,6 +2,7 @@ import { Component, OnInit, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PanelModule } from 'primeng/panel';
@@ -33,7 +34,7 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
  */
 @Component({
   selector: 'app-directive-form',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, PanelModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, DirectiveRouteStepsComponent],
+  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, PanelModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, DirectiveRouteStepsComponent],
   templateUrl: './directive-form.component.html',
   styleUrl: './directive-form.component.css',
 })
@@ -218,11 +219,10 @@ export class DirectiveFormComponent implements OnInit {
     (kind === 'directive' ? this.directiveFile : this.resolutionFile).set(problem ? null : file);
   }
 
-  /** El PDF elegido con el selector de archivos del navegador (oculto tras el botón); se vacía para poder elegir el mismo otra vez. */
-  pickFromInput(kind: 'directive' | 'resolution', event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.pick(kind, { files: Array.from(input.files ?? []) });
-    input.value = '';
+  /** El PDF elegido con `p-fileupload`; se vacía el componente para poder elegir el mismo archivo otra vez. */
+  pickFromUpload(kind: 'directive' | 'resolution', event: FileSelectEvent, upload: FileUpload): void {
+    this.pick(kind, { files: event.currentFiles ?? event.files });
+    upload.clear();
   }
 
   save(): void {

@@ -41,10 +41,7 @@
           <h3 id="files-title">Documentos de la versión {{ nextVersion() }}</h3>
           <div class="field">
             <span class="label" id="resubmit-directive-label">Directiva corregida (PDF) *</span>
-            <input #directivePicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('directive', $event)" />
-            <div class="pick">
-              <p-button [label]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" icon="pi pi-upload" severity="secondary" [outlined]="true" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onClick)="directivePicker.click()"></p-button>
-            </div>
+            <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             @if (directiveFile(); as file) { <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small> }
             <small class="field-hint">Sin firmar: la firman las oficinas desde Academical.</small>
             @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
@@ -52,7 +49,6 @@
 
           <div class="field">
             <span class="label" id="resubmit-resolution-label">Resolución que la aprueba (PDF) <p-tag value="Opcional" severity="secondary"></p-tag></span>
-            <input #resolutionPicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('resolution', $event)" />
             @if (resolutionFile(); as file) {
               <small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }} · reemplaza a la anterior</small>
               <div class="pick">
@@ -60,9 +56,7 @@
               </div>
             } @else {
               <small class="file-name" data-testid="resolution-kept">{{ current.files?.resolution?.name ?? 'La resolución anterior' }} · se conserva la de la versión {{ current.version }}</small>
-              <div class="pick">
-                <p-button label="Reemplazar" severity="secondary" [outlined]="true" size="small" [attr.aria-labelledby]="'resubmit-resolution-label'" data-testid="pick-resolution" (onClick)="resolutionPicker.click()"></p-button>
-              </div>
+              <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'resubmit-resolution-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             }
             @if (fileError().resolution; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
           </div>
