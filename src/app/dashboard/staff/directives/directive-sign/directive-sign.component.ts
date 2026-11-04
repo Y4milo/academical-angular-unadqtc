@@ -2,6 +2,7 @@ import { Component, NgZone, OnDestroy, OnInit, computed, signal } from '@angular
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PrimeTemplate } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
@@ -9,6 +10,7 @@ import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
+import { TimelineModule } from 'primeng/timeline';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SigningSession } from '../../../../services/directives.service';
@@ -31,7 +33,7 @@ const CONFIRM_EVERY_MS = 3000;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [FormsModule, ButtonModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule],
+  imports: [FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule, TimelineModule],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })

@@ -13,8 +13,9 @@
 .reason { display: grid; gap: var(--space-1); margin: 0; }
 .muted { color: var(--p-text-muted-color); font-size: var(--text-small); }
 .status { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
-.before { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.before li { display: grid; gap: var(--space-1); }
+.before-step { display: grid; gap: var(--space-1); padding-bottom: var(--space-3); }
+.before-marker { display: block; width: .75rem; height: .75rem; border-radius: 50%; border: 2px solid var(--p-green-500); background: var(--p-green-500); }
+:host ::ng-deep .before-timeline .p-timeline-event-opposite { flex: 0; padding: 0; }
 :host ::ng-deep .sign-button { width: 100%; justify-content: center; }
 :host ::ng-deep .reject-button { width: 100%; justify-content: center; }
 .reject-form { display: grid; gap: var(--space-3); }

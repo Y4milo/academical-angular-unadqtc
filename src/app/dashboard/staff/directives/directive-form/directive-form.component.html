@@ -61,10 +61,7 @@
         <div class="files">
           <div class="field">
             <span class="label" id="directive-file-label">Directiva (PDF){{ editing() ? '' : ' *' }}</span>
-            <input #directivePicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('directive', $event)" />
-            <div class="pick">
-              <p-button [label]="directiveFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" icon="pi pi-upload" severity="secondary" [outlined]="true" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onClick)="directivePicker.click()"></p-button>
-            </div>
+            <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             @if (directiveFile(); as file) {
               <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>
             } @else if (existing()) {
@@ -76,10 +73,7 @@
 
           <div class="field">
             <span class="label" id="resolution-file-label">Resolución que la aprueba (PDF){{ editing() ? '' : ' *' }}</span>
-            <input #resolutionPicker type="file" accept="application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" (change)="pickFromInput('resolution', $event)" />
-            <div class="pick">
-              <p-button [label]="resolutionFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" icon="pi pi-upload" severity="secondary" [outlined]="true" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onClick)="resolutionPicker.click()"></p-button>
-            </div>
+            <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             @if (resolutionFile(); as file) {
               <small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>
             } @else if (existing()) {
