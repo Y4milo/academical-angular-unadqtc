@@ -30,6 +30,8 @@ export interface PermissionOption {
 
 export interface ProfilesIndex {
   profiles: ProfileItem[];
+  /** Solo el administrador publica a Core: la lista lo avisa para mostrar u ocultar el botón. */
+  can_publish?: boolean;
   /** Los permisos que quien pide puede poner en un perfil propio, por módulo. */
   permissions: Record<string, PermissionOption[]>;
 }
@@ -60,6 +62,23 @@ export interface MenuPreviewGroup {
   label: string;
   icon?: string;
   items: { label: string; routerLink: string }[];
+}
+
+export interface CorePublication {
+  id: number;
+  status: 'sent' | 'failed';
+  profile_count: number;
+  summary: { created: string[]; updated: string[]; retired: string[]; unchanged: string[] } | null;
+  error: string | null;
+  actor: string | null;
+  created_at: string;
+}
+
+export interface CorePublicationStatus {
+  last: CorePublication | null;
+  history: CorePublication[];
+  /** Los perfiles propios con lo último que Core dijo de cada uno. */
+  profiles: { code: string; name: string; core_status: string | null; retired: boolean }[];
 }
 
 export interface ProfileInput {
@@ -97,6 +116,16 @@ export class ProfilesService {
   /** El menú que abrirían estos permisos, con los mismos límites que crear (Recursos humanos solo ve los de Asistencia). */
   previewMenu(permissions: string[]): Observable<ApiData<MenuPreviewGroup[]>> {
     return this.http.post<ApiData<MenuPreviewGroup[]>>(`${this.apiURL}/preview-menu`, { permissions });
+  }
+
+  /** Estado de la publicación a Core: la última, el historial y el estado de cada perfil propio. Solo administrador. */
+  coreStatus(): Observable<ApiData<CorePublicationStatus>> {
+    return this.http.get<ApiData<CorePublicationStatus>>(`${this.apiURL}/core`);
+  }
+
+  /** Envía a Core la lista completa de perfiles. Si Core falla, el API responde 502 y el intento queda en el historial. */
+  publishToCore(): Observable<ApiData<CorePublicationStatus>> {
+    return this.http.post<ApiData<CorePublicationStatus>>(`${this.apiURL}/core/publish`, {});
   }
 
   retire(code: string, reason: string): Observable<ApiData<ProfileItem>> {

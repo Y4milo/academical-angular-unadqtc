@@ -138,6 +138,10 @@ export const PATHS = {
       path: `cases`,
       link: `users/cases`,
     },
+    profilesCore: {
+      path: `profiles/core`,
+      link: `users/profiles/core`,
+    },
   },
   support: {
     path: `support`,

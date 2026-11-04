@@ -42,6 +42,8 @@ export class ProfilesComponent implements OnInit {
   readonly profiles = signal<ProfileItem[]>([]);
   readonly loading = signal(true);
   readonly loadError = signal(false);
+  /** Solo el administrador publica a Core: el API lo avisa en la lista. */
+  readonly canPublish = signal(false);
   readonly skeletonRows = Array.from({ length: 4 }, (_, index) => index);
 
   readonly query = signal('');
@@ -88,6 +90,7 @@ export class ProfilesComponent implements OnInit {
     this.service.list().subscribe({
       next: response => {
         this.profiles.set(response.payload.data?.profiles ?? []);
+        this.canPublish.set(response.payload.data?.can_publish === true);
         this.loading.set(false);
       },
       error: () => {
@@ -116,6 +119,10 @@ export class ProfilesComponent implements OnInit {
     }
 
     return (profile.core_status && CORE_STATUS[profile.core_status]) || { label: 'Sin publicar', severity: 'secondary' };
+  }
+
+  openCore(): void {
+    this.router.navigateByUrl(`/${PATHS.userAdmin.profilesCore.link}`);
   }
 
   create(): void {

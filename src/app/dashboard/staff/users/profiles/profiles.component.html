@@ -4,7 +4,12 @@
       <h1>Perfiles</h1>
       <p>Un perfil es un paquete con nombre de permisos, por módulo. Una persona puede tener varios a la vez.</p>
     </div>
-    <p-button label="Nuevo perfil" icon="pi pi-plus" (onClick)="create()" />
+    <div class="profiles__header-actions">
+      @if (canPublish()) {
+        <p-button label="Publicar a Core" icon="pi pi-upload" severity="secondary" [outlined]="true" (onClick)="openCore()" />
+      }
+      <p-button label="Nuevo perfil" icon="pi pi-plus" (onClick)="create()" />
+    </div>
   </header>
 
   <p-message severity="info" styleClass="profiles__notice">
