@@ -205,6 +205,13 @@ export const routes: Routes = [
         ]
       },
       {
+        // La integración con Core: solo el administrador (el API también lo exige).
+        path: PATHS.coreIntegration.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin], permissions: ['users.manage']},
+        loadComponent: () => import('./dashboard/staff/users/core-integration/core-integration.component').then(m => m.CoreIntegrationComponent)
+      },
+      {
         // Perfiles: una sola dirección para el administrador y Recursos humanos; el API decide qué ve y qué puede dar cada uno.
         path: PATHS.profiles.path,
         canActivate: [AuthRoleGuard],
