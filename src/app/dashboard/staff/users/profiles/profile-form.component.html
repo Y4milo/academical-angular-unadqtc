@@ -11,6 +11,8 @@
   @if (loading()) {
     <p-skeleton height="12rem" />
   } @else if (code === null || profile() !== null) {
+    <div class="pform__layout">
+    <div class="pform__main">
     <section class="pform__card" aria-label="Datos del perfil">
       <h2>Datos</h2>
       <div class="pform__grid">
@@ -60,6 +62,23 @@
         </div>
       }
     </section>
+
+    </div>
+
+    <aside class="pform__card pform__preview" aria-label="Menú que vería">
+      <h2>Menú que vería</h2>
+      <p class="pform__hint">Se arma con los permisos marcados. Quien reúne varios perfiles ve la suma de sus menús.</p>
+      @if (previewFailed()) {
+        <p-message severity="warn" styleClass="pform__notice">No se pudo calcular el menú. Los permisos se guardan igual.</p-message>
+      } @else if (previewMenu() === null) {
+        <p-skeleton height="6rem" />
+      } @else if (previewMenu()!.length === 0) {
+        <p class="pform__hint" data-testid="preview-empty">Estos permisos no abren ninguna pantalla del menú: dan acceso a lo que cada persona ya tiene (por ejemplo, «Mis asistencias») o a funciones sin pantalla propia.</p>
+      } @else {
+        <p-panelmenu [model]="previewMenu()!" [multiple]="true" styleClass="pform__menu" />
+      }
+    </aside>
+    </div>
 
     <div class="pform__actions">
       @if (!readOnly()) {

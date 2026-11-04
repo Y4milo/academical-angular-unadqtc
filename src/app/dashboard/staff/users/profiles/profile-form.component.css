@@ -26,6 +26,38 @@
   width: 100%;
 }
 
+.pform__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.pform__main {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.pform__preview {
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .pform {
+    max-width: 72rem;
+  }
+
+  .pform__layout {
+    grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  }
+
+  .pform__preview {
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+
 .pform__card {
   min-width: 0;
   padding: var(--space-4);
