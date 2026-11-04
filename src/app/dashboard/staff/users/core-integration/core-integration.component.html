@@ -1,0 +1,86 @@
+<div class="core-integration">
+  <div class="page-heading">
+    <div>
+      <p class="caption">Administración · Usuarios y accesos</p>
+      <h2>Integración con Core</h2>
+      <p>Cómo se entra a Academical con la cuenta de Core. Los secretos del cliente viven en el servidor y no se ven aquí.</p>
+    </div>
+    <p-tag value="Solo administradores" severity="secondary"></p-tag>
+  </div>
+
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button></div>
+  } @else if (loading()) {
+    <div class="settings-skeleton" aria-busy="true" data-testid="settings-skeleton">
+      <p-skeleton height="6rem"></p-skeleton>
+      <p-skeleton height="6rem"></p-skeleton>
+      <p-skeleton height="6rem"></p-skeleton>
+    </div>
+  } @else {
+    @if (values(); as current) {
+      <div class="layout">
+        <div class="column">
+          <section class="panel" aria-labelledby="sso-title" data-testid="sso-panel">
+            <h3 id="sso-title">Entrar con Core</h3>
+            <div class="switch-row">
+              <p-toggleswitch inputId="switch-sso" [ngModel]="current.sso === 'on'" (ngModelChange)="toggleSso($event)" data-testid="sso-switch"></p-toggleswitch>
+              <div>
+                <label for="switch-sso">Permitir el ingreso con la cuenta de Core</label>
+                <span class="hint">Entra directo quien ya está identificado en Core y tiene su cuenta de Academical vinculada.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="mode-title" data-testid="mode-panel">
+            <h3 id="mode-title">Modo de ingreso</h3>
+            <p class="hint">Obligatorio oculta el ingreso de Academical y manda a Core. Quien lo activa debe tener su propia cuenta vinculada.</p>
+            <p-selectbutton [options]="modeOptions" optionLabel="label" optionValue="value" [ngModel]="current.mode" (ngModelChange)="chooseMode($event)" [allowEmpty]="false" [disabled]="current.sso === 'off'" size="small" ariaLabelledBy="mode-title"></p-selectbutton>
+            <p-message severity="info" data-testid="effect-text">{{ effect() }}</p-message>
+          </section>
+
+          @if (saveError()) { <p-message severity="error" data-testid="save-error">{{ saveError() }}</p-message> }
+          <div class="actions">
+            <p-button label="Guardar cambios" [disabled]="!dirty()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
+            <p-button label="Descartar" severity="secondary" [outlined]="true" [disabled]="!dirty() || saving()" data-testid="reset-settings" (onClick)="reset()"></p-button>
+            <span class="hint" data-testid="settings-state">{{ dirty() ? 'Tienes cambios sin guardar.' : 'Sin cambios sin guardar.' }}</span>
+          </div>
+        </div>
+
+        <div class="column">
+          <section class="panel" aria-labelledby="checks-title" data-testid="checks-panel">
+            <h3 id="checks-title">Estado de la integración</h3>
+            <p class="hint">Se calcula en el servidor cada vez que abres esta pantalla.</p>
+            @for (check of checks(); track check.key) {
+              <div class="check-row" [attr.data-testid]="'check-' + check.key">
+                <div>
+                  <strong>{{ check.label }}</strong>
+                  <span class="hint">{{ check.detail }}</span>
+                </div>
+                <p-tag [value]="check.ok ? 'Listo' : 'Pendiente'" [severity]="check.ok ? 'success' : 'warn'"></p-tag>
+              </div>
+            }
+          </section>
+
+          <section class="panel" aria-labelledby="history-title" data-testid="history-panel">
+            <h3 id="history-title">Registro de cambios</h3>
+            @if (saved()?.history?.length) {
+              <p-timeline [value]="saved()!.history" align="left" styleClass="history-timeline">
+                <ng-template pTemplate="marker"><span class="history-marker" aria-hidden="true"></span></ng-template>
+                <ng-template pTemplate="content" let-change>
+                  <div class="history-item" data-testid="history-row">
+                    <strong>{{ keyLabel(change.key) }}</strong>
+                    <span>{{ valueLabel(change.old) }} → {{ valueLabel(change.new) }}</span>
+                    <span class="hint">{{ change.by || 'Sistema' }} · {{ change.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </ng-template>
+              </p-timeline>
+            } @else {
+              <p class="hint" data-testid="history-empty">Todavía no se cambió nada: rige lo que dice el servidor.</p>
+            }
+          </section>
+        </div>
+      </div>
+    }
+  }
+</div>

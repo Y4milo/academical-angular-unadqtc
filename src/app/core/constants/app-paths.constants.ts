@@ -168,6 +168,10 @@ export const PATHS = {
     },
     detailPath: `:id`,
   },
+  coreIntegration: {
+    path: `users/core-integration`,
+    link: `users/core-integration`,
+  },
   profiles: {
     path: `users`,
     list: {
