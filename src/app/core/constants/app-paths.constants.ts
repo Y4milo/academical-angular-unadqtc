@@ -127,6 +127,25 @@ export const PATHS = {
       link: `degrees-titles/exports`,
     },
   },
+  userAdmin: {
+    path: `users`,
+    accounts: {
+      path: `accounts`,
+      link: `users/accounts`,
+      sheetPath: `accounts/:id`,
+    },
+    cases: {
+      path: `cases`,
+      link: `users/cases`,
+    },
+  },
+  support: {
+    path: `support`,
+    requests: {
+      path: `requests`,
+      link: `support/requests`,
+    },
+  },
   serviceOrders: {
     path: `service-orders`,
     list: {

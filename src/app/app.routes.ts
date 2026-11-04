@@ -85,18 +85,9 @@ export const routes: Routes = [
             path: PATHS.admin.components.path,
             loadComponent: () => import('./dashboard/staff/shared/components-catalog/components-catalog.component').then(m => m.ComponentsCatalogComponent)
           },
-          {
-            path: PATHS.admin.users.accounts.path,
-            loadComponent: () => import('./dashboard/staff/users/user-accounts/user-accounts.component').then(m => m.UserAccountsComponent)
-          },
-          {
-            path: PATHS.admin.users.cases.path,
-            loadComponent: () => import('./dashboard/staff/users/user-cases/user-cases.component').then(m => m.UserCasesComponent)
-          },
-          {
-            path: PATHS.admin.users.accounts.sheetPath,
-            loadComponent: () => import('./dashboard/staff/users/user-accounts/user-account-sheet.component').then(m => m.UserAccountSheetComponent)
-          },
+          {path: PATHS.admin.users.accounts.path, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.accounts.link},
+          {path: PATHS.admin.users.cases.path, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.cases.link},
+          {path: PATHS.admin.users.accounts.sheetPath, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.path + '/accounts/:id'},
           {
             path: PATHS.admin.accounting.bank.incidents.path,
             loadComponent: () => import('./dashboard/staff/accounting/bn-incidents/bn-incidents.component').then(m => m.BnIncidentsComponent)
@@ -117,10 +108,7 @@ export const routes: Routes = [
           {path: PATHS.admin.degreesTitles.calls.path, pathMatch: 'full', redirectTo: '/' + PATHS.degreesTitles.calls.link},
           {path: PATHS.admin.degreesTitles.records.path, pathMatch: 'full', redirectTo: '/' + PATHS.degreesTitles.records.link},
           {path: PATHS.admin.degreesTitles.exports.path, pathMatch: 'full', redirectTo: '/' + PATHS.degreesTitles.exports.link},
-          {
-            path: 'support/requests',
-            loadComponent: () => import('./support/support-requests-admin.component').then(m => m.SupportRequestsAdminComponent),
-          },
+          {path: PATHS.admin.support.requests.path, pathMatch: 'full', redirectTo: '/' + PATHS.support.requests.link},
         ]
       },
       {
@@ -151,6 +139,39 @@ export const routes: Routes = [
             data: {title: 'Exportaciones SUNEDU'},
           },
         ],
+      },
+      {
+        // Cuentas funcionales y depuración de usuarios: quien tiene el permiso entra aunque no sea administrador.
+        path: PATHS.userAdmin.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin], permissions: ['users.manage']},
+        children: [
+          {
+            path: PATHS.userAdmin.accounts.path,
+            pathMatch: 'full',
+            loadComponent: () => import('./dashboard/staff/users/user-accounts/user-accounts.component').then(m => m.UserAccountsComponent)
+          },
+          {
+            path: PATHS.userAdmin.accounts.sheetPath,
+            loadComponent: () => import('./dashboard/staff/users/user-accounts/user-account-sheet.component').then(m => m.UserAccountSheetComponent)
+          },
+          {
+            path: PATHS.userAdmin.cases.path,
+            loadComponent: () => import('./dashboard/staff/users/user-cases/user-cases.component').then(m => m.UserCasesComponent)
+          },
+        ]
+      },
+      {
+        // Solicitudes de soporte: quien tiene el permiso entra aunque no sea administrador.
+        path: PATHS.support.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin], permissions: ['support.manage']},
+        children: [
+          {
+            path: PATHS.support.requests.path,
+            loadComponent: () => import('./support/support-requests-admin.component').then(m => m.SupportRequestsAdminComponent),
+          },
+        ]
       },
       {
         // Órdenes de servicio: una sola dirección; quien tiene el permiso entra aunque no sea administrador (el API decide lo que ve).

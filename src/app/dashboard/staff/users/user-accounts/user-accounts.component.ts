@@ -55,7 +55,7 @@ export class UserAccountsComponent implements OnInit {
   }
 
   sheetLink(account: AccountRow): string[] {
-    return ['/', PATHS.admin.path, 'users', 'accounts', String(account.id)];
+    return ['/', PATHS.userAdmin.path, PATHS.userAdmin.accounts.path, String(account.id)];
   }
 
   /** La fila entera abre la ficha, salvo que el clic sea en un enlace o botón, que ya navegan por su cuenta. */
