@@ -19,6 +19,7 @@
 
 .catalog__row { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .catalog__check { display: inline-flex; align-items: center; gap: .5rem; }
+:host ::ng-deep .catalog__spinner { width: 2rem; height: 2rem; }
 .catalog__stack { display: grid; gap: .5rem; }
 .catalog__bars { display: grid; gap: .5rem; }
 .catalog__bar { display: grid; grid-template-columns: 6rem 1fr 4rem; align-items: center; gap: .75rem; }
