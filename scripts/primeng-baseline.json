@@ -1,0 +1,99 @@
+{
+  "dashboard/login-base/login-base.component.html": {
+    "<button> nativo": 2,
+    "<input> sin directiva de PrimeNG": 1
+  },
+  "dashboard/staff/academic/approved-average/approved-average.component.html": {
+    "input nativo de fecha, número, casilla, opción o archivo": 1
+  },
+  "dashboard/staff/academic/student-cards/student-cards.component.html": {
+    "<button> nativo": 6,
+    "<ul> nativo": 1,
+    "input nativo de fecha, número, casilla, opción o archivo": 4,
+    "etiqueta obsoleta de PrimeNG": 3
+  },
+  "dashboard/staff/academic/student-cards/student-cards.component.ts": {
+    "módulo obsoleto de PrimeNG": 2
+  },
+  "dashboard/staff/academic/student-ranking/student-ranking.component.html": {
+    "<button> nativo": 1
+  },
+  "dashboard/staff/accounting/bn-config/bn-config.component.html": {
+    "<button> nativo": 13,
+    "<ul> nativo": 1
+  },
+  "dashboard/staff/accounting/bn-files/bn-files.component.html": {
+    "<button> nativo": 3,
+    "<ul> nativo": 1
+  },
+  "dashboard/staff/accounting/bn-incidents/bn-incidents.component.html": {
+    "<button> nativo": 10
+  },
+  "dashboard/staff/accounting/bn-traces/bn-traces.component.html": {
+    "<button> nativo": 4,
+    "<ul> nativo": 1
+  },
+  "dashboard/staff/dbu/dbu-config/dbu-config.component.html": {
+    "<table> nativo": 1
+  },
+  "dashboard/staff/dbu/dbu-queue/dbu-queue.component.html": {
+    "<button> nativo": 1,
+    "<ol> nativo": 1
+  },
+  "dashboard/staff/degrees-titles/authority-designation-form.component.html": {
+    "<ul> nativo": 1
+  },
+  "dashboard/staff/degrees-titles/authority-management.component.html": {
+    "<ul> nativo": 2
+  },
+  "dashboard/staff/degrees-titles/degree-calls.component.html": {
+    "<button> nativo": 10
+  },
+  "dashboard/staff/degrees-titles/degree-records.component.html": {
+    "<button> nativo": 32,
+    "<ul> nativo": 4
+  },
+  "dashboard/staff/hr-admin/attendace-admin/attendance.component.ts": {
+    "módulo obsoleto de PrimeNG": 1
+  },
+  "dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component.html": {
+    "<button> nativo": 1
+  },
+  "dashboard/staff/service-orders/document-sign-dialog/document-sign-dialog.component.html": {
+    "<ul> nativo": 1
+  },
+  "dashboard/staff/service-orders/service-order-detail/service-order-detail.component.html": {
+    "<ul> nativo": 1,
+    "<ol> nativo": 2
+  },
+  "dashboard/staff/service-orders/service-orders-config/service-orders-config.component.html": {
+    "input nativo de fecha, número, casilla, opción o archivo": 1
+  },
+  "dashboard/staff/service-orders/service-orders-list/service-orders-list.component.html": {
+    "<button> nativo": 1,
+    "<ul> nativo": 1
+  },
+  "dashboard/staff/shared/components-catalog/components-catalog.component.html": {
+    "<table> nativo": 1,
+    "<ul> nativo": 7
+  },
+  "dashboard/staff/shared/staff-change-password-dialog/staff-change-password-dialog.component.html": {
+    "<button> nativo": 2
+  },
+  "dashboard/staff/staff-user/attendance-user/attendance-user.component.html": {
+    "<button> nativo": 1
+  },
+  "dashboard/staff/staff-user/attendance-user/attendance-user.component.ts": {
+    "módulo obsoleto de PrimeNG": 2
+  },
+  "degrees-titles/public-ethnicity-form.component.html": {
+    "<button> nativo": 2
+  },
+  "support/public-support-request.component.html": {
+    "<button> nativo": 8,
+    "<textarea> sin pTextarea": 1
+  },
+  "support/support-requests-admin.component.html": {
+    "<button> nativo": 7
+  }
+}

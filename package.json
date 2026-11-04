@@ -10,7 +10,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "check:theme": "node scripts/check-theme-tokens.mjs",
-    "check:typography": "node scripts/check-typography.mjs"
+    "check:typography": "node scripts/check-typography.mjs",
+    "check:primeng": "node scripts/check-primeng.mjs",
+    "test:check-primeng": "node --test scripts/check-primeng.test.mjs"
   },
   "private": true,
   "dependencies": {
