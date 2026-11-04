@@ -3,6 +3,11 @@
   <div class="w-full" style="max-width: 500px;">
     <p-card class="p-4 shadow-2 border-round-lg">
       <ng-template pTemplate="header">
+        <div class="login-brand" data-testid="login-brand">
+          <span class="login-brand__name">Academical</span>
+          <span class="login-brand__divider" aria-hidden="true"></span>
+          <img class="login-brand__logo" src="img/logo-unadqtc.svg" alt="UNADQTC" width="96" height="57" />
+        </div>
         <div class="text-center w-full font-bold text-xl mt-3 mb-2">
           {{titleLabel}}
         </div>
@@ -32,7 +37,6 @@
             id="password"
             name="password"
             required
-            (keydown.enter)="onLoginClick(loginForm)"
             [(ngModel)]="password"
             (ngModelChange)="onPasswordChange($event)"
             inputStyleClass="w-full"
