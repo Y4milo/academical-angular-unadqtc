@@ -55,6 +55,13 @@ export interface ProfileDetail {
   history: ProfileEvent[];
 }
 
+/** Un grupo del menú que abriría un perfil: su nombre y las pantallas con su dirección. */
+export interface MenuPreviewGroup {
+  label: string;
+  icon?: string;
+  items: { label: string; routerLink: string }[];
+}
+
 export interface ProfileInput {
   name: string;
   description: string | null;
@@ -85,6 +92,11 @@ export class ProfilesService {
 
   update(code: string, input: ProfileInput): Observable<ApiData<ProfileItem>> {
     return this.http.put<ApiData<ProfileItem>>(`${this.apiURL}/${code}`, input);
+  }
+
+  /** El menú que abrirían estos permisos, con los mismos límites que crear (Recursos humanos solo ve los de Asistencia). */
+  previewMenu(permissions: string[]): Observable<ApiData<MenuPreviewGroup[]>> {
+    return this.http.post<ApiData<MenuPreviewGroup[]>>(`${this.apiURL}/preview-menu`, { permissions });
   }
 
   retire(code: string, reason: string): Observable<ApiData<ProfileItem>> {

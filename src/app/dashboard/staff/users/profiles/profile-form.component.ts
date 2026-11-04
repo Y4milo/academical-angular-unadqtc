@@ -1,11 +1,13 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { PanelMenuModule } from 'primeng/panelmenu';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
@@ -18,7 +20,7 @@ import { MODULE_LABELS, PermissionOption, ProfileInput, ProfileItem, ProfilesSer
  */
 @Component({
   selector: 'app-profile-form',
-  imports: [FormsModule, ButtonModule, CheckboxModule, DialogModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule],
+  imports: [FormsModule, ButtonModule, CheckboxModule, DialogModule, InputTextModule, MessageModule, PanelMenuModule, SelectButtonModule, SkeletonModule, TextareaModule],
   templateUrl: './profile-form.component.html',
   styleUrl: './profile-form.component.css',
 })
@@ -30,6 +32,12 @@ export class ProfileFormComponent implements OnInit {
   readonly options = signal<Record<string, PermissionOption[]>>({});
   readonly selected = signal<string[]>([]);
   readonly confirmPeople = signal<number | null>(null);
+
+  /** El menú que abrirían los permisos marcados (solo los de este perfil). `null` mientras no se ha pedido o si no se pudo pedir. */
+  readonly previewMenu = signal<MenuItem[] | null>(null);
+  readonly previewFailed = signal(false);
+  private previewTimer: ReturnType<typeof setTimeout> | null = null;
+  private previewRequest = 0;
 
   name = '';
   description = '';
@@ -61,6 +69,7 @@ export class ProfileFormComponent implements OnInit {
           this.selected.set([...profile.permissions]);
         }
         this.loading.set(false);
+        this.refreshPreview(0);
       },
       error: error => {
         this.error.set(profileError(error).message);
@@ -75,6 +84,32 @@ export class ProfileFormComponent implements OnInit {
 
   toggle(code: string, checked: boolean): void {
     this.selected.update(list => (checked ? [...new Set([...list, code])] : list.filter(item => item !== code)));
+    this.refreshPreview();
+  }
+
+  /** Pide el menú de los permisos marcados esperando un momento por si se marcan varios seguidos; una respuesta vieja no pisa a una nueva. */
+  refreshPreview(delay = 250): void {
+    if (this.previewTimer) {
+      clearTimeout(this.previewTimer);
+    }
+
+    this.previewTimer = setTimeout(() => {
+      const request = ++this.previewRequest;
+      this.service.previewMenu(this.selected()).subscribe({
+        next: response => {
+          if (request !== this.previewRequest) {
+            return;
+          }
+          this.previewFailed.set(false);
+          this.previewMenu.set((response.payload.data ?? []).map(group => ({ label: group.label, expanded: true, items: group.items.map(item => ({ label: item.label })) })));
+        },
+        error: () => {
+          if (request === this.previewRequest) {
+            this.previewFailed.set(true);
+          }
+        },
+      });
+    }, delay);
   }
 
   /** El código se arma del nombre al crear (el servidor lo confirma) y no cambia después. */

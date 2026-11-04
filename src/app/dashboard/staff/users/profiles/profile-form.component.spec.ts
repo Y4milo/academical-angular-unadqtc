@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -17,7 +17,7 @@ const own: ProfileItem = {
 const system: ProfileItem = { ...own, code: 'admin', name: 'Administrador', origin: 'system', can_edit: false };
 
 describe('ProfileFormComponent', () => {
-  let service: { list: jasmine.Spy; create: jasmine.Spy; update: jasmine.Spy };
+  let service: { list: jasmine.Spy; create: jasmine.Spy; update: jasmine.Spy; previewMenu: jasmine.Spy };
   let navigate: jasmine.Spy;
 
   function create(code: string | null, profiles: ProfileItem[] = [own, system]) {
@@ -25,6 +25,7 @@ describe('ProfileFormComponent', () => {
       list: jasmine.createSpy('list').and.returnValue(of({ payload: { data: { profiles, permissions } } } as never)),
       create: jasmine.createSpy('create').and.returnValue(of({} as never)),
       update: jasmine.createSpy('update').and.returnValue(of({} as never)),
+      previewMenu: jasmine.createSpy('previewMenu').and.returnValue(of({ payload: { data: [] } } as never)),
     };
     TestBed.configureTestingModule({
       imports: [ProfileFormComponent],
@@ -102,6 +103,57 @@ describe('ProfileFormComponent', () => {
     expect(service.update.calls.mostRecent().args[1].confirmed).toBeTrue();
     expect(navigate).toHaveBeenCalledWith('/users/profiles');
   });
+
+  it('shows the menu that the marked permissions would open, grouped, and refreshes it when they change', fakeAsync(() => {
+    const fixture = create(null);
+    service.previewMenu.and.returnValue(of({ payload: { data: [{ label: 'Recursos humanos', icon: 'users', items: [{ label: 'Asistencias del personal', routerLink: '/hr/staff/attendance' }] }] } } as never));
+    const component = fixture.componentInstance;
+
+    component.toggle('attendance.manage', true);
+    tick(300);
+    fixture.detectChanges();
+
+    expect(service.previewMenu).toHaveBeenCalledWith(['attendance.manage']);
+    expect(component.previewMenu()).toEqual([{ label: 'Recursos humanos', expanded: true, items: [{ label: 'Asistencias del personal' }] }]);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Recursos humanos');
+  }));
+
+  it('waits for a moment so that marking several permissions in a row asks only once', fakeAsync(() => {
+    const component = create(null).componentInstance;
+    service.previewMenu.calls.reset();
+
+    component.toggle('attendance.view', true);
+    component.toggle('attendance.manage', true);
+    tick(300);
+
+    expect(service.previewMenu).toHaveBeenCalledTimes(1);
+    expect(service.previewMenu).toHaveBeenCalledWith(['attendance.view', 'attendance.manage']);
+  }));
+
+  it('says that the permissions open no screen when the menu is empty', fakeAsync(() => {
+    const fixture = create(null);
+    fixture.componentInstance.toggle('attendance.view', true);
+    tick(300);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.previewMenu()).toEqual([]);
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="preview-empty"]')?.textContent).toContain('no abren ninguna pantalla');
+  }));
+
+  it('does not block saving when the preview cannot be calculated', fakeAsync(() => {
+    const fixture = create(null);
+    service.previewMenu.and.returnValue(throwError(() => new Error('offline')));
+    const component = fixture.componentInstance;
+    component.name = 'Auditoría interna';
+
+    component.toggle('attendance.view', true);
+    tick(300);
+    fixture.detectChanges();
+
+    expect(component.previewFailed()).toBeTrue();
+    expect(component.canSave).toBeTrue();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('No se pudo calcular el menú');
+  }));
 
   it('says plainly when the profile does not exist', () => {
     const fixture = create('custom_no_existe');
