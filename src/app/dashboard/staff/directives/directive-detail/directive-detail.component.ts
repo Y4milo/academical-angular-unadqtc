@@ -8,6 +8,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageModule } from 'primeng/message';
+import { PanelModule } from 'primeng/panel';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -26,13 +27,16 @@ import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LAB
  */
 @Component({
   selector: 'app-directive-detail',
-  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, ConfirmDialogModule, DialogModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent],
+  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, ConfirmDialogModule, DialogModule, MessageModule, PanelModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent],
   providers: [ConfirmationService],
   templateUrl: './directive-detail.component.html',
   styleUrl: './directive-detail.component.css',
 })
 export class DirectiveDetailComponent implements OnInit {
   readonly directive = signal<DirectiveDetail | null>(null);
+  /** Las tarjetas de la ruta y del seguimiento se pueden plegar; las dos empiezan abiertas, también en el teléfono. */
+  readonly routeCollapsed = signal(false);
+  readonly timelineCollapsed = signal(false);
   readonly loading = signal(true);
   readonly loadError = signal('');
   readonly route = signal<DirectiveRoute | null>(null);

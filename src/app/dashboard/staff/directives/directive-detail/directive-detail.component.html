@@ -157,8 +157,8 @@
           </section>
         }
 
-        <section class="panel" aria-labelledby="route-title" data-testid="route-panel">
-          <h3 id="route-title">Ruta de firmas</h3>
+        <p-panel [toggleable]="true" toggler="header" [(collapsed)]="routeCollapsed" styleClass="detail-panel" data-testid="route-panel">
+          <ng-template #header><div class="detail-head"><h3 id="route-title">Ruta de firmas</h3><span class="detail-hint" data-testid="route-hint">{{ routeCollapsed() ? 'Haz clic para ver el detalle' : 'Haz clic para ocultar' }}</span></div></ng-template>
           @if (isDraft()) {
             <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
           } @else if (current.progress.length > 0) {
@@ -180,11 +180,11 @@
           } @else {
             <p-message severity="info">La ruta de esta directiva queda registrada al enviarla a firma.</p-message>
           }
-        </section>
+        </p-panel>
       </div>
 
-      <section class="panel" aria-labelledby="timeline-title" data-testid="timeline-panel">
-        <h3 id="timeline-title">Seguimiento</h3>
+      <p-panel [toggleable]="true" toggler="header" [(collapsed)]="timelineCollapsed" styleClass="detail-panel" data-testid="timeline-panel">
+        <ng-template #header><div class="detail-head"><h3 id="timeline-title">Seguimiento</h3><span class="detail-hint" data-testid="timeline-hint">{{ timelineCollapsed() ? 'Haz clic para ver el detalle' : 'Haz clic para ocultar' }}</span></div></ng-template>
         <p-timeline [value]="current.events" align="left" styleClass="events-timeline">
           <ng-template pTemplate="marker"><span class="event-marker" aria-hidden="true"></span></ng-template>
           <ng-template pTemplate="content" let-event>
@@ -195,7 +195,7 @@
             </div>
           </ng-template>
         </p-timeline>
-      </section>
+      </p-panel>
     </div>
 
     <p-confirmdialog></p-confirmdialog>
