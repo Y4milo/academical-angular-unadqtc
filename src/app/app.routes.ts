@@ -62,22 +62,10 @@ export const routes: Routes = [
             path: PATHS.admin.home.path,
             loadComponent: () => import('./dashboard/staff/staff-user/attendance-user/attendance-user.component').then(m => m.AttendanceUserComponent)
           },
-          {
-            path: PATHS.hr.staff.attendance.list.path,
-            loadComponent: () => import('./dashboard/staff/hr-admin/attendace-admin/attendance.component').then(m => m.AttendanceListComponent)
-          },
-          {
-            path: PATHS.hr.staff.attendance.register.path,
-            loadComponent: () => import('./dashboard/staff/hr-admin/attendance-register/attendance-register.component').then(m => m.AttendanceRegisterComponent)
-          },
-          {
-            path: PATHS.hr.staff.attendance.manual.path,
-            loadComponent: () => import('./dashboard/staff/hr-admin/attendance-manual-list/attendance-manual-list.component').then(m => m.AttendanceManualListComponent)
-          },
-          {
-            path: PATHS.hr.staff.attendance.reports.path,
-            loadComponent: () => import('./dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component').then(m => m.HrReportAttendanceComponentComponent)
-          },
+          {path: PATHS.hr.staff.attendance.list.path, pathMatch: 'full', redirectTo: '/' + PATHS.hr.staff.attendance.list.link},
+          {path: PATHS.hr.staff.attendance.register.path, pathMatch: 'full', redirectTo: '/' + PATHS.hr.staff.attendance.register.link},
+          {path: PATHS.hr.staff.attendance.manual.path, pathMatch: 'full', redirectTo: '/' + PATHS.hr.staff.attendance.manual.link},
+          {path: PATHS.hr.staff.attendance.reports.path, pathMatch: 'full', redirectTo: '/' + PATHS.hr.staff.attendance.reports.link},
           {path: PATHS.admin.academic.semesters.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.semesters.link},
           {path: PATHS.admin.academic.cardSettings.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.cardSettings.link},
           {
@@ -179,7 +167,7 @@ export const routes: Routes = [
       {
         path: PATHS.hr.path,
         canActivate: [AuthRoleGuard],
-        data: {roles: [ROLE.hr], permissions: ['attendance.manage']},
+        data: {roles: [ROLE.hr, ROLE.admin], permissions: ['attendance.manage']},
         children: [
           {
             path: PATHS.hr.home.path,
