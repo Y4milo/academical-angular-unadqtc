@@ -15,10 +15,10 @@ const status = (override: Partial<CorePublicationStatus> = {}): CorePublicationS
 });
 
 describe('ProfilesCoreComponent', () => {
-  let service: { coreStatus: jasmine.Spy; publishToCore: jasmine.Spy };
+  let service: { coreStatus: jasmine.Spy; publishToCore: jasmine.Spy; publishPeopleToCore: jasmine.Spy };
 
   function create(current: CorePublicationStatus = status(), publish = of({ payload: { data: status() } } as never)) {
-    service = { coreStatus: jasmine.createSpy('coreStatus').and.returnValue(of({ payload: { data: current } } as never)), publishToCore: jasmine.createSpy('publishToCore').and.returnValue(publish) };
+    service = { coreStatus: jasmine.createSpy('coreStatus').and.returnValue(of({ payload: { data: current } } as never)), publishToCore: jasmine.createSpy('publishToCore').and.returnValue(publish), publishPeopleToCore: jasmine.createSpy('publishPeopleToCore').and.returnValue(of({ payload: { data: { people: 118, received: 118 } } } as never)) };
     TestBed.configureTestingModule({ imports: [ProfilesCoreComponent], providers: [provideNoopAnimations(), provideRouter([]), { provide: ProfilesService, useValue: service }] });
     const fixture = TestBed.createComponent(ProfilesCoreComponent);
     fixture.detectChanges();
@@ -69,5 +69,47 @@ describe('ProfilesCoreComponent', () => {
 
     expect(text).toContain('Todavía no hay perfiles propios');
     expect(text).toContain('Todavía no se publicó ningún perfil a Core.');
+  });
+
+  it('explains the people snapshot that feeds the reconciliation of Core', () => {
+    const text = (create().nativeElement as HTMLElement).textContent ?? '';
+
+    expect(text).toContain('Foto de personas');
+    expect(text).toContain('cada noche');
+  });
+
+  it('sends the people snapshot on demand and says how many people Core received', () => {
+    const fixture = create();
+
+    fixture.componentInstance.sendPeople();
+    fixture.detectChanges();
+
+    expect(service.publishPeopleToCore).toHaveBeenCalled();
+    expect(fixture.componentInstance.peopleResult()).toBe(118);
+    expect(fixture.componentInstance.peopleSending()).toBeFalse();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Core recibió la foto de 118 personas');
+  });
+
+  it('shows why the snapshot could not be sent', () => {
+    const fixture = create();
+    service.publishPeopleToCore.and.returnValue(throwError(() => ({ error: { payload: { message: 'Core no conoce el sistema «academical».', reason: 'core_error' } } })));
+
+    fixture.componentInstance.sendPeople();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.peopleError()).toBe('Core no conoce el sistema «academical».');
+    expect(fixture.componentInstance.peopleResult()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Core no conoce el sistema');
+  });
+
+  it('clears the previous answer when it is sent again', () => {
+    const fixture = create();
+    fixture.componentInstance.sendPeople();
+    service.publishPeopleToCore.and.returnValue(throwError(() => ({ error: { payload: { message: 'Falló.' } } })));
+
+    fixture.componentInstance.sendPeople();
+
+    expect(fixture.componentInstance.peopleResult()).toBeNull();
+    expect(fixture.componentInstance.peopleError()).toBe('Falló.');
   });
 });

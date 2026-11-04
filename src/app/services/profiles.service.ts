@@ -130,6 +130,11 @@ export class ProfilesService {
     return this.http.post<ApiData<CorePublicationStatus>>(`${this.apiURL}/core/publish`, {});
   }
 
+  /** Envía a Core la foto de las personas vinculadas con su rol y sus permisos, para su conciliación. Solo administrador. */
+  publishPeopleToCore(): Observable<ApiData<{ people: number; received: number }>> {
+    return this.http.post<ApiData<{ people: number; received: number }>>(`${this.apiURL}/core/people`, {});
+  }
+
   retire(code: string, reason: string): Observable<ApiData<ProfileItem>> {
     return this.http.delete<ApiData<ProfileItem>>(`${this.apiURL}/${code}`, { body: { reason } });
   }

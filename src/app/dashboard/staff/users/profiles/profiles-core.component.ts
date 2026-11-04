@@ -36,6 +36,11 @@ export class ProfilesCoreComponent implements OnInit {
   readonly justPublished = signal(false);
   readonly skeletonRows = Array.from({ length: 3 }, (_, index) => index);
 
+  /** La foto de personas para la conciliación de Core: lo último que se envió desde esta pantalla. */
+  readonly peopleSending = signal(false);
+  readonly peopleResult = signal<number | null>(null);
+  readonly peopleError = signal<string | null>(null);
+
   constructor(private service: ProfilesService, private router: Router) {}
 
   ngOnInit(): void {
@@ -71,6 +76,23 @@ export class ProfilesCoreComponent implements OnInit {
         this.publishError.set(profileError(error).message);
         this.publishing.set(false);
         this.load();
+      },
+    });
+  }
+
+  /** Envía la foto de personas a Core ahora (también se envía sola cada noche). */
+  sendPeople(): void {
+    this.peopleSending.set(true);
+    this.peopleError.set(null);
+    this.peopleResult.set(null);
+    this.service.publishPeopleToCore().subscribe({
+      next: response => {
+        this.peopleResult.set(response.payload.data?.received ?? 0);
+        this.peopleSending.set(false);
+      },
+      error: error => {
+        this.peopleError.set(profileError(error).message);
+        this.peopleSending.set(false);
       },
     });
   }
