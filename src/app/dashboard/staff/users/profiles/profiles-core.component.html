@@ -69,6 +69,24 @@
       }
     </section>
 
+    <section class="core__panel" aria-label="Foto de personas">
+      <div class="core__last">
+        <div>
+          <h2>Foto de personas</h2>
+          <p>Core compara el perfil que cada persona tiene en Academical con el acceso que él da. Esta foto se envía sola cada noche; aquí puedes enviarla ahora.</p>
+        </div>
+        <div class="core__last-actions">
+          <p-button label="Enviar la foto ahora" icon="pi pi-send" severity="secondary" [outlined]="true" [loading]="peopleSending()" [disabled]="peopleSending()" (onClick)="sendPeople()" />
+        </div>
+      </div>
+      @if (peopleResult() !== null) {
+        <p-message severity="success" styleClass="core__notice">Core recibió la foto de {{ peopleResult() }} personas.</p-message>
+      }
+      @if (peopleError()) {
+        <p-message severity="error" styleClass="core__notice">{{ peopleError() }}</p-message>
+      }
+    </section>
+
     <section class="core__panel" aria-label="Historial">
       <h2 class="core__title">Historial</h2>
       @if (current.history.length === 0) {
