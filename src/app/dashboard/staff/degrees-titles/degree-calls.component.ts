@@ -13,6 +13,7 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {STATUS} from '../../../core/constants/api-status.constants';
 import {ROLE} from '../../../core/constants/app-roles.constants';
+import {canReopenCalls} from './degree-call-permissions';
 import {
   DegreeCall,
   DegreeCallPayload,
@@ -93,6 +94,11 @@ export class DegreeCallsComponent implements OnInit {
 
   get isAdmin(): boolean {
     return this.loginService.getUser()?.role?.value === ROLE.admin;
+  }
+
+  /** Reabrir, anular o completar la resolución de una convocatoria cerrada: lo decide el permiso, no el rol. */
+  get canReopen(): boolean {
+    return canReopenCalls(this.loginService.getUser());
   }
 
   loadCalls(page = 1): void {
@@ -226,7 +232,7 @@ export class DegreeCallsComponent implements OnInit {
 
   canEdit(call: DegreeCall): boolean {
     return ['draft', 'open'].includes(call.status.value)
-      || (this.isAdmin && ['closed', 'exported'].includes(call.status.value));
+      || (this.canReopen && ['closed', 'exported'].includes(call.status.value));
   }
 
   isResolutionOnlyEdit(): boolean {
@@ -234,7 +240,7 @@ export class DegreeCallsComponent implements OnInit {
   }
 
   canOpen(call: DegreeCall): boolean {
-    return call.status.value === 'draft' || (this.isAdmin && ['closed', 'exported'].includes(call.status.value));
+    return call.status.value === 'draft' || (this.canReopen && ['closed', 'exported'].includes(call.status.value));
   }
 
   canClose(call: DegreeCall): boolean {
@@ -243,7 +249,7 @@ export class DegreeCallsComponent implements OnInit {
 
   canAnnul(call: DegreeCall): boolean {
     return ['draft', 'open'].includes(call.status.value)
-      || (this.isAdmin && ['closed', 'exported'].includes(call.status.value));
+      || (this.canReopen && ['closed', 'exported'].includes(call.status.value));
   }
 
   canViewRecords(call: DegreeCall): boolean {
