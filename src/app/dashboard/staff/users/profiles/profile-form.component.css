@@ -149,3 +149,51 @@
     padding: var(--space-5);
   }
 }
+
+.pform__autocode {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.pform__codeline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pform__codeline code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-label);
+}
+
+:host ::ng-deep .pform__module {
+  margin-bottom: var(--space-3);
+}
+
+.pform__module-head {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.pform__module-title {
+  font-weight: var(--weight-strong);
+}
+
+.pform__module-title small {
+  margin-left: var(--space-2);
+  color: var(--p-text-muted-color);
+  font-weight: var(--weight-regular);
+}
+
+.pform__all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+}

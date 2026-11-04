@@ -21,11 +21,11 @@
           <input pInputText type="text" [(ngModel)]="name" name="name" [disabled]="readOnly()" maxlength="120" />
           <small>Lo ve la persona y se envía a Core.</small>
         </label>
-        <label class="pform__field">
+        <div class="pform__field pform__autocode" data-testid="auto-code">
           <span>Código</span>
-          <input pInputText type="text" [value]="previewCode" disabled aria-label="Código" />
-          <small>Sale del nombre y no cambia después: Core lo guarda.</small>
-        </label>
+          <span class="pform__codeline"><code>{{ previewCode || '(se genera al escribir el nombre)' }}</code>@if (code === null) { <app-status-tag value="Automático" severity="secondary" /> }</span>
+          <small>Se arma solo con el nombre mientras lo escribes y no cambia después: Core lo guarda. Si ya existe, el servidor le agrega un número.</small>
+        </div>
         <div class="pform__field">
           <span>Módulo</span>
           <p-selectbutton [options]="moduleOptions()" optionLabel="label" optionValue="value" [(ngModel)]="module" name="module" [allowEmpty]="false" [disabled]="readOnly()" ariaLabelledBy="Módulo" />
@@ -51,15 +51,32 @@
         <p-message severity="info" styleClass="pform__notice">Estos son los permisos que da el perfil.</p-message>
       }
       @for (group of groups(); track group.module) {
-        <h3>{{ group.label }}</h3>
-        <div class="pform__perms">
-          @for (item of group.items; track item.code) {
-            <label class="pform__perm" [class.pform__perm--on]="isSelected(item.code)">
-              <p-checkbox [binary]="true" [ngModel]="isSelected(item.code)" (ngModelChange)="toggle(item.code, $event)" [disabled]="readOnly()" [inputId]="'perm-' + item.code" [ariaLabel]="item.label" />
-              <span>{{ item.label }}<small>{{ item.code }}</small></span>
-            </label>
-          }
-        </div>
+        <p-panel [toggleable]="true" [collapsed]="!isOpen(group.module)" (collapsedChange)="setOpen(group.module, !$event)" styleClass="pform__module">
+          <ng-template #header>
+            <div class="pform__module-head">
+              <span class="pform__module-title">{{ group.label }} <small>{{ moduleCount(group) }} de {{ group.rows.length }}</small></span>
+              @if (group.umbrella; as umbrella) {
+                <label class="pform__all">
+                  <p-checkbox [binary]="true" [ngModel]="moduleState(group) === 'all'" [indeterminate]="moduleState(group) === 'some'" (ngModelChange)="toggleModule(group, $event)" [disabled]="readOnly()" [inputId]="'perm-' + umbrella.code" [ariaLabel]="'Todo el módulo ' + group.label" />
+                  <span>Todo el módulo</span>
+                </label>
+              }
+            </div>
+          </ng-template>
+          <div class="pform__perms">
+            @for (item of group.rows; track item.code) {
+              <label class="pform__perm" [class.pform__perm--on]="isSelected(item.code)">
+                <p-checkbox [binary]="true" [ngModel]="isSelected(item.code)" (ngModelChange)="toggle(item.code, $event)" [disabled]="readOnly()" [inputId]="'perm-' + item.code" [ariaLabel]="rowLabel(item)" />
+                <span>
+                  {{ rowLabel(item) }}
+                  @if (sensitive(item.code)) { <app-status-tag value="Sensible" severity="warn" /> }
+                  @if (hideOnly(item.code)) { <app-status-tag value="Solo oculta la pantalla" severity="warn" /> }
+                  <small>{{ item.code }}</small>
+                </span>
+              </label>
+            }
+          </div>
+        </p-panel>
       }
     </section>
 

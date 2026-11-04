@@ -7,7 +7,12 @@ import { ProfileFormComponent } from './profile-form.component';
 
 const permissions: ProfilesIndex['permissions'] = {
   general: [{ code: 'general.consult', label: 'Consultas generales y perfil propio' }],
-  attendance: [{ code: 'attendance.view', label: 'Asistencia: consulta' }, { code: 'attendance.manage', label: 'Asistencia: gestión' }],
+  attendance: [{ code: 'attendance.view', label: 'Asistencia: consulta' }, { code: 'attendance.manage', label: 'Asistencia: gestión', includes: ['attendance.list', 'attendance.manual'] }, { code: 'attendance.list', label: 'Asistencia: lista del personal' }, { code: 'attendance.manual', label: 'Asistencia: registros manuales' }],
+  accounting: [
+    { code: 'accounting.bank', label: 'Contabilidad: pagos y archivos del Banco de la Nación', includes: ['accounting.incidents', 'accounting.files', 'accounting.traces'] },
+    { code: 'accounting.settings', label: 'Contabilidad: configuración del banco' }, { code: 'accounting.incidents', label: 'Contabilidad: incidencias del banco' },
+    { code: 'accounting.files', label: 'Contabilidad: archivos del banco' }, { code: 'accounting.traces', label: 'Contabilidad: trazabilidad de IP' },
+  ],
 };
 
 const own: ProfileItem = {
@@ -43,7 +48,7 @@ describe('ProfileFormComponent', () => {
     const fixture = create(null);
     const component = fixture.componentInstance;
 
-    expect(component.groups().map(group => group.label)).toEqual(['General', 'Asistencia']);
+    expect(component.groups().map(group => group.label)).toEqual(['General', 'Asistencia', 'Contabilidad']);
     component.name = 'Auditoría interna';
     expect(component.previewCode).toBe('custom_auditoria_interna');
   });
@@ -171,5 +176,118 @@ describe('ProfileFormComponent', () => {
 
     expect(component.error()).toBe('No puede dar el permiso users.manage.');
     expect(component.saving()).toBeFalse();
+  });
+
+  describe('permissions per screen', () => {
+    it('splits a module into its screens, the permission of the whole module and the rest', () => {
+      const groups = create(null).componentInstance.groups();
+      const accounting = groups.find(group => group.module === 'accounting')!;
+
+      expect(accounting.umbrella?.code).toBe('accounting.bank');
+      expect(accounting.rows.map(row => row.code)).toEqual(['accounting.incidents', 'accounting.files', 'accounting.traces', 'accounting.settings']);
+      expect(groups.find(group => group.module === 'general')!.umbrella).toBeNull();
+    });
+
+    it('drops the module prefix of the label and capitalizes it', () => {
+      const component = create(null).componentInstance;
+
+      expect(component.rowLabel({ code: 'accounting.incidents', label: 'Contabilidad: incidencias del banco' })).toBe('Incidencias del banco');
+      expect(component.rowLabel({ code: 'general.consult', label: 'Consultas generales y perfil propio' })).toBe('Consultas generales y perfil propio');
+    });
+
+    it('marks one screen only and counts it in its module', () => {
+      const component = create(null).componentInstance;
+      const accounting = component.groups().find(group => group.module === 'accounting')!;
+
+      component.toggle('accounting.incidents', true);
+
+      expect(component.selected()).toEqual(['accounting.incidents']);
+      expect(component.isSelected('accounting.files')).toBeFalse();
+      expect(component.moduleCount(accounting)).toBe(1);
+      expect(component.moduleState(accounting)).toBe('some');
+    });
+
+    it('marks the whole module with its own permission, keeps the sensitive screen out and shows every screen as marked', () => {
+      const component = create(null).componentInstance;
+      const accounting = component.groups().find(group => group.module === 'accounting')!;
+
+      component.toggleModule(accounting, true);
+
+      expect(component.selected()).toEqual(['accounting.bank']);
+      expect(['accounting.incidents', 'accounting.files', 'accounting.traces'].every(code => component.isSelected(code))).toBeTrue();
+      expect(component.isSelected('accounting.settings')).toBeFalse();
+      expect(component.moduleState(accounting)).toBe('all');
+    });
+
+    it('replaces the module permission by the screens that stay when one is unmarked', () => {
+      const component = create(null).componentInstance;
+      const accounting = component.groups().find(group => group.module === 'accounting')!;
+      component.toggleModule(accounting, true);
+
+      component.toggle('accounting.files', false);
+
+      expect([...component.selected()].sort()).toEqual(['accounting.incidents', 'accounting.traces']);
+      expect(component.moduleState(accounting)).toBe('some');
+    });
+
+    it('swaps loose screens for the module permission when the whole module is marked after them', () => {
+      const component = create(null).componentInstance;
+      const accounting = component.groups().find(group => group.module === 'accounting')!;
+      component.toggle('accounting.incidents', true);
+
+      component.toggleModule(accounting, true);
+
+      expect(component.selected()).toEqual(['accounting.bank']);
+    });
+
+    it('clears the module when its toggle is unmarked', () => {
+      const component = create(null).componentInstance;
+      const accounting = component.groups().find(group => group.module === 'accounting')!;
+      component.toggleModule(accounting, true);
+      component.toggle('accounting.settings', true);
+
+      component.toggleModule(accounting, false);
+
+      expect(component.selected()).toEqual([]);
+      expect(component.moduleState(accounting)).toBe('none');
+    });
+
+    it('opens only the modules that have something marked and lets the person open the rest', () => {
+      const component = create('custom_auditoria').componentInstance;
+
+      expect(component.isOpen('attendance')).toBeTrue();
+      expect(component.isOpen('accounting')).toBeFalse();
+      component.setOpen('accounting', true);
+      expect(component.isOpen('accounting')).toBeTrue();
+    });
+
+    it('shows the screens of a saved module permission as marked when editing', () => {
+      const saved = { ...own, permissions: ['attendance.manage'] };
+      const component = create('custom_auditoria', [saved, system]).componentInstance;
+
+      expect(component.isSelected('attendance.list')).toBeTrue();
+      expect(component.isSelected('attendance.manual')).toBeTrue();
+      expect(component.moduleState(component.groups().find(group => group.module === 'attendance')!)).toBe('all');
+    });
+
+    it('tags the sensitive and the hide-only screens', () => {
+      const component = create(null).componentInstance;
+
+      expect(component.sensitive('accounting.settings')).toBeTrue();
+      expect(component.sensitive('accounting.files')).toBeFalse();
+      expect(component.hideOnly('student_card.ranking')).toBeTrue();
+      expect(component.hideOnly('student_card.panel')).toBeFalse();
+    });
+
+    it('shows the code as an automatic line, not as a field', () => {
+      const fixture = create(null);
+      fixture.componentInstance.name = 'Contabilidad: solo incidencias';
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+
+      expect(host.querySelector('input[aria-label="Código"]')).toBeNull();
+      expect(host.querySelector('[data-testid="auto-code"]')?.textContent).toContain('custom_contabilidad_solo_incidencias');
+      expect(host.querySelector('[data-testid="auto-code"]')?.textContent).toContain('Automático');
+    });
   });
 });
