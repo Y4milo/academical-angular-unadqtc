@@ -47,6 +47,15 @@ describe('ProfilesComponent', () => {
     expect(fixture.componentInstance.coreTag(profiles[3]).label).toBe('Retirado');
   });
 
+  it('shows the Core publication button only when the API says the person can publish', () => {
+    const admin = create(of({ status: 'success', payload: { data: { profiles, permissions: {}, can_publish: true } } } as never));
+    expect((admin.nativeElement as HTMLElement).textContent).toContain('Publicar a Core');
+    TestBed.resetTestingModule();
+
+    const hr = create(of({ status: 'success', payload: { data: { profiles, permissions: {}, can_publish: false } } } as never));
+    expect((hr.nativeElement as HTMLElement).textContent).not.toContain('Publicar a Core');
+  });
+
   it('filters by search, module and origin', () => {
     const fixture = create();
     const component = fixture.componentInstance;

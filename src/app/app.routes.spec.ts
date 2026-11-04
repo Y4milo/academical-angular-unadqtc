@@ -277,6 +277,25 @@ describe('staff routes', () => {
     expect(await visit('/academic/student-card')).toBe('/login-admin');
   });
 
+  it('opens the Core publication of profiles to the administrator', async () => {
+    user = {id: '1', role: {value: 'admin'}};
+
+    expect(await visit('/users/profiles/core')).toBe('/users/profiles/core');
+  });
+
+  it('keeps Recursos humanos out of the Core publication while its list stays open', async () => {
+    user = {id: '1', role: {value: 'hr'}};
+
+    expect(await visit('/users/profiles/core')).toBe('/login-admin');
+    expect(await visit('/users/profiles')).toBe('/users/profiles');
+  });
+
+  it('lets a person with users.manage publish profiles to Core without being an administrator', async () => {
+    user = {id: '1', role: {value: 'professor'}, permissions: ['users.manage']};
+
+    expect(await visit('/users/profiles/core')).toBe('/users/profiles/core');
+  });
+
   it('keeps the redirects of the home of each group', async () => {
     user = {id: '1', role: {value: 'degrees_titles'}};
     expect(await visit('/degrees-titles')).toBe('/degrees-titles/calls');

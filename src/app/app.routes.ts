@@ -150,6 +150,10 @@ export const routes: Routes = [
             loadComponent: () => import('./dashboard/staff/users/user-accounts/user-account-sheet.component').then(m => m.UserAccountSheetComponent)
           },
           {
+            path: PATHS.userAdmin.profilesCore.path,
+            loadComponent: () => import('./dashboard/staff/users/profiles/profiles-core.component').then(m => m.ProfilesCoreComponent)
+          },
+          {
             path: PATHS.userAdmin.cases.path,
             loadComponent: () => import('./dashboard/staff/users/user-cases/user-cases.component').then(m => m.UserCasesComponent)
           },

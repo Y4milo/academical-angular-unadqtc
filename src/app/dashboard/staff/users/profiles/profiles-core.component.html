@@ -1,0 +1,94 @@
+<div class="core">
+  <header class="core__header">
+    <div>
+      <h1>Publicación a Core</h1>
+      <p>Cada vez que publicas se envía la lista completa de perfiles. Core deja los nuevos Pendientes y retira los que ya no vienen.</p>
+    </div>
+    <p-button label="Volver a Perfiles" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="back()" />
+  </header>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="core__notice">
+      No se pudo cargar el estado de la publicación. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  }
+
+  @if (publishError()) {
+    <p-message severity="error" styleClass="core__notice">{{ publishError() }} El intento quedó en el historial.</p-message>
+  }
+
+  @if (justPublished()) {
+    <p-message severity="success" styleClass="core__notice">Core recibió la lista de perfiles.</p-message>
+  }
+
+  @if (loading()) {
+    <section class="core__panel" aria-busy="true">
+      <div class="core__skeleton">
+        @for (row of skeletonRows; track row) {
+          <p-skeleton width="60%" height="1rem" />
+        }
+      </div>
+    </section>
+  } @else if (status()) {
+    @let current = status()!;
+    <section class="core__panel" aria-label="Última publicación">
+      <div class="core__last">
+        <div>
+          <h2>Última publicación</h2>
+          @if (current.last; as last) {
+            <p>{{ last.created_at }} · enviada por {{ last.actor ?? 'sistema' }}</p>
+          } @else {
+            <p>Todavía no se publicó ningún perfil a Core.</p>
+          }
+        </div>
+        <div class="core__last-actions">
+          @if (current.last; as last) {
+            <app-status-tag [value]="resultTag(last).label" [severity]="resultTag(last).severity" />
+          }
+          <p-button [label]="current.last?.status === 'failed' ? 'Reintentar' : 'Publicar ahora'" icon="pi pi-upload" [loading]="publishing()" [disabled]="publishing()" (onClick)="publish()" />
+        </div>
+      </div>
+    </section>
+
+    <section class="core__panel" aria-label="Lo que Core respondió">
+      <h2 class="core__title">Perfiles propios en Core</h2>
+      @if (current.profiles.length === 0) {
+        <p class="core__empty">Todavía no hay perfiles propios. Los perfiles del sistema se publican siempre.</p>
+      } @else {
+        <p-table [value]="current.profiles" size="small" [tableStyle]="{ 'min-width': '36rem' }" dataKey="code">
+          <ng-template #header><tr><th>Perfil</th><th>Estado en Core</th><th>Qué significa</th></tr></ng-template>
+          <ng-template #body let-profile>
+            <tr>
+              <td data-label="Perfil"><span class="core__name">{{ profile.name }}</span><span class="core__code">{{ profile.code }}</span></td>
+              <td data-label="Estado en Core"><app-status-tag [value]="coreTag(profile).label" [severity]="coreTag(profile).severity" /></td>
+              <td data-label="Qué significa">{{ coreTag(profile).meaning }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </section>
+
+    <section class="core__panel" aria-label="Historial">
+      <h2 class="core__title">Historial</h2>
+      @if (current.history.length === 0) {
+        <p class="core__empty">Sin publicaciones todavía.</p>
+      } @else {
+        <p-table [value]="current.history" size="small" [tableStyle]="{ 'min-width': '36rem' }" dataKey="id">
+          <ng-template #header><tr><th>Fecha</th><th>Resultado</th><th>Enviados</th><th>Por</th></tr></ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td data-label="Fecha">{{ row.created_at }}</td>
+              <td data-label="Resultado">
+                <app-status-tag [value]="resultTag(row).label" [severity]="resultTag(row).severity" />
+                @if (row.error) { <small class="core__error">{{ row.error }}</small> }
+              </td>
+              <td data-label="Enviados">{{ row.profile_count }} perfiles</td>
+              <td data-label="Por">{{ row.actor ?? 'sistema' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </section>
+  }
+</div>
