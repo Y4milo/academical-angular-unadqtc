@@ -127,6 +127,22 @@ export const PATHS = {
       link: `degrees-titles/exports`,
     },
   },
+  serviceOrders: {
+    path: `service-orders`,
+    list: {
+      path: ``,
+      link: `service-orders`,
+    },
+    newOrder: {
+      path: `nueva`,
+      link: `service-orders/nueva`,
+    },
+    config: {
+      path: `config`,
+      link: `service-orders/config`,
+    },
+    detailPath: `:id`,
+  },
   profiles: {
     path: `users`,
     list: {

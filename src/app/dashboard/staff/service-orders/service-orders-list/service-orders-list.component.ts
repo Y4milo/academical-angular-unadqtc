@@ -53,11 +53,11 @@ export class ServiceOrdersListComponent implements OnInit {
   }
 
   create(): void {
-    this.router.navigateByUrl(PATHS.admin.serviceOrders.newOrder.link);
+    this.router.navigateByUrl(`/${PATHS.serviceOrders.newOrder.link}`);
   }
 
   open(order: ServiceOrderSummary): void {
-    this.router.navigateByUrl(`${PATHS.admin.serviceOrders.link}/${order.id}`);
+    this.router.navigateByUrl(`/${PATHS.serviceOrders.list.link}/${order.id}`);
   }
 
   isComplete(order: ServiceOrderSummary): boolean {

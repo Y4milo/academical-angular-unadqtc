@@ -77,22 +77,10 @@ export const routes: Routes = [
           {path: PATHS.academic.student.approvedAverage.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.approvedAverage.link},
           {path: PATHS.admin.dbu.queue.path, pathMatch: 'full', redirectTo: '/' + PATHS.dbu.queue.link},
           {path: PATHS.admin.dbu.config.path, pathMatch: 'full', redirectTo: '/' + PATHS.dbu.config.link},
-          {
-            path: PATHS.admin.serviceOrders.path,
-            loadComponent: () => import('./dashboard/staff/service-orders/service-orders-list/service-orders-list.component').then(m => m.ServiceOrdersListComponent)
-          },
-          {
-            path: PATHS.admin.serviceOrders.newOrder.path,
-            loadComponent: () => import('./dashboard/staff/service-orders/service-order-form/service-order-form.component').then(m => m.ServiceOrderFormComponent)
-          },
-          {
-            path: PATHS.admin.serviceOrders.config.path,
-            loadComponent: () => import('./dashboard/staff/service-orders/service-orders-config/service-orders-config.component').then(m => m.ServiceOrdersConfigComponent)
-          },
-          {
-            path: PATHS.admin.serviceOrders.detailPath,
-            loadComponent: () => import('./dashboard/staff/service-orders/service-order-detail/service-order-detail.component').then(m => m.ServiceOrderDetailComponent)
-          },
+          {path: PATHS.admin.serviceOrders.path, pathMatch: 'full', redirectTo: '/' + PATHS.serviceOrders.list.link},
+          {path: PATHS.admin.serviceOrders.newOrder.path, pathMatch: 'full', redirectTo: '/' + PATHS.serviceOrders.newOrder.link},
+          {path: PATHS.admin.serviceOrders.config.path, pathMatch: 'full', redirectTo: '/' + PATHS.serviceOrders.config.link},
+          {path: PATHS.admin.serviceOrders.detailPath, pathMatch: 'full', redirectTo: '/' + PATHS.serviceOrders.path + '/:id'},
           {
             path: PATHS.admin.components.path,
             loadComponent: () => import('./dashboard/staff/shared/components-catalog/components-catalog.component').then(m => m.ComponentsCatalogComponent)
@@ -163,6 +151,31 @@ export const routes: Routes = [
             data: {title: 'Exportaciones SUNEDU'},
           },
         ],
+      },
+      {
+        // Órdenes de servicio: una sola dirección; quien tiene el permiso entra aunque no sea administrador (el API decide lo que ve).
+        path: PATHS.serviceOrders.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin], permissions: ['service_orders.manage']},
+        children: [
+          {
+            path: PATHS.serviceOrders.list.path,
+            pathMatch: 'full',
+            loadComponent: () => import('./dashboard/staff/service-orders/service-orders-list/service-orders-list.component').then(m => m.ServiceOrdersListComponent)
+          },
+          {
+            path: PATHS.serviceOrders.newOrder.path,
+            loadComponent: () => import('./dashboard/staff/service-orders/service-order-form/service-order-form.component').then(m => m.ServiceOrderFormComponent)
+          },
+          {
+            path: PATHS.serviceOrders.config.path,
+            loadComponent: () => import('./dashboard/staff/service-orders/service-orders-config/service-orders-config.component').then(m => m.ServiceOrdersConfigComponent)
+          },
+          {
+            path: PATHS.serviceOrders.detailPath,
+            loadComponent: () => import('./dashboard/staff/service-orders/service-order-detail/service-order-detail.component').then(m => m.ServiceOrderDetailComponent)
+          },
+        ]
       },
       {
         // Perfiles: una sola dirección para el administrador y Recursos humanos; el API decide qué ve y qué puede dar cada uno.

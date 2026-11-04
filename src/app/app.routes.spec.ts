@@ -27,6 +27,8 @@ describe('staff routes', () => {
     {url: '/dbu/cola', allowed: ['dbu_admin', 'dbu', 'admin']},
     {url: '/dbu/config', allowed: ['dbu_admin', 'admin']},
     {url: '/staff/home', allowed: ['professor', 'administrative']},
+    {url: '/service-orders', allowed: ['admin']},
+    {url: '/service-orders/config', allowed: ['admin']},
     {url: '/users/profiles', allowed: ['admin', 'hr']},
     {url: '/users/profiles/new', allowed: ['admin', 'hr']},
     {url: '/directivas', allowed: ROLES},
@@ -97,6 +99,39 @@ describe('staff routes', () => {
       expect(await visit(newUrl)).toBe('/login-admin');
     });
   }
+
+  /** Órdenes de servicio: una dirección por pantalla; la de /admin lleva a la del módulo (incluido el detalle de una orden). */
+  const SERVICE_ORDERS_ONE_URL: [string, string][] = [
+    ['/admin/service-orders', '/service-orders'],
+    ['/admin/service-orders/nueva', '/service-orders/nueva'],
+    ['/admin/service-orders/config', '/service-orders/config'],
+    ['/admin/service-orders/42', '/service-orders/42'],
+  ];
+
+  for (const [oldUrl, newUrl] of SERVICE_ORDERS_ONE_URL) {
+    for (const role of ROLES) {
+      const enters = role === 'admin';
+
+      it(`${role} ${enters ? 'lands on' : 'is sent to the login from'} ${newUrl} through ${oldUrl}`, async () => {
+        user = {id: '1', role: {value: role}};
+
+        expect(await visit(oldUrl)).toBe(enters ? newUrl : '/login-admin');
+      });
+    }
+  }
+
+  it('lets in a person who is not an administrator when the session carries the service orders permission', async () => {
+    user = {id: '1', role: {value: 'professor'}, permissions: ['general.consult', 'attendance.view', 'service_orders.manage']};
+
+    expect(await visit('/service-orders')).toBe('/service-orders');
+    expect(await visit('/service-orders/42')).toBe('/service-orders/42');
+  });
+
+  it('keeps out a person whose permissions do not include service orders, whatever the role', async () => {
+    user = {id: '1', role: {value: 'admin'}, permissions: ['general.consult']};
+
+    expect(await visit('/service-orders')).toBe('/login-admin');
+  });
 
   /** Asistencia de RR. HH.: una dirección por pantalla; la de /admin lleva a la del módulo. */
   const HR_ONE_URL: [string, string][] = [

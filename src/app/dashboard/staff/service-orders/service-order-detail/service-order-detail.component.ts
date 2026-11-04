@@ -218,7 +218,7 @@ export class ServiceOrderDetailComponent implements OnInit {
   }
 
   back(): void {
-    this.router.navigateByUrl(PATHS.admin.serviceOrders.link);
+    this.router.navigateByUrl(`/${PATHS.serviceOrders.list.link}`);
   }
 
   ordinal(deliverable: ServiceOrderDeliverable): string {
@@ -245,7 +245,7 @@ export class ServiceOrderDetailComponent implements OnInit {
     return !!config && (config.has_signature || config.has_fingerprint);
   }
 
-  readonly configLink = `/${PATHS.admin.serviceOrders.link}/config`;
+  readonly configLink = `/${PATHS.serviceOrders.config.link}`;
 
   signatureOf(deliverable: ServiceOrderDeliverable, kind: DocumentKind): DocumentSignature {
     return kind === 'letter' ? deliverable.letter_signature : deliverable.conformity_signature;
