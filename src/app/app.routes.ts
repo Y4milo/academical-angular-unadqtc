@@ -20,6 +20,14 @@ export const routes: Routes = [
     loadComponent: () => import('./dashboard/student/login-student/login-student.component').then(m => m.LoginStudentComponent)
   },
   {
+    path: PATHS.login.coreEntry,
+    loadComponent: () => import('./dashboard/staff/core-sso/core-entry.component').then(m => m.CoreEntryComponent)
+  },
+  {
+    path: PATHS.login.coreReturn,
+    loadComponent: () => import('./dashboard/staff/core-sso/core-return.component').then(m => m.CoreReturnComponent)
+  },
+  {
     path: PATHS.login.staff,
     loadComponent: () => import('./dashboard/staff/login-staff/login-staff.component').then(m => m.LoginStaffComponent)
   },

@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {navigateAfterLogin} from '../../../core/utils/return-url.util';
+import {MessageModule} from 'primeng/message';
+import {coreSsoErrorMessage} from '../core-sso/core-sso.service';
 import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {UsersService} from '../../../services/users.service';
@@ -12,8 +14,11 @@ import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constan
 
 
 @Component({
-  imports: [LoginBaseComponent],
+  imports: [LoginBaseComponent, MessageModule],
   template: `
+    @if (coreError) {
+      <div class="core-error"><p-message severity="warn" data-testid="core-error">{{ coreError }}</p-message></div>
+    }
     <app-login-base
       [titleLabel]="'Iniciar Sesión'"
       [userLabel]="'Personal Universitario'"
@@ -23,10 +28,13 @@ import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constan
       (login)="login()"
     ></app-login-base>
   `,
+  styles: [':host { display: block; }', '.core-error { width: min(28rem, 100%); margin: var(--space-4) auto 0; padding: 0 var(--space-4); box-sizing: border-box; }'],
 })
 export class LoginStaffComponent {
   user: string = '';
   password: string = '';
+  /** Por qué falló el ingreso con Core, cuando la persona vuelve de ahí sin sesión. */
+  coreError = '';
 
   constructor(
     private notificationService: NotificationService,
@@ -34,7 +42,9 @@ export class LoginStaffComponent {
     private activatedRoute: ActivatedRoute,
     private usersService: UsersService,
     private loginService: LoginService
-  ) {}
+  ) {
+    this.coreError = coreSsoErrorMessage(this.activatedRoute.snapshot.queryParamMap.get('core_error'));
+  }
 
   login() {
     const loginData = new FormData();
