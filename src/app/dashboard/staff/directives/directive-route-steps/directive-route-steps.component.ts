@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { PrimeTemplate } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -23,6 +23,9 @@ export class DirectiveRouteStepsComponent {
   readonly route = input<DirectiveRoute | null>(null);
   readonly loading = input(false);
   readonly error = input('');
+
+  /** La oficina de Calidad solo se muestra cuando la directiva es de un proceso de calidad; si no firma, no aparece. */
+  readonly visibleSteps = computed(() => (this.route()?.steps ?? []).filter(step => !step.skipped));
 
   readonly conditions = CONDITION_LABELS;
   readonly skeletonRows = [1, 2, 3, 4, 5];

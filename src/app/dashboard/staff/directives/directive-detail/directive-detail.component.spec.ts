@@ -56,7 +56,8 @@ describe('DirectiveDetailComponent', () => {
     expect(text('files-panel')).toContain('14 páginas');
     expect(text('files-panel')).toContain('resolucion.pdf');
     expect(text('directive-hash')).toContain('a'.repeat(64));
-    expect(html().querySelectorAll('[data-testid="route-step"]').length).toBe(5);
+    expect(html().querySelectorAll('[data-testid="route-step"]').length).toBe(4);
+    expect(html().querySelector('[data-testid="route-panel"]')!.textContent).not.toContain('Calidad');
     expect(text('directive-event')).toContain('Creó el borrador');
     expect(service.route).toHaveBeenCalledWith('adm', false);
   });
@@ -188,10 +189,11 @@ describe('DirectiveDetailComponent', () => {
     const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
 
     const steps = Array.from(html().querySelectorAll('[data-testid="progress-step"]')).map(step => step.textContent ?? '');
-    expect(steps.length).toBe(4);
+    expect(steps.length).toBe(3);
+    expect(steps.join(' ')).not.toContain('Calidad');
     expect(steps[0]).toContain('Firmó');
-    expect(steps[2]).toContain('Le toca');
-    expect(steps[3]).toContain('Espera su turno');
+    expect(steps[1]).toContain('Le toca');
+    expect(steps[2]).toContain('Espera su turno');
     (html().querySelector('[data-testid="sign-directive"] button') as HTMLButtonElement).click();
     expect(navigate).toHaveBeenCalledWith('directivas/7/firmar');
   });

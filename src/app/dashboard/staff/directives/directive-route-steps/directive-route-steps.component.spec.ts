@@ -25,25 +25,26 @@ describe('DirectiveRouteStepsComponent', () => {
   it('shows each office with the person Core designated, the written title and the resolution', () => {
     show(route());
 
-    expect(steps().length).toBe(5);
+    expect(steps().length).toBe(4);
     expect(steps()[0].textContent).toContain('Ana Torres');
     expect(steps()[0].textContent).toContain('Jefe de la Oficina');
     expect(steps()[0].textContent).toContain('Resolución 014-2026');
-    expect(steps()[2].textContent).toContain('Encargado');
+    expect(steps()[1].textContent).toContain('Encargado');
   });
 
-  it('marks the quality office as omitted when the directive is not of a quality process', () => {
+  it('does not show the quality office when the directive is not of a quality process', () => {
     show(route());
 
-    expect(steps()[1].textContent).toContain('Omitida');
-    expect(steps()[1].textContent).toContain('no es de un proceso de calidad');
+    expect(steps().length).toBe(4);
+    expect(html().textContent).not.toContain('Calidad');
+    expect(html().textContent).not.toContain('Omitida');
   });
 
   it('says which office has nobody and blocks the send', () => {
     show(route());
 
-    expect(steps()[3].querySelector('[data-testid="route-missing"]')?.textContent).toContain('Sin persona designada en Core');
-    expect(steps()[3].textContent).toContain('Falta');
+    expect(steps()[2].querySelector('[data-testid="route-missing"]')?.textContent).toContain('Sin persona designada en Core');
+    expect(steps()[2].textContent).toContain('Falta');
     expect(html().querySelector('[data-testid="route-blocked"]')?.textContent).toContain('Core no tiene a nadie designado en una oficina');
   });
 

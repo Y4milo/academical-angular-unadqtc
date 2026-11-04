@@ -34,6 +34,8 @@ import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LAB
 })
 export class DirectiveDetailComponent implements OnInit {
   readonly directive = signal<DirectiveDetail | null>(null);
+  /** Los pasos que no firman (Calidad en una directiva que no es de calidad) no se muestran. */
+  readonly visibleProgress = computed(() => (this.directive()?.progress ?? []).filter(step => step.state !== 'skipped'));
   /** Las tarjetas de la ruta y del seguimiento se pueden plegar; las dos empiezan abiertas, también en el teléfono. */
   readonly routeCollapsed = signal(false);
   readonly timelineCollapsed = signal(false);
