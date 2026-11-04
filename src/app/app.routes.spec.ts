@@ -16,7 +16,6 @@ describe('staff routes', () => {
   /** Una dirección de cada grupo de rutas con los roles que entran a ella (los de su guarda). */
   const GROUPS: {url: string; allowed: string[]}[] = [
     {url: '/admin/home', allowed: ['admin']},
-    {url: '/admin/dbu/config', allowed: ['admin']},
     {url: '/admin/accounting/bank/incidents', allowed: ['admin']},
     {url: '/admin/degrees-titles/records', allowed: ['admin']},
     {url: '/admin/users/accounts', allowed: ['admin']},
@@ -96,6 +95,24 @@ describe('staff routes', () => {
 
       expect(await visit(newUrl)).toBe('/login-admin');
     });
+  }
+
+  /** Bienestar: una dirección por pantalla; la de /admin lleva a la del módulo. */
+  const WELFARE_ONE_URL: [string, string, string[]][] = [
+    ['/admin/dbu/cola', '/dbu/cola', ['admin', 'dbu_admin', 'dbu']],
+    ['/admin/dbu/config', '/dbu/config', ['admin', 'dbu_admin']],
+  ];
+
+  for (const [oldUrl, newUrl, allowed] of WELFARE_ONE_URL) {
+    for (const role of ROLES) {
+      const enters = allowed.includes(role);
+
+      it(`${role} ${enters ? 'lands on' : 'is sent to the login from'} ${newUrl} through ${oldUrl}`, async () => {
+        user = {id: '1', role: {value: role}};
+
+        expect(await visit(oldUrl)).toBe(enters ? newUrl : '/login-admin');
+      });
+    }
   }
 
   it('keeps the administrator-only student modules screen under /admin', async () => {

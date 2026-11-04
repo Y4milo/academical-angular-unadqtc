@@ -87,14 +87,8 @@ export const routes: Routes = [
           {path: PATHS.academic.student.card.panel.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.card.panel.link},
           {path: PATHS.academic.student.ranking.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.ranking.link},
           {path: PATHS.academic.student.approvedAverage.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.approvedAverage.link},
-          {
-            path: PATHS.admin.dbu.queue.path,
-            loadComponent: () => import('./dashboard/staff/dbu/dbu-queue/dbu-queue.component').then(m => m.DbuQueueComponent)
-          },
-          {
-            path: PATHS.admin.dbu.config.path,
-            loadComponent: () => import('./dashboard/staff/dbu/dbu-config/dbu-config.component').then(m => m.DbuConfigComponent)
-          },
+          {path: PATHS.admin.dbu.queue.path, pathMatch: 'full', redirectTo: '/' + PATHS.dbu.queue.link},
+          {path: PATHS.admin.dbu.config.path, pathMatch: 'full', redirectTo: '/' + PATHS.dbu.config.link},
           {
             path: PATHS.admin.serviceOrders.path,
             loadComponent: () => import('./dashboard/staff/service-orders/service-orders-list/service-orders-list.component').then(m => m.ServiceOrdersListComponent)
