@@ -16,7 +16,7 @@ import {sessionExpiredInterceptor} from './interceptors/session-expired.intercep
  */
 const typography = {
   button: {root: {label: {fontWeight: 'var(--weight-strong)'}}},
-  tag: {root: {fontSize: 'var(--text-small)', fontWeight: 'var(--weight-strong)'}},
+  tag: {root: {fontSize: 'var(--text-small)', fontWeight: 'var(--weight-strong)', padding: '0.375rem 0.75rem'}},
   card: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}},
   message: {text: {fontSize: 'var(--text-body)', fontWeight: 'var(--weight-regular)'}},
   dialog: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}},
