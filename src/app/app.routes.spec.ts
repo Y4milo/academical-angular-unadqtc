@@ -244,10 +244,37 @@ describe('staff routes', () => {
     }
   }
 
-  it('keeps the administrator-only student modules screen under /admin', async () => {
-    user = {id: '1', role: {value: 'admin'}};
+  for (const [oldUrl, newUrl] of [['/admin/academic/student-modules', '/academic/student-modules'], ['/admin/components', '/interface/components']]) {
+    it(`sends the administrator from ${oldUrl} to ${newUrl}`, async () => {
+      user = {id: '1', role: {value: 'admin'}};
 
-    expect(await visit('/admin/academic/student-modules')).toBe('/admin/academic/student-modules');
+      expect(await visit(oldUrl)).toBe(newUrl);
+    });
+
+    it(`keeps every other role out of ${newUrl}`, async () => {
+      user = {id: '1', role: {value: 'academic'}};
+
+      expect(await visit(newUrl)).toBe('/login-admin');
+    });
+  }
+
+  it('lets a person with the student modules permission in without being an administrator, and keeps out the administrator without it', async () => {
+    user = {id: '1', role: {value: 'professor'}, permissions: ['student_modules.manage']};
+    expect(await visit('/academic/student-modules')).toBe('/academic/student-modules');
+    user = {id: '1', role: {value: 'professor'}, permissions: ['interface.view']};
+    expect(await visit('/interface/components')).toBe('/interface/components');
+  });
+
+  it('keeps out an administrator session whose permissions lack the one asked', async () => {
+    user = {id: '1', role: {value: 'admin'}, permissions: ['users.manage']};
+
+    expect(await visit('/academic/student-modules')).toBe('/login-admin');
+  });
+
+  it('does not open the card settings to someone who only has the student modules permission', async () => {
+    user = {id: '1', role: {value: 'professor'}, permissions: ['student_modules.manage']};
+
+    expect(await visit('/academic/student-card')).toBe('/login-admin');
   });
 
   it('keeps the redirects of the home of each group', async () => {

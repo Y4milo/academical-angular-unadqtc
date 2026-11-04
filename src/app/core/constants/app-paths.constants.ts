@@ -316,6 +316,10 @@ export const PATHS = {
       path:  `student-card`,
       link:   `academic/student-card`,
     },
+    studentModules: {
+      path:  `student-modules`,
+      link:   `academic/student-modules`,
+    },
     student: {
       card: {
         panel : {
@@ -332,5 +336,12 @@ export const PATHS = {
         link:   `academic/student/approved-average`,
       }
     },
-  }
+  },
+  interface: {
+    path: `interface`,
+    components: {
+      path:  `components`,
+      link:   `interface/components`,
+    },
+  },
 }

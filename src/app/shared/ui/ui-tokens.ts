@@ -1,5 +1,5 @@
 /**
- * Design tokens of Academical, in one place. The catalog (`/admin/components`) shows them live and its spec checks them.
+ * Design tokens of Academical, in one place. The catalog (`/interface/components`) shows them live and its spec checks them.
  * PrimeNG 19 + Aura only defines `--p-*` variables: the old names (`--surface-card`, `--text-color-secondary`...) do not
  * exist, and the `--p-surface-N` / `--p-primary-N` palettes are fixed (they do not change with the theme).
  */

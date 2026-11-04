@@ -84,7 +84,7 @@ html.app-dark .surface-card {
   --radius-md: .5rem;
   --radius-lg: .75rem;
 
-  /* Tipografía: única fuente de verdad (catálogo /admin/components y docs/frontend-components.md). */
+  /* Tipografía: única fuente de verdad (catálogo /interface/components y docs/frontend-components.md). */
   --font-sans: 'Segoe UI', 'Selawik', Roboto, 'Helvetica Neue', sans-serif;
 
   --text-title: 1.75rem;
