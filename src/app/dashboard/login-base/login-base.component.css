@@ -1,14 +1,14 @@
 
 
 /* Marca de la pantalla de ingreso: «Academical» (fuente light) | logo de la UNADQTC, en una línea y centrados sobre el título. */
-.login-brand { display: flex; align-items: center; justify-content: center; gap: var(--space-4, 1rem); margin-top: var(--space-4, 1rem); }
+.login-brand { display: flex; align-items: center; justify-content: center; gap: 1.125rem; margin-top: var(--space-4, 1rem); }
 .login-brand__name { font-size: 1.75rem; font-weight: 300; letter-spacing: .01em; line-height: 1; }
-.login-brand__divider { width: 1px; height: 2.1rem; background: var(--p-content-border-color); }
-.login-brand__logo { display: block; width: 4rem; height: auto; }
+.login-brand__divider { width: 1px; height: 3.25rem; background: var(--p-content-border-color); }
+.login-brand__logo { display: block; width: 6rem; height: auto; }
 
 @media (max-width: 400px) {
   .login-brand { gap: var(--space-3, .75rem); }
   .login-brand__name { font-size: 1.5rem; }
-  .login-brand__divider { height: 1.75rem; }
-  .login-brand__logo { width: 3.25rem; }
+  .login-brand__divider { height: 2.5rem; }
+  .login-brand__logo { width: 4.5rem; }
 }
