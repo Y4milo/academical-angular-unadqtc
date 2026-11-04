@@ -9,11 +9,7 @@
   "dashboard/staff/academic/student-cards/student-cards.component.html": {
     "<button> nativo": 6,
     "<ul> nativo": 1,
-    "input nativo de fecha, número, casilla, opción o archivo": 4,
-    "etiqueta obsoleta de PrimeNG": 3
-  },
-  "dashboard/staff/academic/student-cards/student-cards.component.ts": {
-    "módulo obsoleto de PrimeNG": 2
+    "input nativo de fecha, número, casilla, opción o archivo": 4
   },
   "dashboard/staff/academic/student-ranking/student-ranking.component.html": {
     "<button> nativo": 1
@@ -53,9 +49,6 @@
     "<button> nativo": 32,
     "<ul> nativo": 4
   },
-  "dashboard/staff/hr-admin/attendace-admin/attendance.component.ts": {
-    "módulo obsoleto de PrimeNG": 1
-  },
   "dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component.html": {
     "<button> nativo": 1
   },
@@ -78,9 +71,6 @@
   },
   "dashboard/staff/staff-user/attendance-user/attendance-user.component.html": {
     "<button> nativo": 1
-  },
-  "dashboard/staff/staff-user/attendance-user/attendance-user.component.ts": {
-    "módulo obsoleto de PrimeNG": 2
   },
   "degrees-titles/public-ethnicity-form.component.html": {
     "<button> nativo": 2

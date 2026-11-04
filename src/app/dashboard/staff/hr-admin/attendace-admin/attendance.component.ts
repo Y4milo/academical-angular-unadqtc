@@ -3,7 +3,6 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {AttendanceService, StaffAttendancePerson, StaffSearchResult} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {Attendance} from '../../../../models/attendance.model';
-import {CalendarModule} from 'primeng/calendar';
 import {ButtonModule} from 'primeng/button';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
@@ -28,7 +27,6 @@ import {StaffAttendanceSkeletonComponent} from '../../shared/staff-attendance-sk
     TableModule,
     NgIf,
     FormsModule,
-    CalendarModule,
     ButtonModule,
     InputTextModule,
     AutoCompleteModule,
