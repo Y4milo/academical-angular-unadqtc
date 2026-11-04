@@ -17,14 +17,13 @@ describe('staff routes', () => {
   const GROUPS: {url: string; allowed: string[]}[] = [
     {url: '/admin/home', allowed: ['admin']},
     {url: '/admin/accounting/bank/incidents', allowed: ['admin']},
-    {url: '/admin/degrees-titles/records', allowed: ['admin']},
     {url: '/admin/users/accounts', allowed: ['admin']},
     {url: '/hr/home', allowed: ['hr']},
     {url: '/hr/staff/attendance', allowed: ['hr']},
     {url: '/academic/home', allowed: ['academic', 'admin']},
     {url: '/academic/semesters', allowed: ['academic', 'admin']},
     {url: '/accounting/bank/incidents', allowed: ['accounting', 'admin']},
-    {url: '/degrees-titles/records', allowed: ['degrees_titles']},
+    {url: '/degrees-titles/records', allowed: ['degrees_titles', 'admin']},
     {url: '/dbu/cola', allowed: ['dbu_admin', 'dbu', 'admin']},
     {url: '/dbu/config', allowed: ['dbu_admin', 'admin']},
     {url: '/staff/home', allowed: ['professor', 'administrative']},
@@ -95,6 +94,26 @@ describe('staff routes', () => {
 
       expect(await visit(newUrl)).toBe('/login-admin');
     });
+  }
+
+  /** Grados y títulos: una dirección por pantalla; la de /admin lleva a la del módulo. */
+  const DEGREES_ONE_URL: [string, string][] = [
+    ['/admin/degrees-titles/general-data', '/degrees-titles/general-data'],
+    ['/admin/degrees-titles/calls', '/degrees-titles/calls'],
+    ['/admin/degrees-titles/records', '/degrees-titles/records'],
+    ['/admin/degrees-titles/exports', '/degrees-titles/exports'],
+  ];
+
+  for (const [oldUrl, newUrl] of DEGREES_ONE_URL) {
+    for (const role of ROLES) {
+      const enters = ['admin', 'degrees_titles'].includes(role);
+
+      it(`${role} ${enters ? 'lands on' : 'is sent to the login from'} ${newUrl} through ${oldUrl}`, async () => {
+        user = {id: '1', role: {value: role}};
+
+        expect(await visit(oldUrl)).toBe(enters ? newUrl : '/login-admin');
+      });
+    }
   }
 
   /** Bienestar: una dirección por pantalla; la de /admin lleva a la del módulo. */

@@ -137,23 +137,10 @@ export const routes: Routes = [
             path: PATHS.admin.accounting.bank.files.path,
             loadComponent: () => import('./dashboard/staff/accounting/bn-files/bn-files.component').then(m => m.BnFilesComponent)
           },
-          {
-            path: PATHS.admin.degreesTitles.generalData.path,
-            loadComponent: () => import('./dashboard/staff/degrees-titles/degree-general-data.component').then(m => m.DegreeGeneralDataComponent),
-          },
-          {
-            path: PATHS.admin.degreesTitles.calls.path,
-            loadComponent: () => import('./dashboard/staff/degrees-titles/degree-calls.component').then(m => m.DegreeCallsComponent),
-          },
-          {
-            path: PATHS.admin.degreesTitles.records.path,
-            loadComponent: () => import('./dashboard/staff/degrees-titles/degree-records.component').then(m => m.DegreeRecordsComponent),
-          },
-          {
-            path: PATHS.admin.degreesTitles.exports.path,
-            loadComponent: () => import('./dashboard/staff/degrees-titles/degrees-titles-page.component').then(m => m.DegreesTitlesPageComponent),
-            data: {title: 'Exportaciones SUNEDU'},
-          },
+          {path: PATHS.admin.degreesTitles.generalData.path, pathMatch: 'full', redirectTo: '/' + PATHS.degreesTitles.generalData.link},
+          {path: PATHS.admin.degreesTitles.calls.path, pathMatch: 'full', redirectTo: '/' + PATHS.degreesTitles.calls.link},
+          {path: PATHS.admin.degreesTitles.records.path, pathMatch: 'full', redirectTo: '/' + PATHS.degreesTitles.records.link},
+          {path: PATHS.admin.degreesTitles.exports.path, pathMatch: 'full', redirectTo: '/' + PATHS.degreesTitles.exports.link},
           {
             path: 'support/requests',
             loadComponent: () => import('./support/support-requests-admin.component').then(m => m.SupportRequestsAdminComponent),
@@ -163,7 +150,7 @@ export const routes: Routes = [
       {
         path: PATHS.degreesTitles.path,
         canActivate: [AuthRoleGuard],
-        data: {roles: [ROLE.degrees_titles], permissions: ['degrees_titles.manage'], banner: 'degrees-titles'},
+        data: {roles: [ROLE.degrees_titles, ROLE.admin], permissions: ['degrees_titles.manage'], banner: 'degrees-titles'},
         children: [
           {
             path: '',
