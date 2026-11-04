@@ -1,1 +1,5 @@
-<app-staff-role-layout [attendanceRouterLink]="attendanceRouterLink"></app-staff-role-layout>
+<app-staff-role-layout [attendanceRouterLink]="attendanceRouterLink">
+  @if (banner() === 'degrees-titles') {
+    <app-degrees-titles-banner layout-banner></app-degrees-titles-banner>
+  }
+</app-staff-role-layout>
