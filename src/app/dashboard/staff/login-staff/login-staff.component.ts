@@ -28,7 +28,7 @@ import {NOTIFICATION_MESSAGE} from '../../../core/constants/app-messages.constan
       (login)="login()"
     ></app-login-base>
   `,
-  styles: ['.core-error { max-width: 28rem; margin: var(--space-4) auto 0; padding: 0 var(--space-4); }'],
+  styles: [':host { display: block; }', '.core-error { width: min(28rem, 100%); margin: var(--space-4) auto 0; padding: 0 var(--space-4); box-sizing: border-box; }'],
 })
 export class LoginStaffComponent {
   user: string = '';
