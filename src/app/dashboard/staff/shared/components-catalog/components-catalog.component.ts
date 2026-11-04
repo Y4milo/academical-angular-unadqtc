@@ -51,6 +51,8 @@ import {
 } from '../../../../shared/ui/ui-tokens';
 import { DATA_GUIDE, FEEDBACK_GUIDE, NAV_GUIDE, OVERLAY_GUIDE } from './catalog-guides';
 import { CatalogNotesComponent } from './catalog-notes.component';
+import { SCREEN_RECIPES } from './catalog-recipes';
+import baseline from './primeng-baseline.json';
 
 export interface TypographyRow {
   token: TypographyToken;
@@ -73,7 +75,30 @@ export interface ComponentGuide {
   avoid: string;
 }
 
-/** Secciones del catálogo, en el orden en que se muestran. Las recetas por pantalla y la auditoría llegan en el siguiente cambio. */
+/** Una fila de la auditoría: cuántos usos de una regla quedan en el front antiguo y en cuántos archivos. */
+export interface AuditRule {
+  rule: string;
+  uses: number;
+  files: number;
+}
+
+/** Cuenta, por regla, los usos que el verificador tolera hoy (el tope de `primeng-baseline.json`); solo baja cuando se migra un archivo. */
+export function auditRules(source: Record<string, Record<string, number>>): AuditRule[] {
+  const totals = new Map<string, AuditRule>();
+
+  for (const rules of Object.values(source)) {
+    for (const [rule, count] of Object.entries(rules)) {
+      const row = totals.get(rule) ?? { rule, uses: 0, files: 0 };
+      row.uses += count;
+      row.files += 1;
+      totals.set(rule, row);
+    }
+  }
+
+  return [...totals.values()].sort((a, b) => b.uses - a.uses);
+}
+
+/** Secciones del catálogo, en el orden en que se muestran. Recetas son las 12 pantallas tipo y Auditoría lo obsoleto que queda en el front. */
 export const CATALOG_SECTIONS = [
   { value: 'foundations', label: 'Fundamentos' },
   { value: 'actions', label: 'Acciones' },
@@ -82,7 +107,9 @@ export const CATALOG_SECTIONS = [
   { value: 'navigation', label: 'Navegación' },
   { value: 'overlays', label: 'Superposiciones' },
   { value: 'feedback', label: 'Avisos' },
+  { value: 'recipes', label: 'Recetas' },
   { value: 'patterns', label: 'Patrones' },
+  { value: 'audit', label: 'Auditoría' },
 ] as const;
 
 export const ACTION_GUIDE: ComponentGuide[] = [
@@ -138,6 +165,17 @@ export class ComponentsCatalogComponent implements OnInit {
   readonly navGuide = NAV_GUIDE;
   readonly overlayGuide = OVERLAY_GUIDE;
   readonly feedbackGuide = FEEDBACK_GUIDE;
+  readonly recipes = SCREEN_RECIPES;
+  readonly auditByRule = auditRules(baseline);
+  readonly auditFiles = Object.entries(baseline as Record<string, Record<string, number>>)
+    .map(([file, rules]) => ({ file, uses: Object.values(rules).reduce((sum, count) => sum + count, 0), detail: Object.entries(rules).map(([rule, count]) => `${rule}: ${count}`).join(' · ') }))
+    .sort((a, b) => b.uses - a.uses);
+  readonly auditHowTo = [
+    'Migrar un archivo: cambiar el control por su componente de PrimeNG (ver la guía de cada sección) y correr <code>npm run check:primeng -- --fix-baseline</code>.',
+    'Los módulos obsoletos se reemplazan así: <code>calendar</code> por <code>p-datepicker</code>, <code>dropdown</code> por <code>p-select</code>, <code>tabview</code> por <code>p-tabs</code>, <code>overlaypanel</code> por <code>p-popover</code>.',
+    'Un uso justificado se exime con una línea <code>primeng-ok: motivo</code>; nunca para esquivar la regla.',
+  ];
+  readonly auditTotal = this.auditByRule.reduce((sum, row) => sum + row.uses, 0);
   readonly tokenRows = signal<TokenRow[]>([]);
   readonly forbidden = FORBIDDEN_TOKENS.map(name => `<code>${name}</code>`);
   readonly space = SPACE_SCALE;

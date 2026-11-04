@@ -1,4 +1,4 @@
-:host { display: block; }
+:host { display: block; min-width: 0; max-width: 100%; }
 .catalog { padding: 1rem; }
 .catalog__header h2 { margin: 0 0 .25rem; }
 .catalog__header p, .catalog__lead { margin: 0 0 .75rem; color: var(--p-text-muted-color); font-size: var(--text-body); }
@@ -20,6 +20,7 @@
 .catalog__row { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .catalog__check { display: inline-flex; align-items: center; gap: .5rem; }
 :host ::ng-deep .catalog__spinner { width: 2rem; height: 2rem; }
+.catalog__recipe-parts { margin: .5rem 0 1rem; }
 .catalog__stack { display: grid; gap: .5rem; }
 .catalog__bars { display: grid; gap: .5rem; }
 .catalog__bar { display: grid; grid-template-columns: 6rem 1fr 4rem; align-items: center; gap: .75rem; }

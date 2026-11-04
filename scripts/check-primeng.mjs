@@ -7,7 +7,7 @@
  *   - controles nativos: `<button>`, `<select>`, `<table>`, `<ul>`, `<ol>`, `<progress>`, `<dialog>`, `<textarea>` sin `pTextarea`, `<input>` sin
  *     `pInputText` y los `type="date|datetime-local|number|checkbox|radio|file|range|time|month|week|color"`;
  *   - módulos o etiquetas obsoletos de PrimeNG: `calendar`, `dropdown`, `tabview`, `overlaypanel`, `inputswitch`, `sidebar`, `chips`.
- * Los archivos antiguos tienen un tope (primeng-baseline.json) que solo puede bajar; un archivo nuevo o tocado debe quedar en cero:
+ * Los archivos antiguos tienen un tope (components-catalog/primeng-baseline.json, que también lee la pestaña Auditoría del catálogo) que solo puede bajar; un archivo nuevo o tocado debe quedar en cero:
  * `node scripts/check-primeng.mjs --fix-baseline` baja el tope cuando se limpia uno. Una línea con `primeng-ok: motivo` (o la anterior) exime ese uso.
  *
  * El catálogo de componentes (/admin/components) es la fuente de verdad de qué componente corresponde a cada necesidad.
@@ -17,7 +17,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../src/app', import.meta.url));
-const BASELINE_FILE = fileURLToPath(new URL('./primeng-baseline.json', import.meta.url));
+const BASELINE_FILE = fileURLToPath(new URL('../src/app/dashboard/staff/shared/components-catalog/primeng-baseline.json', import.meta.url));
 
 const NATIVE_TYPES = 'date|datetime-local|number|checkbox|radio|file|range|time|month|week|color';
 

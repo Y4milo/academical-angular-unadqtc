@@ -318,6 +318,27 @@
         <p-toast key="catalog" position="top-right"></p-toast>
       </p-tabpanel>
 
+      <p-tabpanel value="recipes">
+        <p class="catalog__lead">Una receta por tipo de pantalla: los componentes exactos, las reglas y las pantallas reales que ya la siguen. Antes de armar una pantalla se elige su receta; si ninguna sirve, se agrega aquí.</p>
+        <p-accordion value="list" data-testid="recipes">
+          @for (recipe of recipes; track recipe.id) {
+            <p-accordion-panel [value]="recipe.id">
+              <p-accordion-header>{{ recipe.title }}</p-accordion-header>
+              <p-accordion-content>
+                <strong>Componentes</strong>
+                <div class="catalog__row catalog__recipe-parts">
+                  @for (component of recipe.components; track component) { <p-tag [value]="component" severity="secondary"></p-tag> }
+                </div>
+                <strong>Reglas</strong>
+                <app-catalog-notes [items]="recipe.rules"></app-catalog-notes>
+                <strong>Pantallas reales que la usan</strong>
+                <p class="catalog__lead" [innerHTML]="recipe.screens"></p>
+              </p-accordion-content>
+            </p-accordion-panel>
+          }
+        </p-accordion>
+      </p-tabpanel>
+
       <p-tabpanel value="patterns">
         <h3>Tabla que se vuelve tarjeta en teléfono</h3>
         <p class="catalog__lead">Encargados, tipos de atención e historial: cada <code>td</code> lleva <code>data-label</code> y la tabla <code>styleClass="dbu-stack"</code>.</p>
@@ -350,6 +371,25 @@
 
         <h3>Pantallas de referencia</h3>
         <app-catalog-notes [items]="referenceScreens"></app-catalog-notes>
+      </p-tabpanel>
+      <p-tabpanel value="audit">
+        <p class="catalog__lead">Lo que queda en el front antiguo y todavía no es PrimeNG. Sale del mismo archivo que usa <code>npm run check:primeng</code> como tope: solo baja. Un archivo nuevo o tocado debe quedar en cero.</p>
+        <p-message severity="warn" [text]="auditTotal + ' usos en ' + auditFiles.length + ' archivos antiguos'" data-testid="audit-total"></p-message>
+
+        <h3>Por regla</h3>
+        <p-table [value]="auditByRule" styleClass="catalog__table" data-testid="audit-rules">
+          <ng-template #header><tr><th>Regla</th><th>Usos</th><th>Archivos</th></tr></ng-template>
+          <ng-template #body let-row><tr><td>{{ row.rule }}</td><td>{{ row.uses }}</td><td>{{ row.files }}</td></tr></ng-template>
+        </p-table>
+
+        <h3>Por archivo</h3>
+        <p-table [value]="auditFiles" styleClass="catalog__table" [paginator]="true" [rows]="10" data-testid="audit-files">
+          <ng-template #header><tr><th>Archivo</th><th>Usos</th><th>Detalle</th></tr></ng-template>
+          <ng-template #body let-row><tr><td><code>{{ row.file }}</code></td><td>{{ row.uses }}</td><td>{{ row.detail }}</td></tr></ng-template>
+        </p-table>
+
+        <h3>Cómo se baja</h3>
+        <app-catalog-notes [items]="auditHowTo"></app-catalog-notes>
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>
