@@ -201,7 +201,7 @@ export class ComponentsCatalogComponent implements OnInit {
   ];
 
   readonly referenceScreens = [
-    '<code>/admin/dbu/config</code>: menú de secciones, filas de ajuste, tablas apiladas y matriz de cupos.',
+    '<code>/dbu/config</code>: menú de secciones, filas de ajuste, tablas apiladas y matriz de cupos.',
     '<code>/dbu/citas</code> y <code>/dbu/citas/estado</code>: páginas públicas del alumno, de un solo paso por pantalla, para teléfono.',
     '<code>/admin/accounting/bank/*</code>: listas propias con detalle en <code>p-drawer</code>.',
     '<code>/academic/semesters</code> y <code>/academic/student-card</code>: fechas con <code>p-datepicker</code>, números con <code>p-inputnumber</code>, interruptores y pagos exportables.',
