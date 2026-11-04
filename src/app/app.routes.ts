@@ -78,30 +78,15 @@ export const routes: Routes = [
             path: PATHS.hr.staff.attendance.reports.path,
             loadComponent: () => import('./dashboard/staff/hr-admin/hr-report-attendance-component/hr-report-attendance-component.component').then(m => m.HrReportAttendanceComponentComponent)
           },
-          {
-            path: PATHS.admin.academic.semesters.path,
-            loadComponent: () => import('./dashboard/staff/academic/semesters/semesters.component').then(m => m.SemestersComponent)
-          },
-          {
-            path: PATHS.admin.academic.cardSettings.path,
-            loadComponent: () => import('./dashboard/staff/academic/student-card-settings/student-card-settings.component').then(m => m.StudentCardSettingsComponent)
-          },
+          {path: PATHS.admin.academic.semesters.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.semesters.link},
+          {path: PATHS.admin.academic.cardSettings.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.cardSettings.link},
           {
             path: PATHS.admin.academic.studentModules.path,
             loadComponent: () => import('./dashboard/staff/academic/student-modules/student-modules.component').then(m => m.StudentModulesComponent)
           },
-          {
-            path: PATHS.academic.student.card.panel.path,
-            loadComponent: () => import('./dashboard/staff/academic/student-cards/student-cards.component').then(m => m.StudentCardsComponent)
-          },
-          {
-            path: PATHS.academic.student.ranking.path,
-            loadComponent: () => import('./dashboard/staff/academic/student-ranking/student-ranking.component').then(m => m.StudentRankingComponent)
-          },
-          {
-            path: PATHS.academic.student.approvedAverage.path,
-            loadComponent: () => import('./dashboard/staff/academic/approved-average/approved-average.component').then(m => m.ApprovedAverageComponent)
-          },
+          {path: PATHS.academic.student.card.panel.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.card.panel.link},
+          {path: PATHS.academic.student.ranking.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.ranking.link},
+          {path: PATHS.academic.student.approvedAverage.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.approvedAverage.link},
           {
             path: PATHS.admin.dbu.queue.path,
             loadComponent: () => import('./dashboard/staff/dbu/dbu-queue/dbu-queue.component').then(m => m.DbuQueueComponent)
@@ -336,7 +321,7 @@ export const routes: Routes = [
       {
         path: PATHS.academic.path,
         canActivate: [AuthRoleGuard],
-        data: {roles: [ROLE.academic], permissions: ['academic.semesters', 'student_card.manage']},
+        data: {roles: [ROLE.academic, ROLE.admin], permissions: ['academic.semesters', 'student_card.manage']},
         children: [
           {
             path: PATHS.academic.home.path,
