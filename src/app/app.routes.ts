@@ -68,10 +68,7 @@ export const routes: Routes = [
           {path: PATHS.hr.staff.attendance.reports.path, pathMatch: 'full', redirectTo: '/' + PATHS.hr.staff.attendance.reports.link},
           {path: PATHS.admin.academic.semesters.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.semesters.link},
           {path: PATHS.admin.academic.cardSettings.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.cardSettings.link},
-          {
-            path: PATHS.admin.academic.studentModules.path,
-            loadComponent: () => import('./dashboard/staff/academic/student-modules/student-modules.component').then(m => m.StudentModulesComponent)
-          },
+          {path: PATHS.admin.academic.studentModules.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.studentModules.link},
           {path: PATHS.academic.student.card.panel.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.card.panel.link},
           {path: PATHS.academic.student.ranking.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.ranking.link},
           {path: PATHS.academic.student.approvedAverage.path, pathMatch: 'full', redirectTo: '/' + PATHS.academic.student.approvedAverage.link},
@@ -81,10 +78,7 @@ export const routes: Routes = [
           {path: PATHS.admin.serviceOrders.newOrder.path, pathMatch: 'full', redirectTo: '/' + PATHS.serviceOrders.newOrder.link},
           {path: PATHS.admin.serviceOrders.config.path, pathMatch: 'full', redirectTo: '/' + PATHS.serviceOrders.config.link},
           {path: PATHS.admin.serviceOrders.detailPath, pathMatch: 'full', redirectTo: '/' + PATHS.serviceOrders.path + '/:id'},
-          {
-            path: PATHS.admin.components.path,
-            loadComponent: () => import('./dashboard/staff/shared/components-catalog/components-catalog.component').then(m => m.ComponentsCatalogComponent)
-          },
+          {path: PATHS.admin.components.path, pathMatch: 'full', redirectTo: '/' + PATHS.interface.components.link},
           {path: PATHS.admin.users.accounts.path, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.accounts.link},
           {path: PATHS.admin.users.cases.path, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.cases.link},
           {path: PATHS.admin.users.accounts.sheetPath, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.path + '/accounts/:id'},
@@ -375,6 +369,24 @@ export const routes: Routes = [
             loadComponent: () => import('./dashboard/staff/academic/approved-average/approved-average.component').then(m => m.ApprovedAverageComponent)
           },
         ]
+      },
+      {
+        path: PATHS.academic.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin], permissions: ['student_modules.manage']},
+        children: [{
+          path: PATHS.academic.studentModules.path,
+          loadComponent: () => import('./dashboard/staff/academic/student-modules/student-modules.component').then(m => m.StudentModulesComponent)
+        }]
+      },
+      {
+        path: PATHS.interface.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin], permissions: ['interface.view']},
+        children: [{
+          path: PATHS.interface.components.path,
+          loadComponent: () => import('./dashboard/staff/shared/components-catalog/components-catalog.component').then(m => m.ComponentsCatalogComponent)
+        }]
       },
     ]
   },
