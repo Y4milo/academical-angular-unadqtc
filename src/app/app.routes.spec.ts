@@ -17,7 +17,9 @@ describe('staff routes', () => {
   const GROUPS: {url: string; allowed: string[]}[] = [
     {url: '/admin/home', allowed: ['admin']},
     {url: '/admin/accounting/bank/incidents', allowed: ['admin']},
-    {url: '/admin/users/accounts', allowed: ['admin']},
+    {url: '/users/accounts', allowed: ['admin']},
+    {url: '/users/cases', allowed: ['admin']},
+    {url: '/support/requests', allowed: ['admin']},
     {url: '/hr/home', allowed: ['hr', 'admin']},
     {url: '/hr/staff/attendance', allowed: ['hr', 'admin']},
     {url: '/academic/home', allowed: ['academic', 'admin']},
@@ -99,6 +101,57 @@ describe('staff routes', () => {
       expect(await visit(newUrl)).toBe('/login-admin');
     });
   }
+
+  /** Cuentas, depuración y soporte: una dirección por pantalla; la de /admin lleva a la del módulo (incluida la ficha de una cuenta). */
+  const USERS_SUPPORT_ONE_URL: [string, string, string][] = [
+    ['/admin/users/accounts', '/users/accounts', 'users.manage'],
+    ['/admin/users/accounts/7', '/users/accounts/7', 'users.manage'],
+    ['/admin/users/cases', '/users/cases', 'users.manage'],
+    ['/admin/support/requests', '/support/requests', 'support.manage'],
+  ];
+
+  for (const [oldUrl, newUrl, permission] of USERS_SUPPORT_ONE_URL) {
+    for (const role of ROLES) {
+      const enters = role === 'admin';
+
+      it(`${role} ${enters ? 'lands on' : 'is sent to the login from'} ${newUrl} through ${oldUrl}`, async () => {
+        user = {id: '1', role: {value: role}};
+
+        expect(await visit(oldUrl)).toBe(enters ? newUrl : '/login-admin');
+      });
+    }
+
+    it(`lets in a professor whose session has ${permission} at ${newUrl}`, async () => {
+      user = {id: '1', role: {value: 'professor'}, permissions: ['general.consult', 'attendance.view', permission]};
+
+      expect(await visit(newUrl)).toBe(newUrl);
+    });
+
+    it(`keeps out an administrator whose permissions do not include ${permission} at ${newUrl}`, async () => {
+      user = {id: '1', role: {value: 'admin'}, permissions: ['general.consult']};
+
+      expect(await visit(newUrl)).toBe('/login-admin');
+    });
+  }
+
+  it('keeps the profiles and the accounts apart even though they share the users prefix', async () => {
+    user = {id: '1', role: {value: 'hr'}, permissions: ['attendance.manage']};
+
+    expect(await visit('/users/profiles')).toBe('/users/profiles');
+  });
+
+  it('keeps human resources out of the accounts even though they share the users prefix with the profiles', async () => {
+    user = {id: '1', role: {value: 'hr'}, permissions: ['attendance.manage']};
+
+    expect(await visit('/users/accounts')).toBe('/login-admin');
+  });
+
+  it('lets a person with users.manage into both the accounts and the profiles', async () => {
+    user = {id: '1', role: {value: 'admin'}, permissions: ['users.manage']};
+
+    expect(await visit('/users/accounts')).toBe('/users/accounts');
+    expect(await visit('/users/profiles')).toBe('/users/profiles');
+  });
 
   /** Órdenes de servicio: una dirección por pantalla; la de /admin lleva a la del módulo (incluido el detalle de una orden). */
   const SERVICE_ORDERS_ONE_URL: [string, string][] = [

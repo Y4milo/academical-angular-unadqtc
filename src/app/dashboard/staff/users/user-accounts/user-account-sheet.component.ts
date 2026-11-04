@@ -37,7 +37,7 @@ const MS_PER_DAY = 86_400_000;
   styleUrl: './user-account-sheet.component.css',
 })
 export class UserAccountSheetComponent implements OnInit {
-  readonly listLink = ['/', PATHS.admin.path, 'users', 'accounts'];
+  readonly listLink = ['/', PATHS.userAdmin.path, PATHS.userAdmin.accounts.path];
   readonly documentTypes = [{ label: 'DNI', value: 'dni' }, { label: 'Carné de extranjería', value: 'ce' }, { label: 'Pasaporte', value: 'passport' }];
 
   readonly data = signal<AccountHolders | null>(null);
