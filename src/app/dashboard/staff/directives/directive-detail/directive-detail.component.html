@@ -157,8 +157,8 @@
           </section>
         }
 
-        <p-panel [toggleable]="true" [(collapsed)]="routeCollapsed" styleClass="detail-panel" data-testid="route-panel">
-          <ng-template #header><h3 id="route-title">Ruta de firmas</h3></ng-template>
+        <p-panel [toggleable]="true" toggler="header" [(collapsed)]="routeCollapsed" styleClass="detail-panel" data-testid="route-panel">
+          <ng-template #header><div class="detail-head"><h3 id="route-title">Ruta de firmas</h3><span class="detail-hint" data-testid="route-hint">{{ routeCollapsed() ? 'Haz clic para ver el detalle' : 'Haz clic para ocultar' }}</span></div></ng-template>
           @if (isDraft()) {
             <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
           } @else if (current.progress.length > 0) {
@@ -183,8 +183,8 @@
         </p-panel>
       </div>
 
-      <p-panel [toggleable]="true" [(collapsed)]="timelineCollapsed" styleClass="detail-panel" data-testid="timeline-panel">
-        <ng-template #header><h3 id="timeline-title">Seguimiento</h3></ng-template>
+      <p-panel [toggleable]="true" toggler="header" [(collapsed)]="timelineCollapsed" styleClass="detail-panel" data-testid="timeline-panel">
+        <ng-template #header><div class="detail-head"><h3 id="timeline-title">Seguimiento</h3><span class="detail-hint" data-testid="timeline-hint">{{ timelineCollapsed() ? 'Haz clic para ver el detalle' : 'Haz clic para ocultar' }}</span></div></ng-template>
         <p-timeline [value]="current.events" align="left" styleClass="events-timeline">
           <ng-template pTemplate="marker"><span class="event-marker" aria-hidden="true"></span></ng-template>
           <ng-template pTemplate="content" let-event>

@@ -62,3 +62,6 @@
 :host ::ng-deep .detail-panel .p-panel-header { padding: var(--space-3) var(--space-4); }
 :host ::ng-deep .detail-panel .p-panel-content { padding: 0 var(--space-4) var(--space-4); }
 :host ::ng-deep .detail-panel h3 { margin: 0; font-size: var(--text-card-title); }
+:host ::ng-deep .detail-panel .p-panel-header { cursor: pointer; }
+.detail-head { display: flex; flex: 1; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); min-width: 0; }
+.detail-hint { color: var(--p-text-muted-color); font-size: var(--text-small); }

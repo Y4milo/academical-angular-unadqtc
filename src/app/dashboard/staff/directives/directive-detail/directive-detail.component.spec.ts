@@ -605,4 +605,39 @@ describe('DirectiveDetailComponent', () => {
       expect(fixture.componentInstance.timelineCollapsed()).toBeFalse();
     });
   });
+
+  describe('hint of the collapsible cards', () => {
+    const header = (testId: string) => html().querySelector<HTMLElement>(`[data-testid="${testId}"] .p-panel-header`);
+
+    it('tells to click to see the detail while a card is collapsed and to click to hide it while open', async () => {
+      await create();
+      const component = fixture.componentInstance;
+
+      expect(text('timeline-hint')).toBe('Haz clic para ocultar');
+      expect(text('route-hint')).toBe('Haz clic para ocultar');
+
+      component.timelineCollapsed.set(true);
+      component.routeCollapsed.set(true);
+      fixture.detectChanges();
+
+      expect(text('timeline-hint')).toBe('Haz clic para ver el detalle');
+      expect(text('route-hint')).toBe('Haz clic para ver el detalle');
+    });
+
+    it('toggles the card when the person clicks anywhere on its header, as the hint says', async () => {
+      await create();
+      const component = fixture.componentInstance;
+
+      header('timeline-panel')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(component.timelineCollapsed()).toBeTrue();
+      expect(component.routeCollapsed()).toBeFalse();
+
+      header('timeline-panel')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(component.timelineCollapsed()).toBeFalse();
+    });
+  });
 });
