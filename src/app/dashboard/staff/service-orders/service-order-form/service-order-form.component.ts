@@ -181,7 +181,7 @@ export class ServiceOrderFormComponent {
       next: response => {
         this.saving.set(false);
         if (response.status === STATUS.success) {
-          this.router.navigateByUrl(`${PATHS.admin.serviceOrders.link}/${response.payload.data.id}`);
+          this.router.navigateByUrl(`/${PATHS.serviceOrders.list.link}/${response.payload.data.id}`);
         } else {
           this.notificationService.notifyApiData(response);
         }
@@ -194,7 +194,7 @@ export class ServiceOrderFormComponent {
   }
 
   cancel(): void {
-    this.router.navigateByUrl(PATHS.admin.serviceOrders.link);
+    this.router.navigateByUrl(`/${PATHS.serviceOrders.list.link}`);
   }
 
   private setError(key: keyof FieldErrors, message: string): void {
