@@ -26,6 +26,8 @@ export interface ProfileItem {
 export interface PermissionOption {
   code: string;
   label: string;
+  /** Si es el permiso de todo un módulo, las pantallas que incluye. */
+  includes?: string[];
 }
 
 export interface ProfilesIndex {
