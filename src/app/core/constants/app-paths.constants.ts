@@ -3,6 +3,8 @@ export const PATHS = {
   login: {
     staff:    `login-admin`,
     student:  `login-student`,
+    coreEntry:  `ingreso-core`,
+    coreReturn: `ingreso-core/listo`,
   },
   admin: {
     path: `admin`,
