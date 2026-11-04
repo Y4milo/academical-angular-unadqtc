@@ -78,7 +78,7 @@
         <app-catalog-notes [items]="screenRules"></app-catalog-notes>
 
         <h3>Vocabulario de estados</h3>
-        <p class="catalog__lead">El mismo estado lleva el mismo color en todas las pantallas. Nunca un <code>--p-green-*</code> a mano para algo que ya tiene etiqueta.</p>
+        <p class="catalog__lead">El mismo estado lleva el mismo color en todas las pantallas. Nunca un <code>--p-green-*</code> a mano para algo que ya tiene etiqueta. Todo recuadro con texto lleva aire alrededor: el de la etiqueta (<code>.375rem .75rem</code>) lo pone <code>InstitutionalPreset</code> una sola vez, no cada pantalla.</p>
         <div class="catalog__row">
           @for (item of states; track item.kind) { <p-tag [value]="item.kind" [severity]="item.severity"></p-tag> }
         </div>

@@ -143,6 +143,13 @@ describe('ComponentsCatalogComponent', () => {
     expect(rows.length).toBe(TYPE_SCALE.length + WEIGHT_SCALE.length);
   });
 
+  it('keeps room around the text of every tag, set once in the preset', () => {
+    const padding = (InstitutionalPreset as any).components.tag.root.padding as string;
+
+    // Un recuadro de texto (etiqueta, estado) sin aire alrededor se ve cortado; el aire se define aquí y no pantalla por pantalla.
+    expect(padding).toBe('0.375rem 0.75rem');
+  });
+
   it('gives each Bienestar status a color of the shared vocabulary', () => {
     const kinds = Object.values(DBU_STATUS_VIEW).map(view => view.kind);
 

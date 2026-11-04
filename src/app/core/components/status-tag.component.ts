@@ -21,7 +21,6 @@ import {TagModule} from 'primeng/tag';
       font-weight: var(--weight-strong);
       line-height: 1;
       white-space: nowrap;
-      padding: var(--space-1) var(--space-2);
     }
 
     :host ::ng-deep .status-tag .p-tag-icon {

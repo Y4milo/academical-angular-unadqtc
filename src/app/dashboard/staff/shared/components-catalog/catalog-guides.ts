@@ -5,7 +5,7 @@ export const DATA_GUIDE: ComponentGuide[] = [
   { need: 'Lista de tarjetas o de filas libres', component: 'p-dataview', avoid: '<ul>, <ol>, @for de <div> sin contenedor' },
   { need: 'Historial o secuencia de eventos', component: 'p-timeline', avoid: '<ul> con viñetas, <ol>' },
   { need: 'Jerarquía (unidades, módulos)', component: 'p-tree', avoid: '<ul> anidados' },
-  { need: 'Estado de un registro', component: 'p-tag con STATE_SEVERITY', avoid: 'Un <span> con color a mano' },
+  { need: 'Estado de un registro', component: 'p-tag con STATE_SEVERITY (o app-status-tag); su padding .375rem .75rem lo da el preset', avoid: 'Un <span> con color a mano, o un padding propio por pantalla' },
   { need: 'Contador sobre un ícono o un título', component: 'p-badge', avoid: '<span> redondo con número' },
   { need: 'Valor que se puede quitar o filtro aplicado', component: 'p-chip', avoid: '<span> con ×' },
   { need: 'Foto o iniciales de una persona', component: 'p-avatar', avoid: '<img> redondo suelto' },
