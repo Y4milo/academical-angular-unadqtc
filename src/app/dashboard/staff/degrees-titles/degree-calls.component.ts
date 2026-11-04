@@ -12,7 +12,6 @@ import {Select} from 'primeng/select';
 import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {STATUS} from '../../../core/constants/api-status.constants';
-import {ROLE} from '../../../core/constants/app-roles.constants';
 import {canReopenCalls} from './degree-call-permissions';
 import {
   DegreeCall,
@@ -90,10 +89,6 @@ export class DegreeCallsComponent implements OnInit {
       this.mailTestRecipient = response.data.mail_delivery.test_recipient;
     }});
     this.loadCalls();
-  }
-
-  get isAdmin(): boolean {
-    return this.loginService.getUser()?.role?.value === ROLE.admin;
   }
 
   /** Reabrir, anular o completar la resolución de una convocatoria cerrada: lo decide el permiso, no el rol. */
@@ -264,10 +259,7 @@ export class DegreeCallsComponent implements OnInit {
   goToRecords(call: DegreeCall): void {
     if (!this.canViewRecords(call)) return;
 
-    const route = this.isAdmin
-      ? PATHS.admin.degreesTitles.records.link
-      : PATHS.degreesTitles.records.link;
-    this.router.navigate([route], {queryParams: {call_id: call.id}});
+    this.router.navigate([PATHS.degreesTitles.records.link], {queryParams: {call_id: call.id}});
   }
 
   statusSeverity(status: DegreeCallStatusValue): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
