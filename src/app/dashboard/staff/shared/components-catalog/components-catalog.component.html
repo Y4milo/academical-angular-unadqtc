@@ -1,135 +1,82 @@
 <div class="catalog">
   <header class="catalog__header">
     <h2>Catálogo de componentes</h2>
-    <p>Fuente de verdad de la interfaz de Academical. Revísalo antes de crear una pantalla y agrega aquí todo patrón nuevo, en el mismo cambio.</p>
+    <p>Fuente de verdad de la interfaz de Academical. Revísalo antes de crear una pantalla y agrega aquí todo patrón nuevo, en el mismo cambio. Todo es PrimeNG: si una necesidad no está aquí, se agrega aquí primero.</p>
   </header>
 
-  <p-tabs value="theme" [scrollable]="true">
+  <p-tabs value="foundations" [scrollable]="true">
     <p-tablist>
-      <p-tab value="theme">Tema claro y oscuro</p-tab>
-      <p-tab value="scales">Escalas</p-tab>
-      <p-tab value="components">Componentes</p-tab>
-      <p-tab value="states">Estados</p-tab>
-      <p-tab value="patterns">Patrones</p-tab>
+      @for (section of sections; track section.value) {
+        <p-tab [value]="section.value">{{ section.label }}</p-tab>
+      }
     </p-tablist>
 
     <p-tabpanels>
-      <p-tabpanel value="theme">
+      <p-tabpanel value="foundations">
+        <h3>Tema claro y oscuro</h3>
         <p class="catalog__lead">Cada token se lee en el tema claro y en el oscuro. Un token que no existe, o que debería cambiar y no cambia, deja la pantalla a medias en uno de los dos temas.</p>
-        <div class="catalog__scroll">
-          <table class="catalog__table" data-testid="token-table">
-            <thead><tr><th>Token</th><th>Para qué</th><th>Claro</th><th>Oscuro</th><th>Estado</th></tr></thead>
-            <tbody>
-              @for (row of tokenRows(); track row.token.name) {
-                <tr [attr.data-testid]="'token-' + row.token.name">
-                  <td><code>{{ row.token.name }}</code></td>
-                  <td>{{ row.token.use }}</td>
-                  <td><span class="swatch" [style.background]="row.light"></span> <code>{{ row.light || '—' }}</code></td>
-                  <td><span class="swatch" [style.background]="row.dark"></span> <code>{{ row.dark || '—' }}</code></td>
-                  <td>
-                    @if (row.ok) {
-                      <p-tag [value]="row.token.followsTheme ? 'Cambia con el tema' : 'Paleta fija'" [severity]="severity.ok"></p-tag>
-                    } @else {
-                      <p-tag [value]="row.defined ? 'No cambia' : 'No existe'" [severity]="severity.failed"></p-tag>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+        <p-table [value]="tokenRows()" styleClass="catalog__table" [scrollable]="true" data-testid="token-table">
+          <ng-template #header><tr><th>Token</th><th>Para qué</th><th>Claro</th><th>Oscuro</th><th>Estado</th></tr></ng-template>
+          <ng-template #body let-row>
+            <tr [attr.data-testid]="'token-' + row.token.name">
+              <td><code>{{ row.token.name }}</code></td>
+              <td>{{ row.token.use }}</td>
+              <td><span class="swatch" [style.background]="row.light"></span> <code>{{ row.light || '—' }}</code></td>
+              <td><span class="swatch" [style.background]="row.dark"></span> <code>{{ row.dark || '—' }}</code></td>
+              <td>
+                @if (row.ok) {
+                  <p-tag [value]="row.token.followsTheme ? 'Cambia con el tema' : 'Paleta fija'" [severity]="severity.ok"></p-tag>
+                } @else {
+                  <p-tag [value]="row.defined ? 'No cambia' : 'No existe'" [severity]="severity.failed"></p-tag>
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
 
         <h3>No usar</h3>
         <p class="catalog__lead">Estos nombres no existen con PrimeNG 19 (o son paletas fijas): <code>var(--surface-card, &#35;fff)</code> siempre cae al fallback claro. El script <code>npm run check:theme</code> lo impide en el CSS nuevo.</p>
-        <ul class="catalog__list">
-          @for (name of forbidden; track name) { <li><code>{{ name }}</code></li> }
-        </ul>
-      </p-tabpanel>
+        <app-catalog-notes [items]="forbidden"></app-catalog-notes>
 
-      <p-tabpanel value="scales">
         <h3>Espaciado</h3>
         <div class="catalog__bars">
           @for (item of space; track item.token) {
             <div class="catalog__bar"><code>{{ item.token }}</code><span class="catalog__bar-fill" [style.width.px]="item.px"></span><small>{{ item.px }} px</small></div>
           }
         </div>
+
         <h3>Texto</h3>
         <p class="catalog__lead">Misma escala que el menú lateral. Los tamaños y pesos se declaran una sola vez en <code>styles.css</code>; ninguna pantalla escribe el suyo.</p>
-        <ul class="catalog__list" data-testid="type-scale">
-          @for (row of typeRows(); track row.token.token) {
-            <li [style.font-size]="'var(' + row.token.token + ')'">
-              {{ row.token.name }} · <code>{{ row.token.token }}</code> {{ row.value }}
-              <small> · {{ row.token.use }}</small>
-            </li>
-          }
-        </ul>
+        <p-table [value]="typeRows()" styleClass="catalog__table" data-testid="type-scale">
+          <ng-template #body let-row>
+            <tr>
+              <td [style.font-size]="'var(' + row.token.token + ')'">
+                {{ row.token.name }} · <code>{{ row.token.token }}</code> {{ row.value }}
+                <small> · {{ row.token.use }}</small>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+
         <h3>Peso</h3>
-        <ul class="catalog__list" data-testid="weight-scale">
-          @for (row of weightRows(); track row.token.token) {
-            <li [style.font-weight]="'var(' + row.token.token + ')'">
-              {{ row.token.name }} · <code>{{ row.token.token }}</code> {{ row.value }}
-              <small [style.font-weight]="'var(--weight-regular)'"> · {{ row.token.use }}</small>
-            </li>
-          }
-        </ul>
+        <p-table [value]="weightRows()" styleClass="catalog__table" data-testid="weight-scale">
+          <ng-template #body let-row>
+            <tr>
+              <td [style.font-weight]="'var(' + row.token.token + ')'">
+                {{ row.token.name }} · <code>{{ row.token.token }}</code> {{ row.value }}
+                <small [style.font-weight]="'var(--weight-regular)'"> · {{ row.token.use }}</small>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+
         <h3>Puntos de quiebre</h3>
         <p class="catalog__lead">Base para teléfono. No se inventan otros anchos.</p>
-        <ul class="catalog__list">
-          @for (item of breakpoints; track item.name) { <li>{{ item.name }}: hasta {{ item.max }} px</li> }
-        </ul>
+        <app-catalog-notes [items]="breakpointNotes"></app-catalog-notes>
+
         <h3>Reglas de pantalla</h3>
-        <ul class="catalog__list">
-          <li>Sin desplazamiento horizontal de la página a 375 px, 768 px y 1440 px.</li>
-          <li>Una fila de formulario con <code>flex-wrap</code>; nunca <code>flex-direction: column</code> con un <code>flex-basis</code> en rem (se convierte en alto).</li>
-          <li>Menú de secciones: lista vertical en escritorio y una fila que se desliza bajo 900 px.</li>
-          <li>Tablas de texto: tarjetas etiqueta/valor bajo 640 px (<code>styleClass="dbu-stack"</code> como ejemplo).</li>
-          <li>El esqueleto de carga no es más alto que lo que reemplaza en teléfono.</li>
-        </ul>
-      </p-tabpanel>
+        <app-catalog-notes [items]="screenRules"></app-catalog-notes>
 
-      <p-tabpanel value="components">
-        <h3>Botones</h3>
-        <div class="catalog__row">
-          <p-button label="Guardar cambios"></p-button>
-          <p-button label="Descartar" severity="secondary" [outlined]="true"></p-button>
-          <p-button label="Cancelar mi cita" severity="danger" [outlined]="true"></p-button>
-          <p-button label="Cargando" [loading]="true"></p-button>
-          <p-button label="Deshabilitado" [disabled]="true"></p-button>
-        </div>
-        <p class="catalog__lead">Un solo botón primario por pantalla o diálogo.</p>
-
-        <h3>Selección y campos</h3>
-        <div class="catalog__row">
-          <p-selectbutton [options]="weekdays" optionLabel="label" optionValue="value" [multiple]="true" [(ngModel)]="selectedDays"></p-selectbutton>
-          <p-toggleswitch [(ngModel)]="switchOn" aria-label="Ejemplo de interruptor"></p-toggleswitch>
-          <p-inputnumber [(ngModel)]="minutes" [min]="15" [max]="240" [showButtons]="true" suffix=" min"></p-inputnumber>
-        </div>
-
-        <h3>Fecha, fecha con hora y número</h3>
-        <p class="catalog__lead" data-testid="field-pattern">Nunca <code>&lt;input type="date"&gt;</code>, <code>datetime-local</code> ni <code>number</code>: la fecha es <code>p-datepicker</code> (modelo <code>Date</code>; <code>[showTime]="true" hourFormat="24"</code> para la hora; se convierte con <code>core/utils/date-input.util.ts</code>) y el número es <code>p-inputnumber</code> con <code>min</code>, <code>max</code> y <code>suffix</code>.</p>
-        <div class="catalog__row">
-          <p-datepicker [(ngModel)]="sampleDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" ariaLabel="Ejemplo de fecha"></p-datepicker>
-          <p-datepicker [(ngModel)]="sampleDateTime" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" ariaLabel="Ejemplo de fecha con hora"></p-datepicker>
-          <p-inputnumber [(ngModel)]="attempts" [min]="1" [max]="10" [showButtons]="true"></p-inputnumber>
-          <p-inputnumber [(ngModel)]="photoKb" [min]="5" [max]="2048" suffix=" KB"></p-inputnumber>
-        </div>
-
-        <h3>Tarjeta de resumen clicable</h3>
-        <p class="catalog__lead">Un <code>p-card</code> con <code>role="button"</code>, <code>tabindex="0"</code> y <code>(keydown.enter)</code>; la seleccionada lleva un contorno de <code>--p-primary-color</code>. Ejemplo: tipos de caso en Depuración de usuarios.</p>
-        <div class="catalog__row">
-          <p-card styleClass="catalog__tile" role="button" tabindex="0"><strong>48</strong><span>Sin resolver</span></p-card>
-          <p-card styleClass="catalog__tile" role="button" tabindex="0"><strong>47</strong><span>Sin vínculo con Core</span></p-card>
-        </div>
-
-        <h3>Avisos</h3>
-        <div class="catalog__stack">
-          <p-message severity="info" text="Los cambios aplican hacia adelante; las citas ya reservadas no se mueven."></p-message>
-          <p-message severity="warn" text="2027 no tiene fechas cargadas en el calendario."></p-message>
-          <p-message severity="error" text="No se pudo cargar la configuración."></p-message>
-        </div>
-      </p-tabpanel>
-
-      <p-tabpanel value="states">
         <h3>Vocabulario de estados</h3>
         <p class="catalog__lead">El mismo estado lleva el mismo color en todas las pantallas. Nunca un <code>--p-green-*</code> a mano para algo que ya tiene etiqueta.</p>
         <div class="catalog__row">
@@ -145,6 +92,101 @@
           <div class="catalog__card"><strong>Cargando</strong><p-skeleton height="2.5rem"></p-skeleton><p-skeleton height="2.5rem"></p-skeleton></div>
           <div class="catalog__card catalog__empty"><strong>Vacío</strong><span>Aún no hay encargados. Agrega a quien atenderá las citas para tener cupos.</span><p-button label="Agregar encargado" size="small"></p-button></div>
           <div class="catalog__card"><strong>Error</strong><p-message severity="error" text="No se pudo cargar. Inténtalo nuevamente."></p-message><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small"></p-button></div>
+        </div>
+      </p-tabpanel>
+
+      <p-tabpanel value="actions">
+        <h3>Qué usar para cada acción</h3>
+        <p-table [value]="actionGuide" styleClass="catalog__table" data-testid="action-guide">
+          <ng-template #header><tr><th>Necesidad</th><th>Usa</th><th>No uses</th></tr></ng-template>
+          <ng-template #body let-row><tr><td>{{ row.need }}</td><td><code>{{ row.component }}</code></td><td><code>{{ row.avoid }}</code></td></tr></ng-template>
+        </p-table>
+
+        <h3>Botones</h3>
+        <div class="catalog__row">
+          <p-button label="Guardar cambios"></p-button>
+          <p-button label="Descartar" severity="secondary" [outlined]="true"></p-button>
+          <p-button label="Cancelar mi cita" severity="danger" [outlined]="true"></p-button>
+          <p-button label="Cargando" [loading]="true"></p-button>
+          <p-button label="Deshabilitado" [disabled]="true"></p-button>
+        </div>
+        <p class="catalog__lead">Un solo botón primario por pantalla o diálogo.</p>
+
+        <h3>Con ícono, de solo ícono y de texto</h3>
+        <div class="catalog__row">
+          <p-button label="Agregar" icon="pi pi-plus"></p-button>
+          <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" aria-label="Editar"></p-button>
+          <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" aria-label="Eliminar"></p-button>
+          <p-button label="Ver detalle" [link]="true"></p-button>
+          <p-button label="Pequeño" size="small"></p-button>
+          <p-button label="Grande" size="large"></p-button>
+        </div>
+        <p class="catalog__lead">El botón de solo ícono siempre lleva <code>aria-label</code>.</p>
+
+        <h3>Con variantes y encendible</h3>
+        <div class="catalog__row">
+          <p-splitbutton label="Descargar" icon="pi pi-download" [model]="splitItems"></p-splitbutton>
+          <p-togglebutton [(ngModel)]="pinned" onLabel="Fijado" offLabel="Fijar"></p-togglebutton>
+        </div>
+      </p-tabpanel>
+
+      <p-tabpanel value="forms">
+        <h3>Qué usar para cada campo</h3>
+        <p-table [value]="formGuide" styleClass="catalog__table" data-testid="form-guide">
+          <ng-template #header><tr><th>Necesidad</th><th>Usa</th><th>No uses</th></tr></ng-template>
+          <ng-template #body let-row><tr><td>{{ row.need }}</td><td><code>{{ row.component }}</code></td><td><code>{{ row.avoid }}</code></td></tr></ng-template>
+        </p-table>
+
+        <h3>Texto, selección y búsqueda</h3>
+        <div class="catalog__row">
+          <input pInputText [(ngModel)]="textValue" aria-label="Ejemplo de texto" />
+          <textarea pTextarea [(ngModel)]="noteValue" rows="2" placeholder="Observaciones" aria-label="Ejemplo de texto largo"></textarea>
+          <p-select [options]="offices" optionLabel="name" [(ngModel)]="office" placeholder="Elige una oficina" appendTo="body"></p-select>
+          <p-multiselect [options]="offices" optionLabel="name" [(ngModel)]="officeList" placeholder="Varias oficinas" appendTo="body"></p-multiselect>
+          <p-autocomplete [(ngModel)]="searchText" [suggestions]="officeSuggestions" optionLabel="name" (completeMethod)="searchOffices($event)" placeholder="Busca una oficina" appendTo="body"></p-autocomplete>
+        </div>
+
+        <h3>Selección, interruptor y casillas</h3>
+        <div class="catalog__row">
+          <p-selectbutton [options]="weekdays" optionLabel="label" optionValue="value" [multiple]="true" [(ngModel)]="selectedDays"></p-selectbutton>
+          <p-toggleswitch [(ngModel)]="switchOn" aria-label="Ejemplo de interruptor"></p-toggleswitch>
+          <span class="catalog__check"><p-checkbox [(ngModel)]="accepted" [binary]="true" inputId="demo-accept"></p-checkbox><label for="demo-accept">Acepto</label></span>
+          <span class="catalog__check"><p-radiobutton name="channel" value="mail" [(ngModel)]="channel" inputId="demo-mail"></p-radiobutton><label for="demo-mail">Correo</label></span>
+          <span class="catalog__check"><p-radiobutton name="channel" value="sms" [(ngModel)]="channel" inputId="demo-sms"></p-radiobutton><label for="demo-sms">Mensaje</label></span>
+        </div>
+
+        <h3>Fecha, fecha con hora y número</h3>
+        <p class="catalog__lead" data-testid="field-pattern">Nunca <code>&lt;input type="date"&gt;</code>, <code>datetime-local</code> ni <code>number</code>: la fecha es <code>p-datepicker</code> (modelo <code>Date</code>; <code>[showTime]="true" hourFormat="24"</code> para la hora; se convierte con <code>core/utils/date-input.util.ts</code>) y el número es <code>p-inputnumber</code> con <code>min</code>, <code>max</code> y <code>suffix</code>.</p>
+        <div class="catalog__row">
+          <p-datepicker [(ngModel)]="sampleDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" ariaLabel="Ejemplo de fecha"></p-datepicker>
+          <p-datepicker [(ngModel)]="sampleDateTime" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" ariaLabel="Ejemplo de fecha con hora"></p-datepicker>
+          <p-inputnumber [(ngModel)]="minutes" [min]="15" [max]="240" [showButtons]="true" suffix=" min"></p-inputnumber>
+          <p-inputnumber [(ngModel)]="attempts" [min]="1" [max]="10" [showButtons]="true"></p-inputnumber>
+          <p-inputnumber [(ngModel)]="photoKb" [min]="5" [max]="2048" suffix=" KB"></p-inputnumber>
+        </div>
+
+        <h3>Contraseña, formato y archivo</h3>
+        <div class="catalog__row">
+          <p-password [(ngModel)]="secret" [feedback]="false" [toggleMask]="true" placeholder="Contraseña" ariaLabel="Ejemplo de contraseña"></p-password>
+          <p-inputmask [(ngModel)]="documentNumber" mask="99999999" placeholder="DNI de 8 dígitos" ariaLabel="Ejemplo de documento"></p-inputmask>
+          <p-fileupload mode="basic" chooseLabel="Elegir PDF" accept="application/pdf" [auto]="false" [customUpload]="true">
+            <ng-template #filelabel></ng-template>
+          </p-fileupload>
+        </div>
+        <p class="catalog__lead">El archivo usa <code>p-fileupload</code> en modo <code>basic</code> con <code>customUpload</code> y la plantilla <code>#filelabel</code> vacía; los specs que lo incluyan necesitan <code>provideHttpClient()</code>.</p>
+
+        <h3>Tarjeta de resumen clicable</h3>
+        <p class="catalog__lead">Un <code>p-card</code> con <code>role="button"</code>, <code>tabindex="0"</code> y <code>(keydown.enter)</code>; la seleccionada lleva un contorno de <code>--p-primary-color</code>. Ejemplo: tipos de caso en Depuración de usuarios.</p>
+        <div class="catalog__row">
+          <p-card styleClass="catalog__tile" role="button" tabindex="0"><strong>48</strong><span>Sin resolver</span></p-card>
+          <p-card styleClass="catalog__tile" role="button" tabindex="0"><strong>47</strong><span>Sin vínculo con Core</span></p-card>
+        </div>
+
+        <h3>Avisos</h3>
+        <div class="catalog__stack">
+          <p-message severity="info" text="Los cambios aplican hacia adelante; las citas ya reservadas no se mueven."></p-message>
+          <p-message severity="warn" text="2027 no tiene fechas cargadas en el calendario."></p-message>
+          <p-message severity="error" text="No se pudo cargar la configuración."></p-message>
         </div>
       </p-tabpanel>
 
@@ -167,11 +209,7 @@
 
         <h3>Menú lateral</h3>
         <p class="catalog__lead" data-testid="sidebar-pattern">El menú del personal es un <code>p-panelmenu</code> en una columna de 17 rem (<code>p-drawer</code> bajo 900 px). Dos niveles como máximo: grupo (módulo) y pantalla. Se abre un grupo a la vez y queda abierto el de la pantalla actual; la opción activa usa <code>--p-highlight-background</code>. Abajo van la persona (<code>p-avatar</code>), «Cambiar contraseña» y «Cerrar sesión». Mientras carga muestra <code>p-skeleton</code> y, si falla, un <code>p-message</code> con «Reintentar».</p>
-        <ul class="catalog__list">
-          <li>Las opciones salen del API (<code>RoleMenus.php</code>, un bloque por módulo): nunca se agregan opciones a mano en el front.</li>
-          <li>Íconos Lucide registrados en <code>lucide-icon.util.ts</code>; sin ícono, el menú muestra un círculo.</li>
-          <li>Se carga una vez por sesión (<code>StaffMenuStore</code>) y se olvida al cerrar sesión.</li>
-        </ul>
+        <app-catalog-notes [items]="sidebarNotes"></app-catalog-notes>
 
         <h3>Menú del estudiante</h3>
         <p class="catalog__lead" data-testid="student-menu-pattern">El estudiante usa el mismo contenedor y la misma barra lateral del personal (<code>staff-role-layout</code> con <code>audience="student"</code>), con un solo grupo, «Mis trámites», con un ítem por módulo. Las opciones salen de <code>GET /students/modules</code> (<code>StudentMenuStore</code>): el carné solo aparece dentro de la ventana de subida del semestre habilitado y, cerrada la ventana, en solo lectura para quien ya lo registró. Un módulo activado sin pantalla (las citas desde la cuenta) no se muestra. No lleva «Cambiar contraseña».</p>
@@ -183,13 +221,7 @@
         <p class="catalog__lead">Cuando hay datos, un documento y una foto, <code>p-steps</code> (solo lectura) con «Atrás» y «Siguiente»; con foto previa aprobada es una sola pantalla. Los datos de identidad van deshabilitados con un aviso; solo se editan contacto y fecha de nacimiento. Ejemplo: <code>/student/card/registration</code>.</p>
 
         <h3>Pantallas de referencia</h3>
-        <ul class="catalog__list">
-          <li><code>/admin/dbu/config</code>: menú de secciones, filas de ajuste, tablas apiladas y matriz de cupos.</li>
-          <li><code>/dbu/citas</code> y <code>/dbu/citas/estado</code>: páginas públicas del alumno, de un solo paso por pantalla, para teléfono.</li>
-          <li><code>/admin/accounting/bank/*</code>: listas propias con detalle en <code>p-drawer</code>.</li>
-          <li><code>/admin/academic/semesters</code> y <code>/admin/academic/student-card</code>: fechas con <code>p-datepicker</code>, números con <code>p-inputnumber</code>, interruptores y pagos exportables.</li>
-          <li><code>/student/card/registration</code>: flujo del carné del estudiante.</li>
-        </ul>
+        <app-catalog-notes [items]="referenceScreens"></app-catalog-notes>
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>

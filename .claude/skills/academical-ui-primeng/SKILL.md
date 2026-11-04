@@ -9,7 +9,7 @@ Front: Angular 19.2 standalone, PrimeNG 19 con tema Aura (`@primeng/themes`), pr
 
 ## Fuente de verdad
 
-El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-catalog`) y `docs/frontend-components.md` son la fuente de verdad de la interfaz, como en Core y Events: se leen antes de tocar una pantalla y todo patrón nuevo o cambiado se agrega al catálogo, a ese documento y a este skill en el mismo cambio. Lo hacen cumplir `components-catalog.component.spec.ts` (tokens de tema que existen y cambian en claro y oscuro), `npm run check:theme` (sin colores que no siguen el tema, tope que solo baja) y las pruebas de pantalla con `autoDetectChanges` + `whenStable`.
+El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-catalog`, secciones Fundamentos, Acciones, Formularios y Patrones; cada una con su tabla «necesidad → componente → qué no usar») y `docs/frontend-components.md` son la fuente de verdad de la interfaz, como en Core y Events: se leen antes de tocar una pantalla y todo patrón nuevo o cambiado se agrega al catálogo, a ese documento y a este skill en el mismo cambio. Lo hacen cumplir `components-catalog.component.spec.ts` (tokens de tema que existen y cambian en claro y oscuro), `npm run check:theme` (sin colores que no siguen el tema, tope que solo baja) y las pruebas de pantalla con `autoDetectChanges` + `whenStable`.
 
 ## Regla principal
 
