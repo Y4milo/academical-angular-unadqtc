@@ -22,8 +22,8 @@ describe('staff routes', () => {
     {url: '/admin/users/accounts', allowed: ['admin']},
     {url: '/hr/home', allowed: ['hr']},
     {url: '/hr/staff/attendance', allowed: ['hr']},
-    {url: '/academic/home', allowed: ['academic']},
-    {url: '/academic/semesters', allowed: ['academic']},
+    {url: '/academic/home', allowed: ['academic', 'admin']},
+    {url: '/academic/semesters', allowed: ['academic', 'admin']},
     {url: '/accounting/bank/incidents', allowed: ['accounting', 'admin']},
     {url: '/degrees-titles/records', allowed: ['degrees_titles']},
     {url: '/dbu/cola', allowed: ['dbu_admin', 'dbu', 'admin']},
@@ -66,6 +66,42 @@ describe('staff routes', () => {
     for (const group of GROUPS) {
       expect(await visit(group.url)).toBe('/login-admin');
     }
+  });
+
+  /** Una pantalla, una dirección: las de /admin que repetían una de Académico llevan a la del módulo, y los favoritos viejos siguen funcionando. */
+  const ACADEMIC_ONE_URL: [string, string][] = [
+    ['/admin/academic/semesters', '/academic/semesters'],
+    ['/admin/academic/student-card', '/academic/student-card'],
+    ['/admin/student/card/panel', '/academic/student/card/panel'],
+    ['/admin/student/ranking', '/academic/student/ranking'],
+    ['/admin/student/approved-average', '/academic/student/approved-average'],
+  ];
+
+  for (const [oldUrl, newUrl] of ACADEMIC_ONE_URL) {
+    it(`sends the administrator from ${oldUrl} to ${newUrl}`, async () => {
+      user = {id: '1', role: {value: 'admin'}};
+
+      expect(await visit(oldUrl)).toBe(newUrl);
+    });
+
+    it(`lets the academic role into ${newUrl}, and an old ${oldUrl} link lands there too`, async () => {
+      user = {id: '1', role: {value: 'academic'}};
+
+      expect(await visit(newUrl)).toBe(newUrl);
+      expect(await visit(oldUrl)).toBe(newUrl);
+    });
+
+    it(`sends a session without a role to the login from ${newUrl}`, async () => {
+      user = {id: '1', role: {value: 'professor'}};
+
+      expect(await visit(newUrl)).toBe('/login-admin');
+    });
+  }
+
+  it('keeps the administrator-only student modules screen under /admin', async () => {
+    user = {id: '1', role: {value: 'admin'}};
+
+    expect(await visit('/admin/academic/student-modules')).toBe('/admin/academic/student-modules');
   });
 
   it('keeps the redirects of the home of each group', async () => {
