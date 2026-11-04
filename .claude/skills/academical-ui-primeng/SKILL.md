@@ -42,7 +42,7 @@ El catálogo `/admin/components` (`src/app/dashboard/staff/shared/components-cat
 | Ayudas | `pTooltip` |
 | Acciones | `pButton` / `p-button` (uno solo `primary` por vista; el resto `severity="secondary"`, `[text]="true"`) |
 
-**Regla permanente (el usuario la repitió el 2026-11-04, ya es la segunda vez):** TODO en PrimeNG, sin excepciones y sin «copiar el patrón del código viejo». Antes de cada PR de front, correr `grep -rnE 'type="(date|datetime-local|number|checkbox|radio|file)"|<select|<button|<table|<ul|<ol|<progress|<dialog' <carpetas tocadas> --include=*.html` y explicar o corregir cada resultado en el PR. Solo valen como excepción `pInputText` y `pTextarea` (directivas de PrimeNG) y los enlaces `<a>`.
+**Regla permanente (el usuario la repitió el 2026-11-04, ya es la segunda vez):** TODO en PrimeNG, sin excepciones y sin «copiar el patrón del código viejo». Antes de cada PR de front, correr `npm run check:primeng` (verificador con tope por archivo: un archivo nuevo o tocado debe quedar en cero; `--fix-baseline` baja el tope tras una limpieza; una línea con `primeng-ok: motivo` exime un uso justificado) y, además, `grep -rnE 'type="(date|datetime-local|number|checkbox|radio|file)"|<select|<button|<table|<ul|<ol|<progress|<dialog' <carpetas tocadas> --include=*.html` y explicar o corregir cada resultado en el PR. Solo valen como excepción `pInputText` y `pTextarea` (directivas de PrimeNG) y los enlaces `<a>`.
 
 Antes de escribir CSS para algo, revisa `node_modules/primeng` (carpeta del componente) o la documentación de PrimeNG 19.
 
