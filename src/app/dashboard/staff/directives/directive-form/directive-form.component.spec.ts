@@ -123,7 +123,7 @@ describe('DirectiveFormComponent', () => {
     fixture.componentInstance.quality.set(true);
     fixture.detectChanges();
     expect(service.route).toHaveBeenCalledWith('adm', true);
-    expect(html().querySelectorAll('[data-testid="route-step"]').length).toBe(5);
+    expect(html().querySelectorAll('[data-testid="route-step"]').length).toBe(4);
     expect(text('route-blocked')).toContain('Core no tiene a nadie designado');
   });
 

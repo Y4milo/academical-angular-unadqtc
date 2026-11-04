@@ -11,7 +11,7 @@
       Core no tiene a nadie designado en {{ current.issues.length === 1 ? 'una oficina' : current.issues.length + ' oficinas' }} de la ruta. La directiva no se puede enviar hasta que OTI designe a quien firma.
     </p-message>
   }
-  <p-timeline [value]="current.steps" align="left" styleClass="route-timeline">
+  <p-timeline [value]="visibleSteps()" align="left" styleClass="route-timeline">
     <ng-template pTemplate="marker" let-step>
       <span class="route-marker" [attr.data-state]="step.skipped ? 'skipped' : step.holder ? 'ready' : 'missing'" aria-hidden="true"></span>
     </ng-template>

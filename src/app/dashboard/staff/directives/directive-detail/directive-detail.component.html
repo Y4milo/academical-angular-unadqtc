@@ -162,7 +162,7 @@
           @if (isDraft()) {
             <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
           } @else if (current.progress.length > 0) {
-            <p-timeline [value]="current.progress" align="left" styleClass="route-timeline">
+            <p-timeline [value]="visibleProgress()" align="left" styleClass="route-timeline">
               <ng-template pTemplate="marker" let-step>
                 <span class="progress-marker" [attr.data-state]="step.state" aria-hidden="true"></span>
               </ng-template>
