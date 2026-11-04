@@ -1,0 +1,119 @@
+:host {
+  display: block;
+}
+
+.pform {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  max-width: 60rem;
+  padding: var(--page-gutter);
+  color: var(--p-text-color);
+}
+
+.pform__header h1 {
+  margin: 0;
+}
+
+.pform__header p,
+.pform__hint {
+  margin: var(--space-1) 0 var(--space-3);
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+:host ::ng-deep .pform__notice {
+  width: 100%;
+}
+
+.pform__card {
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.pform__card h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-card-title);
+}
+
+.pform__card h3 {
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--p-text-muted-color);
+  font-size: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pform__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.pform__grid > .pform__field {
+  flex: 1 1 16rem;
+}
+
+.pform__field {
+  display: grid;
+  max-width: 100%;
+  gap: var(--space-1);
+  align-content: start;
+  min-width: 0;
+  font-weight: var(--weight-strong);
+}
+
+.pform__field small {
+  color: var(--p-text-muted-color);
+  font-weight: var(--weight-regular);
+}
+
+.pform__perms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pform__perm {
+  display: flex;
+  flex: 1 1 16rem;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.pform__perm--on {
+  border-color: var(--p-primary-color);
+  background: var(--p-highlight-background);
+}
+
+.pform__perm small {
+  display: block;
+  color: var(--p-text-muted-color);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-label);
+}
+
+.pform__field p-selectbutton {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.pform__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .pform {
+    padding: var(--space-5);
+  }
+}

@@ -1,0 +1,183 @@
+:host {
+  display: block;
+}
+
+.profiles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--page-gutter);
+  color: var(--p-text-color);
+}
+
+.profiles__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.profiles__header h1 {
+  margin: 0;
+}
+
+.profiles__header p {
+  margin: var(--space-1) 0 0;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+:host ::ng-deep .profiles__notice {
+  width: 100%;
+}
+
+.profiles__panel {
+  min-width: 0;
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.profiles__filters {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.profiles__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Cada grupo de filtros se desliza por dentro cuando no cabe, en lugar de ensanchar la página. */
+.profiles__chips > * {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.profiles__skeleton {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.profiles__skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.profiles__empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.profiles__empty strong {
+  color: var(--p-text-color);
+}
+
+.profiles__name {
+  display: block;
+  font-weight: var(--weight-strong);
+}
+
+.profiles__code {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--p-text-muted-color);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-label);
+}
+
+.profiles__actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.profiles__lead {
+  margin: 0 0 var(--space-3);
+  color: var(--p-text-muted-color);
+}
+
+.profiles__more {
+  display: block;
+  margin: var(--space-1) 0 var(--space-3);
+  color: var(--p-text-muted-color);
+}
+
+.profiles__field {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  font-weight: var(--weight-strong);
+}
+
+.profiles__field small {
+  color: var(--p-text-muted-color);
+  font-weight: var(--weight-regular);
+}
+
+:host ::ng-deep .profiles__people {
+  margin: var(--space-3) 0;
+}
+
+@media (min-width: 640px) {
+  .profiles {
+    padding: var(--space-5);
+  }
+}
+
+/* En teléfono cada perfil es una tarjeta etiqueta/valor, sin desplazamiento horizontal. */
+@media (max-width: 639px) {
+  :host ::ng-deep .profiles__table table {
+    min-width: 0 !important;
+  }
+
+  :host ::ng-deep .profiles__table thead {
+    display: none;
+  }
+
+  :host ::ng-deep .profiles__table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--p-content-border-color);
+  }
+
+  :host ::ng-deep .profiles__table tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  :host ::ng-deep .profiles__table tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--p-text-muted-color);
+    font-size: var(--text-label);
+  }
+
+  :host ::ng-deep .profiles__table tbody td.profiles__cell-main,
+  :host ::ng-deep .profiles__table tbody td.profiles__actions {
+    grid-column: 1 / -1;
+  }
+
+  :host ::ng-deep .profiles__table tbody td.profiles__actions {
+    text-align: left;
+  }
+}

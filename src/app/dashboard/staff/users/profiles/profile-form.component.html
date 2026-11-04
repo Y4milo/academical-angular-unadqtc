@@ -1,0 +1,81 @@
+<div class="pform">
+  <header class="pform__header">
+    <h1>{{ code === null ? 'Nuevo perfil' : readOnly() ? 'Perfil' : 'Editar perfil' }}</h1>
+    <p>{{ readOnly() ? 'Solo lectura: los perfiles del sistema y los retirados no se pueden cambiar.' : 'Elige qué permisos da. Una persona puede tener varios perfiles a la vez.' }}</p>
+  </header>
+
+  @if (error()) {
+    <p-message severity="error" styleClass="pform__notice">{{ error() }}</p-message>
+  }
+
+  @if (loading()) {
+    <p-skeleton height="12rem" />
+  } @else if (code === null || profile() !== null) {
+    <section class="pform__card" aria-label="Datos del perfil">
+      <h2>Datos</h2>
+      <div class="pform__grid">
+        <label class="pform__field">
+          <span>Nombre *</span>
+          <input pInputText type="text" [(ngModel)]="name" name="name" [disabled]="readOnly()" maxlength="120" />
+          <small>Lo ve la persona y se envía a Core.</small>
+        </label>
+        <label class="pform__field">
+          <span>Código</span>
+          <input pInputText type="text" [value]="previewCode" disabled aria-label="Código" />
+          <small>Sale del nombre y no cambia después: Core lo guarda.</small>
+        </label>
+        <div class="pform__field">
+          <span>Módulo</span>
+          <p-selectbutton [options]="moduleOptions()" optionLabel="label" optionValue="value" [(ngModel)]="module" name="module" [allowEmpty]="false" [disabled]="readOnly()" ariaLabelledBy="Módulo" />
+          <small>Agrupa el perfil en la lista.</small>
+        </div>
+        <div class="pform__field">
+          <span>Alcance</span>
+          <p-selectbutton [options]="[{ label: 'Todo Academical', value: 'all' }]" optionLabel="label" optionValue="value" [ngModel]="'all'" [allowEmpty]="false" [disabled]="true" ariaLabelledBy="Alcance" />
+          <small>Por ahora todo perfil vale para toda la universidad.</small>
+        </div>
+      </div>
+      <label class="pform__field">
+        <span>Descripción</span>
+        <textarea pTextarea rows="2" [(ngModel)]="description" name="description" [disabled]="readOnly()" maxlength="255"></textarea>
+        <small>Máximo 255 caracteres.</small>
+      </label>
+    </section>
+
+    <section class="pform__card" aria-label="Permisos">
+      <h2>Permisos</h2>
+      <p class="pform__hint">{{ selected().length === 0 ? 'Marca al menos uno.' : selected().length + (selected().length === 1 ? ' seleccionado.' : ' seleccionados.') }}</p>
+      @if (readOnly()) {
+        <p-message severity="info" styleClass="pform__notice">Estos son los permisos que da el perfil.</p-message>
+      }
+      @for (group of groups(); track group.module) {
+        <h3>{{ group.label }}</h3>
+        <div class="pform__perms">
+          @for (item of group.items; track item.code) {
+            <label class="pform__perm" [class.pform__perm--on]="isSelected(item.code)">
+              <p-checkbox [binary]="true" [ngModel]="isSelected(item.code)" (ngModelChange)="toggle(item.code, $event)" [disabled]="readOnly()" [inputId]="'perm-' + item.code" [ariaLabel]="item.label" />
+              <span>{{ item.label }}<small>{{ item.code }}</small></span>
+            </label>
+          }
+        </div>
+      }
+    </section>
+
+    <div class="pform__actions">
+      @if (!readOnly()) {
+        <p-button label="Guardar" icon="pi pi-check" [disabled]="!canSave" [loading]="saving()" (onClick)="save()" />
+        <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+      } @else {
+        <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+      }
+    </div>
+  }
+</div>
+
+<p-dialog [visible]="confirmPeople() !== null" (visibleChange)="$event ? null : confirmPeople.set(null)" [modal]="true" [draggable]="false" [style]="{ width: 'min(28rem, 94vw)' }" appendTo="body" header="Cambiar los permisos">
+  <p>Este perfil lo tienen {{ confirmPeople() === 1 ? '1 persona' : confirmPeople() + ' personas' }}. Al guardar, el cambio de permisos se aplica a todas.</p>
+  <ng-template #footer>
+    <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="confirmPeople.set(null)" />
+    <p-button label="Guardar el cambio" (onClick)="confirmChange()" />
+  </ng-template>
+</p-dialog>

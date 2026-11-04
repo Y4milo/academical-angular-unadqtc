@@ -127,6 +127,23 @@ export const PATHS = {
       link: `degrees-titles/exports`,
     },
   },
+  profiles: {
+    path: `users`,
+    list: {
+      path: `profiles`,
+      link: `users/profiles`,
+    },
+    create: {
+      path: `profiles/new`,
+      link: `users/profiles/new`,
+    },
+    edit: {
+      path: `profiles/:code/edit`,
+    },
+    view: {
+      path: `profiles/:code/view`,
+    },
+  },
   hr: {
     path: `hr`,
     home: {

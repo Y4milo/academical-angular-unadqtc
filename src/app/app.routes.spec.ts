@@ -27,6 +27,8 @@ describe('staff routes', () => {
     {url: '/dbu/cola', allowed: ['dbu_admin', 'dbu', 'admin']},
     {url: '/dbu/config', allowed: ['dbu_admin', 'admin']},
     {url: '/staff/home', allowed: ['professor', 'administrative']},
+    {url: '/users/profiles', allowed: ['admin', 'hr']},
+    {url: '/users/profiles/new', allowed: ['admin', 'hr']},
     {url: '/directivas', allowed: ROLES},
     {url: '/directivas/configuracion', allowed: ['admin']},
   ];

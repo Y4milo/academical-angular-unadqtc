@@ -165,6 +165,30 @@ export const routes: Routes = [
         ],
       },
       {
+        // Perfiles: una sola dirección para el administrador y Recursos humanos; el API decide qué ve y qué puede dar cada uno.
+        path: PATHS.profiles.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin, ROLE.hr], permissions: ['users.manage', 'attendance.manage']},
+        children: [
+          {
+            path: PATHS.profiles.list.path,
+            loadComponent: () => import('./dashboard/staff/users/profiles/profiles.component').then(m => m.ProfilesComponent)
+          },
+          {
+            path: PATHS.profiles.create.path,
+            loadComponent: () => import('./dashboard/staff/users/profiles/profile-form.component').then(m => m.ProfileFormComponent)
+          },
+          {
+            path: PATHS.profiles.edit.path,
+            loadComponent: () => import('./dashboard/staff/users/profiles/profile-form.component').then(m => m.ProfileFormComponent)
+          },
+          {
+            path: PATHS.profiles.view.path,
+            loadComponent: () => import('./dashboard/staff/users/profiles/profile-form.component').then(m => m.ProfileFormComponent)
+          },
+        ]
+      },
+      {
         path: PATHS.hr.path,
         canActivate: [AuthRoleGuard],
         data: {roles: [ROLE.hr, ROLE.admin], permissions: ['attendance.manage']},
