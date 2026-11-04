@@ -1,0 +1,19 @@
+:host { display: block; }
+.core-result { display: flex; align-items: center; justify-content: center; min-height: 100dvh; padding: var(--space-4); }
+.result-card { display: grid; justify-items: center; gap: var(--space-3); width: min(26rem, 100%); padding: var(--space-6, 2rem) var(--space-5, 1.5rem); text-align: center; background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-lg, 14px); box-sizing: border-box; }
+.result-icon { display: inline-flex; align-items: center; justify-content: center; width: 3.25rem; height: 3.25rem; border-radius: var(--radius-md); font-size: 1.5rem; }
+.result-icon[data-tone='warn'] { background: color-mix(in srgb, var(--p-orange-500, #f59e0b) 18%, transparent); color: var(--p-orange-500, #f59e0b); }
+.result-icon[data-tone='danger'] { background: color-mix(in srgb, var(--p-red-500, #ef4444) 18%, transparent); color: var(--p-red-500, #ef4444); }
+.result-icon[data-tone='info'] { background: color-mix(in srgb, var(--p-primary-color) 18%, transparent); color: var(--p-primary-color); }
+h1 { margin: 0; font-size: var(--text-card-title, 1.125rem); font-weight: 600; }
+.result-body { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); line-height: 1.6; }
+.result-account, .result-todo, .result-reference { width: 100%; box-sizing: border-box; text-align: left; border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); padding: var(--space-3); background: var(--p-content-hover-background, transparent); }
+.result-account { display: grid; gap: var(--space-1); }
+.result-account .hint { color: var(--p-text-muted-color); font-size: var(--text-caption); }
+.result-account .muted { color: var(--p-text-muted-color); font-size: var(--text-small); overflow-wrap: anywhere; }
+.result-todo { display: grid; gap: var(--space-1); }
+.result-todo p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); line-height: 1.6; }
+.result-reference { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); border-style: dashed; }
+.mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--text-small); overflow-wrap: anywhere; }
+.result-actions { display: grid; gap: var(--space-2); width: 100%; margin-top: var(--space-1); }
+:host ::ng-deep .result-actions .p-button { width: 100%; justify-content: center; }
