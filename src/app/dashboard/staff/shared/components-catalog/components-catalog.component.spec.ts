@@ -7,7 +7,8 @@ import { providePrimeNG } from 'primeng/config';
 import { InstitutionalPreset } from '../../../../app.config';
 import { DBU_STATUS_VIEW, STATE_SEVERITY, THEME_TOKENS, TYPE_SCALE, WEIGHT_SCALE } from '../../../../shared/ui/ui-tokens';
 import { DATA_GUIDE, FEEDBACK_GUIDE, NAV_GUIDE, OVERLAY_GUIDE } from './catalog-guides';
-import { ACTION_GUIDE, CATALOG_SECTIONS, ComponentsCatalogComponent, FORM_GUIDE } from './components-catalog.component';
+import { SCREEN_RECIPES } from './catalog-recipes';
+import { ACTION_GUIDE, auditRules, CATALOG_SECTIONS, ComponentsCatalogComponent, FORM_GUIDE } from './components-catalog.component';
 
 describe('ComponentsCatalogComponent', () => {
   beforeEach(async () => {
@@ -89,6 +90,29 @@ describe('ComponentsCatalogComponent', () => {
       expect(row.avoid).not.toBe('');
     }
     expect(FORM_GUIDE.map(row => row.component).join(' ')).toContain('p-fileupload');
+  });
+
+  it('has the 12 screen recipes, each with only PrimeNG components, rules and real screens', () => {
+    expect(SCREEN_RECIPES.length).toBe(12);
+    for (const recipe of SCREEN_RECIPES) {
+      expect(recipe.components.length).withContext(recipe.id).toBeGreaterThan(0);
+      expect(recipe.components.every(name => /^p-|^pInputText$|^pTextarea$/.test(name))).withContext(recipe.id).toBeTrue();
+      expect(recipe.rules.length).withContext(recipe.id).toBeGreaterThan(0);
+      expect(recipe.screens).not.toBe('');
+    }
+  });
+
+  it('audits the old front from the verifier baseline and totals match', async () => {
+    const fixture = TestBed.createComponent(ComponentsCatalogComponent);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.auditFiles.length).toBeGreaterThan(0);
+    expect(component.auditTotal).toBe(component.auditFiles.reduce((sum, row) => sum + row.uses, 0));
+    expect(auditRules({ 'a.html': { '<ul> nativo': 2 }, 'b.html': { '<ul> nativo': 1, '<table> nativo': 1 } })).toEqual([
+      { rule: '<ul> nativo', uses: 3, files: 2 },
+      { rule: '<table> nativo', uses: 1, files: 1 },
+    ]);
   });
 
   it('reads every theme token and leaves the theme as it was', () => {
