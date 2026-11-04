@@ -16,6 +16,8 @@ export interface UserCase {
   display_name: string | null;
   account_kind: string;
   role: string | null;
+  /** Los perfiles vigentes (el de su rol y los asignados), con su nombre. */
+  profiles?: string[];
   user_status: string | null;
   last_login_at: string | null;
   code: CaseCode;

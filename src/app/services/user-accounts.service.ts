@@ -15,6 +15,8 @@ export interface AccountRow {
   kind: AccountKind;
   display_name: string | null;
   role: string | null;
+  /** Los perfiles vigentes (el de su rol y los asignados), con su nombre. */
+  profiles?: string[];
   status: string | null;
   created_at: string | null;
   last_login_at: string | null;
@@ -28,6 +30,8 @@ export interface AccountSummary {
   kind: AccountKind;
   display_name: string | null;
   role: string | null;
+  /** Los perfiles vigentes (el de su rol y los asignados), con su nombre. */
+  profiles?: string[];
   status: string | null;
   created_at: string | null;
   last_login_at: string | null;
