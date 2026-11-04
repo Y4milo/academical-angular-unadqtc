@@ -73,10 +73,6 @@
     "<button> nativo": 1,
     "<ul> nativo": 1
   },
-  "dashboard/staff/shared/components-catalog/components-catalog.component.html": {
-    "<table> nativo": 1,
-    "<ul> nativo": 7
-  },
   "dashboard/staff/shared/staff-change-password-dialog/staff-change-password-dialog.component.html": {
     "<button> nativo": 2
   },

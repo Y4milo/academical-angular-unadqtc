@@ -1,15 +1,16 @@
+import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
 import { InstitutionalPreset } from '../../../../app.config';
 import { DBU_STATUS_VIEW, STATE_SEVERITY, THEME_TOKENS, TYPE_SCALE, WEIGHT_SCALE } from '../../../../shared/ui/ui-tokens';
-import { ComponentsCatalogComponent } from './components-catalog.component';
+import { ACTION_GUIDE, CATALOG_SECTIONS, ComponentsCatalogComponent, FORM_GUIDE } from './components-catalog.component';
 
 describe('ComponentsCatalogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ComponentsCatalogComponent],
-      providers: [provideNoopAnimations(), providePrimeNG({ theme: { preset: InstitutionalPreset, options: { darkModeSelector: '.app-dark' } } })],
+      providers: [provideHttpClient(), provideNoopAnimations(), providePrimeNG({ theme: { preset: InstitutionalPreset, options: { darkModeSelector: '.app-dark' } } })],
     }).compileComponents();
   });
 
@@ -21,7 +22,7 @@ describe('ComponentsCatalogComponent', () => {
     await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    for (const section of ['Tema claro y oscuro', 'Escalas', 'Componentes', 'Estados', 'Patrones']) {
+    for (const section of CATALOG_SECTIONS.map(item => item.label)) {
       expect(text).toContain(section);
     }
   });
@@ -52,12 +53,39 @@ describe('ComponentsCatalogComponent', () => {
       await fixture.whenStable();
     };
 
-    await open('Componentes');
+    await open('Formularios');
     expect(root.querySelector('[data-testid="field-pattern"]')?.textContent).toContain('p-datepicker');
     expect(root.querySelector('[data-testid="field-pattern"]')?.textContent).toContain('p-inputnumber');
 
     await open('Patrones');
     expect(root.querySelector('[data-testid="student-menu-pattern"]')?.textContent).toContain('audience="student"');
+  });
+
+  it('has no native list, table, button or bare field of its own in any section', async () => {
+    const fixture = TestBed.createComponent(ComponentsCatalogComponent);
+    fixture.autoDetectChanges(true);
+    await fixture.whenStable();
+
+    const root = fixture.nativeElement as HTMLElement;
+    for (const section of CATALOG_SECTIONS) {
+      Array.from(root.querySelectorAll<HTMLElement>('p-tab')).find(tab => tab.textContent?.includes(section.label))?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const panel = root.querySelector<HTMLElement>(`p-tabpanel[ng-reflect-value="${section.value}"]`) ?? root;
+      expect(panel.querySelectorAll('ul:not([class*="p-"]):not([role])').length).withContext(section.label).toBe(0);
+    }
+    // Lo que PrimeNG renderiza por dentro (tabla, botones) lleva sus clases; lo propio del catálogo no usa etiquetas sueltas.
+    expect(root.querySelectorAll('app-components-catalog > .catalog > :not(header):not(p-tabs)').length).toBe(0);
+  });
+
+  it('lists a PrimeNG component and what not to use for every action and field', () => {
+    for (const row of [...ACTION_GUIDE, ...FORM_GUIDE]) {
+      expect(row.need).not.toBe('');
+      expect(row.component).toMatch(/p-|pInputText|pTextarea|routerLink/);
+      expect(row.avoid).not.toBe('');
+    }
+    expect(FORM_GUIDE.map(row => row.component).join(' ')).toContain('p-fileupload');
   });
 
   it('reads every theme token and leaves the theme as it was', () => {
