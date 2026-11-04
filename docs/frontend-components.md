@@ -4,7 +4,7 @@ Academical uses Angular 19, PrimeNG 19 (Aura theme) and Lucide icons. The rule i
 
 ## The catalog is the source of truth
 
-The page **Catálogo de componentes** (`/admin/components`, `src/app/dashboard/staff/shared/components-catalog`) is the source of truth of the interface, the same idea as Core and Events. Its sections are Fundamentos (theme tokens, scales, states), Acciones and Formularios (a "need → PrimeNG component → what not to use" table plus live examples) and Patrones; Datos, Navegación, Superposiciones, Avisos, screen recipes and an audit tab come in the next changes. The catalog itself uses only PrimeNG (`npm run check:primeng` and its spec enforce it). Rules:
+The page **Catálogo de componentes** (`/admin/components`, `src/app/dashboard/staff/shared/components-catalog`) is the source of truth of the interface, the same idea as Core and Events. Its sections are Fundamentos (theme tokens, scales, states), Acciones, Formularios, Datos, Navegación, Superposiciones and Avisos (each a "need → PrimeNG component → what not to use" table, in `catalog-guides.ts`, plus live examples) and Patrones; screen recipes and an audit tab come in the next change. The catalog itself uses only PrimeNG (`npm run check:primeng` and its spec enforce it). Rules:
 
 1. Before building a screen, check the catalog and reuse its pieces.
 2. Every new or changed reusable pattern (dialogs, tabs, lists, stacked tables, states, status colors) is added to the catalog **in the same change**, with its states: normal, loading, empty, error, light and dark theme, and phone width.

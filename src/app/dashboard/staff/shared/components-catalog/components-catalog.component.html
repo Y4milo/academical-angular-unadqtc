@@ -190,6 +190,134 @@
         </div>
       </p-tabpanel>
 
+      <p-tabpanel value="data">
+        <h3>Qué usar para mostrar datos</h3>
+        <p-table [value]="dataGuide" styleClass="catalog__table" data-testid="data-guide">
+          <ng-template #header><tr><th>Necesidad</th><th>Usa</th><th>No uses</th></tr></ng-template>
+          <ng-template #body let-row><tr><td>{{ row.need }}</td><td><code>{{ row.component }}</code></td><td><code>{{ row.avoid }}</code></td></tr></ng-template>
+        </p-table>
+
+        <h3>Tabla con orden y paginación</h3>
+        <p-table [value]="pagedRows" [paginator]="true" [rows]="5" styleClass="catalog-stack">
+          <ng-template #header><tr><th pSortableColumn="code">Código <p-sortIcon field="code"></p-sortIcon></th><th>Título</th><th>Estado</th></tr></ng-template>
+          <ng-template #body let-row>
+            <tr><td data-label="Código">{{ row.code }}</td><td data-label="Título">{{ row.title }}</td><td data-label="Estado"><p-tag [value]="row.state" [severity]="row.state === 'Firmada' ? severity.ok : severity.pending"></p-tag></td></tr>
+          </ng-template>
+        </p-table>
+
+        <h3>Lista de filas libres e historial</h3>
+        <div class="catalog__states">
+          <p-dataview [value]="sampleRows">
+            <ng-template #list let-rows>
+              @for (row of rows; track row.name) {
+                <div class="catalog__setting"><div><strong>{{ row.name }}</strong><small>{{ row.types }} · {{ row.schedule }}</small></div></div>
+              }
+            </ng-template>
+          </p-dataview>
+          <p-timeline [value]="timelineEvents">
+            <ng-template #content let-event><strong>{{ event.status }}</strong> <small>{{ event.date }}</small></ng-template>
+          </p-timeline>
+        </div>
+
+        <h3>Jerarquía</h3>
+        <p-tree [value]="treeNodes"></p-tree>
+
+        <h3>Etiquetas, contadores, fichas y personas</h3>
+        <div class="catalog__row">
+          <p-tag value="Firmada" [severity]="severity.ok"></p-tag>
+          <p-badge value="3"></p-badge>
+          <p-chip label="Psicología" [removable]="true"></p-chip>
+          <p-avatar label="EV" shape="circle"></p-avatar>
+        </div>
+
+        <h3>Contenedores</h3>
+        <div class="catalog__states">
+          <p-card header="Tarjeta"><span>Agrupa un bloque con título.</span></p-card>
+          <p-card><p-divider></p-divider><span>Separador entre bloques.</span></p-card>
+        </div>
+      </p-tabpanel>
+
+      <p-tabpanel value="navigation">
+        <h3>Qué usar para moverse</h3>
+        <p-table [value]="navGuide" styleClass="catalog__table" data-testid="nav-guide">
+          <ng-template #header><tr><th>Necesidad</th><th>Usa</th><th>No uses</th></tr></ng-template>
+          <ng-template #body let-row><tr><td>{{ row.need }}</td><td><code>{{ row.component }}</code></td><td><code>{{ row.avoid }}</code></td></tr></ng-template>
+        </p-table>
+
+        <h3>Ruta y pasos</h3>
+        <p-breadcrumb [model]="breadcrumbItems" [home]="breadcrumbHome"></p-breadcrumb>
+        <p-steps [model]="stepItems" [activeIndex]="1" [readonly]="true"></p-steps>
+
+        <h3>Menús</h3>
+        <div class="catalog__states">
+          <p-panelmenu [model]="panelItems" [multiple]="false"></p-panelmenu>
+          <div class="catalog__card">
+            <strong>Acciones de una fila</strong>
+            <p-menu #rowMenuRef [model]="rowMenu" [popup]="true" appendTo="body"></p-menu>
+            <p-button label="Acciones" icon="pi pi-ellipsis-v" severity="secondary" [outlined]="true" size="small" (onClick)="rowMenuRef.toggle($event)"></p-button>
+          </div>
+        </div>
+
+        <h3>Secciones plegables</h3>
+        <p-accordion value="0">
+          <p-accordion-panel value="0"><p-accordion-header>Ventana de registro</p-accordion-header><p-accordion-content>Fechas y horas en que el estudiante puede registrarse.</p-accordion-content></p-accordion-panel>
+          <p-accordion-panel value="1"><p-accordion-header>Archivos</p-accordion-header><p-accordion-content>Tamaño y formatos permitidos.</p-accordion-content></p-accordion-panel>
+        </p-accordion>
+
+        <h3>Paginador</h3>
+        <p-paginator [rows]="10" [totalRecords]="48"></p-paginator>
+      </p-tabpanel>
+
+      <p-tabpanel value="overlays">
+        <h3>Qué usar para superponer</h3>
+        <p-table [value]="overlayGuide" styleClass="catalog__table" data-testid="overlay-guide">
+          <ng-template #header><tr><th>Necesidad</th><th>Usa</th><th>No uses</th></tr></ng-template>
+          <ng-template #body let-row><tr><td>{{ row.need }}</td><td><code>{{ row.component }}</code></td><td><code>{{ row.avoid }}</code></td></tr></ng-template>
+        </p-table>
+
+        <h3>Ejemplos</h3>
+        <div class="catalog__row">
+          <p-button label="Abrir diálogo" severity="secondary" [outlined]="true" (onClick)="dialogOpen = true"></p-button>
+          <p-button label="Abrir panel lateral" severity="secondary" [outlined]="true" (onClick)="drawerOpen = true"></p-button>
+          <p-button label="Confirmar en diálogo" severity="danger" [outlined]="true" (onClick)="confirmDialog()"></p-button>
+          <p-button label="Confirmar aquí" severity="danger" [outlined]="true" (onClick)="confirmPopup($event)"></p-button>
+          <p-button label="Ayuda" severity="secondary" [text]="true" (onClick)="helpRef.toggle($event)"></p-button>
+          <p-button icon="pi pi-download" [rounded]="true" [text]="true" aria-label="Descargar" pTooltip="Descargar el PDF firmado"></p-button>
+        </div>
+        <p-popover #helpRef><span>Ayuda breve junto al botón que la abre.</span></p-popover>
+        <p-dialog header="Nueva directiva" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: 'min(30rem, 92vw)' }" appendTo="body">
+          <span>El diálogo bloquea la pantalla; su botón principal va a la derecha del pie.</span>
+          <ng-template #footer><p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="dialogOpen = false"></p-button><p-button label="Guardar" (onClick)="dialogOpen = false"></p-button></ng-template>
+        </p-dialog>
+        <p-drawer header="Detalle" [(visible)]="drawerOpen" position="right" appendTo="body"><span>Detalle largo junto a la lista.</span></p-drawer>
+        <p-confirmdialog key="dialog"></p-confirmdialog>
+        <p-confirmpopup key="popup"></p-confirmpopup>
+      </p-tabpanel>
+
+      <p-tabpanel value="feedback">
+        <h3>Qué usar para avisar</h3>
+        <p-table [value]="feedbackGuide" styleClass="catalog__table" data-testid="feedback-guide">
+          <ng-template #header><tr><th>Necesidad</th><th>Usa</th><th>No uses</th></tr></ng-template>
+          <ng-template #body let-row><tr><td>{{ row.need }}</td><td><code>{{ row.component }}</code></td><td><code>{{ row.avoid }}</code></td></tr></ng-template>
+        </p-table>
+
+        <h3>Mensajes en pantalla</h3>
+        <div class="catalog__stack">
+          <p-message severity="success" text="La directiva quedó firmada."></p-message>
+          <p-message severity="info" text="Los cambios aplican hacia adelante."></p-message>
+          <p-message severity="warn" text="2027 no tiene fechas cargadas."></p-message>
+          <p-message severity="error" text="No se pudo cargar la configuración."></p-message>
+        </div>
+
+        <h3>Resultado, avance y espera</h3>
+        <div class="catalog__row">
+          <p-button label="Mostrar aviso" (onClick)="showToast()"></p-button>
+          <p-progressspinner styleClass="catalog__spinner" strokeWidth="6" ariaLabel="Cargando"></p-progressspinner>
+        </div>
+        <p-progressbar [value]="progress"></p-progressbar>
+        <p-toast key="catalog" position="top-right"></p-toast>
+      </p-tabpanel>
+
       <p-tabpanel value="patterns">
         <h3>Tabla que se vuelve tarjeta en teléfono</h3>
         <p class="catalog__lead">Encargados, tipos de atención e historial: cada <code>td</code> lleva <code>data-label</code> y la tabla <code>styleClass="dbu-stack"</code>.</p>

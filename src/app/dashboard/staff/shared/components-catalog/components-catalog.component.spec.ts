@@ -1,16 +1,19 @@
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { InstitutionalPreset } from '../../../../app.config';
 import { DBU_STATUS_VIEW, STATE_SEVERITY, THEME_TOKENS, TYPE_SCALE, WEIGHT_SCALE } from '../../../../shared/ui/ui-tokens';
+import { DATA_GUIDE, FEEDBACK_GUIDE, NAV_GUIDE, OVERLAY_GUIDE } from './catalog-guides';
 import { ACTION_GUIDE, CATALOG_SECTIONS, ComponentsCatalogComponent, FORM_GUIDE } from './components-catalog.component';
 
 describe('ComponentsCatalogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ComponentsCatalogComponent],
-      providers: [provideHttpClient(), provideNoopAnimations(), providePrimeNG({ theme: { preset: InstitutionalPreset, options: { darkModeSelector: '.app-dark' } } })],
+      providers: [provideHttpClient(), provideRouter([]), MessageService, provideNoopAnimations(), providePrimeNG({ theme: { preset: InstitutionalPreset, options: { darkModeSelector: '.app-dark' } } })],
     }).compileComponents();
   });
 
@@ -80,9 +83,9 @@ describe('ComponentsCatalogComponent', () => {
   });
 
   it('lists a PrimeNG component and what not to use for every action and field', () => {
-    for (const row of [...ACTION_GUIDE, ...FORM_GUIDE]) {
+    for (const row of [...ACTION_GUIDE, ...FORM_GUIDE, ...DATA_GUIDE, ...NAV_GUIDE, ...OVERLAY_GUIDE, ...FEEDBACK_GUIDE]) {
       expect(row.need).not.toBe('');
-      expect(row.component).toMatch(/p-|pInputText|pTextarea|routerLink/);
+      expect(row.component).toMatch(/p-|pInputText|pTextarea|pTooltip|routerLink|Texto/);
       expect(row.avoid).not.toBe('');
     }
     expect(FORM_GUIDE.map(row => row.component).join(' ')).toContain('p-fileupload');

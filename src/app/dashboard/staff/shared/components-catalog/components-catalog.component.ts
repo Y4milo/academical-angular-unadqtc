@@ -1,31 +1,55 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ConfirmationService, MenuItem, MessageService, TreeNode } from 'primeng/api';
+import { AccordionModule } from 'primeng/accordion';
+import { AvatarModule } from 'primeng/avatar';
+import { BadgeModule } from 'primeng/badge';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
+import { ChipModule } from 'primeng/chip';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { DataViewModule } from 'primeng/dataview';
 import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { DividerModule } from 'primeng/divider';
+import { DrawerModule } from 'primeng/drawer';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputMaskModule } from 'primeng/inputmask';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { PaginatorModule } from 'primeng/paginator';
+import { PanelMenuModule } from 'primeng/panelmenu';
 import { PasswordModule } from 'primeng/password';
+import { PopoverModule } from 'primeng/popover';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
+import { StepsModule } from 'primeng/steps';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
+import { TimelineModule } from 'primeng/timeline';
+import { ToastModule } from 'primeng/toast';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { TooltipModule } from 'primeng/tooltip';
+import { TreeModule } from 'primeng/tree';
 import {
   BREAKPOINTS, DBU_STATUS_VIEW, FORBIDDEN_TOKENS, SPACE_SCALE, STATE_SEVERITY, THEME_TOKENS, ThemeToken, TYPE_SCALE, TypographyToken, WEIGHT_SCALE,
 } from '../../../../shared/ui/ui-tokens';
+import { DATA_GUIDE, FEEDBACK_GUIDE, NAV_GUIDE, OVERLAY_GUIDE } from './catalog-guides';
 import { CatalogNotesComponent } from './catalog-notes.component';
 
 export interface TypographyRow {
@@ -49,11 +73,15 @@ export interface ComponentGuide {
   avoid: string;
 }
 
-/** Secciones del catálogo, en el orden en que se muestran. Las que faltan (Datos, Navegación, Superposiciones, Avisos, Recetas, Auditoría) llegan en los siguientes cambios. */
+/** Secciones del catálogo, en el orden en que se muestran. Las recetas por pantalla y la auditoría llegan en el siguiente cambio. */
 export const CATALOG_SECTIONS = [
   { value: 'foundations', label: 'Fundamentos' },
   { value: 'actions', label: 'Acciones' },
   { value: 'forms', label: 'Formularios' },
+  { value: 'data', label: 'Datos' },
+  { value: 'navigation', label: 'Navegación' },
+  { value: 'overlays', label: 'Superposiciones' },
+  { value: 'feedback', label: 'Avisos' },
   { value: 'patterns', label: 'Patrones' },
 ] as const;
 
@@ -92,17 +120,24 @@ export const FORM_GUIDE: ComponentGuide[] = [
 @Component({
   selector: 'app-components-catalog',
   imports: [
-    FormsModule, AutoCompleteModule, ButtonModule, CardModule, CheckboxModule, DatePickerModule, FileUploadModule, InputMaskModule, InputNumberModule, InputTextModule,
+    FormsModule, AccordionModule, AvatarModule, BadgeModule, BreadcrumbModule, ChipModule, ConfirmDialogModule, ConfirmPopupModule, DataViewModule, DialogModule, DividerModule,
+    DrawerModule, MenuModule, PaginatorModule, PanelMenuModule, PopoverModule, ProgressBarModule, ProgressSpinnerModule, StepsModule, TimelineModule, ToastModule, TooltipModule,
+    TreeModule, AutoCompleteModule, ButtonModule, CardModule, CheckboxModule, DatePickerModule, FileUploadModule, InputMaskModule, InputNumberModule, InputTextModule,
     MessageModule, MultiSelectModule, PasswordModule, RadioButtonModule, SelectModule, SelectButtonModule, SkeletonModule, SplitButtonModule, TableModule, TabsModule,
     TagModule, TextareaModule, ToggleButtonModule, ToggleSwitchModule, CatalogNotesComponent,
   ],
   templateUrl: './components-catalog.component.html',
   styleUrl: './components-catalog.component.css',
+  providers: [ConfirmationService],
 })
 export class ComponentsCatalogComponent implements OnInit {
   readonly sections = CATALOG_SECTIONS;
   readonly actionGuide = ACTION_GUIDE;
   readonly formGuide = FORM_GUIDE;
+  readonly dataGuide = DATA_GUIDE;
+  readonly navGuide = NAV_GUIDE;
+  readonly overlayGuide = OVERLAY_GUIDE;
+  readonly feedbackGuide = FEEDBACK_GUIDE;
   readonly tokenRows = signal<TokenRow[]>([]);
   readonly forbidden = FORBIDDEN_TOKENS.map(name => `<code>${name}</code>`);
   readonly space = SPACE_SCALE;
@@ -156,6 +191,27 @@ export class ComponentsCatalogComponent implements OnInit {
   secret = '';
   pinned = false;
 
+  readonly timelineEvents = [
+    { status: 'Directiva creada', date: '02/11/2026 09:10', severity: 'info' },
+    { status: 'Enviada a firma', date: '02/11/2026 09:40', severity: 'warn' },
+    { status: 'Firmada', date: '03/11/2026 11:05', severity: 'success' },
+  ];
+  readonly treeNodes: TreeNode[] = [
+    { label: 'Rectorado', expanded: true, children: [{ label: 'Secretaría general' }, { label: 'Bienestar universitario', children: [{ label: 'Psicología' }, { label: 'Servicio social' }] }] },
+  ];
+  readonly breadcrumbItems: MenuItem[] = [{ label: 'Bienestar' }, { label: 'Citas' }, { label: 'Configuración' }];
+  readonly breadcrumbHome: MenuItem = { icon: 'pi pi-home' };
+  readonly stepItems: MenuItem[] = [{ label: 'Datos' }, { label: 'Documento' }, { label: 'Foto' }];
+  readonly rowMenu: MenuItem[] = [{ label: 'Ver detalle', icon: 'pi pi-eye' }, { label: 'Descargar', icon: 'pi pi-download' }];
+  readonly panelItems: MenuItem[] = [
+    { label: 'Bienestar', items: [{ label: 'Cola de citas' }, { label: 'Configuración de citas' }] },
+    { label: 'Directivas', items: [{ label: 'Directivas' }] },
+  ];
+  readonly pagedRows = Array.from({ length: 12 }, (_, index) => ({ code: `D-${100 + index}`, title: `Directiva de ejemplo ${index + 1}`, state: index % 3 === 0 ? 'Firmada' : 'En firma' }));
+  progress = 65;
+  dialogOpen = false;
+  drawerOpen = false;
+
   readonly splitItems = [{ label: 'Descargar en Word' }, { label: 'Descargar en PDF' }];
 
   readonly sampleRows = [
@@ -167,6 +223,20 @@ export class ComponentsCatalogComponent implements OnInit {
     this.tokenRows.set(this.measure());
     this.typeRows.set(this.measureTypography(TYPE_SCALE));
     this.weightRows.set(this.measureTypography(WEIGHT_SCALE));
+  }
+
+  constructor(private readonly confirmation: ConfirmationService, private readonly messages: MessageService) {}
+
+  confirmPopup(event: Event): void {
+    this.confirmation.confirm({ target: event.target as EventTarget, message: '¿Anular esta directiva?', acceptLabel: 'Anular', rejectLabel: 'Volver', key: 'popup' });
+  }
+
+  confirmDialog(): void {
+    this.confirmation.confirm({ header: 'Anular directiva', message: 'La directiva dejará de circular y no se podrá reactivar.', acceptLabel: 'Anular', rejectLabel: 'Volver', key: 'dialog' });
+  }
+
+  showToast(): void {
+    this.messages.add({ key: 'catalog', severity: 'success', summary: 'Guardado', detail: 'Los cambios quedaron registrados.' });
   }
 
   searchOffices(event: { query: string }): void {
