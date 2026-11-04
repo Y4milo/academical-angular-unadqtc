@@ -18,8 +18,8 @@ describe('staff routes', () => {
     {url: '/admin/home', allowed: ['admin']},
     {url: '/admin/accounting/bank/incidents', allowed: ['admin']},
     {url: '/admin/users/accounts', allowed: ['admin']},
-    {url: '/hr/home', allowed: ['hr']},
-    {url: '/hr/staff/attendance', allowed: ['hr']},
+    {url: '/hr/home', allowed: ['hr', 'admin']},
+    {url: '/hr/staff/attendance', allowed: ['hr', 'admin']},
     {url: '/academic/home', allowed: ['academic', 'admin']},
     {url: '/academic/semesters', allowed: ['academic', 'admin']},
     {url: '/accounting/bank/incidents', allowed: ['accounting', 'admin']},
@@ -94,6 +94,26 @@ describe('staff routes', () => {
 
       expect(await visit(newUrl)).toBe('/login-admin');
     });
+  }
+
+  /** Asistencia de RR. HH.: una dirección por pantalla; la de /admin lleva a la del módulo. */
+  const HR_ONE_URL: [string, string][] = [
+    ['/admin/staff/attendance', '/hr/staff/attendance'],
+    ['/admin/staff/attendance/register', '/hr/staff/attendance/register'],
+    ['/admin/staff/attendance/manual', '/hr/staff/attendance/manual'],
+    ['/admin/staff/reports', '/hr/staff/reports'],
+  ];
+
+  for (const [oldUrl, newUrl] of HR_ONE_URL) {
+    for (const role of ROLES) {
+      const enters = ['admin', 'hr'].includes(role);
+
+      it(`${role} ${enters ? 'lands on' : 'is sent to the login from'} ${newUrl} through ${oldUrl}`, async () => {
+        user = {id: '1', role: {value: role}};
+
+        expect(await visit(oldUrl)).toBe(enters ? newUrl : '/login-admin');
+      });
+    }
   }
 
   /** Grados y títulos: una dirección por pantalla; la de /admin lleva a la del módulo. */
