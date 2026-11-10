@@ -63,9 +63,9 @@
             <span class="label" id="directive-file-label">Directiva (PDF){{ editing() ? '' : ' *' }}</span>
             <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             @if (directiveFile(); as file) {
-              <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>
+              <span class="file-line"><small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>@if (pagesTag(directivePages()); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="directive-pages"></p-tag> }</span>
             } @else if (existing()) {
-              <small class="file-name">{{ existing()?.files?.directive?.name }} · se mantiene si no eliges otro</small>
+              <span class="file-line"><small class="file-name">{{ existing()?.files?.directive?.name }} · se mantiene si no eliges otro</small>@if (existing()?.files?.directive?.pages; as saved) { <p-tag [value]="pagesLabel(saved)" severity="secondary"></p-tag> }</span>
             }
             <small class="field-hint">Sin firmar: la firman las oficinas desde Academical.</small>
             @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
@@ -75,14 +75,18 @@
             <span class="label" id="resolution-file-label">Resolución que la aprueba (PDF){{ editing() ? '' : ' *' }}</span>
             <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             @if (resolutionFile(); as file) {
-              <small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>
+              <span class="file-line"><small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>@if (pagesTag(resolutionPages()); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="resolution-pages"></p-tag> }</span>
             } @else if (existing()) {
-              <small class="file-name">{{ existing()?.files?.resolution?.name }} · se mantiene si no eliges otro</small>
+              <span class="file-line"><small class="file-name">{{ existing()?.files?.resolution?.name }} · se mantiene si no eliges otro</small>@if (existing()?.files?.resolution?.pages; as saved) { <p-tag [value]="pagesLabel(saved)" severity="secondary"></p-tag> }</span>
             }
             <small class="field-hint">Solo se adjunta, no se firma. Puede venir ya firmada.</small>
             @if ((submitted() || fileError().resolution) && errors()['resolution']; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
           </div>
         </div>
+
+        @if (totalPages(); as total) {
+          <p class="pages-total" data-testid="pages-total">Total del expediente: <strong>{{ pagesLabel(total.total) }}</strong> <span class="muted-note">({{ total.directive }} de la directiva + {{ total.resolution }} de la resolución)</span></p>
+        }
 
         @if (serverError()) {
           <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>

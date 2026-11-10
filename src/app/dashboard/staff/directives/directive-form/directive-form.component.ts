@@ -17,6 +17,7 @@ import { DirectiveAccess, DirectiveDetail, DirectiveRoute, DirectivesService } f
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
 import { formatBytes } from '../directive-status';
+import { PageCount, countPdfPages, pagesLabel, pagesTag } from '../pdf-pages';
 
 /** Hasta cuántas oficinas se muestran como tarjetas de elección; con más vuelve el desplegable con buscador. */
 export const MAX_ORIGIN_CARDS = 4;
@@ -50,6 +51,9 @@ export class DirectiveFormComponent implements OnInit {
   readonly quality = signal(false);
   readonly directiveFile = signal<File | null>(null);
   readonly resolutionFile = signal<File | null>(null);
+  /** Las páginas de cada PDF elegido, contadas en el navegador. */
+  readonly directivePages = signal<PageCount>(undefined);
+  readonly resolutionPages = signal<PageCount>(undefined);
   readonly submitted = signal(false);
   readonly saving = signal(false);
   readonly serverError = signal('');
@@ -90,6 +94,16 @@ export class DirectiveFormComponent implements OnInit {
     return errors;
   });
   readonly formatBytes = formatBytes;
+  readonly pagesTag = pagesTag;
+  readonly pagesLabel = pagesLabel;
+  /** El total del expediente cuando se conocen las páginas de los dos PDF (el elegido o, al corregir, el que ya estaba). */
+  readonly totalPages = computed<{ directive: number; resolution: number; total: number } | null>(() => {
+    const known = (file: File | null, pages: PageCount, saved?: number | null): number | null => (file ? (typeof pages === 'number' ? pages : null) : (saved ?? null));
+    const directive = known(this.directiveFile(), this.directivePages(), this.existing()?.files?.directive?.pages);
+    const resolution = known(this.resolutionFile(), this.resolutionPages(), this.existing()?.files?.resolution?.pages);
+
+    return directive === null || resolution === null ? null : { directive, resolution, total: directive + resolution };
+  });
 
   constructor(
     private service: DirectivesService,
@@ -216,7 +230,16 @@ export class DirectiveFormComponent implements OnInit {
     }
 
     this.fileError.update(current => ({ ...current, [kind]: problem }));
-    (kind === 'directive' ? this.directiveFile : this.resolutionFile).set(problem ? null : file);
+    const chosen = kind === 'directive' ? this.directiveFile : this.resolutionFile;
+    const pages = kind === 'directive' ? this.directivePages : this.resolutionPages;
+    chosen.set(problem ? null : file);
+    pages.set(undefined);
+
+    if (!problem && file) {
+      pages.set('reading');
+      // Si mientras se contaba se eligió otro archivo, ese resultado ya no vale.
+      void countPdfPages(file).then(count => { if (chosen() === file) pages.set(count); });
+    }
   }
 
   /** El PDF elegido con `p-fileupload`; se vacía el componente para poder elegir el mismo archivo otra vez. */

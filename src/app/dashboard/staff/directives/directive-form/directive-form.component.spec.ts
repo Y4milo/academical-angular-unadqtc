@@ -18,6 +18,20 @@ describe('DirectiveFormComponent', () => {
   const text = (testId: string) => html().querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
   const pdf = (name = 'directiva.pdf', size = 1000) => new File([new Uint8Array(size)], name, { type: 'application/pdf' });
 
+  /** Un PDF de verdad con las páginas que se indiquen: el contador del navegador lo lee con la misma librería. */
+  const realPdf = async (name: string, pages: number) => {
+    const { PDFDocument } = await import('pdf-lib');
+    const document = await PDFDocument.create();
+    for (let index = 0; index < pages; index++) document.addPage();
+
+    return new File([(await document.save()) as BlobPart], name, { type: 'application/pdf' });
+  };
+  const until = async (condition: () => boolean) => {
+    for (let attempt = 0; attempt < 150 && !condition(); attempt++) await new Promise(resolve => setTimeout(resolve, 20));
+    fixture.detectChanges();
+    await fixture.whenStable();
+  };
+
   async function create(id: string | null = null) {
     await TestBed.configureTestingModule({
       imports: [DirectiveFormComponent],
@@ -256,5 +270,61 @@ describe('DirectiveFormComponent', () => {
 
     expect(text('route-error')).toContain('No se pudo consultar a Core');
     expect(html().querySelector('#directive-title')).not.toBeNull();
+  });
+
+  it('counts the pages of each chosen PDF in the browser and adds up the file', async () => {
+    await create();
+    const form = fixture.componentInstance;
+
+    form.pick('directive', { files: [await realPdf('directiva.pdf', 3)] });
+    form.pick('resolution', { files: [await realPdf('resolucion.pdf', 1)] });
+    fixture.detectChanges();
+    expect(text('directive-pages')).toContain('Contando páginas');
+    await until(() => form.directivePages() === 3 && form.resolutionPages() === 1);
+
+    expect(text('directive-pages')).toBe('3 páginas');
+    expect(text('resolution-pages')).toBe('1 página');
+    expect(text('pages-total')).toContain('4 páginas');
+    expect(text('pages-total')).toContain('3 de la directiva + 1 de la resolución');
+  });
+
+  it('says the pages are counted at save when the PDF cannot be read, and shows no total', async () => {
+    await create();
+    const form = fixture.componentInstance;
+
+    form.pick('directive', { files: [pdf()] });
+    form.pick('resolution', { files: [await realPdf('resolucion.pdf', 2)] });
+    await until(() => form.directivePages() === null && form.resolutionPages() === 2);
+
+    expect(text('directive-pages')).toContain('se cuenta al guardar');
+    expect(html().querySelector('[data-testid="pages-total"]')).toBeNull();
+    expect(form.directiveFile()).not.toBeNull();
+  });
+
+  it('ignores the count of a file that was replaced while it was being read', async () => {
+    await create();
+    const form = fixture.componentInstance;
+    const first = await realPdf('primero.pdf', 5);
+    const second = await realPdf('segundo.pdf', 2);
+
+    form.pick('directive', { files: [first] });
+    form.pick('directive', { files: [second] });
+    await until(() => form.directivePages() === 2);
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(form.directivePages()).toBe(2);
+  });
+
+  it('while correcting a draft, the total uses the saved pages of the file that is kept', async () => {
+    service.detail.and.returnValue(of(ok(detail())));
+    await create('7');
+    const form = fixture.componentInstance;
+
+    expect(text('pages-total')).toContain('17 páginas');
+    form.pick('directive', { files: [await realPdf('nueva.pdf', 2)] });
+    await until(() => form.directivePages() === 2);
+
+    expect(text('pages-total')).toContain('5 páginas');
+    expect(text('pages-total')).toContain('2 de la directiva + 3 de la resolución');
   });
 });

@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
+import { FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageModule } from 'primeng/message';
 import { PanelModule } from 'primeng/panel';
@@ -19,7 +20,15 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveEvent, DirectiveFileKind, DirectiveProgressStep, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
+import { MAX_PDF_BYTES } from '../directive-form/directive-form.component';
+import { PageCount, countPdfPages, pagesLabel, pagesTag } from '../pdf-pages';
 import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_SIGNED_FAILURES, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
+
+/** Un PDF elegido para reemplazar a otro del borrador, con sus páginas contadas en el navegador. */
+interface StagedPdf {
+  file: File;
+  pages: PageCount;
+}
 
 /**
  * Una directiva: su estado, los dos PDF, la ruta de firmas con la persona designada en cada oficina y su línea de tiempo. El borrador se corrige
@@ -27,7 +36,7 @@ import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LAB
  */
 @Component({
   selector: 'app-directive-detail',
-  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, ConfirmDialogModule, DialogModule, MessageModule, PanelModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent],
+  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, ConfirmDialogModule, DialogModule, FileUploadModule, MessageModule, PanelModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent],
   providers: [ConfirmationService],
   templateUrl: './directive-detail.component.html',
   styleUrl: './directive-detail.component.css',
@@ -49,6 +58,12 @@ export class DirectiveDetailComponent implements OnInit {
   readonly sending = signal(false);
   readonly sendError = signal('');
 
+  /** El PDF nuevo elegido para reemplazar a uno del borrador; no se guarda hasta pulsar «Guardar cambio». */
+  readonly staged = signal<{ directive: StagedPdf | null; resolution: StagedPdf | null }>({ directive: null, resolution: null });
+  readonly replacing = signal<DirectiveFileKind | null>(null);
+  readonly replaceError = signal('');
+  readonly hasStaged = computed(() => this.staged().directive !== null || this.staged().resolution !== null);
+
   readonly signedLoading = signal(false);
   readonly signedError = signal('');
   readonly codeCopied = signal(false);
@@ -64,6 +79,8 @@ export class DirectiveDetailComponent implements OnInit {
 
   readonly statuses = DIRECTIVE_STATUS;
   readonly formatBytes = formatBytes;
+  readonly pagesTag = pagesTag;
+  readonly pagesLabel = pagesLabel;
   readonly isDraft = computed(() => this.directive()?.status === 'draft');
   readonly canSend = computed(() => this.isDraft() && this.route()?.can_send === true);
   readonly sendBlockedReason = computed(() => {
@@ -158,7 +175,10 @@ export class DirectiveDetailComponent implements OnInit {
   });
 
   eventLabel(event: DirectiveEvent): string {
-    const data = event.data as { notice?: string; reason?: string };
+    const data = event.data as { notice?: string; reason?: string; directive_replaced?: boolean; resolution_replaced?: boolean };
+    if (event.type === 'edited' && (data.directive_replaced || data.resolution_replaced)) {
+      return data.directive_replaced && data.resolution_replaced ? 'Reemplazó la directiva y la resolución' : `Reemplazó ${data.directive_replaced ? 'la directiva' : 'la resolución'}`;
+    }
     if (event.type === 'notice_sent') return `Aviso enviado: ${DIRECTIVE_NOTICE_LABELS[data.notice ?? ''] ?? 'aviso'}`;
     if (event.type === 'signed_copy_failed') return `No se pudo traer el documento firmado: ${DIRECTIVE_SIGNED_FAILURES[data.reason ?? ''] ?? 'error desconocido'}`;
     if (event.type === 'notice_failed') return `No se pudo avisar: ${DIRECTIVE_NOTICE_FAILURES[data.reason ?? ''] ?? 'no salió el correo'}`;
@@ -175,7 +195,12 @@ export class DirectiveDetailComponent implements OnInit {
 
   /** Lo que el hecho cuenta además: la oficina, la persona y, si la devolvió, su motivo. */
   eventDetail(event: DirectiveEvent): string {
-    const data = event.data as { office?: string; person?: string; reason?: string; notice?: string; signatures?: number };
+    const data = event.data as { office?: string; person?: string; reason?: string; notice?: string; signatures?: number; directive_before?: string | null; directive_after?: string | null; resolution_before?: string | null; resolution_after?: string | null };
+    if (event.type === 'edited') {
+      const change = (before?: string | null, after?: string | null) => (before && after ? `${before} → ${after}` : '');
+
+      return [change(data.directive_before, data.directive_after), change(data.resolution_before, data.resolution_after)].filter(Boolean).join(' · ');
+    }
     if (event.type === 'signed_copy_saved') return data.signatures ? `${data.signatures} firmas` : '';
     if (event.type === 'signed_copy_failed') return 'se vuelve a intentar al pulsar «Descargar firmada»';
     if (event.type.startsWith('notice_')) {
@@ -325,10 +350,73 @@ export class DirectiveDetailComponent implements OnInit {
     this.router.navigateByUrl(PATHS.directives.link);
   }
 
+  /** Elige el PDF nuevo para reemplazar a uno del borrador: se revisa el tipo y el peso y se cuentan sus páginas, pero no se sube hasta guardar. */
+  pickReplacement(kind: 'directive' | 'resolution', event: FileSelectEvent, upload: FileUpload): void {
+    const file = (event.currentFiles ?? event.files)?.[0] ?? null;
+    upload.clear();
+    if (!file) return;
+
+    const label = kind === 'directive' ? 'La directiva' : 'La resolución';
+    this.replaceError.set('');
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      this.replaceError.set(`${label} debe ser un PDF.`);
+
+      return;
+    }
+    if (file.size > MAX_PDF_BYTES) {
+      this.replaceError.set(`${label} pesa ${formatBytes(file.size)}; el máximo es ${formatBytes(MAX_PDF_BYTES)}.`);
+
+      return;
+    }
+
+    this.setStaged(kind, { file, pages: 'reading' });
+    // Si mientras se contaba se eligió otro archivo, ese resultado ya no vale.
+    void countPdfPages(file).then(pages => { if (this.staged()[kind]?.file === file) this.setStaged(kind, { file, pages }); });
+  }
+
+  discardReplacement(kind: 'directive' | 'resolution'): void {
+    this.replaceError.set('');
+    this.setStaged(kind, null);
+  }
+
+  /** Sube solo el PDF elegido: el título, la opción de calidad y el otro PDF no cambian, y la versión sigue siendo la misma mientras sea borrador. */
+  saveReplacement(kind: 'directive' | 'resolution'): void {
+    const staged = this.staged()[kind];
+    const directive = this.directive();
+    if (!staged || !directive || this.replacing()) return;
+
+    const body = new FormData();
+    body.append(kind, staged.file);
+    this.replacing.set(kind);
+    this.replaceError.set('');
+
+    this.service.update(directive.id, body).subscribe({
+      next: response => {
+        this.replacing.set(null);
+        if (response.status === STATUS.success) {
+          this.notificationService.notifyApiData(response);
+          this.directive.set(response.payload.data);
+          this.setStaged(kind, null);
+        } else {
+          this.replaceError.set(response.payload?.message || 'No se pudo reemplazar el PDF.');
+        }
+      },
+      error: error => {
+        this.replacing.set(null);
+        const firstValidation = error?.error?.errors ? (Object.values(error.error.errors) as string[][])[0]?.[0] : null;
+        this.replaceError.set(error?.error?.payload?.message || firstValidation || 'No se pudo reemplazar el PDF. Inténtalo nuevamente.');
+      },
+    });
+  }
+
+  private setStaged(kind: 'directive' | 'resolution', value: StagedPdf | null): void {
+    this.staged.update(current => ({ ...current, [kind]: value }));
+  }
+
   askSend(): void {
     this.confirmation.confirm({
       header: 'Enviar a firma',
-      message: `Se enviará la directiva con su resolución a ${this.route()?.steps.filter(step => !step.skipped).length ?? 0} oficinas, en orden. Después de enviarla ya no se puede corregir.`,
+      message: `${this.hasStaged() ? 'Elegiste un PDF nuevo que no guardaste: NO se enviará. ' : ''}Se enviará la directiva con su resolución a ${this.route()?.steps.filter(step => !step.skipped).length ?? 0} oficinas, en orden. Después de enviarla ya no se puede corregir.`,
       acceptLabel: 'Enviar a firma',
       rejectLabel: 'Cancelar',
       rejectButtonProps: { severity: 'secondary', outlined: true },

@@ -12,6 +12,8 @@
 .panel h3 { margin: 0; font-size: var(--text-card-title); }
 .file-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
 .file-info { display: grid; gap: var(--space-1); min-width: 0; }
+.file-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.staged { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .muted { color: var(--p-text-muted-color); font-size: var(--text-small); word-break: break-word; }
 .hash { font-family: var(--font-mono, monospace); }
 .progress-step { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); padding-bottom: var(--space-3); }

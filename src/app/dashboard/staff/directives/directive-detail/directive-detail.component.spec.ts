@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -17,11 +19,25 @@ describe('DirectiveDetailComponent', () => {
   const html = () => fixture.nativeElement as HTMLElement;
   const text = (testId: string) => html().querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
 
+  /** Un PDF de verdad con las páginas que se indiquen: el contador del navegador lo lee con la misma librería. */
+  const realPdf = async (name: string, pages: number) => {
+    const { PDFDocument } = await import('pdf-lib');
+    const document = await PDFDocument.create();
+    for (let index = 0; index < pages; index++) document.addPage();
+
+    return new File([(await document.save()) as BlobPart], name, { type: 'application/pdf' });
+  };
+  const until = async (condition: () => boolean) => {
+    for (let attempt = 0; attempt < 150 && !condition(); attempt++) await new Promise(resolve => setTimeout(resolve, 20));
+    fixture.detectChanges();
+    await fixture.whenStable();
+  };
+
   async function create() {
     await TestBed.configureTestingModule({
       imports: [DirectiveDetailComponent],
       providers: [
-        provideRouter([]), provideNoopAnimations(),
+        provideRouter([]), provideNoopAnimations(), provideHttpClient(), provideHttpClientTesting(),
         { provide: DirectivesService, useValue: service },
         { provide: NotificationService, useValue: notifications },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },
@@ -34,7 +50,7 @@ describe('DirectiveDetailComponent', () => {
   }
 
   beforeEach(() => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'route', 'file', 'remove', 'send', 'cancel']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'route', 'file', 'remove', 'send', 'cancel', 'update']);
     notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['notifyApiData', 'error']);
     service.detail.and.returnValue(of(ok(detail())));
     service.route.and.returnValue(of(ok(route())));
@@ -641,5 +657,125 @@ describe('DirectiveDetailComponent', () => {
       fixture.detectChanges();
       expect(component.timelineCollapsed()).toBeFalse();
     });
+  });
+
+  it('offers to replace each PDF only while the draft can be edited', async () => {
+    await create();
+
+    expect(html().querySelector('[data-testid="replace-directive"]')).not.toBeNull();
+    expect(html().querySelector('[data-testid="replace-resolution"]')).not.toBeNull();
+    expect(text('replace-hint')).toContain('Mientras sea borrador');
+    fixture.destroy();
+    TestBed.resetTestingModule();
+
+    service.detail.and.returnValue(of(ok(detail({ can_edit: false }))));
+    await create();
+    expect(html().querySelector('[data-testid="replace-directive"]')).toBeNull();
+    expect(html().querySelector('[data-testid="replace-hint"]')).toBeNull();
+  });
+
+  it('stages the chosen PDF with its page count and uploads nothing until it is saved', async () => {
+    await create();
+    const clear = jasmine.createSpy('clear');
+
+    fixture.componentInstance.pickReplacement('directive', { currentFiles: [await realPdf('nueva-directiva.pdf', 2)] } as never, { clear } as never);
+    await until(() => fixture.componentInstance.staged().directive?.pages === 2);
+
+    expect(clear).toHaveBeenCalled();
+    expect(text('staged-directive')).toContain('Sin guardar');
+    expect(text('staged-directive')).toContain('nueva-directiva.pdf');
+    expect(text('staged-directive-pages')).toBe('2 páginas');
+    expect(text('files-panel')).toContain('directiva.pdf');
+    expect(text('staged-warning')).toContain('antes de enviar a firma');
+    expect(service.update).not.toHaveBeenCalled();
+  });
+
+  it('saves only the chosen file and shows the new file, its pages and the new fingerprint', async () => {
+    await create();
+    const file = await realPdf('nueva-directiva.pdf', 2);
+    fixture.componentInstance.pickReplacement('directive', { currentFiles: [file] } as never, { clear: () => undefined } as never);
+    await until(() => fixture.componentInstance.staged().directive?.pages === 2);
+    service.update.and.returnValue(of(ok(detail({ files: { directive: { name: 'nueva-directiva.pdf', size: 1700, pages: 2 }, resolution: { name: 'resolucion.pdf', size: 600000, pages: 3 } } }))));
+
+    (html().querySelector('[data-testid="save-replace-directive"] button') as HTMLButtonElement).click();
+    await until(() => fixture.componentInstance.staged().directive === null);
+
+    const body = service.update.calls.mostRecent().args[1] as FormData;
+    expect(service.update.calls.mostRecent().args[0]).toBe(7);
+    expect(body.get('directive')).toBe(file);
+    expect(body.has('title')).toBeFalse();
+    expect(body.has('resolution')).toBeFalse();
+    expect(text('files-panel')).toContain('nueva-directiva.pdf');
+    expect(text('files-panel')).toContain('2 páginas');
+    expect(notifications.notifyApiData).toHaveBeenCalled();
+    expect(html().querySelector('[data-testid="staged-directive"]')).toBeNull();
+  });
+
+  it('drops the chosen PDF when it is discarded', async () => {
+    await create();
+    fixture.componentInstance.pickReplacement('resolution', { currentFiles: [await realPdf('otra.pdf', 1)] } as never, { clear: () => undefined } as never);
+    await until(() => fixture.componentInstance.staged().resolution?.pages === 1);
+
+    (html().querySelector('[data-testid="discard-replace-resolution"] button') as HTMLButtonElement).click();
+    await until(() => fixture.componentInstance.staged().resolution === null);
+
+    expect(html().querySelector('[data-testid="staged-resolution"]')).toBeNull();
+    expect(service.update).not.toHaveBeenCalled();
+  });
+
+  it('refuses a file that is not a PDF or is too big, and keeps what was there', async () => {
+    await create();
+    const clear = () => undefined;
+
+    fixture.componentInstance.pickReplacement('directive', { currentFiles: [new File(['x'], 'directiva.docx', { type: 'application/msword' })] } as never, { clear } as never);
+    fixture.detectChanges();
+    expect(text('replace-error')).toContain('debe ser un PDF');
+
+    fixture.componentInstance.pickReplacement('resolution', { currentFiles: [new File([new Uint8Array(1)], 'grande.pdf', { type: 'application/pdf' })] } as never, { clear } as never);
+    expect(fixture.componentInstance.staged().resolution).not.toBeNull();
+
+    const big = new File([new Uint8Array(10)], 'enorme.pdf', { type: 'application/pdf' });
+    Object.defineProperty(big, 'size', { value: 21 * 1024 * 1024 });
+    fixture.componentInstance.pickReplacement('directive', { currentFiles: [big] } as never, { clear } as never);
+    fixture.detectChanges();
+    expect(text('replace-error')).toContain('el máximo es');
+    expect(fixture.componentInstance.staged().directive).toBeNull();
+  });
+
+  it('shows what the server says when the replacement fails and keeps the chosen file', async () => {
+    await create();
+    fixture.componentInstance.pickReplacement('directive', { currentFiles: [await realPdf('nueva.pdf', 1)] } as never, { clear: () => undefined } as never);
+    await until(() => fixture.componentInstance.staged().directive?.pages === 1);
+    service.update.and.returnValue(throwError(() => ({ error: { payload: { message: 'No es un PDF válido.' } } })));
+
+    (html().querySelector('[data-testid="save-replace-directive"] button') as HTMLButtonElement).click();
+    await until(() => fixture.componentInstance.replacing() === null);
+
+    expect(text('replace-error')).toBe('No es un PDF válido.');
+    expect(fixture.componentInstance.staged().directive).not.toBeNull();
+  });
+
+  it('warns in the confirmation to send that a chosen PDF is not saved and will not be sent', async () => {
+    service.route.and.returnValue(of(ok(route({ can_send: true, issues: [] }))));
+    await create();
+    const confirm = spyOn(fixture.debugElement.injector.get(ConfirmationService), 'confirm');
+    fixture.componentInstance.pickReplacement('directive', { currentFiles: [await realPdf('nueva.pdf', 1)] } as never, { clear: () => undefined } as never);
+    await until(() => fixture.componentInstance.staged().directive?.pages === 1);
+
+    fixture.componentInstance.askSend();
+
+    expect(confirm.calls.mostRecent().args[0].message).toContain('NO se enviará');
+  });
+
+  it('says in the timeline which file replaced which', async () => {
+    service.detail.and.returnValue(of(ok(detail({ events: [
+      { type: 'edited', version: 1, at: '2026-11-10T18:52:00Z', by: { id: 5, nick: 'ana' }, data: { directive_replaced: true, resolution_replaced: false, directive_before: 'vieja.pdf', directive_after: 'nueva.pdf' } },
+      { type: 'created', version: 1, at: '2026-11-10T18:37:00Z', by: { id: 5, nick: 'ana' }, data: {} },
+    ] }))));
+    await create();
+
+    const first = html().querySelector('[data-testid="directive-event"]')!.textContent!;
+    expect(first).toContain('Reemplazó la directiva');
+    expect(first).toContain('vieja.pdf → nueva.pdf');
   });
 });

@@ -119,20 +119,63 @@
             <p-message severity="info" data-testid="files-hidden">Los documentos se habilitan cuando te toque firmar.</p-message>
           }
           @if (current.files; as files) {
+            @if (current.can_edit) {
+              <p-message severity="info" size="small" data-testid="replace-hint">Mientras sea borrador puedes reemplazar los PDF las veces que quieras. Al enviar a firma ya no se podrán cambiar.</p-message>
+            }
             <div class="file-row">
               <div class="file-info">
                 <strong>Directiva</strong>
-                <span class="muted">{{ files.directive.name }} · {{ formatBytes(files.directive.size) }}{{ files.directive.pages ? ' · ' + files.directive.pages + ' páginas' : '' }}</span>
+                <span class="muted">{{ files.directive.name }} · {{ formatBytes(files.directive.size) }}{{ files.directive.pages ? ' · ' + pagesLabel(files.directive.pages) : '' }}</span>
+                @if (staged().directive; as pending) {
+                  <span class="staged" data-testid="staged-directive">
+                    <p-tag value="Sin guardar" severity="warn"></p-tag>
+                    <span class="muted">{{ pending.file.name }} · {{ formatBytes(pending.file.size) }}</span>
+                    @if (pagesTag(pending.pages); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="staged-directive-pages"></p-tag> }
+                  </span>
+                }
               </div>
-              <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive'" data-testid="open-directive" (onClick)="openFile('directive')"></p-button>
+              <div class="file-actions">
+                @if (staged().directive) {
+                  <p-button label="Guardar cambio" size="small" icon="pi pi-save" [loading]="replacing() === 'directive'" [disabled]="staged().directive?.pages === 'reading'" data-testid="save-replace-directive" (onClick)="saveReplacement('directive')"></p-button>
+                  <p-button label="Descartar" size="small" severity="secondary" [outlined]="true" [disabled]="replacing() === 'directive'" data-testid="discard-replace-directive" (onClick)="discardReplacement('directive')"></p-button>
+                } @else {
+                  <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive'" data-testid="open-directive" (onClick)="openFile('directive')"></p-button>
+                  @if (current.can_edit) {
+                    <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" chooseIcon="pi pi-refresh" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar la directiva" data-testid="replace-directive" (onSelect)="pickReplacement('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                  }
+                }
+              </div>
             </div>
             <div class="file-row">
               <div class="file-info">
                 <strong>Resolución que la aprueba</strong>
-                <span class="muted">{{ files.resolution.name }} · {{ formatBytes(files.resolution.size) }}{{ files.resolution.pages ? ' · ' + files.resolution.pages + ' páginas' : '' }}</span>
+                <span class="muted">{{ files.resolution.name }} · {{ formatBytes(files.resolution.size) }}{{ files.resolution.pages ? ' · ' + pagesLabel(files.resolution.pages) : '' }}</span>
+                @if (staged().resolution; as pending) {
+                  <span class="staged" data-testid="staged-resolution">
+                    <p-tag value="Sin guardar" severity="warn"></p-tag>
+                    <span class="muted">{{ pending.file.name }} · {{ formatBytes(pending.file.size) }}</span>
+                    @if (pagesTag(pending.pages); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="staged-resolution-pages"></p-tag> }
+                  </span>
+                }
               </div>
-              <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'resolution'" data-testid="open-resolution" (onClick)="openFile('resolution')"></p-button>
+              <div class="file-actions">
+                @if (staged().resolution) {
+                  <p-button label="Guardar cambio" size="small" icon="pi pi-save" [loading]="replacing() === 'resolution'" [disabled]="staged().resolution?.pages === 'reading'" data-testid="save-replace-resolution" (onClick)="saveReplacement('resolution')"></p-button>
+                  <p-button label="Descartar" size="small" severity="secondary" [outlined]="true" [disabled]="replacing() === 'resolution'" data-testid="discard-replace-resolution" (onClick)="discardReplacement('resolution')"></p-button>
+                } @else {
+                  <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'resolution'" data-testid="open-resolution" (onClick)="openFile('resolution')"></p-button>
+                  @if (current.can_edit) {
+                    <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" chooseIcon="pi pi-refresh" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar la resolución" data-testid="replace-resolution" (onSelect)="pickReplacement('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                  }
+                }
+              </div>
             </div>
+            @if (replaceError()) {
+              <p-message severity="error" data-testid="replace-error">{{ replaceError() }}</p-message>
+            }
+            @if (hasStaged()) {
+              <p-message severity="warn" size="small" data-testid="staged-warning">Hay un cambio sin guardar. Guárdalo o descártalo antes de enviar a firma.</p-message>
+            }
           }
           @if (current.sha256; as hashes) {
             <small class="muted hash" data-testid="directive-hash">Huella de la directiva (SHA-256): {{ hashes.directive }}</small>
