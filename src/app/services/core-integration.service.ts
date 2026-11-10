@@ -36,10 +36,10 @@ export class CoreIntegrationService {
   private readonly http = inject(HttpClient);
 
   settings(): Observable<ApiData<CoreIntegrationSettings>> {
-    return this.http.get<ApiData<CoreIntegrationSettings>>(`${environment.apiUrl}/core-integration/settings`);
+    return this.http.get<ApiData<CoreIntegrationSettings>>(`${environment.apiUrl}/system/core-integration`);
   }
 
   update(values: Partial<CoreIntegrationValues>): Observable<ApiData<CoreIntegrationSettings>> {
-    return this.http.patch<ApiData<CoreIntegrationSettings>>(`${environment.apiUrl}/core-integration/settings`, values);
+    return this.http.patch<ApiData<CoreIntegrationSettings>>(`${environment.apiUrl}/system/core-integration`, values);
   }
 }

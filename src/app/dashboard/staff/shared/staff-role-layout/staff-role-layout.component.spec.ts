@@ -1,12 +1,13 @@
 import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
-import {provideRouter} from '@angular/router';
+import {Router, provideRouter} from '@angular/router';
 import {providePrimeNG} from 'primeng/config';
 import {of} from 'rxjs';
 import {InstitutionalPreset} from '../../../../app.config';
 import {LoginService} from '../../../../services/login.service';
 import {NotificationService} from '../../../../services/notification.service';
+import {CoreSsoService} from '../../core-sso/core-sso.service';
 import {UsersService} from '../../../../services/users.service';
 import {StaffMenuStore} from '../staff-menu/staff-menu.store';
 import {StaffRoleLayoutComponent} from './staff-role-layout.component';
@@ -22,11 +23,13 @@ describe('StaffRoleLayoutComponent', () => {
   let getStaffMenu: jasmine.Spy;
   let logoutStaff: jasmine.Spy;
   let removeUser: jasmine.Spy;
+  let goTo: jasmine.Spy;
 
   beforeEach(async () => {
     getStaffMenu = jasmine.createSpy('getStaffMenu').and.returnValue(of({payload: {data: groups}}));
     logoutStaff = jasmine.createSpy('logoutStaff').and.returnValue(of({payload: {}}));
     removeUser = jasmine.createSpy('removeUser');
+    goTo = jasmine.createSpy('goTo');
 
     await TestBed.configureTestingModule({
       imports: [StaffRoleLayoutComponent],
@@ -36,6 +39,7 @@ describe('StaffRoleLayoutComponent', () => {
         providePrimeNG({theme: {preset: InstitutionalPreset, options: {darkModeSelector: '.app-dark'}}}),
         {provide: UsersService, useValue: {getStaffMenu, logoutStaff}},
         {provide: NotificationService, useValue: {notifyApiData: () => undefined}},
+        {provide: CoreSsoService, useValue: {goTo}},
         {provide: LoginService, useValue: {getUser: () => ({id: '7', position: {label: 'Jefa de RR. HH.'}, staff: {names: 'Ana Pérez'}}), removeUser}},
       ],
     }).compileComponents();
@@ -93,5 +97,39 @@ describe('StaffRoleLayoutComponent', () => {
     expect(logoutStaff).toHaveBeenCalledTimes(1);
     expect(removeUser).toHaveBeenCalled();
     expect(store.status()).toBe('idle');
+    expect(goTo).not.toHaveBeenCalled();
+  });
+
+  async function signOutWith(destination: unknown) {
+    logoutStaff.and.returnValue(of({payload: {data: destination}}));
+    const fixture = await render();
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-testid="logout"] button, button[data-testid="logout"]')?.click();
+    await fixture.whenStable();
+
+    return navigate;
+  }
+
+  it('goes to the Core portal when the session was opened through Core, without touching the Core session', async () => {
+    const navigate = await signOutWith({next: 'core_portal', portal_url: 'https://core.example.test/mis-sistemas'});
+
+    expect(removeUser).toHaveBeenCalled();
+    expect(goTo).toHaveBeenCalledOnceWith('https://core.example.test/mis-sistemas');
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('goes to the Academical login when the session was opened with the user and password', async () => {
+    const navigate = await signOutWith({next: 'local_login', portal_url: null});
+
+    expect(goTo).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['login-admin']);
+  });
+
+  it('goes to the Academical login when the API says Core but gives no portal address', async () => {
+    const navigate = await signOutWith({next: 'core_portal', portal_url: null});
+
+    expect(goTo).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['login-admin']);
   });
 });

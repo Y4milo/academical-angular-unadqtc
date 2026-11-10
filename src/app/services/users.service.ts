@@ -4,6 +4,7 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {ApiData} from '../models/api/api-data.model';
 import {StaffUser} from '../models/staff-user.model';
+import {StaffLogoutDestination} from '../models/staff-logout.model';
 import {MenuItem} from 'primeng/api';
 
 @Injectable({
@@ -25,7 +26,7 @@ export class UsersService {
     return this.http.post<ApiData<null>>(`${this.apiURL}/users/v1/staff/change-password`, passwordData);
   }
 
-  logoutStaff(): Observable<ApiData<null>> {
-    return this.http.post<ApiData<null>>(`${this.apiURL}/users/v1/staff/logout`, {});
+  logoutStaff(): Observable<ApiData<StaffLogoutDestination>> {
+    return this.http.post<ApiData<StaffLogoutDestination>>(`${this.apiURL}/users/v1/staff/logout`, {});
   }
 }

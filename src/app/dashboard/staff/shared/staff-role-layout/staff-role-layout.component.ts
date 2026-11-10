@@ -3,7 +3,7 @@ import {NgTemplateOutlet} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MenuItem} from 'primeng/api';
-import {filter, map, startWith} from 'rxjs';
+import {filter, map, Observable, startWith} from 'rxjs';
 import {Avatar} from 'primeng/avatar';
 import {ButtonModule} from 'primeng/button';
 import {Drawer} from 'primeng/drawer';
@@ -15,7 +15,10 @@ import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lu
 import {LoginService} from '../../../../services/login.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {StudentModulesService} from '../../../../services/student-modules.service';
+import {CoreSsoService} from '../../core-sso/core-sso.service';
 import {UsersService} from '../../../../services/users.service';
+import {StaffLogoutDestination} from '../../../../models/staff-logout.model';
+import {ApiData} from '../../../../models/api/api-data.model';
 import {buildStudentMenu, StudentMenuStore} from '../../../student/student-menu/student-menu.store';
 import {StaffChangePasswordDialogComponent} from '../staff-change-password-dialog/staff-change-password-dialog.component';
 import {StaffMenuStore} from '../staff-menu/staff-menu.store';
@@ -61,6 +64,7 @@ export class StaffRoleLayoutComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly loginService = inject(LoginService);
   private readonly router = inject(Router);
+  private readonly coreSso = inject(CoreSsoService);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -132,11 +136,11 @@ export class StaffRoleLayoutComponent implements OnInit {
 
     this.loggingOut.set(true);
 
-    const request = this.audience() === 'student' ? this.studentModules.logout() : this.usersService.logoutStaff();
+    const request: Observable<ApiData<unknown>> = this.audience() === 'student' ? this.studentModules.logout() : this.usersService.logoutStaff();
 
     request.subscribe({
       next: (response) => {
-        this.finishLogout();
+        this.finishLogout(response?.payload?.data as StaffLogoutDestination | undefined);
         this.notificationService.notifyApiData(response);
       },
       error: (e) => {
@@ -146,13 +150,23 @@ export class StaffRoleLayoutComponent implements OnInit {
     });
   }
 
-  private finishLogout(): void {
+  /**
+   * Cierra la sesión del navegador y va a donde el API dijo: al portal de Core si la sesión se abrió por Core, al ingreso de Academical si no
+   * (o si el API no contestó). La sesión de Core no se toca.
+   */
+  private finishLogout(destination?: StaffLogoutDestination): void {
     this.loggingOut.set(false);
     this.loginService.removeUser();
     this.menuStore.clear();
     if (this.audience() === 'student') {
       this.studentMenu.clear();
     }
+    if (destination?.next === 'core_portal' && destination.portal_url) {
+      this.coreSso.goTo(destination.portal_url);
+
+      return;
+    }
+
     this.router.navigate([this.audience() === 'student' ? PATHS.login.student : PATHS.login.staff]);
   }
 }
