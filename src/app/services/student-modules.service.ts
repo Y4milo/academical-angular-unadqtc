@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiData } from '../models/api/api-data.model';
+import { StaffLogoutDestination } from '../models/staff-logout.model';
 
 export type StudentModuleKey = 'carnet' | 'dbu_appointments';
 
@@ -50,7 +51,7 @@ export class StudentModulesService {
     return this.http.patch<ApiData<StudentModuleSwitchesPayload>>(`${this.apiURL}/academic/student-modules/${key}`, { enabled });
   }
 
-  logout(): Observable<ApiData<null>> {
-    return this.http.post<ApiData<null>>(`${this.apiURL}/users/v1/student/logout`, {});
+  logout(): Observable<ApiData<StaffLogoutDestination>> {
+    return this.http.post<ApiData<StaffLogoutDestination>>(`${this.apiURL}/users/v1/student/logout`, {});
   }
 }

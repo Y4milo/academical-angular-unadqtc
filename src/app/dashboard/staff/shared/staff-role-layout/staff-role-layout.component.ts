@@ -161,7 +161,7 @@ export class StaffRoleLayoutComponent implements OnInit {
     if (this.audience() === 'student') {
       this.studentMenu.clear();
     }
-    if (this.audience() !== 'student' && destination?.next === 'core_portal' && destination.portal_url) {
+    if (destination?.next === 'core_portal' && destination.portal_url) {
       this.coreSso.goTo(destination.portal_url);
 
       return;
