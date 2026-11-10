@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { LoginService } from '../../../services/login.service';
 import { CoreEntryComponent } from './core-entry.component';
 import { CoreReturnComponent } from './core-return.component';
@@ -53,6 +53,46 @@ describe('Core sign-in', () => {
 
   describe('return from Core', () => {
     const session = (role: string) => ({ status: 'success', encoded: false, decoded: true, payload: { title: '', message: '', data: { id: 1, role: { value: role } } } });
+
+    /** La dirección de retorno trae `?code=`: se pone en la ruta activa que ya tiene el módulo de pruebas. */
+    const withCode = (code: string | null) =>
+      Object.defineProperty(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', { value: convertToParamMap(code === null ? {} : { code }), configurable: true });
+
+    it('swaps the one-use code of the address for the session and goes to the home of the role', () => {
+      withCode('one-use-code');
+      const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+      TestBed.createComponent(CoreReturnComponent).detectChanges();
+
+      const exchange = http.expectOne('/api/auth/core/exchange');
+      expect(exchange.request.method).toBe('POST');
+      expect(exchange.request.body).toEqual({ code: 'one-use-code' });
+      exchange.flush(session('hr'));
+
+      expect(TestBed.inject(LoginService).getUser()?.role.value).toBe('hr');
+      expect(navigate).toHaveBeenCalledWith('hr/home');
+    });
+
+    it('goes back to the login when the code expired or was already used', () => {
+      withCode('old-code');
+      const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+      TestBed.createComponent(CoreReturnComponent).detectChanges();
+
+      http.expectOne('/api/auth/core/exchange').flush({ status: 'warning' }, { status: 422, statusText: 'Unprocessable Entity' });
+
+      expect(TestBed.inject(LoginService).getUser()).toBeNull();
+      expect(navigate).toHaveBeenCalledWith(['/', 'login-admin'], { queryParams: { core_error: 'invalid_response' } });
+    });
+
+    it('asks for the session the API already opened when the address has no code (API before the one-use code)', () => {
+      withCode(null);
+      const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+      TestBed.createComponent(CoreReturnComponent).detectChanges();
+
+      http.expectNone('/api/auth/core/exchange');
+      http.expectOne('/api/auth/core/session').flush(session('hr'));
+
+      expect(navigate).toHaveBeenCalledWith('hr/home');
+    });
 
     it('builds the browser session and goes to the home of the role', () => {
       const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);

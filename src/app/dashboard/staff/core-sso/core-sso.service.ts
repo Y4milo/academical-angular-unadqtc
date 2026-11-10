@@ -58,7 +58,12 @@ export class CoreSsoService {
     window.location.assign(url);
   }
 
-  /** La cuenta con la sesión que el API acaba de abrir al volver de Core. */
+  /** Cambia el código de un solo uso que trae la dirección de retorno por la sesión de la persona (el API la abre en esta llamada). */
+  exchange(code: string): Observable<ApiData<StaffUser>> {
+    return this.http.post<ApiData<StaffUser>>(`${environment.apiUrl}/auth/core/exchange`, { code });
+  }
+
+  /** La cuenta con la sesión ya abierta. Solo para un API anterior al código de un solo uso. */
   session(): Observable<ApiData<StaffUser>> {
     return this.http.get<ApiData<StaffUser>>(`${environment.apiUrl}/auth/core/session`);
   }

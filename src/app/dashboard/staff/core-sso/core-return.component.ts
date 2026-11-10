@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { STATUS } from '../../../core/constants/api-status.constants';
 import { PATHS } from '../../../core/constants/app-paths.constants';
@@ -8,8 +8,9 @@ import { LoginService } from '../../../services/login.service';
 import { CoreSsoService } from './core-sso.service';
 
 /**
- * A donde vuelve la persona desde Core con la sesión ya abierta por el API: arma su sesión en el navegador como lo hace el ingreso normal y la
- * lleva a su pantalla de inicio. Si no hay sesión, vuelve al ingreso.
+ * A donde vuelve la persona desde Core: la dirección trae un código de un solo uso que el API cambia por la sesión; aquí se arma la sesión en el
+ * navegador como lo hace el ingreso normal y se lleva a la persona a su pantalla de inicio. Sin código, o si el código ya venció o se usó, vuelve
+ * al ingreso. Con un API anterior (sin código en la dirección) se pide la sesión que ese API ya abrió.
  */
 @Component({
   selector: 'app-core-return',
@@ -26,9 +27,13 @@ export class CoreReturnComponent implements OnInit {
   private readonly service = inject(CoreSsoService);
   private readonly loginService = inject(LoginService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    this.service.session().subscribe({
+    const code = this.route.snapshot.queryParamMap.get('code');
+    const session = code ? this.service.exchange(code) : this.service.session();
+
+    session.subscribe({
       next: response => {
         if (response.status !== STATUS.success) return this.goToLogin();
 
