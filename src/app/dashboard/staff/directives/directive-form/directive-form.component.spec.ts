@@ -15,7 +15,10 @@ describe('DirectiveFormComponent', () => {
   let router: Router;
 
   const html = () => fixture.nativeElement as HTMLElement;
-  const text = (testId: string) => html().querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
+  /** En tableta y móvil la ruta vive en el cajón de PrimeNG, que se pega al `body`: se busca en el formulario y, si no está, en la página. */
+  const find = (testId: string) => html().querySelector(`[data-testid="${testId}"]`) ?? document.body.querySelector(`[data-testid="${testId}"]`);
+  const findAll = (testId: string) => [...html().querySelectorAll(`[data-testid="${testId}"]`), ...document.body.querySelectorAll(`[data-testid="${testId}"]`)].filter((element, index, all) => all.indexOf(element) === index);
+  const text = (testId: string) => find(testId)?.textContent?.trim() ?? '';
   const pdf = (name = 'directiva.pdf', size = 1000) => new File([new Uint8Array(size)], name, { type: 'application/pdf' });
 
   /** Un PDF de verdad con las páginas que se indiquen: el contador del navegador lo lee con la misma librería. */
@@ -45,11 +48,14 @@ describe('DirectiveFormComponent', () => {
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(DirectiveFormComponent);
     fixture.autoDetectChanges();
+    // La ruta empieza cerrada en tableta y móvil: las pruebas la abren para ver sus pasos, igual que en escritorio.
+    fixture.componentInstance.routeOpen.set(true);
     await fixture.whenStable();
   }
 
   beforeEach(() => {
     localStorage.removeItem('directives.lastOrigin');
+    localStorage.removeItem('directive-form.route-open');
     service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'detail', 'route', 'create', 'update', 'types']);
     service.access.and.returnValue(of(ok(access)));
     service.types.and.returnValue(of(ok(documentTypes)));
@@ -70,7 +76,7 @@ describe('DirectiveFormComponent', () => {
     expect(text('origin-name')).toBe('Oficina de Administración');
     expect(text('origin-tag')).toContain('Por tu perfil');
     expect(html().querySelector('[data-testid="origin-choice"]')).toBeNull();
-    expect(html().querySelector('[data-testid="route-pick-origin"]')).toBeNull();
+    expect(find('route-pick-origin')).toBeNull();
   });
 
   it('with two to four offices it offers them as cards, and the route follows the choice', async () => {
@@ -139,7 +145,7 @@ describe('DirectiveFormComponent', () => {
     fixture.componentInstance.quality.set(true);
     fixture.detectChanges();
     expect(service.route).toHaveBeenCalledWith('adm', true);
-    expect(html().querySelectorAll('[data-testid="route-step"]').length).toBe(4);
+    expect(findAll('route-step').length).toBe(4);
     expect(text('route-blocked')).toContain('Core no tiene a nadie designado');
   });
 
@@ -427,5 +433,51 @@ describe('DirectiveFormComponent', () => {
     fixture.detectChanges();
 
     expect(text('server-error')).toContain('No se pudieron consultar los tipos de documento');
+  });
+  describe('route rail and drawer', () => {
+    it('shows the rail with the number of steps, and the route inside the panel', async () => {
+      await create();
+      fixture.componentInstance.origin.set('adm');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(html().querySelector('[data-testid="route-rail"]')).not.toBeNull();
+      expect(text('route-rail-count')).toBe(String(fixture.componentInstance.routeCount()));
+      expect(html().querySelector('[data-testid="route-panel"]')).not.toBeNull();
+      expect(findAll('route-step').length).toBeGreaterThan(0);
+    });
+
+    it('opens from the rail and closes with its own control, remembering the choice on desktop', async () => {
+      await create();
+      const form = fixture.componentInstance;
+      if (form.overlay()) {
+        form.openRoute();
+        expect(form.routeOpen()).toBeTrue();
+        form.closeRoute();
+        expect(form.routeOpen()).toBeFalse();
+        expect(localStorage.getItem('directive-form.route-open')).toBeNull();
+
+        return;
+      }
+      form.closeRoute();
+      expect(form.routeOpen()).toBeFalse();
+      expect(localStorage.getItem('directive-form.route-open')).toBe('0');
+      form.openRoute();
+      expect(localStorage.getItem('directive-form.route-open')).toBe('1');
+    });
+
+    it('puts the subtype pills in a group that wraps, not in each button', async () => {
+      await create();
+      const form = fixture.componentInstance;
+      form.selectType('gestion_institucional');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const group = html().querySelector('[data-testid="document-subtype"]') as HTMLElement | null;
+      if (group) {
+        expect(group.classList.contains('subtype-options')).toBeTrue();
+        expect(getComputedStyle(group).flexWrap).toBe('wrap');
+      }
+    });
   });
 });

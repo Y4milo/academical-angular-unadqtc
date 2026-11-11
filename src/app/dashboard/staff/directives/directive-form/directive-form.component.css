@@ -3,16 +3,17 @@
 .page-heading h2 { margin: 0 0 var(--space-1); }
 .page-heading p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .form-skeleton { display: grid; gap: var(--space-3); max-width: 40rem; }
-.layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
-.column { display: grid; gap: var(--space-4); min-width: 0; }
+.layout { display: flex; gap: var(--space-4); align-items: flex-start; min-width: 0; }
+.column { display: grid; gap: var(--space-4); min-width: 0; flex: 1 1 0; }
 .origin-card { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-left: 4px solid var(--p-primary-color); border-radius: var(--radius-md); }
 .origin-card__icon { font-size: var(--text-card-title); color: var(--p-text-muted-color); }
 .origin-card__text { display: grid; gap: var(--space-1); min-width: 0; flex: 1; }
 .origin-card__text strong { font-size: var(--text-card-title); }
-:host ::ng-deep .origin-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-:host ::ng-deep .origin-options .p-togglebutton { flex: 1 1 14rem; justify-content: flex-start; min-height: 3rem; }
+:host ::ng-deep p-selectbutton.origin-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+:host ::ng-deep p-selectbutton.origin-options .p-togglebutton { flex: 1 1 14rem; justify-content: flex-start; min-height: 3rem; }
 .route-head { display: flex; align-items: center; gap: var(--space-2); }
 .route-head h3 { margin: 0; font-size: var(--text-card-title); }
+.route-head .route-close { margin-inline-start: auto; }
 .panel { display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
 .panel h3 { margin: 0; font-size: var(--text-card-title); }
 .field { display: grid; gap: var(--space-1); min-width: 0; }
@@ -20,8 +21,9 @@
 .field-hint { color: var(--p-text-muted-color); font-size: var(--text-small); }
 .field-error { color: var(--p-red-500); font-size: var(--text-small); }
 .file-name { font-size: var(--text-small); word-break: break-word; }
-:host ::ng-deep .subtype-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-:host ::ng-deep .subtype-options .p-togglebutton { border-radius: 999px; }
+/* Los subtipos son píldoras que se parten en las líneas que hagan falta: la clase va en el grupo, no en cada botón. */
+:host ::ng-deep p-selectbutton.subtype-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+:host ::ng-deep p-selectbutton.subtype-options .p-togglebutton { flex: 0 0 auto; min-height: 2.25rem; padding-inline: var(--space-4); border-radius: 999px; border-width: 1px; }
 .file-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .pages-total { margin: 0; font-size: var(--text-small); }
 .muted-note { color: var(--p-text-muted-color); }
@@ -30,8 +32,35 @@
 .switch-row > div { display: grid; gap: var(--space-1); }
 .actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
 
-@media (max-width: 900px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
+/* Ruta de firmas: carril delgado a la derecha; al abrirla entra de derecha a izquierda. */
+.shelf { position: relative; flex: 0 0 auto; display: flex; align-items: stretch; }
+.rail { display: flex; flex-direction: column; align-items: center; align-self: flex-start; gap: var(--space-3); width: 3rem; padding: var(--space-3) 0; font: inherit; color: var(--p-text-color); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); cursor: pointer; transition: background .15s ease; }
+.rail:hover { background: var(--p-content-hover-background); }
+.rail:focus-visible { outline: 2px solid var(--p-primary-color); outline-offset: 2px; }
+.rail__icon { color: var(--p-text-muted-color); }
+.rail__title { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 600; font-size: var(--text-small); }
+.rail__count { padding: 0 var(--space-2); font-size: var(--text-label, .75rem); font-weight: 600; border-radius: 999px; color: var(--p-green-700); background: var(--p-green-50); border: 1px solid var(--p-green-200); }
+.rail__count--warn { color: var(--p-orange-700); background: var(--p-orange-50); border-color: var(--p-orange-200); }
+.rail__dots { display: grid; gap: .3rem; }
+.rail__dots i { display: block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--p-green-500); }
+.rail__dots i.rail__dot--warn { background: var(--p-orange-500); }
+.drawer { width: 0; overflow: hidden; transition: width .28s cubic-bezier(.2, .8, .2, 1); }
+.drawer__inner { width: 22rem; }
+.shelf--open .drawer { width: 22rem; }
+.shelf--open .rail { display: none; }
+.route-box { display: grid; background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); overflow: hidden; }
+.route-box .route-head { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--p-content-border-color); }
+.route-body { display: grid; gap: var(--space-3); padding: var(--space-4); min-width: 0; }
+@media (prefers-reduced-motion: reduce) { .drawer { transition: none; } }
+
+/* Tableta y móvil: la ruta se abre en un cajón por encima (p-drawer) y el carril pasa a ser una barra arriba del formulario. */
+@media (max-width: 1099px) {
+  .layout { flex-direction: column; align-items: stretch; }
+  .shelf { order: -1; }
+  .rail { flex-direction: row; align-self: stretch; width: 100%; padding: var(--space-3) var(--space-4); }
+  .rail__icon { transform: rotate(0); order: 5; margin-inline-start: auto; }
+  .rail__title { writing-mode: horizontal-tb; transform: none; order: -1; margin-inline-end: var(--space-2); }
+  .rail__dots { display: flex; }
 }
 @media (max-width: 640px) {
   .directive-form { padding: var(--space-2); }
@@ -40,3 +69,5 @@
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pick { display: flex; }
 :host ::ng-deep .p-fileupload-basic { justify-content: flex-start; }
+:host-context(.app-dark) .rail__count { color: var(--p-green-300); background: color-mix(in srgb, var(--p-green-500) 16%, transparent); border-color: color-mix(in srgb, var(--p-green-500) 40%, transparent); }
+:host-context(.app-dark) .rail__count--warn { color: var(--p-orange-300); background: color-mix(in srgb, var(--p-orange-500) 16%, transparent); border-color: color-mix(in srgb, var(--p-orange-500) 40%, transparent); }

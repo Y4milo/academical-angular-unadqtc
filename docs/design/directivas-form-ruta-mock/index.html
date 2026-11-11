@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta: subtipo y ruta de firmas del documento nuevo</title>
+<style>
+  /* Tokens copiados de src/styles.css y del preset Aura institucional de Academical (primario #d40f1c); claro/oscuro por la clase .app-dark. */
+  :root{
+    --font-sans:'Segoe UI','Selawik',Roboto,'Helvetica Neue',sans-serif;
+    --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.5rem;--space-6:2rem;
+    --radius-md:.5rem;--radius-lg:.75rem;
+    --text-body:.9375rem;--text-small:.8125rem;--text-label:.75rem;--text-card-title:1.0625rem;--weight-strong:600;--weight-title:700;
+    --p-primary-color:#d40f1c;
+    --p-content-background:#ffffff;--p-content-hover-background:#f4f4f5;--p-content-border-color:#e4e4e7;
+    --p-text-color:#3f3f46;--p-text-muted-color:#71717a;
+    --p-highlight-background:rgba(212,15,28,.10);--p-highlight-color:#a50812;
+    --note-bg:#fff7ed;--note-border:#fed7aa;--note-text:#9a3412;--ok-bg:#f0fdf4;--ok-border:#bbf7d0;--ok-text:#166534;
+    --info-bg:#eff6ff;--info-text:#1d4ed8;--scrim:rgba(0,0,0,.35);
+  }
+  html.app-dark{
+    --p-primary-color:#fb7185;
+    --p-content-background:#18181b;--p-content-hover-background:#27272a;--p-content-border-color:#27272a;
+    --p-text-color:#fafafa;--p-text-muted-color:#a1a1aa;
+    --p-highlight-background:rgba(251,113,133,.16);--p-highlight-color:rgba(255,255,255,.87);
+    --note-bg:#2a1a10;--note-border:#7c2d12;--note-text:#fdba74;--ok-bg:#0f2417;--ok-border:#166534;--ok-text:#86efac;
+    --info-bg:#102338;--info-text:#93c5fd;--scrim:rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font-sans);font-size:var(--text-body);background:var(--p-content-hover-background);color:var(--p-text-color)}
+  .bar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:var(--space-3) var(--space-5);align-items:center;padding:var(--space-3) var(--space-4);background:var(--p-content-background);border-bottom:1px solid var(--p-content-border-color)}
+  .grp{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+  .grp>span{font-size:var(--text-label);color:var(--p-text-muted-color);text-transform:uppercase;letter-spacing:.04em}
+  button.chip{font:inherit;font-size:var(--text-small);padding:.35rem .75rem;border-radius:999px;border:1px solid var(--p-content-border-color);background:var(--p-content-background);color:var(--p-text-color);cursor:pointer}
+  button.chip[aria-pressed=true]{background:var(--p-highlight-background);color:var(--p-highlight-color);border-color:transparent;font-weight:var(--weight-strong)}
+  main{display:grid;gap:var(--space-5);padding:var(--space-5) var(--space-4);max-width:1240px;margin:0 auto}
+  .card{background:var(--p-content-background);border:1px solid var(--p-content-border-color);border-radius:var(--radius-lg);overflow:hidden}
+  .card>h2{margin:0;padding:var(--space-3) var(--space-4);font-size:var(--text-body);font-weight:var(--weight-strong);border-bottom:1px solid var(--p-content-border-color);display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
+  .tag{font-size:var(--text-label);font-weight:var(--weight-strong);padding:.1rem .5rem;border-radius:999px}
+  .tag.bad{background:var(--note-bg);color:var(--note-text);border:1px solid var(--note-border)}
+  .tag.good{background:var(--ok-bg);color:var(--ok-text);border:1px solid var(--ok-border)}
+  .stage{padding:var(--space-4);background:var(--p-content-hover-background);display:flex;justify-content:center;overflow:auto}
+  .notes{display:grid;gap:var(--space-2);padding:var(--space-4);font-size:var(--text-small);color:var(--p-text-muted-color)}
+  .notes b{color:var(--p-text-color)}
+
+  /* ===== La pantalla real (directive-form) ===== */
+  .vp{position:relative;overflow:hidden;background:var(--p-content-hover-background);border:1px solid var(--p-content-border-color);border-radius:var(--radius-md);width:100%}
+  .app{padding:var(--space-4);display:grid;gap:var(--space-4);min-width:0}
+  .app h2{margin:0 0 var(--space-1);font-size:1.25rem}
+  .app .sub{margin:0;color:var(--p-text-muted-color);font-size:var(--text-small)}
+  .layout{display:flex;gap:var(--space-4);align-items:flex-start;min-width:0}
+  .column{display:grid;gap:var(--space-4);min-width:0;flex:1 1 0}
+  .origin-card{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);background:var(--p-content-background);border:1px solid var(--p-content-border-color);border-left:4px solid var(--p-primary-color);border-radius:var(--radius-md)}
+  .origin-card strong{font-size:var(--text-card-title)}
+  .origin-card .t{display:grid;gap:var(--space-1);min-width:0;flex:1}
+  .hint{color:var(--p-text-muted-color);font-size:var(--text-small)}
+  .pill{font-size:var(--text-label);font-weight:var(--weight-strong);padding:.2rem .6rem;border-radius:999px;background:var(--info-bg);color:var(--info-text);display:inline-flex;align-items:center;gap:var(--space-1);white-space:nowrap}
+  .panel{display:grid;gap:var(--space-4);min-width:0;padding:var(--space-4);background:var(--p-content-background);border:1px solid var(--p-content-border-color);border-radius:var(--radius-md)}
+  .panel h3{margin:0;font-size:var(--text-card-title)}
+  .field{display:grid;gap:var(--space-1);min-width:0}
+  .field>label,.field>.label{font-weight:var(--weight-strong);font-size:var(--text-small)}
+  .input{height:2.5rem;border:1px solid var(--p-content-border-color);border-radius:var(--radius-md);background:var(--p-content-background);display:flex;align-items:center;padding:0 var(--space-3);color:var(--p-text-color)}
+  .input.sel{justify-content:space-between}
+  .btn{font:inherit;font-size:var(--text-small);padding:.45rem .9rem;border-radius:var(--radius-md);border:1px solid var(--p-content-border-color);background:var(--p-content-background);color:var(--p-text-color);display:inline-flex;align-items:center;gap:var(--space-2);cursor:pointer}
+  .btn.primary{background:var(--p-primary-color);border-color:var(--p-primary-color);color:#fff}
+  html.app-dark .btn.primary{color:#18181b}
+  .switch{display:flex;gap:var(--space-3);align-items:flex-start}
+  .tg{width:2.5rem;height:1.4rem;border-radius:999px;background:var(--p-content-border-color);flex:none;position:relative;top:2px}
+  .tg::after{content:"";position:absolute;left:3px;top:3px;width:1.05rem;height:1.05rem;border-radius:50%;background:var(--p-content-background)}
+
+  /* HOY: el grupo de botones no parte línea y se sale de la tarjeta */
+  .before .subtype{display:inline-flex;flex-wrap:nowrap;gap:0;border:1px solid var(--p-content-border-color);border-radius:var(--radius-md);background:#000;color:#fff;width:max-content}
+  .before .subtype span{padding:.45rem .9rem;font-size:var(--text-small);white-space:nowrap}
+  html:not(.app-dark) .before .subtype{background:#27272a}
+
+  /* PROPUESTA: píldoras que se parten en las líneas que hagan falta */
+  .after .subtype{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+  .after .subtype button{font:inherit;font-size:var(--text-small);min-height:2.25rem;padding:0 var(--space-4);border-radius:999px;border:1px solid var(--p-content-border-color);background:var(--p-content-background);color:var(--p-text-color);cursor:pointer;transition:background .15s ease,border-color .15s ease}
+  .after .subtype button:hover{background:var(--p-content-hover-background)}
+  .after .subtype button[aria-pressed=true]{background:var(--p-highlight-background);color:var(--p-highlight-color);border-color:var(--p-primary-color);font-weight:var(--weight-strong)}
+  .after .subtype button:focus-visible{outline:2px solid var(--p-primary-color);outline-offset:2px}
+
+  /* Ruta de firmas, tal como hoy (columna fija a la derecha) */
+  .route-fixed{flex:0 0 min(36%,22rem)}
+  .route-box{background:var(--p-content-background);border:1px solid var(--p-content-border-color);border-radius:var(--radius-md);overflow:hidden}
+  .route-head{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--p-content-border-color)}
+  .route-head h3{margin:0;font-size:var(--text-card-title);flex:1}
+  .ok{font-size:var(--text-label);font-weight:var(--weight-strong);padding:.1rem .5rem;border-radius:999px;background:var(--ok-bg);color:var(--ok-text);border:1px solid var(--ok-border);white-space:nowrap}
+  .route-body{padding:var(--space-4);display:grid;gap:var(--space-3);min-width:0}
+  .steps{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-4)}
+  .steps li{position:relative;display:grid;gap:2px;padding-left:var(--space-5);min-width:0}
+  .steps li::before{content:"";position:absolute;left:3px;top:.35rem;width:.6rem;height:.6rem;border-radius:50%;background:var(--ok-text)}
+  .steps li::after{content:"";position:absolute;left:6px;top:1.1rem;bottom:calc(-1 * var(--space-4) + .1rem);width:1px;background:var(--p-content-border-color)}
+  .steps li:last-child::after{display:none}
+  .steps b{font-size:var(--text-body)}
+  .steps small{color:var(--p-text-muted-color);font-size:var(--text-small)}
+  .steps .who{color:var(--p-text-color);font-weight:var(--weight-strong)}
+  .tit{justify-self:start;margin-top:var(--space-1);font-size:var(--text-label);font-weight:var(--weight-strong);padding:.2rem .6rem;border-radius:var(--radius-md);background:var(--info-bg);color:var(--info-text)}
+
+  /* PROPUESTA: carril a la derecha + panel que se despliega de derecha a izquierda */
+  .shelf{position:relative;flex:0 0 auto;display:flex;align-items:stretch}
+  .rail{width:3rem;align-self:flex-start;display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;background:var(--p-content-background);border:1px solid var(--p-content-border-color);border-radius:var(--radius-md);cursor:pointer;color:var(--p-text-color);font:inherit;transition:background .15s ease}
+  .rail:hover{background:var(--p-content-hover-background)}
+  .rail:focus-visible{outline:2px solid var(--p-primary-color);outline-offset:2px}
+  .rail .vt{writing-mode:vertical-rl;transform:rotate(180deg);font-weight:var(--weight-strong);font-size:var(--text-small);letter-spacing:.02em}
+  .rail .dots{display:grid;gap:5px}
+  .rail .dots i{width:.5rem;height:.5rem;border-radius:50%;background:var(--ok-text);display:block}
+  .rail .cnt{font-size:var(--text-label);font-weight:var(--weight-strong);padding:.1rem .45rem;border-radius:999px;background:var(--ok-bg);color:var(--ok-text);border:1px solid var(--ok-border)}
+  .drawer{width:0;overflow:hidden;transition:width .28s cubic-bezier(.2,.8,.2,1)}
+  .drawer .inner{width:22rem;max-width:calc(100vw - 4rem)}
+  .shelf.open .drawer{width:22rem}
+  .shelf.open .rail{display:none}
+  .close{margin-left:auto;font:inherit;border:0;background:transparent;color:var(--p-text-muted-color);cursor:pointer;padding:var(--space-1) var(--space-2);border-radius:var(--radius-md);display:inline-flex;align-items:center;gap:var(--space-1);font-size:var(--text-small)}
+  .close:hover{background:var(--p-content-hover-background);color:var(--p-text-color)}
+  /* Tableta y móvil: cajón por encima, que entra desde la derecha, con velo */
+  .vp.overlay .shelf{position:static}
+  .vp.overlay .rail{position:absolute;right:var(--space-2);top:7.2rem;z-index:3}
+  .vp.overlay .drawer{position:absolute;top:0;right:0;bottom:0;width:min(22rem,92%);transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:6;background:var(--p-content-background);border-left:1px solid var(--p-content-border-color);box-shadow:-8px 0 24px rgba(0,0,0,.18);overflow:auto}
+  .vp.overlay .drawer .inner{width:100%;max-width:none}
+  .vp.overlay .shelf.open .drawer{width:min(22rem,92%);transform:none}
+  .vp.overlay .shelf.open .rail{display:flex}
+  .vp.overlay .drawer .route-box{border:0;border-radius:0;min-height:100%}
+  .veil{position:absolute;inset:0;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .28s ease;z-index:5}
+  .vp.overlay .shelf.open ~ .veil{opacity:1;pointer-events:auto}
+  .vp:not(.overlay) .veil{display:none}
+  @media (prefers-reduced-motion:reduce){.drawer,.veil{transition:none !important}}
+  .legend{display:flex;gap:var(--space-4);flex-wrap:wrap;padding:var(--space-3) var(--space-4);font-size:var(--text-small);color:var(--p-text-muted-color);border-top:1px solid var(--p-content-border-color)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <strong>Maqueta · subtipo y ruta de firmas</strong>
+  <div class="grp"><span>Tema</span>
+    <button class="chip" data-theme="light" aria-pressed="true">Claro</button>
+    <button class="chip" data-theme="dark" aria-pressed="false">Oscuro</button></div>
+  <div class="grp"><span>Pantalla</span>
+    <button class="chip" data-view="desktop" aria-pressed="true">Escritorio (1100)</button>
+    <button class="chip" data-view="tablet" aria-pressed="false">Tableta (768)</button>
+    <button class="chip" data-view="mobile" aria-pressed="false">Móvil (375)</button></div>
+</div>
+
+<main>
+  <section class="card">
+    <h2>Hoy <span class="tag bad">el subtipo se sale de la tarjeta · la ruta ocupa media pantalla siempre</span></h2>
+    <div class="stage"><div class="vp" style="max-width:820px" id="vp-before"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Propuesta <span class="tag good">subtipo en píldoras que se parten · ruta que entra de derecha a izquierda</span></h2>
+    <div class="stage"><div class="vp" id="vp-after"></div></div>
+    <div class="legend"><span>Pulsa el carril «Ruta de firmas» (a la derecha) para abrirla; ✕ o la tecla Esc la cierran. Elige un subtipo para ver el estado marcado.</span></div>
+  </section>
+
+  <section class="card">
+    <div class="notes">
+      <div><b>Subtipo.</b> Los diez subtipos (Estatuto, POI, PEI, ROF, MCC, TUPA, MAPRO, CAP, PAP, PIA) pasan a <b>píldoras que se parten en varias líneas</b> dentro de la tarjeta. Cada una sigue siendo un solo clic y se ve a la vez; sin barra de desplazamiento. En móvil quedan 3 o 4 por línea.</div>
+      <div><b>Ruta de firmas.</b> En lugar de ocupar siempre la mitad derecha, queda como un <b>carril delgado</b> (3 rem) con el título en vertical, el número de oficinas y un punto por paso. Al pulsarlo, el panel <b>se despliega de derecha a izquierda</b> (0,28 s; sin animación si la persona pidió menos movimiento).</div>
+      <div><b>Escritorio (≥ 1100 px).</b> El panel empuja el formulario: el formulario se estrecha y la ruta se ve a su lado. <b>Tableta y móvil.</b> Cajón por encima con velo, de hasta 22 rem o el 92 % del ancho; se cierra con ✕, con el velo o con Esc.</div>
+      <div><b>Estado inicial.</b> Abierta en escritorio (la persona ve a quién irá antes de enviar) y cerrada en tableta y móvil. Se recuerda la última elección en el navegador. El mismo patrón se puede aplicar después a la ficha del documento.</div>
+      <div><b>Accesibilidad.</b> El carril es un botón con <code>aria-expanded</code> y <code>aria-controls</code>; el cajón es <code>role="complementary"</code> en escritorio y diálogo en móvil; el foco pasa al botón ✕ al abrir y vuelve al carril al cerrar.</div>
+      <div><b>Fidelidad.</b> Tipografía, espaciados, radios y colores salen de <code>styles.css</code> y del tema Aura institucional (primario #d40f1c); los datos de la ruta son los de la captura de pruebas.</div>
+    </div>
+  </section>
+</main>
+
+<script>
+const SUBTYPES=['Estatuto','POI','PEI','ROF','MCC','TUPA','MAPRO','CAP','PAP','PIA'];
+const STEPS=[
+ ['Oficina de origen','PRUEBA FIRMANTE PCO','Presidenta de la Comisión Organizadora','Designación de prueba en el entorno local'],
+ ['Oficina de Asesoría Jurídica','PRUEBA FIRMANTE OAJ','Jefa de la Oficina de Asesoría Jurídica','Designación de prueba en el entorno local'],
+ ['Unidad de Planeamiento, Modernización y Estadística','PRUEBA FIRMANTE UPME','Jefe de la Unidad de Planeamiento, Modernización y Estadística','Designación de prueba en el entorno local'],
+ ['Presidencia de la Comisión Organizadora','PRUEBA FIRMANTE PCO','Presidenta de la Comisión Organizadora','Designación de prueba en el entorno local']
+];
+const IC={
+ x:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+ chev:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+ left:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+ lock:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
+};
+const stepsHtml=()=>`<ol class="steps">${STEPS.map(s=>`<li><b>${s[0]}</b><span class="who">${s[1]}</span><small>${s[2]}</small><small>${s[3]}</small><span class="tit">Titular</span></li>`).join('')}</ol>`;
+const routeBox=(withClose)=>`<div class="route-box"><div class="route-head"><h3>Ruta de firmas</h3><span class="ok">4 listas</span>${withClose?`<button class="close" data-close aria-label="Cerrar la ruta de firmas">${IC.x}</button>`:''}</div><div class="route-body"><span class="hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</span>${stepsHtml()}</div></div>`;
+
+function formColumn(mode,subtype){
+  const subs = mode==='before'
+    ? `<div class="subtype">${SUBTYPES.map(s=>`<span>${s}</span>`).join('')}</div>`
+    : `<div class="subtype" role="group" aria-labelledby="st-l">${SUBTYPES.map(s=>`<button type="button" aria-pressed="${s===subtype}" data-sub="${s}">${s}</button>`).join('')}</div>`;
+  return `<div class="column">
+    <div class="origin-card"><div class="t"><span class="hint">Origen del documento</span><strong>Presidencia de la Comisión Organizadora</strong><span class="hint">Tu perfil en Core te autoriza a pedir documentos por esta oficina.</span></div><span class="pill">${IC.lock} Por tu perfil</span></div>
+    <div class="panel"><h3>Datos</h3>
+      <div class="field"><label>Tipo de documento *</label><div class="input sel">Documentos de gestión institucional ${IC.chev}</div></div>
+      <div class="field"><span class="label" id="st-l">Subtipo * <span class="hint">(obligatorio en este tipo)</span></span>${subs}</div>
+      <div class="field"><label>Título del documento *</label><div class="input"></div></div>
+      <div class="switch"><span class="tg"></span><div><label>Es de un proceso de calidad</label><div class="hint">Si lo activas, la Oficina de Gestión de la Calidad firma antes de Asesoría Jurídica.</div></div></div>
+      <div class="field"><span class="label">Documento (PDF) *</span><span><span class="btn">Elegir PDF</span></span></div>
+      <div class="field"><span class="label">Resolución que lo aprueba (PDF) *</span><span><span class="btn">Elegir PDF</span></span></div>
+    </div></div>`;
+}
+const head=`<div><h2>Nuevo documento</h2><p class="sub">Sube el documento y la resolución que lo aprueba. Antes de enviarlo verás quién firma en cada oficina.</p></div>`;
+
+function renderBefore(){
+  document.getElementById('vp-before').innerHTML=`<div class="app before">${head}<div class="layout">${formColumn('before')}<div class="route-fixed">${routeBox(false)}</div></div></div>`;
+}
+
+let view='desktop', open=true, subtype=null, restore=null;
+const vp=document.getElementById('vp-after');
+function renderAfter(){
+  const overlay=view!=='desktop';
+  vp.classList.toggle('overlay',overlay);
+  vp.style.maxWidth = view==='desktop'?'1100px':view==='tablet'?'768px':'375px';
+  vp.innerHTML=`<div class="app after" style="min-height:${overlay?'46rem':'0'}">${head}
+    <div class="layout">${formColumn('after',subtype)}
+      <div class="shelf${open?' open':''}" id="shelf">
+        <button class="rail" id="rail" aria-expanded="${open}" aria-controls="drawer" aria-label="Abrir la ruta de firmas">${IC.left}<span class="cnt">4</span><span class="dots">${STEPS.map(()=>'<i></i>').join('')}</span><span class="vt">Ruta de firmas</span></button>
+        <aside class="drawer" id="drawer" aria-label="Ruta de firmas" ${overlay?'role="dialog" aria-modal="true"':''}><div class="inner">${routeBox(true)}</div></aside>
+      </div><div class="veil" id="veil"></div>
+    </div></div>`;
+  const setOpen=(v)=>{open=v;renderAfter();(v?vp.querySelector('[data-close]'):vp.querySelector('#rail'))?.focus({preventScroll:true})};
+  vp.querySelector('#rail').onclick=()=>setOpen(true);
+  vp.querySelector('[data-close]').onclick=()=>setOpen(false);
+  vp.querySelector('#veil').onclick=()=>setOpen(false);
+  vp.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{subtype=b.dataset.sub;renderAfter();vp.querySelector(`[data-sub="${subtype}"]`).focus({preventScroll:true})});
+}
+vp.addEventListener('keydown',e=>{if(e.key==='Escape'&&open){open=false;renderAfter();vp.querySelector('#rail').focus({preventScroll:true})}});
+
+document.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{
+  document.documentElement.classList.toggle('app-dark',b.dataset.theme==='dark');
+  document.querySelectorAll('[data-theme]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+});
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{
+  view=b.dataset.view; open=view==='desktop'; // estado inicial: abierta solo en escritorio
+  document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  renderAfter();
+});
+renderBefore();renderAfter();
+</script>
+</body>
+</html>
