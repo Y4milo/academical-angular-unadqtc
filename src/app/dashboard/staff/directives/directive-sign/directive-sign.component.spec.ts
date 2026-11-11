@@ -264,7 +264,7 @@ describe('DirectiveSignComponent', () => {
     expect(text('signed-ok')).toContain('Tu firma quedó registrada');
     const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
     (html().querySelector('[data-testid="go-detail"] button') as HTMLButtonElement).click();
-    expect(navigate).toHaveBeenCalledWith('directivas/7');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/7');
   });
 
   it('says the confirmation may take a while when the signer has not answered after several tries', async () => {

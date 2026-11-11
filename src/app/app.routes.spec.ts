@@ -33,8 +33,8 @@ describe('staff routes', () => {
     {url: '/service-orders/config', allowed: ['admin']},
     {url: '/users/profiles', allowed: ['admin', 'hr']},
     {url: '/users/profiles/new', allowed: ['admin', 'hr']},
-    {url: '/directivas', allowed: ROLES},
-    {url: '/directivas/configuracion', allowed: ['admin']},
+    {url: '/documentos-de-gestion', allowed: ROLES},
+    {url: '/documentos-de-gestion/visibilidad', allowed: ['admin']},
   ];
 
   beforeEach(() => {
@@ -335,5 +335,16 @@ describe('staff routes', () => {
 
     expect(await visit('/accounting/bank/incidents')).toBe('/accounting/bank/incidents');
     expect(await visit('/academic/student/card/panel')).toBe('/academic/student/card/panel');
+  });
+
+  it('keeps the old directivas addresses (e-mails and bookmarks already sent) working: they redirect to documentos-de-gestion', async () => {
+    user = {id: '1', role: {value: 'admin'}};
+
+    expect(await visit('/directivas')).toBe('/documentos-de-gestion');
+    expect(await visit('/directivas/nueva')).toBe('/documentos-de-gestion/nueva');
+    expect(await visit('/directivas/configuracion')).toBe('/documentos-de-gestion/visibilidad');
+    expect(await visit('/directivas/7')).toBe('/documentos-de-gestion/7');
+    expect(await visit('/directivas/7/firmar')).toBe('/documentos-de-gestion/7/firmar');
+    expect(await visit('/directivas/7/corregir')).toBe('/documentos-de-gestion/7/corregir');
   });
 });

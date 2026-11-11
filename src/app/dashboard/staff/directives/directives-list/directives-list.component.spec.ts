@@ -98,7 +98,7 @@ describe('DirectivesListComponent', () => {
     expect(html().querySelectorAll('[data-testid="pending-row"]').length).toBe(1);
     expect(html().querySelector('[data-testid="pending-row"]')?.textContent).toContain('Paso 2 de 4');
     (html().querySelector('[data-testid="sign-pending"] button') as HTMLButtonElement).click();
-    expect(navigate).toHaveBeenCalledWith('directivas/9/firmar');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/9/firmar');
   });
 
   it('who also requests can switch between their directives and what waits for their signature, and an empty inbox says so', async () => {
@@ -128,7 +128,7 @@ describe('DirectivesListComponent', () => {
     expect(html().querySelectorAll('[data-testid="route-row"]').length).toBe(1);
     expect(html().querySelector('[data-testid="route-row"]')?.textContent).toContain('Devuelto');
     (html().querySelector('[data-testid="open-route"] button') as HTMLButtonElement).click();
-    expect(navigate).toHaveBeenCalledWith('directivas/12');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/12');
   });
 
   it('shows the error with a way to retry', async () => {
@@ -150,7 +150,7 @@ describe('DirectivesListComponent', () => {
     fixture.componentInstance.open(summary({ id: 8 }));
     fixture.componentInstance.create();
 
-    expect(navigate.calls.allArgs()).toEqual([['directivas/8'], ['directivas/nueva']]);
+    expect(navigate.calls.allArgs()).toEqual([['documentos-de-gestion/8'], ['documentos-de-gestion/nueva']]);
   });
   const gestion = { code: 'gestion_institucional', label: 'Documentos de gestión institucional' };
   const plans = [
@@ -264,7 +264,7 @@ describe('DirectivesListComponent', () => {
       await create();
 
       (rows()[0] as HTMLElement).click();
-      expect(navigate).toHaveBeenCalledWith('directivas/7');
+      expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/7');
     });
 
     it('draws a card per document on a phone, with the same test ids', async () => {

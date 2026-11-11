@@ -119,7 +119,7 @@ describe('DirectiveResubmitComponent', () => {
     expect((body.get('directive') as File).name).toBe('directiva-v2.pdf');
     expect(body.has('resolution')).toBeFalse();
     expect(notifications.notifyApiData).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith('directivas/7');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/7');
   });
 
   it('sends a new resolution only when one is chosen, and can go back to the previous one', async () => {

@@ -252,19 +252,21 @@ export const PATHS = {
       // link:   `staff/attendance/user`,
     },
   },
-  // Directivas con firma digital: una sola ruta para todo el personal; quién entra lo decide Core, no el rol.
+  // Documentos de gestión con firma digital: una sola ruta para todo el personal; quién entra lo decide Core, no el rol. Las direcciones de antes
+  // (`directivas/...`) siguen funcionando: redirigen a estas (ver `legacyPath`).
   directives: {
-    path: `directivas`,
-    link: `directivas`,
+    path: `documentos-de-gestion`,
+    link: `documentos-de-gestion`,
+    legacyPath: `directivas`,
     new: {
-      path: `directivas/nueva`,
-      link: `directivas/nueva`,
+      path: `documentos-de-gestion/nueva`,
+      link: `documentos-de-gestion/nueva`,
     },
-    detailPath: `directivas/:id`,
-    editPath: `directivas/:id/editar`,
-    signPath: `directivas/:id/firmar`,
-    resubmitPath: `directivas/:id/corregir`,
-    settingsPath: `directivas/configuracion`,
+    detailPath: `documentos-de-gestion/:id`,
+    editPath: `documentos-de-gestion/:id/editar`,
+    signPath: `documentos-de-gestion/:id/firmar`,
+    resubmitPath: `documentos-de-gestion/:id/corregir`,
+    settingsPath: `documentos-de-gestion/visibilidad`,
   },
   dbu: {
     path: `dbu`,
