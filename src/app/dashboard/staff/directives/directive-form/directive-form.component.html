@@ -2,7 +2,7 @@
   <div class="page-heading">
     <div>
       <h2>{{ editing() ? 'Corregir el borrador' : 'Nuevo documento' }}</h2>
-      <p>Sube el documento y la resolución que lo aprueba. Antes de enviarlo verás quién firma en cada oficina.</p>
+      <p>Completa los cuatro pasos. Antes de enviarlo verás quién firma en cada oficina y podrás revisar todo.</p>
     </div>
     <div class="header-actions">
       <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
@@ -30,99 +30,164 @@
   } @else {
     <div class="layout">
      <div class="column">
-      @if (fixedOrigin()) {
-        <div class="origin-card" data-testid="origin-card">
-          <span class="pi pi-building origin-card__icon" aria-hidden="true"></span>
-          <div class="origin-card__text">
-            <small class="field-hint">Origen del documento</small>
-            <strong data-testid="origin-name">{{ originName() }}</strong>
-            <small class="field-hint">{{ editing() ? 'Fijado al crear el borrador. Si necesitas otra oficina, elimina el borrador y crea uno nuevo.' : 'Tu perfil en Core te autoriza a pedir documentos por esta oficina.' }}</small>
-          </div>
-          <p-tag [value]="editing() ? 'No editable' : 'Por tu perfil'" [severity]="editing() ? 'secondary' : 'info'" icon="pi pi-lock" data-testid="origin-tag"></p-tag>
+      <div class="route-strip route-strip--{{ routeStrip().tone }}" role="status" data-testid="route-strip">
+        <span class="pi {{ routeStrip().icon }} route-strip__icon" aria-hidden="true"></span>
+        <div class="route-strip__text">
+          <strong data-testid="route-strip-title">{{ routeStrip().title }}</strong>
+          <small>{{ routeStrip().text }}</small>
         </div>
-      } @else {
-        <section class="panel" aria-labelledby="origin-title" data-testid="origin-choice">
-          <h3 id="origin-title">¿Por qué oficina es este documento? *</h3>
-          <p class="field-hint">Solo ves las oficinas por las que Core te autoriza a pedir documentos. La ruta cambia con tu elección.</p>
-          @if (originAsCards()) {
-            <p-selectbutton class="origin-options" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [allowEmpty]="false" ariaLabelledBy="origin-title" data-testid="origin-cards"></p-selectbutton>
-          } @else {
-            <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [filter]="true" placeholder="Elige la oficina" [fluid]="true" appendTo="body" ariaLabelledBy="origin-title"></p-select>
-          }
-          @if (submitted() && errors()['origin']; as message) { <small class="field-error" role="alert" data-testid="error-origin">{{ message }}</small> }
-        </section>
-      }
+        <p-button label="Ver ruta" icon="pi pi-sitemap" severity="secondary" [outlined]="true" size="small" [disabled]="!origin()" data-testid="route-strip-open" (onClick)="routeOpen.set(true)"></p-button>
+      </div>
 
-      <section class="panel" aria-labelledby="data-title">
-        <h3 id="data-title">Datos</h3>
-
-        <div class="field">
-          <label for="document-type">Tipo de documento *</label>
-          <p-select inputId="document-type" [options]="types()" optionLabel="label" optionValue="code" [ngModel]="documentType()" (ngModelChange)="selectType($event)" [filter]="true" filterBy="label" [showClear]="true" placeholder="Elige el tipo de documento" emptyFilterMessage="Ningún tipo coincide." [fluid]="true" appendTo="body" [styleClass]="submitted() && !!errors()['type'] ? 'p-invalid' : ''" data-testid="document-type"></p-select>
-          @if (submitted() && errors()['type']; as message) { <small class="field-error" role="alert" data-testid="error-type">{{ message }}</small> }
-        </div>
-
-        @if (needsSubtype()) {
-          <div class="field" data-testid="subtype-field">
-            <span class="label" id="document-subtype-label">Subtipo * <small class="field-hint">(obligatorio en este tipo)</small></span>
-            <p-selectbutton class="subtype-options" [options]="subtypeOptions()" optionLabel="label" optionValue="code" [ngModel]="documentSubtype()" (ngModelChange)="documentSubtype.set($event)" [allowEmpty]="true" size="small" ariaLabelledBy="document-subtype-label" data-testid="document-subtype"></p-selectbutton>
-            @if (submitted() && errors()['subtype']; as message) { <small class="field-error" role="alert" data-testid="error-subtype">{{ message }}</small> }
-          </div>
-        }
-
-        <div class="field">
-          <label for="directive-title">Título del documento *</label>
-          <input pInputText id="directive-title" type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" [class.p-invalid]="submitted() && !!errors()['title']" [attr.aria-invalid]="submitted() && !!errors()['title']" />
-          @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
-        </div>
-
-        <div class="switch-row">
-          <p-toggleswitch inputId="directive-quality" [ngModel]="quality()" (ngModelChange)="quality.set($event)"></p-toggleswitch>
+      <section class="panel" aria-labelledby="origin-title" data-testid="origin-section">
+        <span class="step-num" aria-hidden="true">1</span>
+        <div class="step-body">
           <div>
-            <label for="directive-quality">Es de un proceso de calidad</label>
-            <small class="field-hint">Si lo activas, la Oficina de Gestión de la Calidad firma antes de Asesoría Jurídica.</small>
+            <h3 id="origin-title">Oficina de origen{{ fixedOrigin() ? '' : ' *' }}</h3>
+            <p class="field-hint">{{ fixedOrigin() ? 'Core te autoriza a pedir documentos por esta oficina.' : 'Solo ves las oficinas por las que Core te autoriza a pedir documentos. La ruta cambia con tu elección.' }}</p>
           </div>
-        </div>
-
-        <div class="files">
-          <div class="field">
-            <span class="label" id="directive-file-label">Documento (PDF){{ editing() ? '' : ' *' }}</span>
-            <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
-            @if (directiveFile(); as file) {
-              <span class="file-line"><small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>@if (pagesTag(directivePages()); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="directive-pages"></p-tag> }</span>
-            } @else if (existing()) {
-              <span class="file-line"><small class="file-name">{{ existing()?.files?.directive?.name }} · se mantiene si no eliges otro</small>@if (existing()?.files?.directive?.pages; as saved) { <p-tag [value]="pagesLabel(saved)" severity="secondary"></p-tag> }</span>
-            }
-            <small class="field-hint">Sin firmar: lo firman las oficinas desde Academical.</small>
-            @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
-          </div>
-
-          <div class="field">
-            <span class="label" id="resolution-file-label">Resolución que lo aprueba (PDF){{ editing() ? '' : ' *' }}</span>
-            <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar PDF' : (editing() ? 'Reemplazar PDF' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
-            @if (resolutionFile(); as file) {
-              <span class="file-line"><small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>@if (pagesTag(resolutionPages()); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="resolution-pages"></p-tag> }</span>
-            } @else if (existing()) {
-              <span class="file-line"><small class="file-name">{{ existing()?.files?.resolution?.name }} · se mantiene si no eliges otro</small>@if (existing()?.files?.resolution?.pages; as saved) { <p-tag [value]="pagesLabel(saved)" severity="secondary"></p-tag> }</span>
-            }
-            <small class="field-hint">Solo se adjunta, no se firma. Puede venir ya firmada.</small>
-            @if ((submitted() || fileError().resolution) && errors()['resolution']; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
-          </div>
-        </div>
-
-        @if (totalPages(); as total) {
-          <p class="pages-total" data-testid="pages-total">Total del expediente: <strong>{{ pagesLabel(total.total) }}</strong> <span class="muted-note">({{ total.directive }} del documento + {{ total.resolution }} de la resolución)</span></p>
-        }
-
-        @if (serverError()) {
-          <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
-        }
-
-        <div class="actions">
-          <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="cancel()"></p-button>
-          <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
+          @if (fixedOrigin()) {
+            <div class="origin-card" data-testid="origin-card">
+              <span class="pi pi-building origin-card__icon" aria-hidden="true"></span>
+              <div class="origin-card__text">
+                <strong data-testid="origin-name">{{ originName() }}</strong>
+                <small class="field-hint">{{ editing() ? 'Fijada al crear el borrador. Si necesitas otra oficina, elimina el borrador y crea uno nuevo.' : 'Fijada por tu perfil en Core.' }}</small>
+              </div>
+              <p-tag [value]="editing() ? 'No editable' : 'Por tu perfil'" [severity]="editing() ? 'secondary' : 'info'" icon="pi pi-lock" data-testid="origin-tag"></p-tag>
+            </div>
+          } @else {
+            <div data-testid="origin-choice" class="field">
+              @if (originAsCards()) {
+                <p-selectbutton class="origin-options" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [allowEmpty]="false" ariaLabelledBy="origin-title" data-testid="origin-cards"></p-selectbutton>
+              } @else {
+                <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [filter]="true" placeholder="Elige la oficina" [fluid]="true" appendTo="body" ariaLabelledBy="origin-title"></p-select>
+              }
+              @if (submitted() && errors()['origin']; as message) { <small class="field-error" role="alert" data-testid="error-origin">{{ message }}</small> }
+            </div>
+          }
         </div>
       </section>
+
+      <section class="panel" aria-labelledby="class-title" data-testid="class-section">
+        <span class="step-num" aria-hidden="true">2</span>
+        <div class="step-body">
+          <div>
+            <h3 id="class-title">Clasificación</h3>
+            <p class="field-hint">El tipo decide si hace falta subtipo.</p>
+          </div>
+          <div class="field">
+            <label for="document-type">Tipo de documento *</label>
+            <p-select inputId="document-type" [options]="types()" optionLabel="label" optionValue="code" [ngModel]="documentType()" (ngModelChange)="selectType($event)" [filter]="true" filterBy="label" [showClear]="true" placeholder="Elige el tipo de documento" emptyFilterMessage="Ningún tipo coincide." [fluid]="true" appendTo="body" [styleClass]="submitted() && !!errors()['type'] ? 'p-invalid' : ''" data-testid="document-type"></p-select>
+            @if (submitted() && errors()['type']; as message) { <small class="field-error" role="alert" data-testid="error-type">{{ message }}</small> }
+          </div>
+
+          @if (needsSubtype()) {
+            <div class="field" data-testid="subtype-field">
+              <span class="label" id="document-subtype-label">Subtipo * <small class="field-hint">(obligatorio en este tipo)</small></span>
+              <p-selectbutton class="subtype-options" [options]="subtypeOptions()" optionLabel="label" optionValue="code" [ngModel]="documentSubtype()" (ngModelChange)="documentSubtype.set($event)" [allowEmpty]="true" size="small" ariaLabelledBy="document-subtype-label" data-testid="document-subtype"></p-selectbutton>
+              @if (submitted() && errors()['subtype']; as message) { <small class="field-error" role="alert" data-testid="error-subtype">{{ message }}</small> }
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="data-title" data-testid="data-section">
+        <span class="step-num" aria-hidden="true">3</span>
+        <div class="step-body">
+          <div>
+            <h3 id="data-title">Datos del documento</h3>
+            <p class="field-hint">Cómo lo verán las oficinas en su bandeja.</p>
+          </div>
+          <div class="field">
+            <label for="directive-title">Título *</label>
+            <input pInputText id="directive-title" type="text" maxlength="200" placeholder="Ej.: Directiva para el control de bienes patrimoniales" [ngModel]="title()" (ngModelChange)="title.set($event)" [class.p-invalid]="submitted() && !!errors()['title']" [attr.aria-invalid]="submitted() && !!errors()['title']" />
+            <small class="field-hint">Mínimo 5 letras. Es lo que aparece en la lista y en los avisos por correo.</small>
+            @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
+          </div>
+          <div class="switch-row">
+            <p-toggleswitch inputId="directive-quality" [ngModel]="quality()" (ngModelChange)="quality.set($event)"></p-toggleswitch>
+            <div>
+              <label for="directive-quality">Proceso de calidad</label>
+              <small class="field-hint">Si lo activas, la Oficina de Gestión de la Calidad firma antes de Asesoría Jurídica.</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="files-title" data-testid="files-section">
+        <span class="step-num" aria-hidden="true">4</span>
+        <div class="step-body">
+          <div>
+            <h3 id="files-title">Archivos</h3>
+            <p class="field-hint">PDF de hasta {{ maxPdfMb }} MB. El documento se firma; la resolución solo se adjunta.</p>
+          </div>
+
+          <div class="files">
+            <div class="field">
+              <span class="label" id="directive-file-label">Documento de gestión (PDF){{ editing() ? '' : ' *' }}</span>
+              <div class="dropzone" [class.dropzone--over]="dragging() === 'directive'" [class.dropzone--filled]="!!directiveFile()" [class.dropzone--error]="(submitted() || fileError().directive) && !!errors()['directive']" data-testid="drop-directive" (dragover)="dragOver('directive', $event)" (dragleave)="dragging.set(null)" (drop)="dropFile('directive', $event)">
+                <span class="pi pi-file-pdf dropzone__icon" aria-hidden="true"></span>
+                <div class="dropzone__text">
+                  @if (directiveFile(); as file) {
+                    <strong class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</strong>
+                    <span class="file-line">@if (pagesTag(directivePages()); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="directive-pages"></p-tag> }</span>
+                  } @else if (existing()) {
+                    <strong class="file-name">{{ existing()?.files?.directive?.name }}</strong>
+                    <span class="file-line"><small class="field-hint">Se mantiene si no eliges otro.</small>@if (existing()?.files?.directive?.pages; as saved) { <p-tag [value]="pagesLabel(saved)" severity="secondary"></p-tag> }</span>
+                  } @else {
+                    <strong>Arrastra el PDF aquí o elige un archivo</strong>
+                    <small class="field-hint">Se firma en Academical por las oficinas de la ruta.</small>
+                  }
+                </div>
+                <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar' : (editing() ? 'Reemplazar' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+              </div>
+              @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
+            </div>
+
+            <div class="field">
+              <span class="label" id="resolution-file-label">Resolución que lo aprueba (PDF){{ editing() ? '' : ' *' }}</span>
+              <div class="dropzone" [class.dropzone--over]="dragging() === 'resolution'" [class.dropzone--filled]="!!resolutionFile()" [class.dropzone--error]="(submitted() || fileError().resolution) && !!errors()['resolution']" data-testid="drop-resolution" (dragover)="dragOver('resolution', $event)" (dragleave)="dragging.set(null)" (drop)="dropFile('resolution', $event)">
+                <span class="pi pi-file-pdf dropzone__icon" aria-hidden="true"></span>
+                <div class="dropzone__text">
+                  @if (resolutionFile(); as file) {
+                    <strong class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }}</strong>
+                    <span class="file-line">@if (pagesTag(resolutionPages()); as tag) { <p-tag [value]="tag.label" [severity]="tag.severity" data-testid="resolution-pages"></p-tag> }</span>
+                  } @else if (existing()) {
+                    <strong class="file-name">{{ existing()?.files?.resolution?.name }}</strong>
+                    <span class="file-line"><small class="field-hint">Se mantiene si no eliges otro.</small>@if (existing()?.files?.resolution?.pages; as saved) { <p-tag [value]="pagesLabel(saved)" severity="secondary"></p-tag> }</span>
+                  } @else {
+                    <strong>Arrastra el PDF aquí o elige un archivo</strong>
+                    <small class="field-hint">Solo se adjunta, no se firma. Puede venir ya firmada.</small>
+                  }
+                </div>
+                <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar' : (editing() ? 'Reemplazar' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+              </div>
+              @if ((submitted() || fileError().resolution) && errors()['resolution']; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
+            </div>
+          </div>
+
+          <p class="pages-total" data-testid="pages-total-line">
+            <strong>Total del expediente:</strong>
+            @if (totalPages(); as total) {
+              <span data-testid="pages-total"><strong>{{ pagesLabel(total.total) }}</strong> <span class="muted-note">({{ total.directive }} del documento + {{ total.resolution }} de la resolución)</span></span>
+            } @else {
+              <span class="muted-note">se calcula al elegir los archivos</span>
+            }
+          </p>
+        </div>
+      </section>
+
+      @if (serverError()) {
+        <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
+      }
+
+      <div class="action-bar" data-testid="action-bar">
+        <span class="field-hint action-bar__note">{{ editing() ? 'Los cambios quedan en el seguimiento.' : 'Se guarda como borrador: aún no se envía a nadie.' }}</span>
+        <span class="actions">
+          <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="cancel()"></p-button>
+          <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
+        </span>
+      </div>
      </div>
     </div>
   }

@@ -64,6 +64,9 @@ export class DirectiveFormComponent implements OnInit {
   readonly saving = signal(false);
   readonly serverError = signal('');
   readonly fileError = signal<{ directive: string; resolution: string }>({ directive: '', resolution: '' });
+  /** Qué zona de archivo tiene encima un archivo arrastrado, para resaltarla. */
+  readonly dragging = signal<'directive' | 'resolution' | null>(null);
+  readonly maxPdfMb = MAX_PDF_BYTES / (1024 * 1024);
 
   readonly route = signal<DirectiveRoute | null>(null);
   readonly routeLoading = signal(false);
@@ -90,6 +93,18 @@ export class DirectiveFormComponent implements OnInit {
     const ready = route.steps.filter(step => !step.skipped).length - missing;
 
     return missing > 0 ? { label: missing === 1 ? 'Falta 1' : `Faltan ${missing}`, severity: 'warn' } : { label: ready === 1 ? '1 lista' : `${ready} listas`, severity: 'success' };
+  });
+  /** La franja de arriba: dice sin abrir el cajón si la ruta está lista o a quién le falta una persona designada. */
+  readonly routeStrip = computed<{ tone: 'ok' | 'warn' | 'info'; icon: string; title: string; text: string }>(() => {
+    const route = this.route();
+    if (!this.origin()) return { tone: 'info', icon: 'pi-info-circle', title: 'Elige la oficina de origen', text: 'Con ella se arma la ruta de firmas.' };
+    if (this.routeLoading() && !route) return { tone: 'info', icon: 'pi-spin pi-spinner', title: 'Armando la ruta de firmas…', text: 'Consultando a Core quién firma en cada oficina.' };
+    if (!route) return { tone: 'warn', icon: 'pi-exclamation-triangle', title: 'No se pudo armar la ruta', text: this.routeError() || 'Inténtalo nuevamente.' };
+    const steps = route.steps.filter(step => !step.skipped).length;
+    const missing = route.issues.length;
+    if (missing > 0) return { tone: 'warn', icon: 'pi-exclamation-triangle', title: missing === 1 ? 'Falta alguien en la ruta' : `Faltan ${missing} personas en la ruta`, text: 'Core no tiene firmante designado en esas oficinas: puedes guardar el borrador, pero no enviarlo a firma.' };
+
+    return { tone: 'ok', icon: 'pi-verified', title: `Ruta lista: ${steps === 1 ? '1 oficina' : `${steps} oficinas`}, todas con firmante designado`, text: 'Cambia si eliges otra oficina de origen o activas «proceso de calidad».' };
   });
   /** Cuántos pasos tiene la ruta: es el número del botón «Ruta de firmas». */
   readonly routeCount = computed(() => this.route()?.steps.filter(step => !step.skipped).length ?? 0);
@@ -272,6 +287,19 @@ export class DirectiveFormComponent implements OnInit {
       // Si mientras se contaba se eligió otro archivo, ese resultado ya no vale.
       void countPdfPages(file).then(count => { if (chosen() === file) pages.set(count); });
     }
+  }
+
+  dragOver(kind: 'directive' | 'resolution', event: DragEvent): void {
+    event.preventDefault();
+    this.dragging.set(kind);
+  }
+
+  /** Un PDF soltado en la zona; si se sueltan varios se toma el primero, igual que al elegir. */
+  dropFile(kind: 'directive' | 'resolution', event: DragEvent): void {
+    event.preventDefault();
+    this.dragging.set(null);
+    const files = [...(event.dataTransfer?.files ?? [])];
+    if (files.length > 0) this.pick(kind, { files });
   }
 
   /** El PDF elegido con `p-fileupload`; se vacía el componente para poder elegir el mismo archivo otra vez. */
