@@ -485,4 +485,76 @@ describe('DirectiveFormComponent', () => {
     await create('7');
     expect(Number(html().querySelector('[data-testid="tracking-count"]')!.textContent!.trim())).toBe(detail().events.length);
   });
+
+  it('says in a strip, without opening the drawer, whether the route is ready or who is missing', async () => {
+    await create();
+    expect(text('route-strip-title')).toContain('Elige la oficina de origen');
+
+    fixture.componentInstance.origin.set('adm');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(text('route-strip-title')).toBe('Falta alguien en la ruta');
+    expect(find('route-strip')!.classList).toContain('route-strip--warn');
+
+    service.route.and.returnValue(of(ok(route({ issues: [], can_send: true }))));
+    fixture.componentInstance.origin.set('adm_sub');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(text('route-strip-title')).toBe('Ruta lista: 4 oficinas, todas con firmante designado');
+    expect(find('route-strip')!.classList).toContain('route-strip--ok');
+  });
+
+  it('opens the route drawer from the strip', async () => {
+    await create();
+    fixture.componentInstance.routeOpen.set(false);
+    fixture.componentInstance.origin.set('adm');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    html().querySelector<HTMLElement>('[data-testid="route-strip-open"] button')!.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.routeOpen()).toBeTrue();
+  });
+
+  it('numbers the four steps and keeps the save bar in the form', async () => {
+    await create();
+
+    expect([...html().querySelectorAll('.step-num')].map(element => element.textContent!.trim())).toEqual(['1', '2', '3', '4']);
+    expect(html().querySelector('[data-testid="action-bar"] [data-testid="save-directive"]')).not.toBeNull();
+    expect(text('pages-total-line')).toContain('se calcula al elegir los archivos');
+  });
+
+  it('takes a PDF dropped on its zone, and refuses what is not a PDF', async () => {
+    await create();
+    const form = fixture.componentInstance;
+    const drop = (kind: 'directive' | 'resolution', file: File) => {
+      const event = new Event('drop', { cancelable: true }) as DragEvent;
+      Object.defineProperty(event, 'dataTransfer', { value: { files: [file] } });
+      find(`drop-${kind}`)!.dispatchEvent(event);
+      fixture.detectChanges();
+
+      return event;
+    };
+
+    const event = drop('directive', pdf('arrastrado.pdf'));
+    expect(event.defaultPrevented).toBeTrue();
+    expect(form.directiveFile()?.name).toBe('arrastrado.pdf');
+    expect(text('directive-file')).toContain('arrastrado.pdf');
+
+    drop('resolution', new File(['x'], 'foto.png', { type: 'image/png' }));
+    expect(form.resolutionFile()).toBeNull();
+    expect(form.fileError().resolution).toContain('debe ser un PDF');
+  });
+
+  it('highlights the zone while a file is over it', async () => {
+    await create();
+    find('drop-directive')!.dispatchEvent(new Event('dragover', { cancelable: true }));
+    fixture.detectChanges();
+    expect(find('drop-directive')!.classList).toContain('dropzone--over');
+
+    find('drop-directive')!.dispatchEvent(new Event('dragleave'));
+    fixture.detectChanges();
+    expect(find('drop-directive')!.classList).not.toContain('dropzone--over');
+  });
 });
