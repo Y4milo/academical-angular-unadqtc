@@ -216,6 +216,53 @@ describe('DirectiveSignComponent', () => {
     expect(html().querySelector('[data-testid="sign-button"]')).not.toBeNull();
   });
 
+  describe('certificate of who signs', () => {
+    const refusedEvent = (reason: string) => ({ type: 'signature_invalid', version: 1, at: '2026-11-11T15:22:40Z', by: null, data: { reason } });
+
+    it('says which certificate to use, with the DNI of the person, before signing', async () => {
+      service.detail.and.returnValue(of(ok(detail({ ...turn(), my_step: { label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: 'Jefe', condition: 'titular', position: 3, role: 'visto_bueno', role_label: null, document_number: '45678901' } }))));
+      await create();
+
+      expect(text('holder-note')).toContain('Firma con tu certificado');
+      expect(text('holder-note')).toContain('DNI 45678901');
+    });
+
+    it('does not invent a DNI when Core did not give it', async () => {
+      await create();
+
+      expect(text('holder-note')).not.toContain('DNI');
+    });
+
+    it('tells the person the signature was not registered when the signer refused another holder, instead of saying she closed it', async () => {
+      await create();
+      await sign();
+      jasmine.clock().install();
+      service.detail.and.returnValue(of(ok(detail({ ...turn(), events: [refusedEvent('holder_mismatch')] }))));
+
+      handlers.cancel();
+      jasmine.clock().tick(1600);
+      fixture.detectChanges();
+
+      expect(text('sign-refused')).toContain('Tu firma no se registró');
+      expect(text('sign-refused')).toContain('no pertenece a');
+      expect(html().querySelector('[data-testid="sign-notice"]')).toBeNull();
+      expect(html().querySelector('[data-testid="sign-button"]')).not.toBeNull();
+    });
+
+    it('keeps the "closed without finishing" notice when no refusal shows up', async () => {
+      await create();
+      await sign();
+      jasmine.clock().install();
+
+      handlers.cancel();
+      jasmine.clock().tick(10000);
+      fixture.detectChanges();
+
+      expect(text('sign-notice')).toContain('Cerraste la firma sin terminar');
+      expect(html().querySelector('[data-testid="sign-refused"]')).toBeNull();
+    });
+  });
+
   it('explains when the session cannot be opened and does not start the local signer', async () => {
     service.openSigningSession.and.returnValue(throwError(() => ({ error: { payload: { message: 'Ya tienes una sesión de firma abierta.' } } })));
     await create();
