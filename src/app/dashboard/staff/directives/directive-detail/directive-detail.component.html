@@ -296,6 +296,18 @@
 
     <p-confirmdialog></p-confirmdialog>
 
+    <p-dialog [header]="viewer()?.title ?? ''" [visible]="!!viewer()" (visibleChange)="!$event && closeViewer()" [modal]="true" [draggable]="false" [style]="{ width: 'min(96vw, 64rem)' }" data-testid="pdf-viewer">
+      @if (viewer(); as current) {
+        <iframe class="pdf-frame" [src]="current.url" [title]="current.title" data-testid="pdf-frame"></iframe>
+      }
+      <ng-template #footer>
+        @if (viewer(); as current) {
+          <a class="pdf-open" [href]="current.raw" target="_blank" rel="noopener" data-testid="pdf-new-tab">Abrir en otra pestaña</a>
+        }
+        <p-button label="Cerrar" severity="secondary" [outlined]="true" (onClick)="closeViewer()"></p-button>
+      </ng-template>
+    </p-dialog>
+
     <p-dialog header="Anular documento" [visible]="cancelOpen()" (visibleChange)="!$event && closeCancel()" [modal]="true" [draggable]="false" [closable]="!cancelSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="cancel-dialog">
       <div class="cancel-form">
         <p-message severity="warn" size="small">

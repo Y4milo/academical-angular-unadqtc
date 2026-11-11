@@ -180,21 +180,39 @@ describe('DirectiveDetailComponent', () => {
     expect(html().querySelector('[data-testid="send-directive"]')).toBeNull();
   });
 
-  it('opens a PDF in a new tab through the session and tells when it cannot', async () => {
-    const tab = { location: { href: '' }, close: jasmine.createSpy('close') };
-    spyOn(window, 'open').and.returnValue(tab as unknown as Window);
+  it('shows a PDF in a preview window (no new tab that the browser could block) and tells when it cannot', async () => {
+    const open = spyOn(window, 'open');
+    const revoke = spyOn(URL, 'revokeObjectURL');
     spyOn(URL, 'createObjectURL').and.returnValue('blob:pdf');
     service.file.and.returnValue(of(new Blob(['%PDF'])));
     await create();
 
     fixture.componentInstance.openFile('resolution');
+    fixture.detectChanges();
     expect(service.file).toHaveBeenCalledWith(7, 'resolution', undefined);
-    expect(tab.location.href).toBe('blob:pdf');
+    expect(open).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.viewer()?.title).toBe('Resolución que lo aprueba');
+    expect(fixture.componentInstance.viewer()?.raw).toBe('blob:pdf');
+
+    fixture.componentInstance.closeViewer();
+    expect(fixture.componentInstance.viewer()).toBeNull();
+    expect(revoke).toHaveBeenCalledWith('blob:pdf');
 
     service.file.and.returnValue(throwError(() => ({ status: 404 })));
     fixture.componentInstance.openFile('directive');
-    expect(tab.close).toHaveBeenCalled();
+    expect(fixture.componentInstance.viewer()).toBeNull();
     expect(notifications.error).toHaveBeenCalled();
+  });
+
+  it('names the version in the preview window of an old version', async () => {
+    spyOn(URL, 'createObjectURL').and.returnValue('blob:pdf');
+    service.file.and.returnValue(of(new Blob(['%PDF'])));
+    await create();
+
+    fixture.componentInstance.openFile('directive', 1);
+
+    expect(service.file).toHaveBeenCalledWith(7, 'directive', 1);
+    expect(fixture.componentInstance.viewer()?.title).toBe('Documento de gestión · versión 1');
   });
 
   it('shows who signed, whose turn it is and who waits, and lets the person whose turn it is go and sign', async () => {

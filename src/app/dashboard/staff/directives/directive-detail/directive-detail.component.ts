@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MenuItem, PrimeTemplate } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
@@ -63,6 +64,8 @@ export class DirectiveDetailComponent implements OnInit {
   readonly routeLoading = signal(false);
   readonly routeError = signal('');
   readonly opening = signal<string | null>(null);
+  /** El PDF que se está viendo en la ventana de vista previa (la misma forma de verlo que la pantalla de firmar: sin pestañas nuevas que el navegador bloquee). */
+  readonly viewer = signal<{ title: string; url: SafeResourceUrl; raw: string } | null>(null);
   readonly deleting = signal(false);
   readonly sending = signal(false);
   readonly sendError = signal('');
@@ -124,6 +127,7 @@ export class DirectiveDetailComponent implements OnInit {
     private confirmation: ConfirmationService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -209,30 +213,31 @@ export class DirectiveDetailComponent implements OnInit {
     }
   });
 
+  /** Abre uno de los PDF en una ventana de vista previa. Antes se abría en una pestaña nueva, que muchos navegadores bloquean al llegar el archivo. */
   openFile(kind: DirectiveFileKind, version?: number): void {
     const directive = this.directive();
     if (!directive || this.opening()) return;
-    // La pestaña se abre en el clic (antes de la espera) para que el navegador no la bloquee.
-    const tab = window.open('', '_blank');
     this.opening.set(version ? `${kind}-${version}` : kind);
 
     this.service.file(directive.id, kind, version).subscribe({
       next: blob => {
         this.opening.set(null);
-        const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        if (tab) {
-          tab.location.href = url;
-        } else {
-          window.location.href = url;
-        }
-        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        this.closeViewer();
+        const raw = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+        const label = kind === 'resolution' ? 'Resolución que lo aprueba' : 'Documento de gestión';
+        this.viewer.set({ title: version ? `${label} · versión ${version}` : label, url: this.sanitizer.bypassSecurityTrustResourceUrl(raw), raw });
       },
       error: () => {
         this.opening.set(null);
-        tab?.close();
         this.notificationService.error('No se pudo abrir el PDF', 'Inténtalo nuevamente.');
       },
     });
+  }
+
+  closeViewer(): void {
+    const current = this.viewer();
+    if (current) URL.revokeObjectURL(current.raw);
+    this.viewer.set(null);
   }
 
   edit(): void {
