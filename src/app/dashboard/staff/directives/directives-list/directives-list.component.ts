@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -32,7 +33,7 @@ type Section = 'mine' | 'pending' | 'route';
  */
 @Component({
   selector: 'app-directives-list',
-  imports: [DatePipe, NgTemplateOutlet, FormsModule, BadgeModule, ButtonModule, ChipModule, DialogModule, IconFieldModule, InputIconModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule],
+  imports: [CardModule, DatePipe, NgTemplateOutlet, FormsModule, BadgeModule, ButtonModule, ChipModule, DialogModule, IconFieldModule, InputIconModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule],
   templateUrl: './directives-list.component.html',
   styleUrl: './directives-list.component.css',
 })

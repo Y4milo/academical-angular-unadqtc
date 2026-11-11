@@ -24,8 +24,11 @@
 .progress i.progress__done { background: var(--p-green-500); }
 .progress i.progress__now { background: var(--p-primary-color); }
 
-.cards { display: grid; gap: var(--space-3); }
-.row-card { display: grid; gap: var(--space-2); padding: var(--space-3); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); cursor: pointer; }
+/* Entre cards, 24 px: el estándar de cards del catálogo. */
+.cards { display: grid; gap: var(--space-5); }
+/* Cada fila de la lista es un p-card: su relleno lo da el preset. */
+.row-card { display: block; cursor: pointer; }
+:host ::ng-deep .row-card .p-card-content { display: grid; gap: var(--space-3); min-width: 0; }
 .row-card:focus-visible { outline: 2px solid var(--p-primary-color); outline-offset: 2px; }
 .row-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); }
 .row-card__head strong { overflow-wrap: anywhere; }
