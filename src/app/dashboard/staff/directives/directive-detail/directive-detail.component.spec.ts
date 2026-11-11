@@ -17,7 +17,10 @@ describe('DirectiveDetailComponent', () => {
   let router: Router;
 
   const html = () => fixture.nativeElement as HTMLElement;
-  const text = (testId: string) => html().querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
+  /** El seguimiento vive en un cajón de PrimeNG que se pega al `body`: se busca en la pantalla y, si no está, en la página. */
+  const find = (testId: string) => html().querySelector(`[data-testid="${testId}"]`) ?? document.body.querySelector(`[data-testid="${testId}"]`);
+  const findAll = (testId: string) => [...html().querySelectorAll(`[data-testid="${testId}"]`), ...document.body.querySelectorAll(`[data-testid="${testId}"]`)].filter((element, index, all) => all.indexOf(element) === index);
+  const text = (testId: string) => find(testId)?.textContent?.trim() ?? '';
 
   /** Un PDF de verdad con las páginas que se indiquen: el contador del navegador lo lee con la misma librería. */
   const realPdf = async (name: string, pages: number) => {
@@ -46,6 +49,9 @@ describe('DirectiveDetailComponent', () => {
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(DirectiveDetailComponent);
     fixture.autoDetectChanges();
+    // Las pruebas abren el cajón del seguimiento para leer sus movimientos, como hace la persona con el botón.
+    fixture.componentInstance.trackingOpen.set(true);
+    fixture.componentInstance.routeOpen.set(true);
     await fixture.whenStable();
   }
 
@@ -72,8 +78,8 @@ describe('DirectiveDetailComponent', () => {
     expect(text('files-panel')).toContain('14 páginas');
     expect(text('files-panel')).toContain('resolucion.pdf');
     expect(text('directive-hash')).toContain('a'.repeat(64));
-    expect(html().querySelectorAll('[data-testid="route-step"]').length).toBe(4);
-    expect(html().querySelector('[data-testid="route-panel"]')!.textContent).not.toContain('Calidad');
+    expect(findAll('route-step').length).toBe(4);
+    expect(findAll('route-step').map(step => step.textContent).join(' ')).not.toContain('Calidad');
     expect(text('directive-event')).toContain('Creó el borrador');
     expect(service.route).toHaveBeenCalledWith('adm', false);
   });
@@ -128,7 +134,7 @@ describe('DirectiveDetailComponent', () => {
     ] }))));
     await create();
 
-    const events = Array.from(html().querySelectorAll('[data-testid="directive-event"]'));
+    const events = findAll('directive-event');
     expect(events[1].textContent).toContain('Devolvió la directiva con observaciones');
     expect(events[1].querySelector('[data-testid="event-detail"]')?.textContent).toBe('Oficina de Asesoría Jurídica · Carlos Paucar · Falta el anexo de costos');
     expect(events[1].textContent).toContain('Firmador');
@@ -170,7 +176,7 @@ describe('DirectiveDetailComponent', () => {
     await create();
 
     expect(service.route).not.toHaveBeenCalled();
-    expect(text('route-panel')).toContain('queda registrada al enviarla a firma');
+    expect(document.body.textContent).toContain('queda registrada al enviarla a firma');
     expect(html().querySelector('[data-testid="send-directive"]')).toBeNull();
   });
 
@@ -204,7 +210,7 @@ describe('DirectiveDetailComponent', () => {
     await create();
     const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
 
-    const steps = Array.from(html().querySelectorAll('[data-testid="progress-step"]')).map(step => step.textContent ?? '');
+    const steps = Array.from(findAll('progress-step')).map(step => step.textContent ?? '');
     expect(steps.length).toBe(3);
     expect(steps.join(' ')).not.toContain('Calidad');
     expect(steps[0]).toContain('Firmó');
@@ -259,7 +265,7 @@ describe('DirectiveDetailComponent', () => {
       service.detail.and.returnValue(of(ok(returned({ can_resubmit: true }))));
       await create();
 
-      const steps = Array.from(html().querySelectorAll('[data-testid="progress-step"]')).map(step => step.textContent);
+      const steps = Array.from(findAll('progress-step')).map(step => step.textContent);
       expect(steps[0]).toContain('Firmó la versión 1');
       expect(steps[1]).toContain('Devolvió');
       expect(steps[2]).toContain('Sin turno');
@@ -416,7 +422,7 @@ describe('DirectiveDetailComponent', () => {
       expect(text('cancelled-panel')).toContain('Anulada por Oficina de Administración');
       expect(text('cancelled-reason')).toContain(REASON);
       expect(html().querySelector('[data-testid="cancel-directive"]')).toBeNull();
-      expect(Array.from(html().querySelectorAll('[data-testid="progress-step"]'))[1].textContent).toContain('No llegó a firmar');
+      expect(Array.from(findAll('progress-step'))[1].textContent).toContain('No llegó a firmar');
     });
 
     it('keeps the dialog and shows what the server said when the signer does not let it', async () => {
@@ -567,7 +573,7 @@ describe('DirectiveDetailComponent', () => {
       service.detail.and.returnValue(of(ok(completed({ events: [event('signed_copy_failed', { reason: 'hash_mismatch' }), event('signed_copy_saved', { signatures: 4 })] }))));
       await create();
 
-      const events = Array.from(html().querySelectorAll('[data-testid="directive-event"]')).map(row => row.textContent);
+      const events = findAll('directive-event').map(row => row.textContent);
       expect(events[0]).toContain('No se pudo traer el documento firmado: la huella no coincide con la que declara el firmador');
       expect(events[0]).toContain('Academical');
       expect(events[0]).toContain('se vuelve a intentar al pulsar «Descargar firmada»');
@@ -577,85 +583,30 @@ describe('DirectiveDetailComponent', () => {
     });
   });
 
-  describe('collapsible cards', () => {
-    const toggle = (testId: string) => html().querySelector<HTMLElement>(`[data-testid="${testId}"] .p-panel-toggler, [data-testid="${testId}"] .p-panel-header-icon`);
-
-    it('draws the route and the follow-up as collapsible panels that start open', async () => {
+  describe('route and tracking buttons', () => {
+    it('puts the route and the tracking behind two small buttons of the header, with no cards of their own', async () => {
       await create();
-      const component = fixture.componentInstance;
 
-      expect(html().querySelector('p-panel[data-testid="route-panel"]')).not.toBeNull();
-      expect(html().querySelector('p-panel[data-testid="timeline-panel"]')).not.toBeNull();
-      expect(toggle('route-panel')).not.toBeNull();
-      expect(toggle('timeline-panel')).not.toBeNull();
-      expect(component.routeCollapsed()).toBeFalse();
-      expect(component.timelineCollapsed()).toBeFalse();
+      expect(html().querySelector('[data-testid="route-button"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="tracking-button"]')).not.toBeNull();
+      expect(html().querySelector('p-panel')).toBeNull();
       expect(text('route-panel')).toContain('Ruta de firmas');
-      expect(text('timeline-panel')).toContain('Seguimiento');
     });
 
-    it('collapses each card on its own', async () => {
+    it('shows the number of steps and of movements, and opens each drawer from its button', async () => {
       await create();
       const component = fixture.componentInstance;
-
-      toggle('timeline-panel')!.click();
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(component.timelineCollapsed()).toBeTrue();
-      expect(component.routeCollapsed()).toBeFalse();
-
-      toggle('route-panel')!.click();
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(component.routeCollapsed()).toBeTrue();
-
-      toggle('timeline-panel')!.click();
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(component.timelineCollapsed()).toBeFalse();
-    });
-
-    it('keeps both cards open on a phone width', async () => {
-      spyOnProperty(window, 'innerWidth', 'get').and.returnValue(375);
-      await create();
-
-      expect(fixture.componentInstance.routeCollapsed()).toBeFalse();
-      expect(fixture.componentInstance.timelineCollapsed()).toBeFalse();
-    });
-  });
-
-  describe('hint of the collapsible cards', () => {
-    const header = (testId: string) => html().querySelector<HTMLElement>(`[data-testid="${testId}"] .p-panel-header`);
-
-    it('tells to click to see the detail while a card is collapsed and to click to hide it while open', async () => {
-      await create();
-      const component = fixture.componentInstance;
-
-      expect(text('timeline-hint')).toBe('Haz clic para ocultar');
-      expect(text('route-hint')).toBe('Haz clic para ocultar');
-
-      component.timelineCollapsed.set(true);
-      component.routeCollapsed.set(true);
+      component.routeOpen.set(false);
+      component.trackingOpen.set(false);
       fixture.detectChanges();
 
-      expect(text('timeline-hint')).toBe('Haz clic para ver el detalle');
-      expect(text('route-hint')).toBe('Haz clic para ver el detalle');
-    });
-
-    it('toggles the card when the person clicks anywhere on its header, as the hint says', async () => {
-      await create();
-      const component = fixture.componentInstance;
-
-      header('timeline-panel')!.click();
-      await fixture.whenStable();
+      expect(text('route-count')).toBe(String(component.routeCount()));
+      expect(text('tracking-count')).toBe(String(component.directive()!.events.length));
+      html().querySelector<HTMLElement>('[data-testid="route-button"]')!.click();
+      html().querySelector<HTMLElement>('[data-testid="tracking-button"]')!.click();
       fixture.detectChanges();
-      expect(component.timelineCollapsed()).toBeTrue();
-      expect(component.routeCollapsed()).toBeFalse();
-
-      header('timeline-panel')!.click();
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(component.timelineCollapsed()).toBeFalse();
+      expect(component.routeOpen()).toBeTrue();
+      expect(component.trackingOpen()).toBeTrue();
     });
   });
 
@@ -774,7 +725,7 @@ describe('DirectiveDetailComponent', () => {
     ] }))));
     await create();
 
-    const first = html().querySelector('[data-testid="directive-event"]')!.textContent!;
+    const first = find('directive-event')!.textContent!;
     expect(first).toContain('Reemplazó el documento');
     expect(first).toContain('vieja.pdf');
     expect(first).toContain('nueva.pdf');
@@ -788,7 +739,7 @@ describe('DirectiveDetailComponent', () => {
     ] }))));
     await create();
 
-    const event = html().querySelector('[data-testid="directive-event"]')!;
+    const event = find('directive-event')!;
     expect(event.textContent).toContain('Corrigió los datos');
     const changes = Array.from(event.querySelectorAll('[data-testid="event-change"]')).map(row => Array.from(row.children).map(part => part.textContent!.trim()));
     expect(changes).toEqual([['Título', 'Prueba', 'PRUEBA 001'], ['Proceso de calidad', 'No', 'Sí'], ['Subtipo', 'POI', '—']]);
@@ -802,7 +753,7 @@ describe('DirectiveDetailComponent', () => {
     ] }))));
     await create();
 
-    const event = html().querySelector('[data-testid="directive-event"]')!;
+    const event = find('directive-event')!;
     expect(event.textContent).toContain('Corrigió el borrador');
     expect(event.querySelectorAll('[data-testid="event-change"]').length).toBe(2);
   });

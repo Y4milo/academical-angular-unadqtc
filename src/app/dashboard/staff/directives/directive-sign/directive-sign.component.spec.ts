@@ -287,4 +287,9 @@ describe('DirectiveSignComponent', () => {
 
     expect(text('load-error')).toContain('No encontramos esa directiva');
   });
+  it('has the tracking button in its header, like the other screens of the module', async () => {
+    await create();
+
+    expect(html().querySelector('[data-testid="tracking-button"]')).not.toBeNull();
+  });
 });

@@ -17,7 +17,10 @@
           <p class="meta" data-testid="turn">Es tu turno: paso {{ position().number }} de {{ position().total }} · {{ current.active_office }}</p>
         }
       </div>
-      <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
+      <div class="header-actions">
+        <app-directive-tracking [events]="current.events" [(open)]="trackingOpen"></app-directive-tracking>
+        <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
+      </div>
     </div>
 
     @if (rejectedDone()) {

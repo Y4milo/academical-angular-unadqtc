@@ -12,6 +12,7 @@ import { TimelineModule } from 'primeng/timeline';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveSettings, DirectiveSettingsValues, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
+import { DirectiveLogDrawerComponent } from '../directive-tracking/directive-log-drawer.component';
 
 type Option<T extends string> = { label: string; value: T };
 
@@ -59,13 +60,15 @@ const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'S
  */
 @Component({
   selector: 'app-directive-settings',
-  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TimelineModule, ToggleSwitchModule],
+  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TimelineModule, ToggleSwitchModule, DirectiveLogDrawerComponent],
   templateUrl: './directive-settings.component.html',
   styleUrl: './directive-settings.component.css',
 })
 export class DirectiveSettingsComponent implements OnInit {
   readonly rules = SETTING_RULES;
   readonly notices = NOTICE_RULES;
+  /** El cajón del registro de cambios (botón de la cabecera). */
+  readonly historyOpen = signal(false);
   readonly saved = signal<DirectiveSettings | null>(null);
   readonly values = signal<DirectiveSettingsValues | null>(null);
   readonly loading = signal(true);

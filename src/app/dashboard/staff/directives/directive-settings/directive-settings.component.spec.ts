@@ -14,12 +14,16 @@ describe('DirectiveSettingsComponent', () => {
   const defaults = { pending_docs: 'yes', signed_versions: 'own', reason_visibility: 'origin', notify_turn: 'yes', notify_returned: 'yes', notify_void: 'yes', notify_completed: 'yes', notify_cancelled: 'yes' } as const;
   const settings = (overrides: Partial<DirectiveSettings> = {}): DirectiveSettings => ({ values: { ...defaults }, defaults: { ...defaults }, history: [], ...overrides });
   const html = () => fixture.nativeElement as HTMLElement;
-  const text = (testId: string) => html().querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
+  /** El registro de cambios vive en un cajón de PrimeNG que se pega al `body`: se busca en la pantalla y, si no está, en la página. */
+  const find = (testId: string) => html().querySelector(`[data-testid="${testId}"]`) ?? document.body.querySelector(`[data-testid="${testId}"]`);
+  const text = (testId: string) => find(testId)?.textContent?.trim() ?? '';
   const saveButton = () => html().querySelector('[data-testid="save-settings"] button') as HTMLButtonElement;
 
   async function create() {
     fixture = TestBed.createComponent(DirectiveSettingsComponent);
     fixture.autoDetectChanges();
+    // Las pruebas abren el cajón del registro de cambios para leerlo, como hace la persona con el botón.
+    fixture.componentInstance.historyOpen.set(true);
     await fixture.whenStable();
   }
 
@@ -149,5 +153,16 @@ describe('DirectiveSettingsComponent', () => {
 
     expect(text('load-error')).toContain('Solo el administrador del sistema');
     expect(html().querySelector('[data-testid="rule-pending_docs"]')).toBeNull();
+  });
+
+  it('puts the change log behind a button with the number of changes', async () => {
+    service.settings.and.returnValue(of(ok(settings({ history: [{ key: 'pending_docs', old: 'yes', new: 'no', by: 'admin', at: '2026-11-16T09:30:00Z' }] }))));
+    await create();
+    fixture.componentInstance.historyOpen.set(false);
+    fixture.detectChanges();
+
+    expect(html().querySelector('[data-testid="history-button"]')!.textContent).toContain('Registro de cambios');
+    expect(text('history-count')).toBe('1');
+    expect(html().querySelector('section[data-testid="history-panel"]')).toBeNull();
   });
 });

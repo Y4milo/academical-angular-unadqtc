@@ -5,7 +5,27 @@
       <h2>Visibilidad de directivas</h2>
       <p>Qué ve cada oficina de la ruta cuando una directiva circula o es devuelta. Aplica a todas las directivas, nuevas y en curso.</p>
     </div>
-    <p-tag value="Solo administradores" severity="secondary"></p-tag>
+    <div class="header-actions">
+      <app-directive-log-drawer label="Registro de cambios" [count]="saved()?.history?.length ?? 0" [(open)]="historyOpen" testId="history">
+        <div data-testid="history-panel">
+          @if (saved()?.history?.length) {
+            <p-timeline [value]="saved()!.history" align="left" styleClass="history-timeline">
+              <ng-template pTemplate="marker"><span class="history-marker" aria-hidden="true"></span></ng-template>
+              <ng-template pTemplate="content" let-change>
+                <div class="history-item" data-testid="history-row">
+                  <strong>{{ keyLabel(change.key) }}</strong>
+                  <span>{{ valueLabel(change.old, change.key) }} → {{ valueLabel(change.new, change.key) }}</span>
+                  <span class="hint">{{ change.by || 'Sistema' }} · {{ change.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              </ng-template>
+            </p-timeline>
+          } @else {
+            <p class="hint" data-testid="history-empty">Todavía no se cambió nada: rigen los valores predeterminados.</p>
+          }
+        </div>
+      </app-directive-log-drawer>
+      <p-tag value="Solo administradores" severity="secondary"></p-tag>
+    </div>
   </div>
 
   @if (loadError()) {
@@ -59,24 +79,6 @@
               <p-message severity="info" data-testid="preview-text">
                 La directiva no llegó a su turno. Ve su estado y que fue devuelta; {{ view.documents ? 'puede consultar los PDF' : 'no ve los PDF' }}{{ view.reason ? ' y ve el motivo.' : ', no el motivo.' }}
               </p-message>
-            }
-          </section>
-
-          <section class="panel" aria-labelledby="history-title" data-testid="history-panel">
-            <h3 id="history-title">Registro de cambios</h3>
-            @if (saved()?.history?.length) {
-              <p-timeline [value]="saved()!.history" align="left" styleClass="history-timeline">
-                <ng-template pTemplate="marker"><span class="history-marker" aria-hidden="true"></span></ng-template>
-                <ng-template pTemplate="content" let-change>
-                  <div class="history-item" data-testid="history-row">
-                    <strong>{{ keyLabel(change.key) }}</strong>
-                    <span>{{ valueLabel(change.old, change.key) }} → {{ valueLabel(change.new, change.key) }}</span>
-                    <span class="hint">{{ change.by || 'Sistema' }} · {{ change.at | date: 'dd/MM/yyyy HH:mm' }}</span>
-                  </div>
-                </ng-template>
-              </p-timeline>
-            } @else {
-              <p class="hint" data-testid="history-empty">Todavía no se cambió nada: rigen los valores predeterminados.</p>
             }
           </section>
         </div>

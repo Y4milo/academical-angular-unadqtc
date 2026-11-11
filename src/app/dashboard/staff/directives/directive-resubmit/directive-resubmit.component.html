@@ -10,9 +10,19 @@
   } @else {
    @if (directive(); as current) {
     <div class="page-heading">
-      <p class="caption">Directiva · {{ current.origin.name }}</p>
-      <h2>Corregir y reenviar</h2>
-      <p>Vas a crear la <strong>versión {{ nextVersion() }}</strong>. La ruta empieza de cero y todas las oficinas vuelven a firmar.</p>
+      <div>
+        <p class="caption">Directiva · {{ current.origin.name }}</p>
+        <h2>Corregir y reenviar</h2>
+        <p>Vas a crear la <strong>versión {{ nextVersion() }}</strong>. La ruta empieza de cero y todas las oficinas vuelven a firmar.</p>
+      </div>
+      <div class="header-actions">
+        <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
+          <h4 class="route-title" id="route-title">Ruta que empezará de cero</h4>
+          <p class="field-hint">Con las personas que Core tiene designadas hoy, no las de la versión {{ current.version }}.</p>
+          <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+        </app-directive-log-drawer>
+        <app-directive-tracking [events]="current.events" [(open)]="trackingOpen"></app-directive-tracking>
+      </div>
     </div>
 
     @if (current.returned?.reason; as reason) {
@@ -71,12 +81,6 @@
           </div>
         </section>
       </div>
-
-      <section class="panel" aria-labelledby="route-title" data-testid="route-panel">
-        <h3 id="route-title">Ruta que empezará de cero</h3>
-        <p class="field-hint">Con las personas que Core tiene designadas hoy, no las de la versión {{ current.version }}.</p>
-        <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
-      </section>
     </div>
    }
   }
