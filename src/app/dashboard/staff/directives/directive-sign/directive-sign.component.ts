@@ -31,6 +31,8 @@ export const REASON_MAX = 1000;
 
 const CONFIRM_TRIES = 10;
 const CONFIRM_EVERY_MS = 3000;
+const REFUSAL_TRIES = 5;
+const REFUSAL_EVERY_MS = 1500;
 
 /**
  * La firma de una directiva por la persona a la que le toca. El servidor abre la sesión en el firmador y esta página llama al firmador local de
@@ -81,6 +83,8 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
 
     return { number: index + 1, total: steps.length };
   });
+  /** Si el firmador rechazó la firma que se acaba de hacer, con el motivo que dio; nulo mientras no se sepa. */
+  readonly refusal = signal<{ reason: string } | null>(null);
   readonly myRole = computed(() => {
     const role = this.directive()?.my_step?.role;
 
@@ -196,6 +200,8 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
     this.signError.set('');
     this.notice.set('');
     this.seq = 0;
+    this.refusal.set(null);
+    this.refusalsBefore = this.refusalCount(this.directive());
 
     this.service.openSigningSession(this.id).subscribe({
       next: response => {
@@ -297,6 +303,37 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
     this.report('cancelled', 'La persona cerró la firma');
     this.phase.set('idle');
     this.notice.set('Cerraste la firma sin terminar. Puedes intentarlo de nuevo cuando quieras.');
+    // Firma Perú también avisa «cancelado» cuando firmó en el equipo y el firmador rechazó el archivo (certificado de otra persona): se consulta unos
+    // segundos si hubo un rechazo nuevo para decir la causa en lugar de «sin terminar».
+    this.checkRefusal(REFUSAL_TRIES);
+  }
+
+  private refusalsBefore = 0;
+
+  private refusalCount(directive: DirectiveDetail | null): number {
+    return (directive?.events ?? []).filter(event => event.type === 'signature_invalid').length;
+  }
+
+  private checkRefusal(triesLeft: number): void {
+    if (triesLeft <= 0 || this.destroyed) return;
+
+    this.poll = this.zone.runOutsideAngular(() => setTimeout(() => this.zone.run(() => {
+      this.service.detail(this.id).subscribe({
+        next: response => {
+          if (this.destroyed) return;
+          const data = response.status === STATUS.success ? response.payload.data : null;
+          const refused = (data?.events ?? []).filter(event => event.type === 'signature_invalid');
+          if (data && refused.length > this.refusalsBefore) {
+            this.directive.set(data);
+            this.notice.set('');
+            this.refusal.set({ reason: String(refused[refused.length - 1].data?.['reason'] ?? '') });
+          } else {
+            this.checkRefusal(triesLeft - 1);
+          }
+        },
+        error: () => this.checkRefusal(triesLeft - 1),
+      });
+    }), REFUSAL_EVERY_MS));
   }
 
   private onTimeout(): void {

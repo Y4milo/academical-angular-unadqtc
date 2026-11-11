@@ -87,6 +87,8 @@ export interface DirectiveMyStep {
   position: number | null;
   role: StepRole | null;
   role_label: string | null;
+  /** El DNI de quien firma, leído de Core: para decirle con qué certificado debe firmar. Nulo si Core no respondió. */
+  document_number?: string | null;
 }
 
 /** Quién consulta la directiva: la pide (origin), la rechazó, ya firmó o aún espera su turno; decide qué ve. */

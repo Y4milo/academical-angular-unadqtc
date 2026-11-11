@@ -106,8 +106,27 @@
                     </div>
                   </ng-template>
                 </p-timeline>
-                <p-message severity="info" size="small" data-testid="holder-note">Usa el certificado a tu nombre. Si es de otra persona, la firma se rechaza.</p-message>
+                <p-message severity="info" size="small" data-testid="holder-note">
+                  <span>
+                    <strong>Firma con tu certificado.</strong>
+                    @if (current.my_step?.document_number; as dni) { Personal, el de DNI {{ dni }}, o institucional a tu nombre. } @else { Personal o institucional a tu nombre. }
+                    Si es de otra persona, la firma se rechaza.
+                  </span>
+                </p-message>
+                @if (phase() === 'waiting') {
+                  <p-message severity="warn" size="small" data-testid="empty-list-hint">¿No aparece tu certificado en Firma Perú? Conecta tu DNIe o token y pulsa «actualizar». Si sigue vacía, tu certificado personal no es de firma o no corresponde a esta persona.</p-message>
+                }
                 @if (signError()) { <p-message severity="error" data-testid="sign-error">{{ signError() }}</p-message> }
+                @if (refusal(); as refused) {
+                  <p-message severity="error" data-testid="sign-refused">
+                    <span>
+                      <strong>Tu firma no se registró.</strong>
+                      @if (refused.reason.includes('holder_mismatch')) { El certificado que usaste no pertenece a {{ current.my_step?.person || 'quien debe firmar este paso' }}. }
+                      @else { El firmador no la aceptó ({{ refused.reason || 'validación' }}). }
+                      El documento sigue esperando tu firma; no se cambió nada.
+                    </span>
+                  </p-message>
+                }
                 @if (notice()) { <p-message severity="warn" data-testid="sign-notice">{{ notice() }}</p-message> }
                 <p-button [label]="busy() ? 'Firmando…' : (myRole()?.action ?? 'Firmar con Firma Perú')" icon="pi pi-pen-to-square" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
                 @if (current.can_reject) {
