@@ -6,7 +6,7 @@
 .page-heading p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .form-skeleton { display: grid; gap: var(--space-3); max-width: 40rem; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); min-width: 0; }
-.column { display: grid; gap: var(--space-4); min-width: 0; flex: 1 1 0; }
+.column { display: grid; gap: var(--space-5); min-width: 0; flex: 1 1 0; }
 .origin-card { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-left: 4px solid var(--p-primary-color); border-radius: var(--radius-md); }
 .origin-card__icon { font-size: var(--text-card-title); color: var(--p-text-muted-color); }
 .origin-card__text { display: grid; gap: var(--space-1); min-width: 0; flex: 1; }
@@ -19,7 +19,7 @@
 .route-strip__text small { font-size: var(--text-small); }
 /* La barra de acciones es un p-toolbar pegado al pie de la pantalla mientras se desplaza el formulario. */
 :host ::ng-deep .action-bar { position: sticky; bottom: 0; z-index: 1; flex-wrap: wrap; gap: var(--space-3); box-shadow: 0 -4px 12px rgb(0 0 0 / 6%); }
-.panel { display: grid; grid-template-columns: 2rem minmax(0, 1fr); align-items: start; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
+.panel { display: grid; grid-template-columns: 2rem minmax(0, 1fr); align-items: start; gap: var(--space-3); min-width: 0; padding: var(--space-5); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
 .panel h3 { margin: 0; font-size: var(--text-card-title); }
 .step-num { display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--p-highlight-background); color: var(--p-highlight-color); font-size: var(--text-small); font-weight: 600; }
 .step-body { display: grid; gap: var(--space-4); min-width: 0; }
@@ -50,7 +50,7 @@
 .actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
 
 @media (max-width: 640px) {
-  .panel { grid-template-columns: minmax(0, 1fr); }
+  .panel { grid-template-columns: minmax(0, 1fr); padding: var(--space-4); }
   .step-num { display: none; }
   .route-strip__body { flex-wrap: wrap; }
   .origin-card { flex-wrap: wrap; }
