@@ -141,6 +141,13 @@ html .p-inputtext {
   font-size: var(--text-body);
 }
 
+/* Card estándar: 24 px de relleno, 16 px en teléfono (el preset da el de escritorio). */
+@media (max-width: 640px) {
+  html .p-card .p-card-body {
+    padding: var(--space-4);
+  }
+}
+
 html .p-datatable .p-datatable-thead > tr > th {
   font-size: var(--text-small);
 }
