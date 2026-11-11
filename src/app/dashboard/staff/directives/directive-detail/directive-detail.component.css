@@ -59,6 +59,8 @@
 .progress-chip { display: grid; gap: var(--space-1); justify-items: start; min-width: 9rem; padding-inline-end: var(--space-3); }
 .progress-chip[data-state='skipped'] strong { color: var(--p-text-muted-color); font-weight: 400; }
 :host ::ng-deep .progress-timeline .p-timeline-event { min-width: 10rem; flex: 1 0 10rem; }
+/* The line must stay straight: the empty side column of PrimeNG grew with the height of each name and pushed the markers up and down. */
+:host ::ng-deep .progress-timeline .p-timeline-event-opposite { flex: 0 0 0; min-height: 0; padding: 0; }
 .kv { display: grid; grid-template-columns: minmax(7rem, auto) minmax(0, 1fr); gap: var(--space-2) var(--space-4); margin: 0; font-size: var(--text-small); }
 .kv dt { color: var(--p-text-muted-color); }
 .kv dd { margin: 0; overflow-wrap: anywhere; }
