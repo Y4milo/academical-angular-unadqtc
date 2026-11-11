@@ -16,7 +16,7 @@
     <p-message severity="info" data-testid="no-request-access">Core no te autoriza a pedir ni a firmar documentos.</p-message>
   } @else {
     @if (sectionOptions().length > 1) {
-      <p-tabs [value]="section()" (valueChange)="changeSection($any($event))" data-testid="section-switch">
+      <p-tabs [value]="section()" [scrollable]="true" (valueChange)="changeSection($any($event))" data-testid="section-switch">
         <p-tablist>
           @for (option of sectionOptions(); track option.value) {
             <p-tab [value]="option.value" [attr.data-testid]="'section-' + option.value">
@@ -70,11 +70,11 @@
       @if (isMobile()) {
         <div class="cards">
           @for (directive of participatingRows(); track directive.id) {
-            <div class="row-card" role="button" tabindex="0" data-testid="route-row" (click)="open(directive)" (keydown.enter)="open(directive)">
+            <p-card class="row-card" role="button" tabindex="0" data-testid="route-row" (click)="open(directive)" (keydown.enter)="open(directive)">
               <div class="row-card__head"><strong>{{ directive.title }}</strong><p-tag [value]="statusOf(directive.status).label" [severity]="statusOf(directive.status).severity"></p-tag></div>
               <span class="type-cell" data-testid="route-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span>
               <span class="muted">{{ directive.origin.name }} · {{ directive.updated_at | date: 'dd/MM/yyyy' }}</span>
-            </div>
+            </p-card>
           }
         </div>
       } @else {
@@ -97,12 +97,12 @@
       @if (isMobile()) {
         <div class="cards">
           @for (directive of pendingRows(); track directive.id) {
-            <div class="row-card" data-testid="pending-row">
+            <p-card class="row-card" data-testid="pending-row">
               <div class="row-card__head"><strong>{{ directive.title }}</strong></div>
               <span class="type-cell" data-testid="pending-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span>
               <span class="muted">{{ directive.origin.name }} · Tu turno: {{ directive.step.label }} · Paso {{ directive.step.position }} de {{ directive.step.total }}</span>
               <p-button label="Revisar y firmar" styleClass="w-full" [fluid]="true" data-testid="sign-pending" (onClick)="sign(directive)"></p-button>
-            </div>
+            </p-card>
           } @empty {
             <div class="empty" data-testid="pending-empty"><i class="pi pi-check-circle empty__icon" aria-hidden="true"></i><h3>No tienes firmas pendientes</h3><p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p></div>
           }
@@ -143,11 +143,11 @@
       @if (isMobile() && !loading()) {
         <div class="cards">
           @for (directive of visible(); track directive.id) {
-            <div class="row-card" role="button" tabindex="0" data-testid="directive-row" (click)="open(directive)" (keydown.enter)="open(directive)">
+            <p-card class="row-card" role="button" tabindex="0" data-testid="directive-row" (click)="open(directive)" (keydown.enter)="open(directive)">
               <div class="row-card__head"><strong>{{ directive.title }}</strong></div>
               <span class="type-cell" data-testid="directive-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span>
               <div class="row-card__foot"><span class="muted">{{ directive.origin.name }} · {{ directive.updated_at | date: 'dd/MM/yyyy' }}</span><ng-container [ngTemplateOutlet]="statusCell" [ngTemplateOutletContext]="{ $implicit: directive }"></ng-container></div>
-            </div>
+            </p-card>
           } @empty {
             <ng-container [ngTemplateOutlet]="emptyMine"></ng-container>
           }
