@@ -65,7 +65,7 @@ describe('DirectiveSettingsComponent', () => {
 
     expect(text('preview-text')).toContain('no ve los PDF');
     expect(text('preview-text')).toContain('ve el motivo');
-    expect(text('settings-state')).toBe('Tienes cambios sin guardar.');
+    expect(text('settings-state')).toBe('Hay cambios sin guardar.');
     expect(saveButton().disabled).toBeFalse();
   });
 
@@ -164,5 +164,40 @@ describe('DirectiveSettingsComponent', () => {
     expect(html().querySelector('[data-testid="history-button"]')!.textContent).toContain('Registro de cambios');
     expect(text('history-count')).toBe('1');
     expect(html().querySelector('section[data-testid="history-panel"]')).toBeNull();
+  });
+
+  describe('redesigned screen', () => {
+    it('has breadcrumbs back to the list of documents and the vocabulary of the mockup', async () => {
+      await create();
+
+      expect(text('breadcrumb')).toContain('Documentos de gestión');
+      expect(text('breadcrumb')).toContain('Visibilidad de documentos');
+      expect(text('rule-pending_docs')).toContain('Oficinas que aún no les toca');
+      expect(text('rule-reason_visibility')).toContain('Motivo de la devolución');
+      expect(text('notice-notify_completed')).toContain('Documento firmado por todas');
+    });
+
+    it('keeps the preview card apart from the rules and the actions in a toolbar', async () => {
+      await create();
+
+      expect(html().querySelector('[data-testid="preview-panel"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="action-bar"] [data-testid="save-settings"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="action-bar"] [data-testid="discard-settings"]')).not.toBeNull();
+      expect(text('settings-state')).toBe('Sin cambios sin guardar.');
+    });
+
+    it('discards what was chosen and goes back to the last saved values', async () => {
+      await create();
+      const component = fixture.componentInstance;
+      component.choose('pending_docs', 'no');
+      fixture.detectChanges();
+      expect(component.dirty()).toBeTrue();
+      expect(text('settings-state')).toBe('Hay cambios sin guardar.');
+
+      component.discard();
+      fixture.detectChanges();
+      expect(component.dirty()).toBeFalse();
+      expect(component.values()?.pending_docs).toBe('yes');
+    });
   });
 });

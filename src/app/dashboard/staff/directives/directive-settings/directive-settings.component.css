@@ -6,10 +6,16 @@
 .page-heading p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .page-heading .caption { color: var(--p-primary-color); font-size: var(--text-caption); font-weight: 600; text-transform: uppercase; }
 .settings-skeleton { display: grid; gap: var(--space-3); max-width: 40rem; }
-.layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
-.column { display: grid; gap: var(--space-4); min-width: 0; }
-.panel { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
-.panel h3 { margin: 0; font-size: var(--text-card-title); }
+.layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.column { display: grid; gap: var(--space-5); min-width: 0; }
+.settings-crumbs { background: transparent; padding: 0; }
+.card-body { display: grid; gap: var(--space-4); min-width: 0; }
+.card-body strong { display: inline-flex; align-items: center; gap: var(--space-2); }
+.card-body .hint { margin-top: var(--space-1); }
+/* La vista previa se queda a la vista mientras se eligen las reglas. */
+:host ::ng-deep .settings-preview { position: sticky; top: var(--space-2); }
+/* La barra de acciones es un p-toolbar pegado al pie mientras se desplaza la pantalla. */
+:host ::ng-deep .action-bar { position: sticky; bottom: 0; z-index: 1; flex-wrap: wrap; gap: var(--space-3); box-shadow: 0 -4px 12px rgb(0 0 0 / 6%); }
 .hint { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .switch-row { display: flex; align-items: flex-start; gap: var(--space-3); }
 .switch-row > div { display: grid; gap: var(--space-1); }
@@ -25,5 +31,11 @@
 }
 @media (max-width: 640px) {
   .directive-settings { padding: var(--space-2); }
-  .actions { display: grid; grid-template-columns: 1fr; }
+  .actions { display: flex; flex-wrap: wrap; width: 100%; }
+  .actions > * { flex: 1 1 auto; }
+  .action-bar__note { display: none; }
+  :host ::ng-deep .action-bar .p-toolbar-start, :host ::ng-deep .action-bar .p-toolbar-end { width: 100%; }
+  :host ::ng-deep .settings-preview { position: static; }
+  :host ::ng-deep p-selectbutton .p-togglebutton { flex: 1 1 100%; }
+  :host ::ng-deep .settings-crumbs li:not(:first-child) { display: none; }
 }
