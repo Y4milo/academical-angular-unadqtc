@@ -185,7 +185,9 @@ export class DirectiveDetailComponent implements OnInit {
     return [{ label: 'Documentos de gestión', command: () => this.back() }, { label: title }];
   }
 
-  readonly stepRole = STEP_ROLE;
+  roleOf(step: DirectiveProgressStep) {
+    return step.role ? STEP_ROLE[step.role] : null;
+  }
 
   progressOf(step: DirectiveProgressStep) {
     const current = this.directive();

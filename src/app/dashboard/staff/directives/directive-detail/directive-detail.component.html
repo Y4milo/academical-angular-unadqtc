@@ -38,7 +38,7 @@
                     <strong>{{ step.label }}</strong>
                     @if (step.person) { <span>{{ step.person }}</span> }
                     @if (step.title) { <span class="muted">{{ step.title }}</span> }
-                    @if (step.role) { <p-tag [value]="stepRole[step.role].label" [severity]="stepRole[step.role].severity" data-testid="step-role"></p-tag> }
+                    @if (roleOf(step); as role) { <p-tag [value]="role.label" [severity]="role.severity" data-testid="step-role"></p-tag> }
                   </div>
                   <p-tag [value]="progressOf(step).label" [severity]="progressOf(step).severity"></p-tag>
                 </div>
@@ -173,7 +173,7 @@
               <div class="progress-chip" [attr.data-state]="step.state" data-testid="progress-chip">
                 <strong>{{ step.person || step.label }}</strong>
                 <small class="muted">{{ step.label }}</small>
-                @if (step.role) { <p-tag [value]="stepRole[step.role].label" [severity]="stepRole[step.role].severity" data-testid="chip-role"></p-tag> }
+                @if (roleOf(step); as role) { <p-tag [value]="role.label" [severity]="role.severity" data-testid="chip-role"></p-tag> }
                 <p-tag [value]="progressOf(step).label" [severity]="progressOf(step).severity"></p-tag>
               </div>
             </ng-template>
