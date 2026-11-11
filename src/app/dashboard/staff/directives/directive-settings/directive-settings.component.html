@@ -1,4 +1,6 @@
 <div class="directive-settings">
+  <p-breadcrumb [model]="crumbs" styleClass="settings-crumbs" data-testid="breadcrumb"></p-breadcrumb>
+
   <div class="page-heading">
     <div>
       <p class="caption">Administración · Documentos de gestión</p>
@@ -42,47 +44,67 @@
       <div class="layout">
         <div class="column">
           @for (rule of rules; track rule.key) {
-            <section class="panel" [attr.aria-labelledby]="'rule-' + rule.key" [attr.data-testid]="'rule-' + rule.key">
-              <h3 [id]="'rule-' + rule.key">{{ rule.title }}</h3>
-              <p class="hint">{{ rule.hint }}</p>
-              <p-selectbutton [options]="rule.options" optionLabel="label" optionValue="value" [ngModel]="current[rule.key]" (ngModelChange)="choose(rule.key, $event)" [allowEmpty]="false" size="small" [ariaLabelledBy]="'rule-' + rule.key"></p-selectbutton>
-            </section>
+            <p-card styleClass="settings-card" [attr.data-testid]="'rule-' + rule.key">
+              <div class="card-body">
+                <div>
+                  <strong [id]="'rule-' + rule.key">{{ rule.title }}</strong>
+                  <p class="hint">{{ rule.hint }}</p>
+                </div>
+                <p-selectbutton [options]="rule.options" optionLabel="label" optionValue="value" [ngModel]="current[rule.key]" (ngModelChange)="choose(rule.key, $event)" [allowEmpty]="false" size="small" [ariaLabelledBy]="'rule-' + rule.key"></p-selectbutton>
+              </div>
+            </p-card>
           }
 
-          <section class="panel" aria-labelledby="notices-title" data-testid="notices-panel">
-            <h3 id="notices-title">Avisos por correo</h3>
-            <p class="hint">Al buzón institucional de la persona. Fuera de producción todo llega al buzón de prueba.</p>
-            @for (notice of notices; track notice.key) {
-              <div class="switch-row" [attr.data-testid]="'notice-' + notice.key">
-                <p-toggleswitch [inputId]="'switch-' + notice.key" [ngModel]="current[notice.key] === 'yes'" (ngModelChange)="toggleNotice(notice.key, $event)"></p-toggleswitch>
-                <div>
-                  <label [for]="'switch-' + notice.key">{{ notice.title }}</label>
-                  <span class="hint">{{ notice.hint }}</span>
-                </div>
+          <p-card styleClass="settings-card" data-testid="notices-panel">
+            <div class="card-body">
+              <div>
+                <strong id="notices-title">Avisos por correo</strong>
+                <p class="hint">Al buzón institucional de la persona. Fuera de producción todo llega al buzón de prueba.</p>
               </div>
-            }
-          </section>
+              @for (notice of notices; track notice.key) {
+                <div class="switch-row" [attr.data-testid]="'notice-' + notice.key">
+                  <p-toggleswitch [inputId]="'switch-' + notice.key" [ngModel]="current[notice.key] === 'yes'" (ngModelChange)="toggleNotice(notice.key, $event)"></p-toggleswitch>
+                  <div>
+                    <label [for]="'switch-' + notice.key">{{ notice.title }}</label>
+                    <span class="hint">{{ notice.hint }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </p-card>
 
           @if (saveError()) { <p-message severity="error" data-testid="save-error">{{ saveError() }}</p-message> }
-          <div class="actions">
-            <p-button label="Guardar cambios" [disabled]="!dirty()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
-            <p-button label="Restablecer" severity="secondary" [outlined]="true" [disabled]="saving()" data-testid="reset-settings" (onClick)="reset()"></p-button>
-            <span class="hint" data-testid="settings-state">{{ dirty() ? 'Tienes cambios sin guardar.' : 'Sin cambios sin guardar.' }}</span>
-          </div>
         </div>
 
-        <div class="column">
-          <section class="panel" aria-labelledby="preview-title" data-testid="preview-panel">
-            <h3 id="preview-title">Así lo vería una oficina sin turno</h3>
-            <p class="hint">Por ejemplo, Presidencia. Se actualiza al elegir.</p>
-            @if (preview(); as view) {
-              <p-message severity="info" data-testid="preview-text">
-                El documento no llegó a su turno. Ve su estado y que fue devuelto; {{ view.documents ? 'puede consultar los PDF' : 'no ve los PDF' }}{{ view.reason ? ' y ve el motivo.' : ', no el motivo.' }}
-              </p-message>
-            }
-          </section>
+        <div class="column column--side">
+          <p-card styleClass="settings-card settings-preview" data-testid="preview-panel">
+            <div class="card-body">
+              <div>
+                <strong id="preview-title"><i class="pi pi-eye" aria-hidden="true"></i> Así lo vería una oficina sin turno</strong>
+                <p class="hint">Por ejemplo, Presidencia. Se actualiza al elegir.</p>
+              </div>
+              @if (preview(); as view) {
+                <p-message severity="info" data-testid="preview-text">
+                  El documento no llegó a su turno. Ve su estado y que fue devuelto; {{ view.documents ? 'puede consultar los PDF' : 'no ve los PDF' }}{{ view.reason ? ' y ve el motivo.' : ', no el motivo.' }}
+                </p-message>
+              }
+            </div>
+          </p-card>
         </div>
       </div>
+
+      <p-toolbar styleClass="action-bar" data-testid="action-bar">
+        <ng-template #start>
+          <span class="hint action-bar__note" data-testid="settings-state">{{ dirty() ? 'Hay cambios sin guardar.' : 'Sin cambios sin guardar.' }}</span>
+        </ng-template>
+        <ng-template #end>
+          <span class="actions">
+            <p-button label="Valores predeterminados" severity="secondary" [text]="true" [disabled]="saving()" data-testid="reset-settings" (onClick)="reset()"></p-button>
+            <p-button label="Descartar" severity="secondary" [outlined]="true" [disabled]="!dirty() || saving()" data-testid="discard-settings" (onClick)="discard()"></p-button>
+            <p-button label="Guardar cambios" icon="pi pi-save" [disabled]="!dirty()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
+          </span>
+        </ng-template>
+      </p-toolbar>
     }
   }
 </div>
