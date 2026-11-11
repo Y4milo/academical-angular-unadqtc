@@ -7,11 +7,24 @@
 .page-heading p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .page-heading .caption { color: var(--p-primary-color); font-size: var(--text-caption); font-weight: 600; text-transform: uppercase; }
 .form-skeleton { display: grid; gap: var(--space-3); max-width: 40rem; }
-.layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
-.column { display: grid; gap: var(--space-4); min-width: 0; }
-.panel { display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
-.panel h3 { margin: 0; font-size: var(--text-card-title); }
-.panel p { margin: 0; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.column { display: grid; gap: var(--space-5); min-width: 0; }
+.type-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; margin-inline-end: var(--space-2); }
+.resubmit-crumbs { background: transparent; padding: 0; }
+.card-body { display: grid; gap: var(--space-4); min-width: 0; }
+.banner { display: grid; gap: var(--space-2); min-width: 0; }
+.reason-quote { margin: 0; padding: var(--space-3) var(--space-4); border-left: 4px solid var(--p-orange-500); border-radius: 0 var(--radius-md) var(--radius-md) 0; background: var(--p-content-hover-background); white-space: pre-line; overflow-wrap: anywhere; font-size: var(--text-body); }
+.file-box { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
+.file-box--error { border-color: var(--p-red-500); }
+.file-box__icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--p-highlight-background); color: var(--p-highlight-color); font-size: var(--text-card-title); }
+.file-box__text { display: grid; gap: var(--space-1); flex: 1 1 12rem; min-width: 0; }
+.keep { display: flex; align-items: center; gap: var(--space-2); }
+.what-item { display: grid; gap: var(--space-1); padding-bottom: var(--space-3); }
+.what-marker { display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 50%; border: 2px solid var(--p-content-border-color); font-size: var(--text-small); font-weight: 600; }
+.what-marker[data-state='now'] { border-color: var(--p-primary-color); color: var(--p-primary-color); }
+:host ::ng-deep .what-timeline .p-timeline-event-opposite { flex: 0; padding: 0; }
+/* La barra de acciones es un p-toolbar pegado al pie mientras se desplaza la pantalla. */
+:host ::ng-deep .action-bar { position: sticky; bottom: 0; z-index: 1; flex-wrap: wrap; gap: var(--space-3); box-shadow: 0 -4px 12px rgb(0 0 0 / 6%); }
 .field { display: grid; gap: var(--space-1); min-width: 0; }
 .field label, .label { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; font-size: var(--text-small); }
 .field-hint { color: var(--p-text-muted-color); font-size: var(--text-small); }
@@ -19,14 +32,18 @@
 .file-name { font-size: var(--text-small); word-break: break-word; }
 .actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.pick { display: flex; }
+.pick { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
 @media (max-width: 900px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
   .directive-resubmit { padding: var(--space-2); }
-  .actions { display: grid; grid-template-columns: 1fr; }
+  .actions { display: flex; flex-wrap: nowrap; width: 100%; }
+  .actions > * { flex: 1 1 0; white-space: nowrap; }
+  .action-bar__note { display: none; }
+  :host ::ng-deep .action-bar .p-toolbar-start, :host ::ng-deep .action-bar .p-toolbar-end { width: 100%; }
+  :host ::ng-deep .resubmit-crumbs li:not(:first-child) { display: none; }
 }
 :host ::ng-deep .p-fileupload-basic { justify-content: flex-start; }
 @media (max-width: 640px) {

@@ -1,18 +1,25 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MenuItem, PrimeTemplate } from 'primeng/api';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { TimelineModule } from 'primeng/timeline';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { ToolbarModule } from 'primeng/toolbar';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
 import { MAX_PDF_BYTES } from '../directive-form/directive-form.component';
+import { documentTypeColor, documentTypeText } from '../document-type';
 import { formatBytes } from '../directive-status';
 import { DirectiveLogDrawerComponent } from '../directive-tracking/directive-log-drawer.component';
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
@@ -24,7 +31,7 @@ import { DirectiveTrackingComponent } from '../directive-tracking/directive-trac
  */
 @Component({
   selector: 'app-directive-resubmit',
-  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, TimelineModule, ToggleSwitchModule, ToolbarModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   templateUrl: './directive-resubmit.component.html',
   styleUrl: './directive-resubmit.component.css',
 })
@@ -60,6 +67,31 @@ export class DirectiveResubmitComponent implements OnInit {
     return errors;
   });
   readonly formatBytes = formatBytes;
+  readonly documentTypeColor = documentTypeColor;
+  readonly documentTypeText = documentTypeText;
+  /** Si se conserva la resolución de la versión anterior: sin PDF nuevo y sin haber pedido reemplazarla. */
+  readonly replacingResolution = signal(false);
+  readonly keepCurrent = computed(() => !this.resolutionFile() && !this.replacingResolution());
+  /** Lo que pasa al enviar: la versión nueva, la ruta desde cero y el aviso a la oficina de origen. */
+  readonly whatHappens = computed(() => [
+    { number: 1, state: 'now', title: `Se crea la versión ${this.nextVersion()}`, hint: `La versión ${this.directive()?.version ?? 1} queda archivada.` },
+    { number: 2, state: 'wait', title: 'La ruta empieza de cero', hint: `Core designa a las personas de hoy, no las de la versión ${this.directive()?.version ?? 1}.` },
+    { number: 3, state: 'wait', title: 'Se avisa a la oficina de origen', hint: 'Es la primera en firmar.' },
+  ]);
+
+  /** Las migas: la lista, el documento y esta pantalla. */
+  crumbs(current: DirectiveDetail): MenuItem[] {
+    return [
+      { label: 'Documentos de gestión', command: () => this.router.navigateByUrl(PATHS.directives.link) },
+      { label: current.title, command: () => this.cancel() },
+      { label: 'Corregir y reenviar' },
+    ];
+  }
+
+  setKeep(keep: boolean): void {
+    if (keep) this.keepResolution();
+    else this.replacingResolution.set(true);
+  }
 
   constructor(
     private service: DirectivesService,
@@ -140,6 +172,7 @@ export class DirectiveResubmitComponent implements OnInit {
   }
 
   keepResolution(): void {
+    this.replacingResolution.set(false);
     this.resolutionFile.set(null);
     this.fileError.update(current => ({ ...current, resolution: '' }));
   }

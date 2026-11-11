@@ -9,11 +9,14 @@
     </div>
   } @else {
    @if (directive(); as current) {
+    <p-breadcrumb [model]="crumbs(current)" styleClass="resubmit-crumbs" data-testid="breadcrumb"></p-breadcrumb>
+
     <div class="page-heading">
-      <div>
-        <p class="caption">Documento de gestión · {{ current.origin.name }}</p>
+      <div class="page-heading__text">
+        <p class="caption"><span class="type-dot" [style.background]="documentTypeColor(current.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(current.document_type, current.document_subtype) }} · {{ current.origin.name }}</p>
         <h2>Corregir y reenviar</h2>
-        <p>Vas a crear la <strong>versión {{ nextVersion() }}</strong>. La ruta empieza de cero y todas las oficinas vuelven a firmar.</p>
+        <p class="meta"><p-tag [value]="'Versión ' + nextVersion()" severity="info" data-testid="next-version"></p-tag></p>
+        <p>Se crea la <strong>versión {{ nextVersion() }}</strong>. La ruta empieza de cero y todas las oficinas vuelven a firmar.</p>
       </div>
       <div class="header-actions">
         <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
@@ -26,62 +29,111 @@
     </div>
 
     @if (current.returned?.reason; as reason) {
-      <p-message severity="error" data-testid="returned-reason">
-        <span><strong>Motivo de la devolución{{ current.returned?.office ? ' · ' + current.returned?.office : '' }}:</strong> {{ reason }}</span>
+      <p-message severity="warn" data-testid="returned-reason">
+        <div class="banner">
+          <strong>Por qué se devolvió{{ current.returned?.office ? ' · ' + current.returned?.office : '' }}</strong>
+          <blockquote class="reason-quote">{{ reason }}</blockquote>
+        </div>
       </p-message>
     }
 
     <div class="layout">
       <div class="column">
-        <section class="panel" aria-labelledby="data-title">
-          <h3 id="data-title">Datos</h3>
-          <div class="field">
-            <label for="resubmit-title">Título del documento *</label>
-            <input pInputText id="resubmit-title" type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" [attr.aria-invalid]="submitted() && !!errors()['title']" />
-            @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
+        <p-card styleClass="resubmit-card" data-testid="data-card">
+          <div class="card-body">
+            <strong>Datos</strong>
+            <div class="field">
+              <label for="resubmit-title">Título del documento *</label>
+              <input pInputText id="resubmit-title" type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" [attr.aria-invalid]="submitted() && !!errors()['title']" />
+              @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
+            </div>
+            <div class="field">
+              <span class="label">Oficina de origen</span>
+              <strong>{{ current.origin.name }}</strong>
+              <small class="field-hint">No cambia al corregir.</small>
+            </div>
           </div>
-          <div class="field">
-            <span class="label">Oficina de origen</span>
-            <strong>{{ current.origin.name }}</strong>
-            <small class="field-hint">No cambia al corregir.</small>
-          </div>
-        </section>
+        </p-card>
 
-        <section class="panel" aria-labelledby="files-title">
-          <h3 id="files-title">Documentos de la versión {{ nextVersion() }}</h3>
-          <div class="field">
-            <span class="label" id="resubmit-directive-label">Documento de gestión corregido (PDF) *</span>
-            <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
-            @if (directiveFile(); as file) { <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small> }
-            <small class="field-hint">Sin firmar: la firman las oficinas desde Academical.</small>
+        <p-card styleClass="resubmit-card" data-testid="files-card">
+          <div class="card-body">
+            <strong>Archivos de la versión {{ nextVersion() }}</strong>
+
+            <div class="file-box" [class.file-box--error]="(submitted() || fileError().directive) && !!errors()['directive']">
+              <span class="pi pi-file-pdf file-box__icon" aria-hidden="true"></span>
+              <div class="file-box__text">
+                <span class="label" id="resubmit-directive-label">Documento de gestión corregido (PDF) *</span>
+                @if (directiveFile(); as file) {
+                  <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small>
+                } @else {
+                  <small class="field-hint">Obligatorio: sube el PDF corregido. Sin firmar: la firman las oficinas desde Academical.</small>
+                }
+              </div>
+              <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" chooseIcon="pi pi-upload" [chooseButtonProps]="{ size: 'small' }" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+            </div>
             @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
-          </div>
 
-          <div class="field">
-            <span class="label" id="resubmit-resolution-label">Resolución que la aprueba (PDF) <p-tag value="Opcional" severity="secondary"></p-tag></span>
-            @if (resolutionFile(); as file) {
-              <small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }} · reemplaza a la anterior</small>
+            <div class="file-box">
+              <span class="pi pi-file-pdf file-box__icon" aria-hidden="true"></span>
+              <div class="file-box__text">
+                <span class="label" id="resubmit-resolution-label">Resolución que la aprueba (PDF) <p-tag value="Opcional" severity="secondary"></p-tag></span>
+                @if (resolutionFile(); as file) {
+                  <small class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }} · reemplaza a la anterior</small>
+                } @else {
+                  <small class="file-name" data-testid="resolution-kept">{{ current.files?.resolution?.name ?? 'La resolución anterior' }} · se conserva la de la versión {{ current.version }}</small>
+                }
+              </div>
+              <div class="keep">
+                <p-toggleswitch inputId="resubmit-keep" [ngModel]="keepCurrent()" (ngModelChange)="setKeep($event)" ariaLabel="Mantener la resolución actual" data-testid="keep-switch"></p-toggleswitch>
+                <label for="resubmit-keep" class="field-hint">Mantener la actual</label>
+              </div>
+            </div>
+            @if (!keepCurrent()) {
               <div class="pick">
+                <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar PDF' : 'Elegir la resolución nueva'" chooseIcon="pi pi-upload" [chooseButtonProps]="{ severity: 'secondary', outlined: true, size: 'small' }" [attr.aria-labelledby]="'resubmit-resolution-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
                 <p-button label="Volver a la anterior" severity="secondary" [outlined]="true" size="small" data-testid="keep-resolution" (onClick)="keepResolution()"></p-button>
               </div>
-            } @else {
-              <small class="file-name" data-testid="resolution-kept">{{ current.files?.resolution?.name ?? 'La resolución anterior' }} · se conserva la de la versión {{ current.version }}</small>
-              <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'resubmit-resolution-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             }
             @if (fileError().resolution; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
           </div>
+        </p-card>
 
-          @if (serverError()) {
-            <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
-          }
+        @if (serverError()) {
+          <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
+        }
+      </div>
 
-          <div class="actions">
-            <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="sending()" (onClick)="cancel()"></p-button>
-            <p-button [label]="'Enviar versión ' + nextVersion() + ' a firma'" [loading]="sending()" data-testid="resubmit-send" (onClick)="send()"></p-button>
+      <div class="column">
+        <p-card styleClass="resubmit-card" data-testid="what-card">
+          <div class="card-body">
+            <strong>Qué va a pasar</strong>
+            <p-timeline [value]="whatHappens()" align="left" styleClass="what-timeline">
+              <ng-template pTemplate="marker" let-item>
+                <span class="what-marker" [attr.data-state]="item.state" aria-hidden="true">{{ item.number }}</span>
+              </ng-template>
+              <ng-template pTemplate="content" let-item>
+                <div class="what-item" data-testid="what-step">
+                  <strong>{{ item.title }}</strong>
+                  <span class="field-hint">{{ item.hint }}</span>
+                </div>
+              </ng-template>
+            </p-timeline>
           </div>
-        </section>
+        </p-card>
       </div>
     </div>
+
+    <p-toolbar styleClass="action-bar" data-testid="action-bar">
+      <ng-template #start>
+        <span class="field-hint action-bar__note">No se puede deshacer una vez enviado.</span>
+      </ng-template>
+      <ng-template #end>
+        <span class="actions">
+          <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="sending()" (onClick)="cancel()"></p-button>
+          <p-button [label]="'Enviar versión ' + nextVersion() + ' a firma'" icon="pi pi-send" [loading]="sending()" data-testid="resubmit-send" (onClick)="send()"></p-button>
+        </span>
+      </ng-template>
+    </p-toolbar>
    }
   }
 </div>
