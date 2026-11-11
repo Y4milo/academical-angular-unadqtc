@@ -6,7 +6,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { of, throwError } from 'rxjs';
 import { DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
-import { access, detail, ok, route } from '../testing/directive-fixtures';
+import { access, detail, documentTypes, ok, route } from '../testing/directive-fixtures';
 import { DirectiveFormComponent, MAX_PDF_BYTES } from './directive-form.component';
 
 describe('DirectiveFormComponent', () => {
@@ -50,8 +50,9 @@ describe('DirectiveFormComponent', () => {
 
   beforeEach(() => {
     localStorage.removeItem('directives.lastOrigin');
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'detail', 'route', 'create', 'update']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'detail', 'route', 'create', 'update', 'types']);
     service.access.and.returnValue(of(ok(access)));
+    service.types.and.returnValue(of(ok(documentTypes)));
     service.route.and.returnValue(of(ok(route())));
   });
 
@@ -98,6 +99,7 @@ describe('DirectiveFormComponent', () => {
     const form = fixture.componentInstance;
     form.origin.set('adm_sub');
     form.title.set('Directiva de logística interna');
+    form.documentType.set('directivas');
     form.pick('directive', { files: [new File(['%PDF'], 'd.pdf', { type: 'application/pdf' })] });
     form.pick('resolution', { files: [new File(['%PDF'], 'r.pdf', { type: 'application/pdf' })] });
     service.create.and.returnValue(of(ok(detail({ id: 9 }))));
@@ -149,8 +151,8 @@ describe('DirectiveFormComponent', () => {
     expect(service.create).not.toHaveBeenCalled();
     expect(text('error-title')).toContain('Escribe el título');
     expect(text('error-origin')).toContain('Elige la oficina');
-    expect(text('error-directive')).toContain('Sube la directiva');
-    expect(text('error-resolution')).toContain('la resolución que la aprueba: es obligatoria');
+    expect(text('error-directive')).toContain('Sube el documento');
+    expect(text('error-resolution')).toContain('la resolución que lo aprueba: es obligatoria');
   });
 
   it('takes the file chosen in the PrimeNG uploader and empties it so the same file can be chosen again', async () => {
@@ -194,6 +196,7 @@ describe('DirectiveFormComponent', () => {
     const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
     const form = fixture.componentInstance;
     form.title.set('Directiva para el control de bienes');
+    form.documentType.set('directivas');
     form.origin.set('adm');
     form.quality.set(true);
     form.pick('directive', { files: [pdf('directiva.pdf')] });
@@ -204,6 +207,8 @@ describe('DirectiveFormComponent', () => {
     const body = service.create.calls.mostRecent().args[0];
     expect(body.get('title')).toBe('Directiva para el control de bienes');
     expect(body.get('origin')).toBe('adm');
+    expect(body.get('document_type')).toBe('directivas');
+    expect(body.has('document_subtype')).toBeFalse();
     expect(body.get('is_quality')).toBe('1');
     expect((body.get('directive') as File).name).toBe('directiva.pdf');
     expect((body.get('resolution') as File).name).toBe('resolucion.pdf');
@@ -215,6 +220,7 @@ describe('DirectiveFormComponent', () => {
     await create();
     const form = fixture.componentInstance;
     form.title.set('Directiva para el control de bienes');
+    form.documentType.set('directivas');
     form.origin.set('adm');
     form.pick('directive', { files: [pdf()] });
     form.pick('resolution', { files: [pdf('resolucion.pdf')] });
@@ -285,7 +291,7 @@ describe('DirectiveFormComponent', () => {
     expect(text('directive-pages')).toBe('3 páginas');
     expect(text('resolution-pages')).toBe('1 página');
     expect(text('pages-total')).toContain('4 páginas');
-    expect(text('pages-total')).toContain('3 de la directiva + 1 de la resolución');
+    expect(text('pages-total')).toContain('3 del documento + 1 de la resolución');
   });
 
   it('says the pages are counted at save when the PDF cannot be read, and shows no total', async () => {
@@ -325,6 +331,101 @@ describe('DirectiveFormComponent', () => {
     await until(() => form.directivePages() === 2);
 
     expect(text('pages-total')).toContain('5 páginas');
-    expect(text('pages-total')).toContain('2 de la directiva + 3 de la resolución');
+    expect(text('pages-total')).toContain('2 del documento + 3 de la resolución');
+  });
+  it('asks for the type of document and says so when it is missing', async () => {
+    await create();
+    const form = fixture.componentInstance;
+    form.title.set('Directiva para el control de bienes');
+    form.origin.set('adm');
+    form.pick('directive', { files: [pdf()] });
+    form.pick('resolution', { files: [pdf('resolucion.pdf')] });
+
+    form.save();
+    fixture.detectChanges();
+
+    expect(text('error-type')).toBe('Elige el tipo de documento.');
+    expect(service.create).not.toHaveBeenCalled();
+  });
+
+  it('offers the types of the catalog and asks for a subtype only in documentos de gestión institucional', async () => {
+    await create();
+    const form = fixture.componentInstance;
+    expect(form.types().map(type => type.label)).toContain('Reglamentos');
+    expect(html().querySelector('[data-testid="subtype-field"]')).toBeNull();
+
+    form.selectType('reglamentos');
+    fixture.detectChanges();
+    expect(html().querySelector('[data-testid="subtype-field"]')).toBeNull();
+    expect(form.needsSubtype()).toBeFalse();
+
+    form.selectType('gestion_institucional');
+    fixture.detectChanges();
+    expect(html().querySelector('[data-testid="subtype-field"]')).not.toBeNull();
+    expect(form.subtypeOptions().map(subtype => subtype.label)).toEqual(['Estatuto', 'POI', 'PEI', 'ROF', 'MCC', 'TUPA', 'MAPRO', 'CAP', 'PAP', 'PIA']);
+  });
+
+  it('makes the subtype mandatory in that type, with its message, and sends it once chosen', async () => {
+    service.create.and.returnValue(of(ok(detail({ id: 12 }))));
+    await create();
+    spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    const form = fixture.componentInstance;
+    form.title.set('Plan Operativo Institucional 2027');
+    form.origin.set('adm');
+    form.selectType('gestion_institucional');
+    form.pick('directive', { files: [pdf()] });
+    form.pick('resolution', { files: [pdf('resolucion.pdf')] });
+
+    form.save();
+    fixture.detectChanges();
+    expect(text('error-subtype')).toBe('Elige el subtipo: es obligatorio para los documentos de gestión institucional.');
+    expect(service.create).not.toHaveBeenCalled();
+
+    form.documentSubtype.set('poi');
+    form.save();
+
+    const body = service.create.calls.mostRecent().args[0];
+    expect(body.get('document_type')).toBe('gestion_institucional');
+    expect(body.get('document_subtype')).toBe('poi');
+  });
+
+  it('forgets the subtype when the type changes, and does not send one for a type that has none', async () => {
+    service.create.and.returnValue(of(ok(detail({ id: 12 }))));
+    await create();
+    spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    const form = fixture.componentInstance;
+    form.title.set('Reglamento de prácticas');
+    form.origin.set('adm');
+    form.selectType('gestion_institucional');
+    form.documentSubtype.set('poi');
+
+    form.selectType('reglamentos');
+    expect(form.documentSubtype()).toBeNull();
+
+    form.pick('directive', { files: [pdf()] });
+    form.pick('resolution', { files: [pdf('resolucion.pdf')] });
+    form.save();
+
+    const body = service.create.calls.mostRecent().args[0];
+    expect(body.get('document_type')).toBe('reglamentos');
+    expect(body.has('document_subtype')).toBeFalse();
+  });
+
+  it('starts correcting a draft with its type and subtype', async () => {
+    service.detail.and.returnValue(of(ok(detail({ document_type: { code: 'gestion_institucional', label: 'Documentos de gestión institucional' }, document_subtype: { code: 'poi', label: 'POI' } }))));
+    await create('7');
+    const form = fixture.componentInstance;
+
+    expect(form.documentType()).toBe('gestion_institucional');
+    expect(form.documentSubtype()).toBe('poi');
+    expect(html().querySelector('[data-testid="subtype-field"]')).not.toBeNull();
+  });
+
+  it('says so when the types cannot be loaded', async () => {
+    service.types.and.returnValue(throwError(() => ({ status: 500 })));
+    await create();
+    fixture.detectChanges();
+
+    expect(text('server-error')).toContain('No se pudieron consultar los tipos de documento');
   });
 });

@@ -13,7 +13,7 @@ import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
-import { DirectiveAccess, DirectiveDetail, DirectiveRoute, DirectivesService } from '../../../../services/directives.service';
+import { DirectiveAccess, DirectiveDetail, DirectiveRoute, DirectivesService, DocumentTypeOption } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
 import { formatBytes } from '../directive-status';
@@ -46,6 +46,9 @@ export class DirectiveFormComponent implements OnInit {
   readonly loading = signal(true);
   readonly loadError = signal('');
 
+  readonly types = signal<DocumentTypeOption[]>([]);
+  readonly documentType = signal<string | null>(null);
+  readonly documentSubtype = signal<string | null>(null);
   readonly title = signal('');
   readonly origin = signal<string | null>(null);
   readonly quality = signal(false);
@@ -64,6 +67,9 @@ export class DirectiveFormComponent implements OnInit {
   readonly routeError = signal('');
 
   readonly editing = computed(() => this.id() !== null);
+  /** Los subtipos del tipo elegido: solo «Documentos de gestión institucional» los tiene y entonces el subtipo es obligatorio. */
+  readonly subtypeOptions = computed(() => this.types().find(type => type.code === this.documentType())?.subtypes ?? []);
+  readonly needsSubtype = computed(() => this.subtypeOptions().length > 0);
   readonly originOptions = computed(() => {
     const access = this.access();
 
@@ -84,10 +90,12 @@ export class DirectiveFormComponent implements OnInit {
   });
   readonly errors = computed<Record<string, string>>(() => {
     const errors: Record<string, string> = {};
-    if (this.title().trim().length < 5) errors['title'] = 'Escribe el título de la directiva (mínimo 5 letras).';
+    if (!this.documentType()) errors['type'] = 'Elige el tipo de documento.';
+    if (this.documentType() && this.needsSubtype() && !this.documentSubtype()) errors['subtype'] = 'Elige el subtipo: es obligatorio para los documentos de gestión institucional.';
+    if (this.title().trim().length < 5) errors['title'] = 'Escribe el título del documento (mínimo 5 letras).';
     if (!this.origin()) errors['origin'] = 'Elige la oficina de origen.';
-    if (!this.editing() && !this.directiveFile()) errors['directive'] = 'Sube la directiva en PDF.';
-    if (!this.editing() && !this.resolutionFile()) errors['resolution'] = 'Sube la resolución que la aprueba: es obligatoria.';
+    if (!this.editing() && !this.directiveFile()) errors['directive'] = 'Sube el documento en PDF.';
+    if (!this.editing() && !this.resolutionFile()) errors['resolution'] = 'Sube la resolución que lo aprueba: es obligatoria.';
     if (this.fileError().directive) errors['directive'] = this.fileError().directive;
     if (this.fileError().resolution) errors['resolution'] = this.fileError().resolution;
 
@@ -143,6 +151,7 @@ export class DirectiveFormComponent implements OnInit {
         }
 
         this.access.set(response.payload.data);
+        this.loadTypes();
 
         if (this.id() === null) {
           const units = response.payload.data.request_units;
@@ -163,6 +172,8 @@ export class DirectiveFormComponent implements OnInit {
             const directive = detail.payload.data;
             this.existing.set(directive);
             this.title.set(directive.title);
+            this.documentType.set(directive.document_type?.code ?? null);
+            this.documentSubtype.set(directive.document_subtype?.code ?? null);
             this.quality.set(directive.is_quality);
             this.origin.set(directive.origin.code);
           },
@@ -171,6 +182,22 @@ export class DirectiveFormComponent implements OnInit {
       },
       error: () => this.fail('No se pudo consultar a Core. Inténtalo nuevamente.'),
     });
+  }
+
+  private loadTypes(): void {
+    this.service.types().subscribe({
+      next: response => {
+        if (response.status === STATUS.success) this.types.set(response.payload.data);
+        else this.serverError.set(response.payload?.message || 'No se pudieron consultar los tipos de documento.');
+      },
+      error: () => this.serverError.set('No se pudieron consultar los tipos de documento. Recarga la página.'),
+    });
+  }
+
+  /** Cambiar de tipo borra el subtipo: el que se había elegido ya no corresponde. */
+  selectType(code: string | null): void {
+    if (code !== this.documentType()) this.documentSubtype.set(null);
+    this.documentType.set(code);
   }
 
   /** La oficina por la que la persona pidió la última vez, si sigue autorizada; es solo comodidad, así que no falla si el navegador no deja guardar. */
@@ -220,7 +247,7 @@ export class DirectiveFormComponent implements OnInit {
 
   pick(kind: 'directive' | 'resolution', event: { files?: File[] }): void {
     const file = event.files?.[0] ?? null;
-    const label = kind === 'directive' ? 'La directiva' : 'La resolución';
+    const label = kind === 'directive' ? 'El documento' : 'La resolución';
     let problem = '';
 
     if (file && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
@@ -256,6 +283,8 @@ export class DirectiveFormComponent implements OnInit {
 
     const body = new FormData();
     body.append('title', this.title().trim());
+    body.append('document_type', this.documentType()!);
+    if (this.needsSubtype()) body.append('document_subtype', this.documentSubtype()!);
     body.append('is_quality', this.quality() ? '1' : '0');
     if (!this.editing()) body.append('origin', this.origin()!);
     if (this.directiveFile()) body.append('directive', this.directiveFile()!);

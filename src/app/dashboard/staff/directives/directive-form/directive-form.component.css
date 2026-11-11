@@ -20,6 +20,8 @@
 .field-hint { color: var(--p-text-muted-color); font-size: var(--text-small); }
 .field-error { color: var(--p-red-500); font-size: var(--text-small); }
 .file-name { font-size: var(--text-small); word-break: break-word; }
+:host ::ng-deep .subtype-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+:host ::ng-deep .subtype-options .p-togglebutton { border-radius: 999px; }
 .file-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .pages-total { margin: 0; font-size: var(--text-small); }
 .muted-note { color: var(--p-text-muted-color); }

@@ -123,7 +123,7 @@ describe('DirectiveDetailComponent', () => {
 
   it('tells what each notice of the signer means: office, person and reason', async () => {
     service.detail.and.returnValue(of(ok(detail({ status: 'returned', status_label: 'Devuelta', can_edit: false, events: [
-      { type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana' }, data: {} },
+      { type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana', name: 'Ana María Quispe Rojas', office: null }, data: {} },
       { type: 'rejected', version: 1, at: '2026-11-04T10:00:00Z', by: null, data: { office: 'Oficina de Asesoría Jurídica', person: 'Carlos Paucar', reason: 'Falta el anexo de costos' } },
     ] }))));
     await create();
@@ -769,13 +769,49 @@ describe('DirectiveDetailComponent', () => {
 
   it('says in the timeline which file replaced which', async () => {
     service.detail.and.returnValue(of(ok(detail({ events: [
-      { type: 'edited', version: 1, at: '2026-11-10T18:52:00Z', by: { id: 5, nick: 'ana' }, data: { directive_replaced: true, resolution_replaced: false, directive_before: 'vieja.pdf', directive_after: 'nueva.pdf' } },
-      { type: 'created', version: 1, at: '2026-11-10T18:37:00Z', by: { id: 5, nick: 'ana' }, data: {} },
+      { type: 'edited', version: 1, at: '2026-11-10T18:52:00Z', by: { id: 5, nick: 'ana', name: 'Ana María Quispe Rojas', office: null }, data: { directive_replaced: true, resolution_replaced: false, directive_before: 'vieja.pdf', directive_after: 'nueva.pdf' } },
+      { type: 'created', version: 1, at: '2026-11-10T18:37:00Z', by: { id: 5, nick: 'ana', name: 'Ana María Quispe Rojas', office: null }, data: {} },
     ] }))));
     await create();
 
     const first = html().querySelector('[data-testid="directive-event"]')!.textContent!;
-    expect(first).toContain('Reemplazó la directiva');
-    expect(first).toContain('vieja.pdf → nueva.pdf');
+    expect(first).toContain('Reemplazó el documento');
+    expect(first).toContain('vieja.pdf');
+    expect(first).toContain('nueva.pdf');
+  });
+  it('says what changed in a correction, with before and after, and who did it by name and office', async () => {
+    service.detail.and.returnValue(of(ok(detail({ events: [
+      {
+        type: 'edited', version: 1, at: '2026-11-10T18:40:00Z', by: { id: 5, nick: 'ana', name: 'Yamil Alberto Peña Loayza', office: 'Oficina de Tecnologías de la Información' },
+        data: { fields: ['title', 'is_quality'], changes: { title: { before: 'Prueba', after: 'PRUEBA 001' }, is_quality: { before: false, after: true }, document_subtype: { before: 'POI', after: null } } },
+      },
+    ] }))));
+    await create();
+
+    const event = html().querySelector('[data-testid="directive-event"]')!;
+    expect(event.textContent).toContain('Corrigió los datos');
+    const changes = Array.from(event.querySelectorAll('[data-testid="event-change"]')).map(row => Array.from(row.children).map(part => part.textContent!.trim()));
+    expect(changes).toEqual([['Título', 'Prueba', 'PRUEBA 001'], ['Proceso de calidad', 'No', 'Sí'], ['Subtipo', 'POI', '—']]);
+    expect(event.textContent).toContain('Yamil Alberto Peña Loayza · Oficina de Tecnologías de la Información');
+    expect(event.textContent).not.toContain('ana');
+  });
+
+  it('labels a correction that also replaced a PDF as correcting the draft', async () => {
+    service.detail.and.returnValue(of(ok(detail({ events: [
+      { type: 'edited', version: 1, at: '2026-11-10T18:40:00Z', by: { id: 5, nick: 'ana', name: 'Ana María Quispe Rojas', office: null }, data: { changes: { title: { before: 'A', after: 'B' } }, resolution_replaced: true, resolution_before: 'a.pdf', resolution_after: 'b.pdf' } },
+    ] }))));
+    await create();
+
+    const event = html().querySelector('[data-testid="directive-event"]')!;
+    expect(event.textContent).toContain('Corrigió el borrador');
+    expect(event.querySelectorAll('[data-testid="event-change"]').length).toBe(2);
+  });
+
+  it('shows the type and subtype of the document under its title', async () => {
+    service.detail.and.returnValue(of(ok(detail({ document_type: { code: 'gestion_institucional', label: 'Documentos de gestión institucional' }, document_subtype: { code: 'pei', label: 'PEI' } }))));
+    await create();
+
+    expect(text('directive-type')).toContain('Documentos de gestión institucional · PEI');
+    expect(text('directive-type')).toContain('Oficina de Administración');
   });
 });
