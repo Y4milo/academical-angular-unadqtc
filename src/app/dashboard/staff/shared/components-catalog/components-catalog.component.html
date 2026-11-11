@@ -205,6 +205,15 @@
           </ng-template>
         </p-table>
 
+        <h3>Relleno de las tablas</h3>
+        <p class="catalog__lead" data-testid="table-padding-note">Toda tabla lleva celdas de <strong>12 px arriba y abajo y 16 px a los lados</strong> (<code>--space-3</code> y <code>--space-4</code>), también con <code>size="small"</code>. Lo da el preset: no se escribe un padding por pantalla. La última columna, la de la acción, conserva sus 16 px a la derecha.</p>
+        <p-table [value]="pagedRows.slice(0, 2)" size="small" styleClass="catalog-stack" data-testid="table-padding-sample">
+          <ng-template #header><tr><th>Documento</th><th>Estado</th><th><span class="sr-only">Acción</span></th></tr></ng-template>
+          <ng-template #body let-row>
+            <tr><td data-label="Documento">{{ row.title }}</td><td data-label="Estado"><p-tag [value]="row.state" [severity]="row.state === 'Firmada' ? severity.ok : severity.pending"></p-tag></td><td data-label="Acción"><p-button label="Abrir" size="small" severity="secondary" [outlined]="true"></p-button></td></tr>
+          </ng-template>
+        </p-table>
+
         <h3>Lista de filas libres e historial</h3>
         <div class="catalog__states">
           <p-dataview [value]="sampleRows">

@@ -21,7 +21,13 @@ const typography = {
   message: {text: {fontSize: 'var(--text-body)', fontWeight: 'var(--weight-regular)'}},
   dialog: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}},
   panel: {title: {fontWeight: 'var(--weight-strong)'}},
-  datatable: {columnTitle: {fontWeight: 'var(--weight-strong)'}},
+  /* Relleno estándar de toda tabla (aprobado 2026-11-10): celda de 12 px arriba y abajo y 16 px a los lados, también en `size="small"`. */
+  datatable: {
+    columnTitle: {fontWeight: 'var(--weight-strong)'},
+    headerCell: {padding: 'var(--space-3) var(--space-4)', sm: {padding: 'var(--space-3) var(--space-4)'}},
+    bodyCell: {padding: 'var(--space-3) var(--space-4)', sm: {padding: 'var(--space-3) var(--space-4)'}},
+    footerCell: {padding: 'var(--space-3) var(--space-4)', sm: {padding: 'var(--space-3) var(--space-4)'}},
+  },
   tabs: {tab: {fontWeight: 'var(--weight-strong)'}},
 };
 

@@ -120,6 +120,8 @@ export const ACTION_GUIDE: ComponentGuide[] = [
   { need: 'Acción con variantes (descargar en Word o PDF)', component: 'p-splitbutton', avoid: 'Dos botones pegados' },
   { need: 'Opción que se enciende y se apaga como botón', component: 'p-togglebutton', avoid: '<button> con clase active' },
   { need: 'Enlace que navega', component: 'routerLink en p-button [link]="true" o en el texto', avoid: '<a href> que recarga la página' },
+  { need: 'Las acciones de un documento: una principal por estado y las demás aparte', component: 'p-button para la principal y p-button de solo ícono (ellipsis-h) con p-menu popup «Más acciones» para el resto', avoid: 'Cinco botones en la cabecera' },
+  { need: 'Barra de acciones fija al pie de un formulario largo', component: 'p-toolbar con position: sticky; bottom: 0 (Cancelar a la izquierda de la acción principal)', avoid: 'Un <div> con borde y sombra a mano' },
 ];
 
 export const FORM_GUIDE: ComponentGuide[] = [
@@ -187,6 +189,7 @@ export class ComponentsCatalogComponent implements OnInit {
   readonly dbuStatuses = Object.entries(DBU_STATUS_VIEW).map(([code, view]) => ({ code, label: view.label, severity: STATE_SEVERITY[view.kind] }));
 
   readonly screenRules = [
+    'Relleno de toda tabla: celda de 12 px arriba y abajo y 16 px a los lados (<code>--space-3</code> y <code>--space-4</code>), también con <code>size="small"</code>; lo da el preset, no se repite por pantalla.',
     'Sin desplazamiento horizontal de la página a 375 px, 768 px y 1440 px.',
     'Una fila de formulario con <code>flex-wrap</code>; nunca <code>flex-direction: column</code> con un <code>flex-basis</code> en rem (se convierte en alto).',
     'Menú de secciones: lista vertical en escritorio y una fila que se desliza bajo 900 px.',

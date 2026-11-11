@@ -2,8 +2,12 @@ import { ComponentGuide } from './components-catalog.component';
 
 export const DATA_GUIDE: ComponentGuide[] = [
   { need: 'Lista de registros con columnas', component: 'p-table (con [paginator], pSortableColumn y styleClass="dbu-stack" para teléfono)', avoid: '<table>, <ul> con filas' },
+  { need: 'Relleno de las celdas de una tabla (12 × 16 px)', component: 'El preset aplicado a p-table (datatable.headerCell, bodyCell y footerCell); la última columna, la de la acción, también lleva sus 16 px a la derecha', avoid: 'Un padding propio por pantalla o por columna' },
   { need: 'Lista de tarjetas o de filas libres', component: 'p-dataview', avoid: '<ul>, <ol>, @for de <div> sin contenedor' },
   { need: 'Historial o secuencia de eventos', component: 'p-timeline', avoid: '<ul> con viñetas, <ol>' },
+  { need: 'Avance por oficinas o por pasos (quién firmó, a quién le toca)', component: 'p-timeline layout="horizontal" (con scroll horizontal en teléfono) y p-tag por estado', avoid: 'Círculos y líneas dibujados a mano' },
+  { need: 'Datos de apoyo que casi no se miran (huellas, detalles técnicos)', component: 'p-panel [toggleable]="true" [collapsed]="true"', avoid: '<details> o un texto largo siempre visible' },
+  { need: 'Resumen de un registro al costado (tipo, oficina, versión)', component: 'p-card con una lista de datos (dl) de etiqueta y valor', avoid: '<div> con borde propio' },
   { need: 'Jerarquía (unidades, módulos)', component: 'p-tree', avoid: '<ul> anidados' },
   { need: 'Estado de un registro', component: 'p-tag con STATE_SEVERITY (o app-status-tag); su padding .375rem .75rem lo da el preset', avoid: 'Un <span> con color a mano, o un padding propio por pantalla' },
   { need: 'Contador sobre un ícono o un título', component: 'p-badge', avoid: '<span> redondo con número' },
@@ -34,6 +38,7 @@ export const OVERLAY_GUIDE: ComponentGuide[] = [
 
 export const FEEDBACK_GUIDE: ComponentGuide[] = [
   { need: 'Aviso dentro de la pantalla', component: 'p-message (info, warn, error, success)', avoid: '<div class="alert">' },
+  { need: 'Banner del estado de un documento (borrador, en firma, devuelto, firmado, anulado)', component: 'p-message con severity info, warn, success o secondary y su texto (título y detalle) en un bloque propio', avoid: 'Un <div> con borde y color a mano' },
   { need: 'Resultado de una acción', component: 'p-toast con MessageService', avoid: 'alert() del navegador' },
   { need: 'Avance de una tarea con porcentaje', component: 'p-progressbar', avoid: '<progress>' },
   { need: 'Espera sin porcentaje', component: 'p-progressspinner o [loading] del botón', avoid: 'Ruedita en CSS propia' },
