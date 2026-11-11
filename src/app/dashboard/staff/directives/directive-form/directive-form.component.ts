@@ -9,6 +9,7 @@ import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { ToolbarModule } from 'primeng/toolbar';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
@@ -36,7 +37,7 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
  */
 @Component({
   selector: 'app-directive-form',
-  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, ToolbarModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   templateUrl: './directive-form.component.html',
   styleUrl: './directive-form.component.css',
 })
@@ -95,16 +96,16 @@ export class DirectiveFormComponent implements OnInit {
     return missing > 0 ? { label: missing === 1 ? 'Falta 1' : `Faltan ${missing}`, severity: 'warn' } : { label: ready === 1 ? '1 lista' : `${ready} listas`, severity: 'success' };
   });
   /** La franja de arriba: dice sin abrir el cajón si la ruta está lista o a quién le falta una persona designada. */
-  readonly routeStrip = computed<{ tone: 'ok' | 'warn' | 'info'; icon: string; title: string; text: string }>(() => {
+  readonly routeStrip = computed<{ severity: 'success' | 'warn' | 'info'; title: string; text: string }>(() => {
     const route = this.route();
-    if (!this.origin()) return { tone: 'info', icon: 'pi-info-circle', title: 'Elige la oficina de origen', text: 'Con ella se arma la ruta de firmas.' };
-    if (this.routeLoading() && !route) return { tone: 'info', icon: 'pi-spin pi-spinner', title: 'Armando la ruta de firmas…', text: 'Consultando a Core quién firma en cada oficina.' };
-    if (!route) return { tone: 'warn', icon: 'pi-exclamation-triangle', title: 'No se pudo armar la ruta', text: this.routeError() || 'Inténtalo nuevamente.' };
+    if (!this.origin()) return { severity: 'info', title: 'Elige la oficina de origen', text: 'Con ella se arma la ruta de firmas.' };
+    if (this.routeLoading() && !route) return { severity: 'info', title: 'Armando la ruta de firmas…', text: 'Consultando a Core quién firma en cada oficina.' };
+    if (!route) return { severity: 'warn', title: 'No se pudo armar la ruta', text: this.routeError() || 'Inténtalo nuevamente.' };
     const steps = route.steps.filter(step => !step.skipped).length;
     const missing = route.issues.length;
-    if (missing > 0) return { tone: 'warn', icon: 'pi-exclamation-triangle', title: missing === 1 ? 'Falta alguien en la ruta' : `Faltan ${missing} personas en la ruta`, text: 'Core no tiene firmante designado en esas oficinas: puedes guardar el borrador, pero no enviarlo a firma.' };
+    if (missing > 0) return { severity: 'warn', title: missing === 1 ? 'Falta alguien en la ruta' : `Faltan ${missing} personas en la ruta`, text: 'Core no tiene firmante designado en esas oficinas: puedes guardar el borrador, pero no enviarlo a firma.' };
 
-    return { tone: 'ok', icon: 'pi-verified', title: `Ruta lista: ${steps === 1 ? '1 oficina' : `${steps} oficinas`}, todas con firmante designado`, text: 'Cambia si eliges otra oficina de origen o activas «proceso de calidad».' };
+    return { severity: 'success', title: `Ruta lista: ${steps === 1 ? '1 oficina' : `${steps} oficinas`}, todas con firmante designado`, text: 'Cambia si eliges otra oficina de origen o activas «proceso de calidad».' };
   });
   /** Cuántos pasos tiene la ruta: es el número del botón «Ruta de firmas». */
   readonly routeCount = computed(() => this.route()?.steps.filter(step => !step.skipped).length ?? 0);

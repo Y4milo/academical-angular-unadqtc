@@ -6,37 +6,30 @@
 .page-heading p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .form-skeleton { display: grid; gap: var(--space-3); max-width: 40rem; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); min-width: 0; }
-.column { display: grid; gap: var(--space-4); min-width: 0; flex: 1 1 0; }
+.column { display: grid; gap: var(--space-5); min-width: 0; flex: 1 1 0; }
 .origin-card { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-left: 4px solid var(--p-primary-color); border-radius: var(--radius-md); }
 .origin-card__icon { font-size: var(--text-card-title); color: var(--p-text-muted-color); }
 .origin-card__text { display: grid; gap: var(--space-1); min-width: 0; flex: 1; }
 .origin-card__text strong { font-size: var(--text-card-title); }
 :host ::ng-deep p-selectbutton.origin-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 :host ::ng-deep p-selectbutton.origin-options .p-togglebutton { flex: 1 1 14rem; justify-content: flex-start; min-height: 3rem; }
-.panel { display: grid; grid-template-columns: 2rem minmax(0, 1fr); align-items: start; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
+:host ::ng-deep .route-strip { width: 100%; }
+.route-strip__body { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); width: 100%; min-width: 0; }
+.route-strip__text { display: grid; gap: var(--space-1); min-width: 0; flex: 1 1 14rem; }
+.route-strip__text small { font-size: var(--text-small); }
+/* La barra de acciones es un p-toolbar pegado al pie de la pantalla mientras se desplaza el formulario. */
+:host ::ng-deep .action-bar { position: sticky; bottom: 0; z-index: 1; flex-wrap: wrap; gap: var(--space-3); box-shadow: 0 -4px 12px rgb(0 0 0 / 6%); }
+.panel { display: grid; grid-template-columns: 2rem minmax(0, 1fr); align-items: start; gap: var(--space-3); min-width: 0; padding: var(--space-5); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
 .panel h3 { margin: 0; font-size: var(--text-card-title); }
 .step-num { display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--p-highlight-background); color: var(--p-highlight-color); font-size: var(--text-small); font-weight: 600; }
 .step-body { display: grid; gap: var(--space-4); min-width: 0; }
 .step-body > div > .field-hint { margin: var(--space-1) 0 0; }
-.route-strip { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid; border-radius: var(--radius-md); }
-.route-strip__icon { font-size: var(--text-card-title); }
-.route-strip__text { display: grid; gap: var(--space-1); min-width: 0; flex: 1; }
-:host ::ng-deep .route-strip .p-button.p-button-outlined.p-button-secondary { color: inherit; border-color: currentColor; background: transparent; }
-:host ::ng-deep .route-strip .p-button.p-button-outlined.p-button-secondary:not(:disabled):hover { background: color-mix(in srgb, currentColor 12%, transparent); }
-.route-strip__text small { color: inherit; opacity: .9; font-size: var(--text-small); }
-.route-strip--ok { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-800); }
-.route-strip--warn { background: var(--p-orange-50); border-color: var(--p-orange-200); color: var(--p-orange-800); }
-.route-strip--info { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-800); }
-:host-context(.app-dark) .route-strip--ok { background: color-mix(in srgb, var(--p-green-500) 16%, transparent); border-color: color-mix(in srgb, var(--p-green-400) 40%, transparent); color: var(--p-green-200); }
-:host-context(.app-dark) .route-strip--warn { background: color-mix(in srgb, var(--p-orange-500) 16%, transparent); border-color: color-mix(in srgb, var(--p-orange-400) 40%, transparent); color: var(--p-orange-200); }
-:host-context(.app-dark) .route-strip--info { background: color-mix(in srgb, var(--p-blue-500) 16%, transparent); border-color: color-mix(in srgb, var(--p-blue-400) 40%, transparent); color: var(--p-blue-200); }
 .dropzone { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-4); border: 2px dashed var(--p-content-border-color); border-radius: var(--radius-md); transition: background .15s, border-color .15s; }
 .dropzone--filled { border-style: solid; }
 .dropzone--over { background: var(--p-highlight-background); border-color: var(--p-primary-color); }
 .dropzone--error { border-color: var(--p-red-500); }
 .dropzone__icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--p-highlight-background); color: var(--p-highlight-color); font-size: var(--text-card-title); }
 .dropzone__text { display: grid; gap: var(--space-1); flex: 1 1 12rem; min-width: 0; }
-.action-bar { position: sticky; bottom: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3) var(--space-4); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); box-shadow: 0 -4px 12px rgb(0 0 0 / 6%); }
 .field { display: grid; gap: var(--space-1); min-width: 0; }
 .field label, .label { font-weight: 600; font-size: var(--text-small); }
 .field-hint { color: var(--p-text-muted-color); font-size: var(--text-small); }
@@ -57,15 +50,13 @@
 .actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
 
 @media (max-width: 640px) {
-  .panel { grid-template-columns: minmax(0, 1fr); }
+  .panel { grid-template-columns: minmax(0, 1fr); padding: var(--space-4); }
   .step-num { display: none; }
-  .route-strip { flex-wrap: wrap; }
-  .route-strip__text { flex-basis: calc(100% - 2.5rem); }
-  .route-strip > p-button { margin-left: auto; }
+  .route-strip__body { flex-wrap: wrap; }
   .origin-card { flex-wrap: wrap; }
   .origin-card__text { flex-basis: calc(100% - 2.5rem); }
   .action-bar__note { display: none; }
-  .action-bar, .actions { width: 100%; }
+  :host ::ng-deep .action-bar .p-toolbar-start, :host ::ng-deep .action-bar .p-toolbar-end, .actions { width: 100%; }
   .actions { flex-wrap: nowrap; }
   .actions > * { flex: 1 1 0; white-space: nowrap; }
   .actions > :last-child { flex-grow: 2; }

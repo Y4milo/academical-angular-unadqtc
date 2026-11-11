@@ -30,14 +30,15 @@
   } @else {
     <div class="layout">
      <div class="column">
-      <div class="route-strip route-strip--{{ routeStrip().tone }}" role="status" data-testid="route-strip">
-        <span class="pi {{ routeStrip().icon }} route-strip__icon" aria-hidden="true"></span>
-        <div class="route-strip__text">
-          <strong data-testid="route-strip-title">{{ routeStrip().title }}</strong>
-          <small>{{ routeStrip().text }}</small>
+      <p-message [severity]="routeStrip().severity" styleClass="route-strip" role="status" data-testid="route-strip">
+        <div class="route-strip__body">
+          <span class="route-strip__text">
+            <strong data-testid="route-strip-title">{{ routeStrip().title }}</strong>
+            <small>{{ routeStrip().text }}</small>
+          </span>
+          <p-button label="Ver ruta" icon="pi pi-sitemap" [severity]="routeStrip().severity" [outlined]="true" size="small" [disabled]="!origin()" data-testid="route-strip-open" (onClick)="routeOpen.set(true)"></p-button>
         </div>
-        <p-button label="Ver ruta" icon="pi pi-sitemap" severity="secondary" [outlined]="true" size="small" [disabled]="!origin()" data-testid="route-strip-open" (onClick)="routeOpen.set(true)"></p-button>
-      </div>
+      </p-message>
 
       <section class="panel" aria-labelledby="origin-title" data-testid="origin-section">
         <span class="step-num" aria-hidden="true">1</span>
@@ -181,13 +182,17 @@
         <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
       }
 
-      <div class="action-bar" data-testid="action-bar">
-        <span class="field-hint action-bar__note">{{ editing() ? 'Los cambios quedan en el seguimiento.' : 'Se guarda como borrador: aún no se envía a nadie.' }}</span>
-        <span class="actions">
-          <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="cancel()"></p-button>
-          <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
-        </span>
-      </div>
+      <p-toolbar styleClass="action-bar" data-testid="action-bar">
+        <ng-template #start>
+          <span class="field-hint action-bar__note">{{ editing() ? 'Los cambios quedan en el seguimiento.' : 'Se guarda como borrador: aún no se envía a nadie.' }}</span>
+        </ng-template>
+        <ng-template #end>
+          <span class="actions">
+            <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="cancel()"></p-button>
+            <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
+          </span>
+        </ng-template>
+      </p-toolbar>
      </div>
     </div>
   }
