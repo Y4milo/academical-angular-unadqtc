@@ -21,6 +21,31 @@
         </p>
       </div>
       <div class="header-actions">
+        <app-directive-tracking [events]="current.events" [(open)]="trackingOpen"></app-directive-tracking>
+        <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
+          @if (isDraft()) {
+            <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+          } @else if (current.progress.length > 0) {
+            <p-timeline [value]="visibleProgress()" align="left" styleClass="route-timeline">
+              <ng-template pTemplate="marker" let-step>
+                <span class="progress-marker" [attr.data-state]="step.state" aria-hidden="true"></span>
+              </ng-template>
+              <ng-template pTemplate="content" let-step>
+                <div class="progress-step" [class.progress-step--skipped]="step.state === 'skipped'" data-testid="progress-step">
+                  <div class="progress-step__main">
+                    <strong>{{ step.label }}</strong>
+                    @if (step.person) { <span>{{ step.person }}</span> }
+                    @if (step.title) { <span class="muted">{{ step.title }}</span> }
+                  </div>
+                  <p-tag [value]="progressOf(step).label" [severity]="progressOf(step).severity"></p-tag>
+                </div>
+              </ng-template>
+            </p-timeline>
+          } @else {
+            <p-message severity="info">La ruta de esta directiva queda registrada al enviarla a firma.</p-message>
+          }
+        
+        </app-directive-log-drawer>
         <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
         @if (current.can_sign) {
           <p-button label="Firmar" data-testid="sign-directive" (onClick)="sign()"></p-button>
@@ -199,59 +224,7 @@
             }
           </section>
         }
-
-        <p-panel [toggleable]="true" toggler="header" [(collapsed)]="routeCollapsed" styleClass="detail-panel" data-testid="route-panel">
-          <ng-template #header><div class="detail-head"><h3 id="route-title">Ruta de firmas</h3><span class="detail-hint" data-testid="route-hint">{{ routeCollapsed() ? 'Haz clic para ver el detalle' : 'Haz clic para ocultar' }}</span></div></ng-template>
-          @if (isDraft()) {
-            <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
-          } @else if (current.progress.length > 0) {
-            <p-timeline [value]="visibleProgress()" align="left" styleClass="route-timeline">
-              <ng-template pTemplate="marker" let-step>
-                <span class="progress-marker" [attr.data-state]="step.state" aria-hidden="true"></span>
-              </ng-template>
-              <ng-template pTemplate="content" let-step>
-                <div class="progress-step" [class.progress-step--skipped]="step.state === 'skipped'" data-testid="progress-step">
-                  <div class="progress-step__main">
-                    <strong>{{ step.label }}</strong>
-                    @if (step.person) { <span>{{ step.person }}</span> }
-                    @if (step.title) { <span class="muted">{{ step.title }}</span> }
-                  </div>
-                  <p-tag [value]="progressOf(step).label" [severity]="progressOf(step).severity"></p-tag>
-                </div>
-              </ng-template>
-            </p-timeline>
-          } @else {
-            <p-message severity="info">La ruta de esta directiva queda registrada al enviarla a firma.</p-message>
-          }
-        </p-panel>
       </div>
-
-      <p-panel [toggleable]="true" toggler="header" [(collapsed)]="timelineCollapsed" styleClass="detail-panel" data-testid="timeline-panel">
-        <ng-template #header><div class="detail-head"><h3 id="timeline-title">Seguimiento</h3><span class="detail-hint" data-testid="timeline-hint">{{ timelineCollapsed() ? 'Haz clic para ver el detalle' : 'Haz clic para ocultar' }}</span></div></ng-template>
-        <p-timeline [value]="current.events" align="left" styleClass="events-timeline">
-          <ng-template pTemplate="marker"><span class="event-marker" aria-hidden="true"></span></ng-template>
-          <ng-template pTemplate="content" let-event>
-            <div class="event" data-testid="directive-event">
-              <strong>{{ eventLabel(event) }}</strong>
-              @if (eventDetail(event); as detail) { <span data-testid="event-detail">{{ detail }}</span> }
-              @if (eventChanges(event); as changes) {
-                @if (changes.length > 0) {
-                  <div class="event-changes" data-testid="event-changes">
-                    @for (change of changes; track change.label) {
-                      <div class="change" data-testid="event-change">
-                        <span class="muted">{{ change.label }}</span>
-                        <span class="change__before">{{ change.before }}</span>
-                        <span class="change__after"><i class="pi pi-arrow-right change__arrow" aria-hidden="true"></i>{{ change.after }}</span>
-                      </div>
-                    }
-                  </div>
-                }
-              }
-              <span class="muted">{{ eventAuthor(event) }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
-            </div>
-          </ng-template>
-        </p-timeline>
-      </p-panel>
     </div>
 
     <p-confirmdialog></p-confirmdialog>

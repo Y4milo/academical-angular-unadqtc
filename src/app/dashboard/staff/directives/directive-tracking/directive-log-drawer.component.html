@@ -1,0 +1,10 @@
+<button type="button" class="track-btn" (click)="open.set(true)" aria-haspopup="dialog" [attr.aria-expanded]="open()" [attr.data-testid]="testId() + '-button'">
+  <span class="pi" [class]="'pi ' + icon()" aria-hidden="true"></span>
+  <span>{{ label() }}</span>
+  <span class="track-btn__count" [attr.data-testid]="testId() + '-count'">{{ count() }}</span>
+</button>
+
+<p-drawer [visible]="open()" (visibleChange)="open.set($event)" position="right" [modal]="true" [dismissible]="true" styleClass="tracking-drawer" [attr.data-testid]="testId() + '-drawer'">
+  <ng-template #header><h3 class="tracking-title">{{ label() }}</h3></ng-template>
+  <ng-content></ng-content>
+</p-drawer>

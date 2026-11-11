@@ -48,7 +48,7 @@ describe('DirectiveFormComponent', () => {
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(DirectiveFormComponent);
     fixture.autoDetectChanges();
-    // La ruta empieza cerrada en tableta y móvil: las pruebas la abren para ver sus pasos, igual que en escritorio.
+    // La ruta vive en un cajón que empieza cerrado: las pruebas lo abren para ver sus pasos, como hace la persona con el botón.
     fixture.componentInstance.routeOpen.set(true);
     await fixture.whenStable();
   }
@@ -434,36 +434,29 @@ describe('DirectiveFormComponent', () => {
 
     expect(text('server-error')).toContain('No se pudieron consultar los tipos de documento');
   });
-  describe('route rail and drawer', () => {
-    it('shows the rail with the number of steps, and the route inside the panel', async () => {
+  describe('route button and drawer', () => {
+    it('shows the route as a button with the number of steps, and the steps inside its drawer', async () => {
       await create();
       fixture.componentInstance.origin.set('adm');
       fixture.detectChanges();
       await fixture.whenStable();
 
-      expect(html().querySelector('[data-testid="route-rail"]')).not.toBeNull();
-      expect(text('route-rail-count')).toBe(String(fixture.componentInstance.routeCount()));
-      expect(html().querySelector('[data-testid="route-panel"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="route-button"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="route-rail"]')).toBeNull();
+      expect(text('route-count')).toBe(String(fixture.componentInstance.routeCount()));
       expect(findAll('route-step').length).toBeGreaterThan(0);
     });
 
-    it('opens from the rail and closes with its own control, remembering the choice on desktop', async () => {
+    it('opens from the button of the header and starts closed', async () => {
       await create();
       const form = fixture.componentInstance;
-      if (form.overlay()) {
-        form.openRoute();
-        expect(form.routeOpen()).toBeTrue();
-        form.closeRoute();
-        expect(form.routeOpen()).toBeFalse();
-        expect(localStorage.getItem('directive-form.route-open')).toBeNull();
+      form.routeOpen.set(false);
+      fixture.detectChanges();
 
-        return;
-      }
-      form.closeRoute();
-      expect(form.routeOpen()).toBeFalse();
-      expect(localStorage.getItem('directive-form.route-open')).toBe('0');
-      form.openRoute();
-      expect(localStorage.getItem('directive-form.route-open')).toBe('1');
+      html().querySelector<HTMLElement>('[data-testid="route-button"]')!.click();
+      fixture.detectChanges();
+      expect(form.routeOpen()).toBeTrue();
+      expect(html().querySelector('[data-testid="route-button"]')!.getAttribute('aria-expanded')).toBe('true');
     });
 
     it('puts the subtype pills in a group that wraps, not in each button', async () => {
@@ -479,5 +472,17 @@ describe('DirectiveFormComponent', () => {
         expect(getComputedStyle(group).flexWrap).toBe('wrap');
       }
     });
+  });
+
+  it('has the tracking button in its header: empty while creating, with the movements while correcting a draft', async () => {
+    await create();
+    expect(html().querySelector('[data-testid="tracking-button"]')).not.toBeNull();
+    expect(html().querySelector('[data-testid="tracking-count"]')!.textContent!.trim()).toBe('0');
+    fixture.destroy();
+    TestBed.resetTestingModule();
+
+    service.detail.and.returnValue(of(ok(detail())));
+    await create('7');
+    expect(Number(html().querySelector('[data-testid="tracking-count"]')!.textContent!.trim())).toBe(detail().events.length);
   });
 });

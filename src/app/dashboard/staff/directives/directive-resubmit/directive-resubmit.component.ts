@@ -14,6 +14,8 @@ import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
 import { MAX_PDF_BYTES } from '../directive-form/directive-form.component';
 import { formatBytes } from '../directive-status';
+import { DirectiveLogDrawerComponent } from '../directive-tracking/directive-log-drawer.component';
+import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
 
 /**
  * La oficina de origen corrige una directiva devuelta y la reenvía: sube la directiva corregida (obligatoria), conserva la resolución salvo que suba
@@ -22,12 +24,17 @@ import { formatBytes } from '../directive-status';
  */
 @Component({
   selector: 'app-directive-resubmit',
-  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent],
+  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   templateUrl: './directive-resubmit.component.html',
   styleUrl: './directive-resubmit.component.css',
 })
 export class DirectiveResubmitComponent implements OnInit {
   readonly directive = signal<DirectiveDetail | null>(null);
+  /** El cajón del seguimiento (botón «Seguimiento» de la cabecera). */
+  readonly trackingOpen = signal(false);
+  /** El cajón de la ruta (botón «Ruta de firmas» de la cabecera) y cuántos pasos firman. */
+  readonly routeOpen = signal(false);
+  readonly routeCount = computed(() => this.route()?.steps.filter(step => !step.skipped).length ?? 0);
   readonly loading = signal(true);
   readonly loadError = signal('');
   readonly route = signal<DirectiveRoute | null>(null);

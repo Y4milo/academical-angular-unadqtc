@@ -4,6 +4,18 @@
       <h2>{{ editing() ? 'Corregir el borrador' : 'Nuevo documento' }}</h2>
       <p>Sube el documento y la resolución que lo aprueba. Antes de enviarlo verás quién firma en cada oficina.</p>
     </div>
+    <div class="header-actions">
+      <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
+        @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
+        <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</p>
+        @if (!origin()) {
+          <p-message severity="info" data-testid="route-pick-origin">Elige la oficina de origen para ver la ruta.</p-message>
+        } @else {
+          <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+        }
+      </app-directive-log-drawer>
+    <app-directive-tracking [events]="existing()?.events ?? []" emptyText="Todavía no hay movimientos: se empiezan a registrar al guardar el borrador." [(open)]="trackingOpen"></app-directive-tracking>
+    </div>
   </div>
 
   @if (loadError()) {
@@ -112,53 +124,6 @@
         </div>
       </section>
      </div>
-
-      <div class="shelf" [class.shelf--open]="routeOpen() && !overlay()" [class.shelf--overlay]="overlay()" data-testid="route-shelf">
-        <button type="button" class="rail" (click)="openRoute()" [attr.aria-expanded]="routeOpen()" aria-controls="route-drawer" aria-label="Abrir la ruta de firmas" data-testid="route-rail">
-          <span class="pi pi-angle-left rail__icon" aria-hidden="true"></span>
-          @if (routeSummary(); as summary) {
-            <span class="rail__count" [class.rail__count--warn]="summary.severity === 'warn'" data-testid="route-rail-count">{{ routeCount() }}</span>
-            <span class="rail__dots" aria-hidden="true">@for (dot of routeDots(); track $index) { <i [class.rail__dot--warn]="dot === 'warn'"></i> }</span>
-          }
-          <span class="rail__title">Ruta de firmas</span>
-        </button>
-
-        @if (!overlay()) {
-          <aside id="route-drawer" class="drawer" [attr.aria-hidden]="!routeOpen()" [attr.inert]="routeOpen() ? null : ''" (keydown.escape)="closeRoute()" data-testid="route-panel">
-            <div class="drawer__inner">
-              <div class="route-box">
-                <div class="route-head">
-                  <h3 id="route-title">Ruta de firmas</h3>
-                  @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
-                  <p-button class="route-close" icon="pi pi-times" [text]="true" [rounded]="true" severity="secondary" size="small" ariaLabel="Cerrar la ruta de firmas" data-testid="route-close" (onClick)="closeRoute()"></p-button>
-                </div>
-                <div class="route-body"><ng-container [ngTemplateOutlet]="routeBody"></ng-container></div>
-              </div>
-            </div>
-          </aside>
-        }
-      </div>
-
-      @if (overlay()) {
-        <p-drawer [visible]="routeOpen()" (visibleChange)="routeOpen.set($event)" position="right" [modal]="true" [dismissible]="true" styleClass="route-drawer" data-testid="route-panel">
-          <ng-template #header>
-            <div class="route-head">
-              <h3 id="route-title">Ruta de firmas</h3>
-              @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
-            </div>
-          </ng-template>
-          <ng-container [ngTemplateOutlet]="routeBody"></ng-container>
-        </p-drawer>
-      }
-
-      <ng-template #routeBody>
-        <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</p>
-        @if (!origin()) {
-          <p-message severity="info" data-testid="route-pick-origin">Elige la oficina de origen para ver la ruta.</p-message>
-        } @else {
-          <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
-        }
-      </ng-template>
     </div>
   }
 </div>

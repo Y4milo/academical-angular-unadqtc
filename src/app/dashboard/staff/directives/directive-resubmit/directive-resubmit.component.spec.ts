@@ -154,4 +154,9 @@ describe('DirectiveResubmitComponent', () => {
     expect(fixture.componentInstance.sending()).toBeFalse();
     expect(navigate).not.toHaveBeenCalled();
   });
+  it('has the tracking button in its header, like the other screens of the module', async () => {
+    await create();
+
+    expect(html().querySelector('[data-testid="tracking-button"]')).not.toBeNull();
+  });
 });

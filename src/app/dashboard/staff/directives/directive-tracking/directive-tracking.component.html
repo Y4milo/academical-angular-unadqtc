@@ -1,0 +1,29 @@
+<app-directive-log-drawer label="Seguimiento" [count]="events().length" [(open)]="open" testId="tracking">
+  @if (events().length === 0) {
+    <p class="muted" data-testid="tracking-empty">{{ emptyText() }}</p>
+  } @else {
+    <p-timeline [value]="events()" align="left" styleClass="events-timeline">
+      <ng-template pTemplate="marker"><span class="event-marker" aria-hidden="true"></span></ng-template>
+      <ng-template pTemplate="content" let-event>
+        <div class="event" data-testid="directive-event">
+          <strong>{{ label(event) }}</strong>
+          @if (detail(event); as text) { <span data-testid="event-detail">{{ text }}</span> }
+          @if (changes(event); as rows) {
+            @if (rows.length > 0) {
+              <div class="event-changes" data-testid="event-changes">
+                @for (change of rows; track change.label) {
+                  <div class="change" data-testid="event-change">
+                    <span class="muted">{{ change.label }}</span>
+                    <span class="change__before">{{ change.before }}</span>
+                    <span class="change__after"><i class="pi pi-arrow-right change__arrow" aria-hidden="true"></i>{{ change.after }}</span>
+                  </div>
+                }
+              </div>
+            }
+          }
+          <span class="muted">{{ author(event) }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </ng-template>
+    </p-timeline>
+  }
+</app-directive-log-drawer>

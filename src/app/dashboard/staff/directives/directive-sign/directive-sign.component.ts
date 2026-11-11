@@ -15,6 +15,7 @@ import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SigningSession } from '../../../../services/directives.service';
 import { FirmaPeruSignerService } from '../../../../services/firma-peru-signer.service';
+import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
 
 /** En qué va la firma: nada empezado, abriendo la sesión, esperando al firmador local, confirmando con el servidor o terminada. */
 export type SignPhase = 'idle' | 'opening' | 'waiting' | 'confirming' | 'done';
@@ -33,12 +34,14 @@ const CONFIRM_EVERY_MS = 3000;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule, TimelineModule],
+  imports: [FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule, TimelineModule, DirectiveTrackingComponent],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })
 export class DirectiveSignComponent implements OnInit, OnDestroy {
   readonly directive = signal<DirectiveDetail | null>(null);
+  /** El cajón del seguimiento (botón «Seguimiento» de la cabecera). */
+  readonly trackingOpen = signal(false);
   readonly loading = signal(true);
   readonly loadError = signal('');
   readonly phase = signal<SignPhase>('idle');
