@@ -48,6 +48,8 @@ export interface DirectiveSummary {
   updated_at: string | null;
   can_edit: boolean;
   files: { directive: DirectiveFileInfo; resolution: DirectiveFileInfo } | null;
+  /** Cuántas oficinas firmaron y a cuál le toca; el API lo manda en los documentos enviados. */
+  route_progress?: { signed: number; total: number; active_office: string | null } | null;
 }
 
 export interface DirectiveEvent {

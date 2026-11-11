@@ -14,6 +14,13 @@ describe('DirectivesListComponent', () => {
 
   const html = () => fixture.nativeElement as HTMLElement;
   const rows = () => Array.from(html().querySelectorAll('[data-testid="directive-row"]'));
+  /** Los filtros viven en un diálogo de PrimeNG que se pega al `body`: se abre y se busca ahí. */
+  const openFilters = async () => {
+    fixture.componentInstance.filtersOpen.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+  };
+  const inDialog = (selector: string) => Array.from(document.body.querySelectorAll(selector));
 
   async function create() {
     fixture = TestBed.createComponent(DirectivesListComponent);
@@ -69,7 +76,7 @@ describe('DirectivesListComponent', () => {
     service.list.and.returnValue(of(ok([])));
     await create();
 
-    expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Sube tu primer documento');
+    expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Aún no tienes documentos de gestión');
   });
 
   it('explains that Core authorizes neither requesting nor signing, and does not ask for anything else', async () => {
@@ -114,7 +121,7 @@ describe('DirectivesListComponent', () => {
     const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
     fixture.componentInstance.load();
     fixture.detectChanges();
-    expect(html().querySelector('[data-testid="section-switch"]')?.textContent).toContain('En tu ruta (1)');
+    expect(html().querySelector('[data-testid="section-switch"]')?.textContent).toContain('En tu ruta');
 
     fixture.componentInstance.section.set('route');
     fixture.detectChanges();
@@ -152,7 +159,7 @@ describe('DirectivesListComponent', () => {
     summary({ id: 3, title: 'Estatuto de la universidad', document_type: gestion, document_subtype: { code: 'estatuto', label: 'Estatuto' } }),
     summary({ id: 4, title: 'Reglamento de prácticas', document_type: { code: 'reglamentos', label: 'Reglamentos' } }),
   ];
-  const typeLabels = () => Array.from(html().querySelectorAll('[data-testid="type-filter"] .p-togglebutton')).map(button => button.textContent?.trim());
+  const typeLabels = () => inDialog('[data-testid="type-filter"] .p-togglebutton').map(button => button.textContent?.trim());
 
   it('shows the type of each document in its own column, with the subtype when it has one', async () => {
     service.list.and.returnValue(of(ok(plans)));
@@ -166,6 +173,7 @@ describe('DirectivesListComponent', () => {
   it('offers the types that are in the list with how many there are, and filters by the one chosen', async () => {
     service.list.and.returnValue(of(ok(plans)));
     await create();
+    await openFilters();
 
     expect(typeLabels()).toEqual(['Todos (4)', 'Directivas (1)', 'Documentos de gestión institucional (2)', 'Reglamentos (1)']);
 
@@ -182,11 +190,12 @@ describe('DirectivesListComponent', () => {
   it('offers the subtypes only inside documents de gestión institucional, and filters by them', async () => {
     service.list.and.returnValue(of(ok(plans)));
     await create();
-    expect(html().querySelector('[data-testid="subtype-filters"]')).toBeNull();
+    await openFilters();
+    expect(inDialog('[data-testid="subtype-filters"]').length).toBe(0);
 
     fixture.componentInstance.changeType('gestion_institucional');
     fixture.detectChanges();
-    expect(Array.from(html().querySelectorAll('[data-testid="subtype-filter"] .p-togglebutton')).map(button => button.textContent?.trim())).toEqual(['Todos los subtipos', 'POI (1)', 'Estatuto (1)']);
+    expect(inDialog('[data-testid="subtype-filter"] .p-togglebutton').map(button => button.textContent?.trim())).toEqual(['Todos los subtipos', 'POI (1)', 'Estatuto (1)']);
 
     fixture.componentInstance.subtypeFilter.set('poi');
     fixture.detectChanges();
@@ -200,7 +209,73 @@ describe('DirectivesListComponent', () => {
 
   it('does not offer a type filter when everything is of the same type', async () => {
     await create();
+    await openFilters();
 
-    expect(html().querySelector('[data-testid="type-filters"]')).toBeNull();
+    expect(inDialog('[data-testid="type-filters"]').length).toBe(0);
+  });
+  describe('search, applied filters and phone cards', () => {
+    it('searches by title, office or type and says when nothing matches', async () => {
+      service.list.and.returnValue(of(ok(plans)));
+      await create();
+
+      fixture.componentInstance.search.set('estatuto');
+      fixture.detectChanges();
+      expect(rows().length).toBe(1);
+      expect(rows()[0].textContent).toContain('Estatuto de la universidad');
+
+      fixture.componentInstance.search.set('no existe');
+      fixture.detectChanges();
+      expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Ningún documento coincide con tu búsqueda');
+    });
+
+    it('shows what is applied as chips that can be removed one by one or all together', async () => {
+      service.list.and.returnValue(of(ok(plans)));
+      await create();
+      expect(html().querySelector('[data-testid="active-filters"]')).toBeNull();
+
+      fixture.componentInstance.filter.set('draft');
+      fixture.componentInstance.changeType('reglamentos');
+      fixture.detectChanges();
+      const chips = () => Array.from(html().querySelectorAll('[data-testid="active-filters"] p-chip')).map(chip => chip.textContent?.trim());
+      expect(chips()).toEqual(['Estado: Borrador', 'Tipo: Reglamentos']);
+
+      fixture.componentInstance.removeFilter('status');
+      fixture.detectChanges();
+      expect(chips()).toEqual(['Tipo: Reglamentos']);
+
+      (html().querySelector('[data-testid="clear-filters"] button') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(html().querySelector('[data-testid="active-filters"]')).toBeNull();
+      expect(rows().length).toBe(4);
+    });
+
+    it('shows how many offices signed and which one has the turn when the API says so', async () => {
+      service.list.and.returnValue(of(ok([summary({ id: 3, status: 'in_signature', status_label: 'En firma', route_progress: { signed: 1, total: 4, active_office: 'Oficina de Asesoría Jurídica' } })])));
+      await create();
+
+      expect(rows()[0].textContent).toContain('Oficina de Asesoría Jurídica');
+      expect(rows()[0].querySelectorAll('.progress i').length).toBe(4);
+      expect(rows()[0].querySelectorAll('.progress i.progress__done').length).toBe(1);
+      expect(rows()[0].querySelectorAll('.progress i.progress__now').length).toBe(1);
+    });
+
+    it('opens the document when the row is clicked', async () => {
+      const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+      await create();
+
+      (rows()[0] as HTMLElement).click();
+      expect(navigate).toHaveBeenCalledWith('directivas/7');
+    });
+
+    it('draws a card per document on a phone, with the same test ids', async () => {
+      service.list.and.returnValue(of(ok(plans)));
+      await create();
+      fixture.componentInstance.isMobile.set(true);
+      fixture.detectChanges();
+
+      expect(html().querySelector('table')).toBeNull();
+      expect(rows().length).toBe(4);
+      expect(rows()[0].classList.contains('row-card')).toBeTrue();
+    });
   });
 });
