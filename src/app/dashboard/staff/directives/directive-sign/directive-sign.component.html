@@ -77,6 +77,14 @@
                 <p-button label="Ver el seguimiento" (onClick)="back()" data-testid="go-detail"></p-button>
                 <p-button label="Volver a la lista" severity="secondary" [outlined]="true" (onClick)="backToList()" data-testid="go-list"></p-button>
               } @else {
+                @if (current.my_step; as mine) {
+                  <div class="signs-as" data-testid="signs-as">
+                    <span class="muted">Firmas como</span>
+                    <strong>{{ mine.person }}</strong>
+                    @if (mine.title) { <span class="muted">{{ mine.title }}{{ mine.condition ? ' · ' + mine.condition : '' }}</span> }
+                    @if (myRole(); as role) { <p-tag [value]="role.label" [severity]="role.severity" data-testid="role-tag"></p-tag> }
+                  </div>
+                }
                 @if (session()?.stamp_reason; as reason) {
                   <p class="reason" data-testid="stamp-reason"><span class="muted">Motivo de la firma</span>{{ reason }}</p>
                 }
@@ -98,10 +106,10 @@
                     </div>
                   </ng-template>
                 </p-timeline>
-                <p-message severity="info" size="small">Usa el certificado a tu nombre. Si es de otra persona, la firma se rechaza.</p-message>
+                <p-message severity="info" size="small" data-testid="holder-note">Usa el certificado a tu nombre. Si es de otra persona, la firma se rechaza.</p-message>
                 @if (signError()) { <p-message severity="error" data-testid="sign-error">{{ signError() }}</p-message> }
                 @if (notice()) { <p-message severity="warn" data-testid="sign-notice">{{ notice() }}</p-message> }
-                <p-button [label]="busy() ? 'Firmando…' : 'Firmar con Firma Perú'" icon="pi pi-pen-to-square" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
+                <p-button [label]="busy() ? 'Firmando…' : (myRole()?.action ?? 'Firmar con Firma Perú')" icon="pi pi-pen-to-square" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
                 @if (current.can_reject) {
                   <p-button label="Rechazar y devolver" icon="pi pi-undo" styleClass="reject-button" severity="danger" [outlined]="true" [disabled]="busy()" data-testid="reject-button" (onClick)="openReject()"></p-button>
                 }

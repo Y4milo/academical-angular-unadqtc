@@ -29,7 +29,7 @@ import { DirectiveTrackingComponent } from '../directive-tracking/directive-trac
 import { MAX_PDF_BYTES } from '../directive-form/directive-form.component';
 import { PageCount, countPdfPages, pagesLabel, pagesTag } from '../pdf-pages';
 import { documentTypeColor, documentTypeText } from '../document-type';
-import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_SIGNED_FAILURES, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
+import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_SIGNED_FAILURES, DIRECTIVE_STATUS, STEP_ROLE, formatBytes } from '../directive-status';
 
 /** Un PDF elegido para reemplazar a otro del borrador, con sus páginas contadas en el navegador. */
 interface StagedPdf {
@@ -184,6 +184,8 @@ export class DirectiveDetailComponent implements OnInit {
   crumbs(title: string): MenuItem[] {
     return [{ label: 'Documentos de gestión', command: () => this.back() }, { label: title }];
   }
+
+  readonly stepRole = STEP_ROLE;
 
   progressOf(step: DirectiveProgressStep) {
     const current = this.directive();

@@ -39,3 +39,4 @@
   :host ::ng-deep p-selectbutton .p-togglebutton { flex: 1 1 100%; }
   :host ::ng-deep .settings-crumbs li:not(:first-child) { display: none; }
 }
+.role-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }

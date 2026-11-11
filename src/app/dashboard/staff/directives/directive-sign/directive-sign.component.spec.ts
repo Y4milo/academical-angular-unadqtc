@@ -349,4 +349,30 @@ describe('DirectiveSignComponent', () => {
       expect(html().querySelector('[data-testid="go-list"]')).not.toBeNull();
     });
   });
+
+  describe('role of who signs', () => {
+    const asRole = (role: 'author' | 'visto_bueno' | 'aprobacion') => {
+      service.detail.and.returnValue(of(ok(detail({ ...turn(), my_step: { label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: 'Jefe de Asesoría Jurídica', condition: 'titular', position: 3, role, role_label: null } }))));
+    };
+
+    it('shows who signs as, with the cargo and the role, and names the button after the role', async () => {
+      asRole('visto_bueno');
+      await create();
+
+      expect(text('signs-as')).toContain('Carlos Paucar');
+      expect(text('signs-as')).toContain('Jefe de Asesoría Jurídica');
+      expect(text('role-tag')).toBe('Visto bueno');
+      expect(html().querySelector('[data-testid="sign-button"]')?.textContent).toContain('Dar visto bueno');
+    });
+
+    it('the author signs as author and the approver approves', async () => {
+      asRole('author');
+      await create();
+      expect(html().querySelector('[data-testid="sign-button"]')?.textContent).toContain('Firmar como autor');
+
+      asRole('aprobacion');
+      await create();
+      expect(html().querySelector('[data-testid="sign-button"]')?.textContent).toContain('Aprobar');
+    });
+  });
 });

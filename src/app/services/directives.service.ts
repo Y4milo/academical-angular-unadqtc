@@ -63,12 +63,30 @@ export interface DirectiveEvent {
 /** Cómo va una oficina de la ruta que ya se envió: firmó, le toca ahora, espera su turno o no firma. */
 export type ProgressState = 'signed' | 'active' | 'waiting' | 'skipped' | 'rejected';
 
+/** El rol de una oficina en la ruta: la de origen es la autora, las demás dan su visto bueno o aprueban. */
+export type StepRole = 'author' | 'visto_bueno' | 'aprobacion';
+
 export interface DirectiveProgressStep {
   key: string;
   label: string;
   person: string | null;
   title: string | null;
+  condition?: string | null;
+  /** Nulo en documentos enviados antes de que existieran los roles. */
+  role?: StepRole | null;
+  role_label?: string | null;
   state: ProgressState;
+}
+
+/** Lo que firma quien tiene el turno: su cargo, su rol y la condición con la que firma. */
+export interface DirectiveMyStep {
+  label: string;
+  person: string | null;
+  title: string | null;
+  condition: string | null;
+  position: number | null;
+  role: StepRole | null;
+  role_label: string | null;
 }
 
 /** Quién consulta la directiva: la pide (origin), la rechazó, ya firmó o aún espera su turno; decide qué ve. */
@@ -137,6 +155,7 @@ export interface DirectiveDetail extends DirectiveSummary {
   /** ¿Le toca firmar ahora a quien consulta? */
   can_sign: boolean;
   active_office: string | null;
+  my_step?: DirectiveMyStep | null;
 }
 
 /** Lo que el administrador decide sobre qué ve cada oficina de la ruta; aplica a todas las directivas. */
@@ -149,6 +168,10 @@ export interface DirectiveSettingsValues {
   notify_void: 'yes' | 'no';
   notify_completed: 'yes' | 'no';
   notify_cancelled: 'yes' | 'no';
+  role_quality: 'visto_bueno' | 'aprobacion';
+  role_legal: 'visto_bueno' | 'aprobacion';
+  role_modernization: 'visto_bueno' | 'aprobacion';
+  role_presidency: 'visto_bueno' | 'aprobacion';
 }
 
 export interface DirectiveSettingsChange {
@@ -167,7 +190,7 @@ export interface DirectiveSettings {
 
 /** Una directiva que espera la firma de la persona, con el lugar que ocupa su oficina en la ruta. */
 export interface PendingDirective extends DirectiveSummary {
-  step: { label: string; position: number; total: number };
+  step: { label: string; position: number; total: number; title?: string | null; role?: StepRole | null; role_label?: string | null };
 }
 
 /** Lo que la página necesita para llamar al firmador local de Firma Perú; el servidor abre la sesión en el firmador. */

@@ -278,4 +278,13 @@ describe('DirectivesListComponent', () => {
       expect(rows()[0].classList.contains('row-card')).toBeTrue();
     });
   });
+
+  it('shows the role of the person in each pending document and names the button after it', async () => {
+    service.access.and.returnValue(of(ok({ ...access, can_request: false, request_units: [], can_sign: true, sign_units: ['oaj'] })));
+    service.pending.and.returnValue(of(ok([{ ...summary({ id: 9, status: 'in_signature', status_label: 'En firma' }), step: { label: 'Asesoría Jurídica', position: 2, total: 4, role: 'visto_bueno' as const, role_label: 'Visto bueno' } }])));
+    await create();
+
+    expect(html().querySelector('[data-testid="pending-role"]')?.textContent).toContain('Visto bueno');
+    expect(html().querySelector('[data-testid="sign-pending"]')?.textContent).toContain('Dar visto bueno');
+  });
 });

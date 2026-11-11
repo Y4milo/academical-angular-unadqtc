@@ -101,16 +101,17 @@
               <div class="row-card__head"><strong>{{ directive.title }}</strong></div>
               <span class="type-cell" data-testid="pending-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span>
               <span class="muted">{{ directive.origin.name }} · Tu turno: {{ directive.step.label }} · Paso {{ directive.step.position }} de {{ directive.step.total }}</span>
-              <p-button label="Revisar y firmar" styleClass="w-full" [fluid]="true" data-testid="sign-pending" (onClick)="sign(directive)"></p-button>
+              @if (roleOf(directive)) { <p-tag [value]="roleOf(directive)!.label" [severity]="roleOf(directive)!.severity" data-testid="pending-role"></p-tag> }
+              <p-button [label]="roleOf(directive) ? roleOf(directive)!.action : 'Revisar y firmar'" styleClass="w-full" [fluid]="true" data-testid="sign-pending" (onClick)="sign(directive)"></p-button>
             </p-card>
           } @empty {
             <div class="empty" data-testid="pending-empty"><i class="pi pi-check-circle empty__icon" aria-hidden="true"></i><h3>No tienes firmas pendientes</h3><p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p></div>
           }
         </div>
       } @else {
-        <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="pendingRows()" [tableStyle]="{ 'min-width': '44rem' }">
+        <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="pendingRows()" [tableStyle]="{ 'min-width': '52rem' }">
           <ng-template #header>
-            <tr><th>Documento</th><th>Oficina de origen</th><th>Tu turno</th><th>Actualizado</th><th class="actions-col"><span class="sr-only">Firmar</span></th></tr>
+            <tr><th>Documento</th><th>Oficina de origen</th><th>Tu turno</th><th>Tu rol</th><th>Actualizado</th><th class="actions-col"><span class="sr-only">Firmar</span></th></tr>
           </ng-template>
           <ng-template #body let-directive>
             <tr class="row" data-testid="pending-row" (click)="open(directive)">
@@ -122,8 +123,9 @@
                   <span class="muted">Paso {{ directive.step.position }} de {{ directive.step.total }}</span>
                 </div>
               </td>
+              <td>@if (roleOf(directive)) { <p-tag [value]="roleOf(directive)!.label" [severity]="roleOf(directive)!.severity" data-testid="pending-role"></p-tag> }</td>
               <td class="muted">{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-              <td class="actions-col"><p-button label="Revisar y firmar" size="small" data-testid="sign-pending" (onClick)="sign(directive); $event.stopPropagation()"></p-button></td>
+              <td class="actions-col"><p-button [label]="roleOf(directive) ? roleOf(directive)!.action : 'Revisar y firmar'" size="small" data-testid="sign-pending" (onClick)="sign(directive); $event.stopPropagation()"></p-button></td>
             </tr>
           </ng-template>
           <ng-template #emptymessage>
