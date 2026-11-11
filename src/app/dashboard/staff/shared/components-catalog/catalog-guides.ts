@@ -2,6 +2,7 @@ import { ComponentGuide } from './components-catalog.component';
 
 export const DATA_GUIDE: ComponentGuide[] = [
   { need: 'Lista de registros con columnas', component: 'p-table (con [paginator], pSortableColumn y styleClass="dbu-stack" para teléfono)', avoid: '<table>, <ul> con filas' },
+  { need: 'Relleno de un card (24 px, 16 px en teléfono; 16 px del título al contenido; 24 px entre cards)', component: 'El preset aplicado a p-card (card.body.padding y gap) y la regla de teléfono de styles.css', avoid: 'Un padding propio por pantalla o un div con borde hecho a mano' },
   { need: 'Relleno de las celdas de una tabla (12 × 16 px)', component: 'El preset aplicado a p-table (datatable.headerCell, bodyCell y footerCell); la última columna, la de la acción, también lleva sus 16 px a la derecha', avoid: 'Un padding propio por pantalla o por columna' },
   { need: 'Lista de tarjetas o de filas libres', component: 'p-dataview', avoid: '<ul>, <ol>, @for de <div> sin contenedor' },
   { need: 'Historial o secuencia de eventos', component: 'p-timeline', avoid: '<ul> con viñetas, <ol>' },

@@ -17,7 +17,8 @@ import {sessionExpiredInterceptor} from './interceptors/session-expired.intercep
 const typography = {
   button: {root: {label: {fontWeight: 'var(--weight-strong)'}}},
   tag: {root: {fontSize: 'var(--text-small)', fontWeight: 'var(--weight-strong)', padding: '0.375rem 0.75rem'}},
-  card: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}},
+  /* Relleno estándar de todo card (aprobado 2026-11-10): 24 px (16 px en teléfono, ver styles.css), 16 px del título al contenido. */
+  card: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}, body: {padding: 'var(--space-5)', gap: 'var(--space-4)'}, caption: {gap: 'var(--space-4)'}},
   message: {text: {fontSize: 'var(--text-body)', fontWeight: 'var(--weight-regular)'}},
   dialog: {title: {fontSize: 'var(--text-card-title)', fontWeight: 'var(--weight-strong)'}},
   panel: {title: {fontWeight: 'var(--weight-strong)'}},

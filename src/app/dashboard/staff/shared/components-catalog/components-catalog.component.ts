@@ -189,6 +189,7 @@ export class ComponentsCatalogComponent implements OnInit {
   readonly dbuStatuses = Object.entries(DBU_STATUS_VIEW).map(([code, view]) => ({ code, label: view.label, severity: STATE_SEVERITY[view.kind] }));
 
   readonly screenRules = [
+    'Relleno de todo card: <strong>24 px</strong> (16 px bajo 640 px), 16 px del título al contenido, filas internas de 16 px y 24 px de separación entre cards; lo da el preset de <code>p-card</code>.',
     'Relleno de toda tabla: celda de 12 px arriba y abajo y 16 px a los lados (<code>--space-3</code> y <code>--space-4</code>), también con <code>size="small"</code>; lo da el preset, no se repite por pantalla.',
     'Sin desplazamiento horizontal de la página a 375 px, 768 px y 1440 px.',
     'Una fila de formulario con <code>flex-wrap</code>; nunca <code>flex-direction: column</code> con un <code>flex-basis</code> en rem (se convierte en alto).',

@@ -205,6 +205,13 @@
           </ng-template>
         </p-table>
 
+        <h3>Relleno de los cards</h3>
+        <p class="catalog__lead" data-testid="card-padding-note">Todo card lleva <strong>24 px de relleno</strong> (16 px en teléfono), 16 px entre el título y el contenido y 24 px de separación entre cards. Lo da el preset de <code>p-card</code>; las pantallas no escriben su propio padding.</p>
+        <div class="catalog__states" data-testid="card-padding-sample">
+          <p-card header="Documentos"><span>Contenido del card con el relleno estándar.</span></p-card>
+          <p-card header="Resumen"><span>Segundo card, a 24 px del primero.</span></p-card>
+        </div>
+
         <h3>Relleno de las tablas</h3>
         <p class="catalog__lead" data-testid="table-padding-note">Toda tabla lleva celdas de <strong>12 px arriba y abajo y 16 px a los lados</strong> (<code>--space-3</code> y <code>--space-4</code>), también con <code>size="small"</code>. Lo da el preset: no se escribe un padding por pantalla. La última columna, la de la acción, conserva sus 16 px a la derecha.</p>
         <p-table [value]="pagedRows.slice(0, 2)" size="small" styleClass="catalog-stack" data-testid="table-padding-sample">

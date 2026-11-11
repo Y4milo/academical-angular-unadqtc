@@ -179,6 +179,24 @@ describe('ComponentsCatalogComponent', () => {
     expect(DATA_GUIDE.map(row => row.need).join(' ')).toContain('Relleno de las celdas de una tabla');
   });
 
+  it('documents the standard card padding (24 px, 16 px on phones) and the preset gives it to every card', async () => {
+    const card = (InstitutionalPreset as { components?: { card?: { body?: { padding?: string; gap?: string } } } }).components?.card?.body;
+    expect(card?.padding).toBe('var(--space-5)');
+    expect(card?.gap).toBe('var(--space-4)');
+
+    const fixture = TestBed.createComponent(ComponentsCatalogComponent);
+    fixture.autoDetectChanges(true);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    Array.from(root.querySelectorAll<HTMLElement>('p-tab')).find(tab => tab.textContent?.includes('Datos'))?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(root.querySelector('[data-testid="card-padding-note"]')?.textContent).toContain('24 px de relleno');
+    expect(root.querySelectorAll('[data-testid="card-padding-sample"] p-card').length).toBe(2);
+    expect(DATA_GUIDE.map(row => row.need).join(' ')).toContain('Relleno de un card');
+  });
+
   it('lists the components of the document screens: state banner, signature progress, actions menu, technical details and the sticky bar', () => {
     expect(FEEDBACK_GUIDE.map(row => row.need).join(' ')).toContain('Banner del estado de un documento');
     expect(DATA_GUIDE.map(row => row.component).join(' ')).toContain('p-timeline layout="horizontal"');
