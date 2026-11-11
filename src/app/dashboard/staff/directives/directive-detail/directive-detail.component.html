@@ -10,8 +10,10 @@
     </div>
   } @else {
    @if (directive(); as current) {
+    <p-breadcrumb [model]="crumbs(current.title)" styleClass="detail-crumbs" data-testid="breadcrumb"></p-breadcrumb>
+
     <div class="page-heading">
-      <div>
+      <div class="page-heading__text">
         <p class="caption" data-testid="directive-type"><span class="type-dot" [style.background]="documentTypeColor(current.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(current.document_type, current.document_subtype) }} · {{ current.origin.name }}</p>
         <h2 data-testid="directive-title">{{ current.title }}</h2>
         <p class="meta">
@@ -44,26 +46,21 @@
           } @else {
             <p-message severity="info">La ruta de este documento queda registrada al enviarlo a firma.</p-message>
           }
-        
         </app-directive-log-drawer>
-        <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
-        @if (current.can_sign) {
-          <p-button label="Firmar" data-testid="sign-directive" (onClick)="sign()"></p-button>
-        }
-        @if (current.can_resubmit) {
-          <p-button label="Corregir y reenviar" data-testid="resubmit-directive" (onClick)="resubmit()"></p-button>
-        }
-        @if (current.can_cancel) {
-          <p-button label="Anular documento" severity="danger" [outlined]="true" data-testid="cancel-directive" (onClick)="openCancel()"></p-button>
-        }
-        @if (current.can_edit) {
-          <p-button label="Corregir" severity="secondary" [outlined]="true" data-testid="edit-directive" (onClick)="edit()"></p-button>
-          <p-button label="Eliminar borrador" severity="danger" [outlined]="true" [loading]="deleting()" data-testid="delete-directive" (onClick)="askDelete()"></p-button>
-        }
         @if (isDraft()) {
           <span [pTooltip]="sendBlockedReason()" tooltipPosition="top">
-            <p-button label="Enviar a firma" [disabled]="!canSend()" [loading]="sending()" data-testid="send-directive" (onClick)="askSend()"></p-button>
+            <p-button label="Enviar a firma" icon="pi pi-send" [disabled]="!canSend()" [loading]="sending()" data-testid="send-directive" (onClick)="askSend()"></p-button>
           </span>
+        } @else if (current.can_sign) {
+          <p-button label="Firmar" icon="pi pi-pen-to-square" data-testid="sign-directive" (onClick)="sign()"></p-button>
+        } @else if (current.can_resubmit) {
+          <p-button label="Corregir y reenviar" icon="pi pi-refresh" data-testid="resubmit-directive" (onClick)="resubmit()"></p-button>
+        } @else if (current.signed?.can_download) {
+          <p-button [label]="signedLoading() ? 'Trayendo el documento…' : (signedError() ? 'Reintentar descarga' : 'Descargar firmada')" icon="pi pi-download" [loading]="signedLoading()" data-testid="download-signed" (onClick)="downloadSigned()"></p-button>
+        }
+        @if (moreItems().length > 0) {
+          <p-button icon="pi pi-ellipsis-h" severity="secondary" [outlined]="true" ariaLabel="Más acciones" aria-haspopup="menu" [loading]="deleting()" data-testid="more-actions" (onClick)="moreMenu.toggle($event)"></p-button>
+          <p-menu #moreMenu [model]="moreItems()" [popup]="true" appendTo="body" data-testid="more-menu"></p-menu>
         }
       </div>
     </div>
@@ -76,64 +73,111 @@
       <p-message severity="info" data-testid="viewer-note">{{ viewerNote() }}</p-message>
     }
 
+    @if (isDraft()) {
+      <p-message severity="info" data-testid="draft-banner">
+        <div class="banner"><strong>Es un borrador</strong><span>Todavía no se avisó a nadie. Revisa la ruta de firmas y, cuando esté todo listo, envíalo a firma.</span></div>
+      </p-message>
+    } @else if (current.status === 'in_signature') {
+      <p-message [severity]="current.can_sign ? 'success' : 'info'" data-testid="turn-banner">
+        <div class="banner">
+          @if (current.can_sign) {
+            <strong>Te toca firmar</strong>
+            <span>Es el turno de {{ current.active_office }}. Revisa el documento y fírmalo con tu DNIe.</span>
+          } @else if (activeStep()) {
+            <strong>Le toca firmar a {{ activeStep()!.person || activeStep()!.label }}@if (activeStep()!.person) { · {{ activeStep()!.label }} }</strong>
+            <span>Se le avisó por correo. Después seguirá la siguiente oficina de la ruta.</span>
+          } @else {
+            <strong>En firma</strong>
+            <span>El documento está recorriendo la ruta de firmas.</span>
+          }
+        </div>
+      </p-message>
+    }
+
     @if (current.signed; as signed) {
-      <section class="signed" aria-labelledby="signed-title" data-testid="signed-panel">
-        <h3 id="signed-title">Documento firmado</h3>
-        @if (signed.can_download) {
-          <p class="muted">Versión {{ signed.version }}{{ signed.signatures ? ' · ' + signed.signatures + ' firmas' : '' }}{{ signed.available ? '' : ' · todavía no se guardó la copia en Academical' }}</p>
-          <div class="signed__actions">
-            <p-button [label]="signedLoading() ? 'Trayendo el documento del firmador…' : (signedError() ? 'Reintentar descarga' : 'Descargar firmada')" [loading]="signedLoading()" data-testid="download-signed" (onClick)="downloadSigned()"></p-button>
+      <p-message severity="success" data-testid="signed-panel">
+        <div class="banner">
+          <strong>Documento firmado{{ signed.signatures ? ' por ' + signed.signatures + (signed.signatures === 1 ? ' oficina' : ' oficinas') : '' }}</strong>
+          @if (signed.can_download) {
+            <span>Versión {{ signed.version }}{{ signed.available ? '' : ' · todavía no se guardó la copia en Academical' }}</span>
             @if (signed.name) { <span class="muted" data-testid="signed-name">{{ signed.name }}{{ signed.size ? ' · ' + formatBytes(signed.size) : '' }}</span> }
-          </div>
-          @if (signedError()) { <p-message severity="error" data-testid="signed-error">{{ signedError() }}</p-message> }
-        } @else {
-          <p-message severity="info" data-testid="signed-no-access">Tu oficina ve el estado del documento, pero no sus archivos: el administrador lo tiene configurado así.</p-message>
-        }
-        @if (signed.code) {
-          <div class="signed__key">
-            <span>Clave de verificación <code data-testid="signed-code">{{ signed.code }}</code></span>
-            <p-button [label]="codeCopied() ? 'Copiada' : 'Copiar'" size="small" severity="secondary" [outlined]="true" data-testid="copy-code" (onClick)="copyCode()"></p-button>
-            @if (signed.verify_url) {
-              <a class="signed__verify" [href]="signed.verify_url" target="_blank" rel="noopener noreferrer" data-testid="verify-link">Verificar en el sitio público</a>
-            }
-          </div>
-        }
-        @if (signed.sha256) { <small class="muted hash" data-testid="signed-hash">Huella SHA-256 del documento firmado: {{ signed.sha256 }}</small> }
-      </section>
+            @if (signedError()) { <p-message severity="error" data-testid="signed-error">{{ signedError() }}</p-message> }
+          } @else {
+            <span data-testid="signed-no-access">Tu oficina ve el estado del documento, pero no sus archivos: el administrador lo tiene configurado así.</span>
+          }
+          @if (signed.code) {
+            <div class="signed__key">
+              <span>Clave de verificación <code data-testid="signed-code">{{ signed.code }}</code></span>
+              <p-button [label]="codeCopied() ? 'Copiada' : 'Copiar'" icon="pi pi-copy" size="small" severity="secondary" [outlined]="true" data-testid="copy-code" (onClick)="copyCode()"></p-button>
+              @if (signed.verify_url) {
+                <a class="signed__verify" [href]="signed.verify_url" target="_blank" rel="noopener noreferrer" data-testid="verify-link">Verificar en el sitio público</a>
+              }
+            </div>
+          }
+        </div>
+      </p-message>
     }
 
     @if (current.cancelled; as cancelled) {
-      <section class="cancelled" aria-labelledby="cancelled-title" data-testid="cancelled-panel">
-        <h3 id="cancelled-title">Anulada{{ cancelled.office ? ' por ' + cancelled.office : '' }}</h3>
-        @if (cancelled.reason) {
-          <blockquote class="returned__reason" data-testid="cancelled-reason">
-            {{ cancelled.reason }}
-            <footer class="muted">{{ cancelled.person ? cancelled.person + ' · ' : '' }}{{ cancelled.at | date: 'dd/MM/yyyy HH:mm' }}</footer>
-          </blockquote>
-        } @else {
-          <p class="muted" data-testid="cancelled-no-reason">El motivo lo ve la oficina de origen.</p>
-        }
-        <p class="muted">Las firmas ya hechas quedan archivadas con sus documentos. El documento ya no espera firmas y no se puede reabrir.</p>
-      </section>
+      <p-message severity="secondary" data-testid="cancelled-panel">
+        <div class="banner">
+          <strong>Anulado{{ cancelled.office ? ' por ' + cancelled.office : '' }}</strong>
+          @if (cancelled.reason) {
+            <blockquote class="returned__reason" data-testid="cancelled-reason">
+              {{ cancelled.reason }}
+              <footer class="muted">{{ cancelled.person ? cancelled.person + ' · ' : '' }}{{ cancelled.at | date: 'dd/MM/yyyy HH:mm' }}</footer>
+            </blockquote>
+          } @else {
+            <span data-testid="cancelled-no-reason">El motivo lo ve la oficina de origen.</span>
+          }
+          <span>Las firmas ya hechas quedan archivadas con sus documentos. El documento ya no espera firmas y no se puede reabrir.</span>
+        </div>
+      </p-message>
     }
 
     @if (current.returned; as returned) {
-      <section class="returned" aria-labelledby="returned-title" data-testid="returned-panel">
-        <h3 id="returned-title">Devuelta{{ returned.office ? ' por ' + returned.office : '' }}</h3>
-        @if (returned.reason) {
-          <blockquote class="returned__reason" data-testid="returned-reason">
-            {{ returned.reason }}
-            <footer class="muted">{{ returned.person ? returned.person + ' · ' : '' }}{{ returned.at | date: 'dd/MM/yyyy HH:mm' }}</footer>
-          </blockquote>
-        } @else {
-          <p class="muted" data-testid="returned-no-reason">El motivo lo ven la oficina de origen y quien la devolvió.</p>
-        }
-        @if (current.can_resubmit) {
-          <p class="muted">Al corregirla se crea la versión {{ current.version + 1 }}: la ruta empieza de cero y todas las oficinas firman otra vez.</p>
-        } @else if (current.viewer === 'signed') {
-          <p class="muted">Tu firma de la versión {{ returned.version }} no vale para la versión nueva: volverás a firmar cuando la corrijan.</p>
-        }
-      </section>
+      <p-message severity="warn" data-testid="returned-panel">
+        <div class="banner">
+          <strong>Devuelto{{ returned.office ? ' por ' + returned.office : '' }}</strong>
+          @if (returned.reason) {
+            <blockquote class="returned__reason" data-testid="returned-reason">
+              {{ returned.reason }}
+              <footer class="muted">{{ returned.person ? returned.person + ' · ' : '' }}{{ returned.at | date: 'dd/MM/yyyy HH:mm' }}</footer>
+            </blockquote>
+          } @else {
+            <span data-testid="returned-no-reason">El motivo lo ven la oficina de origen y quien lo devolvió.</span>
+          }
+          @if (current.can_resubmit) {
+            <span>Al corregirlo se crea la versión {{ current.version + 1 }}: la ruta empieza de cero y todas las oficinas firman otra vez.</span>
+          } @else if (current.viewer === 'signed') {
+            <span>Tu firma de la versión {{ returned.version }} no vale para la versión nueva: volverás a firmar cuando lo corrijan.</span>
+          }
+        </div>
+      </p-message>
+    }
+
+    @if (!isDraft() && visibleProgress().length > 0) {
+      <p-card styleClass="progress-card" data-testid="progress-card">
+        <div class="progress-head">
+          <strong>Avance de las firmas</strong>
+          <span class="muted" data-testid="progress-count">{{ signedCount() }} de {{ visibleProgress().length }} firmas</span>
+          <p-button label="Ver ruta" icon="pi pi-sitemap" size="small" severity="secondary" [outlined]="true" data-testid="progress-open-route" (onClick)="routeOpen.set(true)"></p-button>
+        </div>
+        <div class="progress-scroll">
+          <p-timeline [value]="visibleProgress()" layout="horizontal" align="top" styleClass="progress-timeline">
+            <ng-template pTemplate="marker" let-step>
+              <span class="progress-marker" [attr.data-state]="step.state" aria-hidden="true"></span>
+            </ng-template>
+            <ng-template pTemplate="content" let-step>
+              <div class="progress-chip" [attr.data-state]="step.state" data-testid="progress-chip">
+                <strong>{{ step.person || step.label }}</strong>
+                <small class="muted">{{ step.label }}</small>
+                <p-tag [value]="progressOf(step).label" [severity]="progressOf(step).severity"></p-tag>
+              </div>
+            </ng-template>
+          </p-timeline>
+        </div>
+      </p-card>
     }
 
     <div class="layout">
@@ -203,7 +247,18 @@
             }
           }
           @if (current.sha256; as hashes) {
-            <small class="muted hash" data-testid="directive-hash">Huella del documento (SHA-256): {{ hashes.directive }}</small>
+            <p-panel header="Detalles técnicos" [toggleable]="true" [collapsed]="true" styleClass="tech-panel" data-testid="tech-panel">
+              <dl class="kv">
+                <dt>Huella del documento (SHA-256)</dt>
+                <dd class="muted hash" data-testid="directive-hash">{{ hashes.directive }}</dd>
+                <dt>Huella de la resolución (SHA-256)</dt>
+                <dd class="muted hash" data-testid="resolution-hash">{{ hashes.resolution }}</dd>
+                @if (current.signed?.sha256; as signedHash) {
+                  <dt>Huella del documento firmado (SHA-256)</dt>
+                  <dd class="muted hash" data-testid="signed-hash">{{ signedHash }}</dd>
+                }
+              </dl>
+            </p-panel>
           }
         </section>
 
@@ -224,6 +279,18 @@
             }
           </section>
         }
+      </div>
+      <div class="column">
+        <p-card header="Resumen" styleClass="summary-card" data-testid="summary-card">
+          <dl class="kv">
+            <dt>Tipo</dt><dd>{{ documentTypeText(current.document_type, current.document_subtype) }}</dd>
+            <dt>Oficina de origen</dt><dd>{{ current.origin.name }}</dd>
+            <dt>Versión</dt><dd>{{ current.version }}</dd>
+            <dt>Proceso de calidad</dt><dd>{{ current.is_quality ? 'Sí' : 'No' }}</dd>
+            <dt>Creado por</dt><dd>{{ current.created_by.name || current.created_by.nick }}</dd>
+            <dt>Actualizado</dt><dd>{{ current.updated_at | date: 'dd/MM/yyyy HH:mm' }}</dd>
+          </dl>
+        </p-card>
       </div>
     </div>
 
