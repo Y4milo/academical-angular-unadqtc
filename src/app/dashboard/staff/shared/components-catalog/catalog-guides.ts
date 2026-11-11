@@ -7,6 +7,7 @@ export const DATA_GUIDE: ComponentGuide[] = [
   { need: 'Lista de tarjetas o de filas libres', component: 'p-dataview', avoid: '<ul>, <ol>, @for de <div> sin contenedor' },
   { need: 'Historial o secuencia de eventos', component: 'p-timeline', avoid: '<ul> con viñetas, <ol>' },
   { need: 'Avance por oficinas o por pasos (quién firmó, a quién le toca)', component: 'p-timeline layout="horizontal" (con scroll horizontal en teléfono) y p-tag por estado', avoid: 'Círculos y líneas dibujados a mano' },
+  { need: 'Lista de comprobación antes de una acción (es tu turno, navegador compatible, firmador abierto)', component: 'p-timeline vertical con un marcador por estado (listo, aviso, en curso, pendiente) y el texto de ayuda de cada paso', avoid: 'Una <ul> con ✓ escritos a mano' },
   { need: 'Datos de apoyo que casi no se miran (huellas, detalles técnicos)', component: 'p-panel [toggleable]="true" [collapsed]="true"', avoid: '<details> o un texto largo siempre visible' },
   { need: 'Resumen de un registro al costado (tipo, oficina, versión)', component: 'p-card con una lista de datos (dl) de etiqueta y valor', avoid: '<div> con borde propio' },
   { need: 'Jerarquía (unidades, módulos)', component: 'p-tree', avoid: '<ul> anidados' },

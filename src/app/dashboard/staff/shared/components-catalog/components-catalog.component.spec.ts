@@ -201,6 +201,7 @@ describe('ComponentsCatalogComponent', () => {
     expect(FEEDBACK_GUIDE.map(row => row.need).join(' ')).toContain('Banner del estado de un documento');
     expect(DATA_GUIDE.map(row => row.component).join(' ')).toContain('p-timeline layout="horizontal"');
     expect(DATA_GUIDE.map(row => row.component).join(' ')).toContain('p-panel [toggleable]');
+    expect(DATA_GUIDE.map(row => row.need).join(' ')).toContain('Lista de comprobación antes de una acción');
     expect(ACTION_GUIDE.map(row => row.component).join(' ')).toContain('p-menu popup «Más acciones»');
     expect(ACTION_GUIDE.map(row => row.component).join(' ')).toContain('p-toolbar');
   });

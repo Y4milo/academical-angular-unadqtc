@@ -2,8 +2,10 @@ import { Component, NgZone, OnDestroy, OnInit, computed, signal } from '@angular
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PrimeTemplate } from 'primeng/api';
+import { MenuItem, PrimeTemplate } from 'primeng/api';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
@@ -16,6 +18,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SigningSession } from '../../../../services/directives.service';
 import { FirmaPeruSignerService } from '../../../../services/firma-peru-signer.service';
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
+import { documentTypeColor, documentTypeText } from '../document-type';
 
 /** En qué va la firma: nada empezado, abriendo la sesión, esperando al firmador local, confirmando con el servidor o terminada. */
 export type SignPhase = 'idle' | 'opening' | 'waiting' | 'confirming' | 'done';
@@ -34,7 +37,7 @@ const CONFIRM_EVERY_MS = 3000;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule, TimelineModule, DirectiveTrackingComponent],
+  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule, TimelineModule, DirectiveTrackingComponent],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })
@@ -77,6 +80,35 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
     return { number: index + 1, total: steps.length };
   });
   readonly busy = computed(() => this.phase() === 'opening' || this.phase() === 'waiting' || this.phase() === 'confirming');
+  readonly documentTypeColor = documentTypeColor;
+  readonly documentTypeText = documentTypeText;
+  /** La lista de comprobación de «Tu firma»: el turno, el navegador y el firmador de Firma Perú, cada uno con su estado. */
+  readonly checklist = computed<{ key: string; number: number; state: 'ok' | 'warn' | 'now' | 'wait'; title: string; hint: string; testId: string | null }[]>(() => {
+    const current = this.directive();
+    const environment = this.environment();
+    const phase = this.phase();
+    const compatible = environment.recommended && environment.windows;
+    const signer: { state: 'now' | 'wait'; hint: string; testId: string | null } =
+      phase === 'waiting' ? { state: 'now', hint: 'Elige tu certificado en la ventana de Firma Perú y escribe tu PIN.', testId: 'status-waiting' }
+      : phase === 'confirming' ? { state: 'now', hint: 'Confirmando tu firma con el firmador…', testId: 'status-confirming' }
+      : phase === 'opening' ? { state: 'now', hint: 'Abriendo la sesión de firma…', testId: null }
+      : { state: 'wait', hint: 'Ábrelo antes de firmar; usarás tu DNIe y tu PIN.', testId: null };
+
+    return [
+      { key: 'turn', number: 1, state: current?.can_sign ? 'ok' : 'warn', title: 'Es tu turno', hint: `Paso ${this.position().number} de ${this.position().total} · ${current?.active_office ?? ''}`, testId: null },
+      { key: 'browser', number: 2, state: compatible ? 'ok' : 'warn', title: 'Navegador compatible', hint: compatible ? 'Microsoft Edge en Windows' : `Estás en ${environment.browser}. Para firmar usa Microsoft Edge en Windows, con el firmador de Firma Perú abierto.`, testId: compatible ? null : 'environment-warning' },
+      { key: 'signer', number: 3, title: 'Firma Perú abierto', ...signer },
+    ];
+  });
+
+  /** Las migas: la lista, el documento y esta pantalla. */
+  crumbs(current: DirectiveDetail): MenuItem[] {
+    return [
+      { label: 'Documentos de gestión', command: () => this.backToList() },
+      { label: current.title, command: () => this.back() },
+      { label: 'Firmar' },
+    ];
+  }
 
   private seq = 0;
   private timer: ReturnType<typeof setTimeout> | null = null;
