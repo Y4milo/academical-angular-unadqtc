@@ -80,7 +80,7 @@
   align-items: center;
   gap: var(--space-3);
   min-height: 2.5rem;
-  padding: 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   color: var(--p-text-muted-color);
   font-size: var(--text-body);
@@ -108,11 +108,16 @@
   flex: none;
 }
 
+/* Hasta dos líneas: un nombre largo ya no se corta en «Documentos de g…». El alto del ítem crece y el ícono y la flecha quedan centrados. */
 .shell__link-label {
+  display: -webkit-box;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .shell__chevron {
