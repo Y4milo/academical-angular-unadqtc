@@ -24,6 +24,9 @@
 /* Los subtipos son píldoras que se parten en las líneas que hagan falta: la clase va en el grupo, no en cada botón. */
 :host ::ng-deep p-selectbutton.subtype-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 :host ::ng-deep p-selectbutton.subtype-options .p-togglebutton { flex: 0 0 auto; min-height: 2.25rem; padding-inline: var(--space-4); border-radius: 999px; border-width: 1px; }
+/* La elegida se marca con el resalte institucional (fondo, borde y texto del tema), no solo con más grosor. */
+:host ::ng-deep p-selectbutton.subtype-options .p-togglebutton.p-togglebutton-checked { background: var(--p-highlight-background); color: var(--p-highlight-color); border-color: var(--p-primary-color); font-weight: 600; }
+:host ::ng-deep p-selectbutton.subtype-options .p-togglebutton.p-togglebutton-checked .p-togglebutton-content { background: transparent; box-shadow: none; }
 .file-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .pages-total { margin: 0; font-size: var(--text-small); }
 .muted-note { color: var(--p-text-muted-color); }
