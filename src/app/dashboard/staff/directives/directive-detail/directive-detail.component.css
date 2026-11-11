@@ -61,6 +61,8 @@
 :host ::ng-deep .progress-timeline .p-timeline-event { min-width: 10rem; flex: 1 0 10rem; }
 /* The line must stay straight: the empty side column of PrimeNG grew with the height of each name and pushed the markers up and down. */
 :host ::ng-deep .progress-timeline .p-timeline-event-opposite { flex: 0 0 0; min-height: 0; padding: 0; }
+/* The stretch after a step that already signed is green, like its marker. */
+:host ::ng-deep .progress-timeline .p-timeline-event-separator:has(.progress-marker[data-state='signed']) .p-timeline-event-connector { background: var(--p-green-500); }
 .kv { display: grid; grid-template-columns: minmax(7rem, auto) minmax(0, 1fr); gap: var(--space-2) var(--space-4); margin: 0; font-size: var(--text-small); }
 .kv dt { color: var(--p-text-muted-color); }
 .kv dd { margin: 0; overflow-wrap: anywhere; }
