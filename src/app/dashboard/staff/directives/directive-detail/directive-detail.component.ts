@@ -1,14 +1,18 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ConfirmationService, PrimeTemplate } from 'primeng/api';
+import { ConfirmationService, MenuItem, PrimeTemplate } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
+import { PanelModule } from 'primeng/panel';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -38,7 +42,7 @@ interface StagedPdf {
  */
 @Component({
   selector: 'app-directive-detail',
-  imports: [DatePipe, FormsModule, PrimeTemplate, ButtonModule, CheckboxModule, ConfirmDialogModule, DialogModule, FileUploadModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, MenuModule, PanelModule, ConfirmDialogModule, DialogModule, FileUploadModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   providers: [ConfirmationService],
   templateUrl: './directive-detail.component.html',
   styleUrl: './directive-detail.component.css',
@@ -89,6 +93,22 @@ export class DirectiveDetailComponent implements OnInit {
   readonly documentTypeColor = documentTypeColor;
   readonly documentTypeText = documentTypeText;
   readonly isDraft = computed(() => this.directive()?.status === 'draft');
+  /** La oficina a la que le toca firmar ahora (el paso en turno de la ruta que se envió). */
+  readonly activeStep = computed(() => (this.directive()?.progress ?? []).find(step => step.state === 'active') ?? null);
+  readonly signedCount = computed(() => this.visibleProgress().filter(step => step.state === 'signed').length);
+  /** Las acciones que no son la principal del estado, en el menú «Más acciones» de la cabecera. */
+  readonly moreItems = computed<MenuItem[]>(() => {
+    const current = this.directive();
+    if (!current) return [];
+    const items: MenuItem[] = [];
+    if (current.can_edit) {
+      items.push({ label: 'Corregir datos y archivos', icon: 'pi pi-pencil', command: () => this.edit() });
+      items.push({ label: 'Eliminar borrador', icon: 'pi pi-trash', styleClass: 'menu-danger', command: () => this.askDelete() });
+    }
+    if (current.can_cancel) items.push({ label: 'Anular documento', icon: 'pi pi-ban', styleClass: 'menu-danger', command: () => this.openCancel() });
+
+    return items;
+  });
   readonly canSend = computed(() => this.isDraft() && this.route()?.can_send === true);
   readonly sendBlockedReason = computed(() => {
     if (!this.isDraft() || this.canSend()) return '';
@@ -156,6 +176,11 @@ export class DirectiveDetailComponent implements OnInit {
     });
   }
 
+  /** Las migas de la cabecera: la lista de documentos y este documento. */
+  crumbs(title: string): MenuItem[] {
+    return [{ label: 'Documentos de gestión', command: () => this.back() }, { label: title }];
+  }
+
   progressOf(step: DirectiveProgressStep) {
     const current = this.directive();
     const cancelled = current?.status === 'cancelled' ? DIRECTIVE_PROGRESS_CANCELLED[step.state] : undefined;
@@ -169,6 +194,9 @@ export class DirectiveDetailComponent implements OnInit {
 
   /** Lo que explica por qué quien consulta ve esta directiva como la ve: no es de su oficina, es de su ruta. */
   readonly viewerNote = computed(() => {
+    // Si le toca firmar, el aviso de turno ya lo dice: la nota de «solo consulta» se contradiría.
+    if (this.directive()?.can_sign) return '';
+
     switch (this.directive()?.viewer) {
       case 'signed':
         return 'Tu oficina ya firmó este documento. La ves en modo consulta: solo puedes leerla.';

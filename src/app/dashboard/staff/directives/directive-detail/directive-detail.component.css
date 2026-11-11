@@ -49,8 +49,30 @@
 .version-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 ::ng-deep .route-timeline .p-timeline-event-opposite { flex: 0; padding: 0; }
 
+.banner { display: grid; gap: var(--space-1); min-width: 0; }
+.banner > span { font-size: var(--text-small); }
+:host ::ng-deep .p-message { width: 100%; }
+.detail-crumbs { background: transparent; padding: 0; }
+.progress-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.progress-head .muted { margin-inline-end: auto; }
+.progress-scroll { overflow-x: auto; }
+.progress-chip { display: grid; gap: var(--space-1); justify-items: start; min-width: 9rem; padding-inline-end: var(--space-3); }
+.progress-chip[data-state='skipped'] strong { color: var(--p-text-muted-color); font-weight: 400; }
+:host ::ng-deep .progress-timeline .p-timeline-event { min-width: 10rem; flex: 1 0 10rem; }
+.kv { display: grid; grid-template-columns: minmax(7rem, auto) minmax(0, 1fr); gap: var(--space-2) var(--space-4); margin: 0; font-size: var(--text-small); }
+.kv dt { color: var(--p-text-muted-color); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.tech-panel .kv { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+::ng-deep .menu-danger .p-menu-item-label, ::ng-deep .menu-danger .p-menu-item-icon { color: var(--p-red-500); }
+
+@media (min-width: 1200px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 22rem; }
+}
+
 @media (max-width: 640px) {
   .directive-detail { padding: var(--space-2); }
-  .header-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .header-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  /* En el teléfono las migas solo dicen a dónde se vuelve: el título ya está debajo. */
+  :host ::ng-deep .detail-crumbs li:not(:first-child) { display: none; }
 }
 

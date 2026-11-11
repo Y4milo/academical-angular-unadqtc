@@ -144,8 +144,8 @@ describe('DirectiveDetailComponent', () => {
     service.detail.and.returnValue(of(ok(detail({ can_edit: false }))));
     await create();
 
-    expect(html().querySelector('[data-testid="edit-directive"]')).toBeNull();
-    expect(html().querySelector('[data-testid="delete-directive"]')).toBeNull();
+    expect(fixture.componentInstance.moreItems()).toEqual([]);
+    expect(html().querySelector('[data-testid="more-actions"]')).toBeNull();
   });
 
   it('goes to correct the draft', async () => {
@@ -251,7 +251,7 @@ describe('DirectiveDetailComponent', () => {
       service.detail.and.returnValue(of(ok(returned({ can_resubmit: true }))));
       await create();
 
-      expect(text('returned-panel')).toContain('Devuelta por Asesoría Jurídica');
+      expect(text('returned-panel')).toContain('Devuelto por Asesoría Jurídica');
       expect(text('returned-reason')).toContain(REASON);
       expect(text('returned-panel')).toContain('versión 2');
       expect(html().querySelector('[data-testid="resubmit-directive"]')).not.toBeNull();
@@ -372,12 +372,14 @@ describe('DirectiveDetailComponent', () => {
     it('offers to cancel only when the server allows it', async () => {
       service.detail.and.returnValue(of(ok(inSignature({ can_cancel: false }))));
       await create();
-      expect(html().querySelector('[data-testid="cancel-directive"]')).toBeNull();
+      expect(fixture.componentInstance.moreItems().map(item => item.label)).not.toContain('Anular documento');
+      expect(html().querySelector('[data-testid="more-actions"]')).toBeNull();
 
       service.detail.and.returnValue(of(ok(inSignature())));
       fixture.componentInstance.load();
       fixture.detectChanges();
-      expect(html().querySelector('[data-testid="cancel-directive"]')).not.toBeNull();
+      expect(fixture.componentInstance.moreItems().map(item => item.label)).toContain('Anular documento');
+      expect(html().querySelector('[data-testid="more-actions"]')).not.toBeNull();
     });
 
     it('needs a reason of at least 10 characters and the acknowledgment', async () => {
@@ -419,9 +421,9 @@ describe('DirectiveDetailComponent', () => {
       expect(service.cancel).toHaveBeenCalledOnceWith(7, REASON);
       expect(component.cancelOpen()).toBeFalse();
       expect(notifications.notifyApiData).toHaveBeenCalled();
-      expect(text('cancelled-panel')).toContain('Anulada por Oficina de Administración');
+      expect(text('cancelled-panel')).toContain('Anulado por Oficina de Administración');
       expect(text('cancelled-reason')).toContain(REASON);
-      expect(html().querySelector('[data-testid="cancel-directive"]')).toBeNull();
+      expect(fixture.componentInstance.moreItems().map(item => item.label)).not.toContain('Anular documento');
       expect(Array.from(findAll('progress-step'))[1].textContent).toContain('No llegó a firmar');
     });
 
@@ -449,7 +451,7 @@ describe('DirectiveDetailComponent', () => {
       }))));
       await create();
 
-      expect(text('cancelled-panel')).toContain('Anulada por Oficina de Administración');
+      expect(text('cancelled-panel')).toContain('Anulado por Oficina de Administración');
       expect(text('cancelled-no-reason')).toContain('El motivo lo ve la oficina de origen');
       expect(html().querySelector('[data-testid="cancelled-reason"]')).toBeNull();
     });
@@ -477,7 +479,8 @@ describe('DirectiveDetailComponent', () => {
       service.detail.and.returnValue(of(ok(completed())));
       await create();
 
-      expect(text('signed-panel')).toContain('Versión 2 · 4 firmas');
+      expect(text('signed-panel')).toContain('por 4 oficinas');
+      expect(text('signed-panel')).toContain('Versión 2');
       expect(text('signed-code')).toBe('K7F9M-2QXP4');
       expect(text('signed-name')).toContain('Directiva_bienes_2026_v2_firmada.pdf');
       expect(text('signed-hash')).toContain('f'.repeat(64));
@@ -589,7 +592,7 @@ describe('DirectiveDetailComponent', () => {
 
       expect(html().querySelector('[data-testid="route-button"]')).not.toBeNull();
       expect(html().querySelector('[data-testid="tracking-button"]')).not.toBeNull();
-      expect(html().querySelector('p-panel')).toBeNull();
+      expect(html().querySelector('p-panel:not([data-testid="tech-panel"])')).toBeNull();
       expect(text('route-panel')).toContain('Ruta de firmas');
     });
 
@@ -764,5 +767,92 @@ describe('DirectiveDetailComponent', () => {
 
     expect(text('directive-type')).toContain('Documentos de gestión institucional · PEI');
     expect(text('directive-type')).toContain('Oficina de Administración');
+  });
+
+  describe('redesigned header and banners', () => {
+    const steps = [
+      { key: 'origin', label: 'Oficina de Administración', person: 'Ana Torres', title: 'Jefa', state: 'signed' as const },
+      { key: 'legal', label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: 'Jefe', state: 'active' as const },
+      { key: 'president', label: 'Presidencia', person: 'Rosa Quispe', title: 'Presidenta', state: 'waiting' as const },
+    ];
+    const inSignature = (overrides = {}) => detail({ status: 'in_signature', status_label: 'En firma', can_edit: false, can_cancel: true, progress: steps, active_office: 'Asesoría Jurídica', ...overrides });
+
+    it('has breadcrumbs back to the list instead of a Volver button', async () => {
+      await create();
+
+      expect(text('breadcrumb')).toContain('Documentos de gestión');
+      expect(text('breadcrumb')).toContain(fixture.componentInstance.directive()!.title);
+      expect(html().textContent).not.toContain('Volver');
+    });
+
+    it('keeps one main action per state and the rest in the actions menu', async () => {
+      await create();
+      let labels = fixture.componentInstance.moreItems().map(item => item.label);
+      expect(labels).toEqual(['Corregir datos y archivos', 'Eliminar borrador']);
+      expect(html().querySelector('[data-testid="send-directive"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="sign-directive"]')).toBeNull();
+      fixture.destroy();
+      TestBed.resetTestingModule();
+
+      service.detail.and.returnValue(of(ok(inSignature({ can_sign: true }))));
+      await create();
+      labels = fixture.componentInstance.moreItems().map(item => item.label);
+      expect(labels).toEqual(['Anular documento']);
+      expect(html().querySelector('[data-testid="sign-directive"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="send-directive"]')).toBeNull();
+    });
+
+    it('says in a banner that it is a draft, whose turn it is, or that it is the persons turn', async () => {
+      await create();
+      expect(text('draft-banner')).toContain('Es un borrador');
+      fixture.destroy();
+      TestBed.resetTestingModule();
+
+      service.detail.and.returnValue(of(ok(inSignature())));
+      await create();
+      expect(text('turn-banner')).toContain('Le toca firmar a Carlos Paucar');
+      expect(text('turn-banner')).toContain('Asesoría Jurídica');
+      expect(html().querySelector('[data-testid="draft-banner"]')).toBeNull();
+      fixture.destroy();
+      TestBed.resetTestingModule();
+
+      service.detail.and.returnValue(of(ok(inSignature({ can_sign: true, viewer: 'pending' }))));
+      await create();
+      expect(text('turn-banner')).toContain('Te toca firmar');
+      expect(html().querySelector('[data-testid="viewer-note"]')).toBeNull();
+    });
+
+    it('shows the progress of the signatures with the count of the offices that signed', async () => {
+      service.detail.and.returnValue(of(ok(inSignature())));
+      await create();
+
+      expect(text('progress-count')).toBe('1 de 3 firmas');
+      expect(findAll('progress-chip').length).toBe(3);
+      expect(text('progress-card')).toContain('Ana Torres');
+    });
+
+    it('has no progress card in a draft, and a summary card with the facts of the document', async () => {
+      await create();
+
+      expect(html().querySelector('[data-testid="progress-card"]')).toBeNull();
+      expect(text('summary-card')).toContain('Oficina de origen');
+      expect(text('summary-card')).toContain('Versión');
+    });
+
+    it('keeps the fingerprints inside a collapsed technical details panel', async () => {
+      await create();
+
+      expect(find('tech-panel')).not.toBeNull();
+      expect(text('directive-hash')).toContain('a'.repeat(64));
+      expect(text('resolution-hash')).toContain('b'.repeat(64));
+    });
+
+    it('downloads the signed copy from the main action of a signed document', async () => {
+      service.detail.and.returnValue(of(ok(detail({ status: 'signed', status_label: 'Firmada', can_edit: false, signed: { version: 1, code: 'K7F9M-2QXP4', signatures: 4, verify_url: null, can_download: true, available: true, name: 'f.pdf', size: 1000, sha256: 'f'.repeat(64) } }))));
+      await create();
+
+      expect(html().querySelector('[data-testid="download-signed"] button')).not.toBeNull();
+      expect(html().querySelector('[data-testid="sign-directive"]')).toBeNull();
+    });
   });
 });
