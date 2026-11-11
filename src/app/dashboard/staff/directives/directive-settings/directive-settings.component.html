@@ -1,9 +1,9 @@
 <div class="directive-settings">
   <div class="page-heading">
     <div>
-      <p class="caption">Administración · Directivas</p>
-      <h2>Visibilidad de directivas</h2>
-      <p>Qué ve cada oficina de la ruta cuando una directiva circula o es devuelta. Aplica a todas las directivas, nuevas y en curso.</p>
+      <p class="caption">Administración · Documentos de gestión</p>
+      <h2>Visibilidad de documentos</h2>
+      <p>Qué ve cada oficina de la ruta cuando un documento circula o es devuelto. Aplica a todos los documentos, nuevos y en curso.</p>
     </div>
     <div class="header-actions">
       <app-directive-log-drawer label="Registro de cambios" [count]="saved()?.history?.length ?? 0" [(open)]="historyOpen" testId="history">
@@ -77,7 +77,7 @@
             <p class="hint">Por ejemplo, Presidencia. Se actualiza al elegir.</p>
             @if (preview(); as view) {
               <p-message severity="info" data-testid="preview-text">
-                La directiva no llegó a su turno. Ve su estado y que fue devuelta; {{ view.documents ? 'puede consultar los PDF' : 'no ve los PDF' }}{{ view.reason ? ' y ve el motivo.' : ', no el motivo.' }}
+                El documento no llegó a su turno. Ve su estado y que fue devuelto; {{ view.documents ? 'puede consultar los PDF' : 'no ve los PDF' }}{{ view.reason ? ' y ve el motivo.' : ', no el motivo.' }}
               </p-message>
             }
           </section>

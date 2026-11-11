@@ -1,7 +1,7 @@
 <div class="directive-detail">
   @if (loadError()) {
     <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
-    <div><p-button label="Volver a las directivas" severity="secondary" [outlined]="true" size="small" (onClick)="back()"></p-button></div>
+    <div><p-button label="Volver a los documentos" severity="secondary" [outlined]="true" size="small" (onClick)="back()"></p-button></div>
   } @else if (loading()) {
     <div class="detail-skeleton" aria-busy="true" data-testid="detail-skeleton">
       <p-skeleton width="min(26rem, 100%)" height="2rem"></p-skeleton>
@@ -42,7 +42,7 @@
               </ng-template>
             </p-timeline>
           } @else {
-            <p-message severity="info">La ruta de esta directiva queda registrada al enviarla a firma.</p-message>
+            <p-message severity="info">La ruta de este documento queda registrada al enviarlo a firma.</p-message>
           }
         
         </app-directive-log-drawer>
@@ -54,7 +54,7 @@
           <p-button label="Corregir y reenviar" data-testid="resubmit-directive" (onClick)="resubmit()"></p-button>
         }
         @if (current.can_cancel) {
-          <p-button label="Anular directiva" severity="danger" [outlined]="true" data-testid="cancel-directive" (onClick)="openCancel()"></p-button>
+          <p-button label="Anular documento" severity="danger" [outlined]="true" data-testid="cancel-directive" (onClick)="openCancel()"></p-button>
         }
         @if (current.can_edit) {
           <p-button label="Corregir" severity="secondary" [outlined]="true" data-testid="edit-directive" (onClick)="edit()"></p-button>
@@ -87,7 +87,7 @@
           </div>
           @if (signedError()) { <p-message severity="error" data-testid="signed-error">{{ signedError() }}</p-message> }
         } @else {
-          <p-message severity="info" data-testid="signed-no-access">Tu oficina ve el estado de la directiva, pero no sus documentos: el administrador lo tiene configurado así.</p-message>
+          <p-message severity="info" data-testid="signed-no-access">Tu oficina ve el estado del documento, pero no sus archivos: el administrador lo tiene configurado así.</p-message>
         }
         @if (signed.code) {
           <div class="signed__key">
@@ -113,7 +113,7 @@
         } @else {
           <p class="muted" data-testid="cancelled-no-reason">El motivo lo ve la oficina de origen.</p>
         }
-        <p class="muted">Las firmas ya hechas quedan archivadas con sus documentos. La directiva ya no espera firmas y no se puede reabrir.</p>
+        <p class="muted">Las firmas ya hechas quedan archivadas con sus documentos. El documento ya no espera firmas y no se puede reabrir.</p>
       </section>
     }
 
@@ -166,7 +166,7 @@
                 } @else {
                   <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive'" data-testid="open-directive" (onClick)="openFile('directive')"></p-button>
                   @if (current.can_edit) {
-                    <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" chooseIcon="pi pi-refresh" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar la directiva" data-testid="replace-directive" (onSelect)="pickReplacement('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                    <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" chooseIcon="pi pi-refresh" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar el documento de gestión" data-testid="replace-directive" (onSelect)="pickReplacement('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
                   }
                 }
               </div>
@@ -203,7 +203,7 @@
             }
           }
           @if (current.sha256; as hashes) {
-            <small class="muted hash" data-testid="directive-hash">Huella de la directiva (SHA-256): {{ hashes.directive }}</small>
+            <small class="muted hash" data-testid="directive-hash">Huella del documento (SHA-256): {{ hashes.directive }}</small>
           }
         </section>
 
@@ -217,7 +217,7 @@
                   <span class="muted">{{ item.directive.name }}{{ item.created_at ? ' · ' + (item.created_at | date: 'dd/MM/yyyy') : '' }}</span>
                 </div>
                 <div class="version-actions">
-                  <p-button label="Directiva" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive-' + item.version" (onClick)="openFile('directive', item.version)"></p-button>
+                  <p-button label="Documento" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive-' + item.version" (onClick)="openFile('directive', item.version)"></p-button>
                   <p-button label="Resolución" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'resolution-' + item.version" (onClick)="openFile('resolution', item.version)"></p-button>
                 </div>
               </div>
@@ -229,7 +229,7 @@
 
     <p-confirmdialog></p-confirmdialog>
 
-    <p-dialog header="Anular directiva" [visible]="cancelOpen()" (visibleChange)="!$event && closeCancel()" [modal]="true" [draggable]="false" [closable]="!cancelSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="cancel-dialog">
+    <p-dialog header="Anular documento" [visible]="cancelOpen()" (visibleChange)="!$event && closeCancel()" [modal]="true" [draggable]="false" [closable]="!cancelSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="cancel-dialog">
       <div class="cancel-form">
         <p-message severity="warn" size="small">
           <span>Se cancela la solicitud en el firmador. <strong>No se puede reabrir ni reenviar.</strong> Las firmas ya hechas quedan archivadas y se avisa a las oficinas de la ruta.</span>
@@ -250,7 +250,7 @@
       </div>
       <ng-template #footer>
         <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="cancelSending()" (onClick)="closeCancel()"></p-button>
-        <p-button label="Anular directiva" severity="danger" [loading]="cancelSending()" [disabled]="!canConfirmCancel()" data-testid="cancel-confirm" (onClick)="cancel()"></p-button>
+        <p-button label="Anular documento" severity="danger" [loading]="cancelSending()" [disabled]="!canConfirmCancel()" data-testid="cancel-confirm" (onClick)="cancel()"></p-button>
       </ng-template>
     </p-dialog>
    }

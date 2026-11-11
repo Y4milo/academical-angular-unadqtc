@@ -19,7 +19,7 @@ export const SCREEN_RECIPES: ScreenRecipe[] = [
       'Una acción de texto por fila y el resto con solo ícono; máximo 4.',
       'Cargando: esqueleto con la forma de las filas. Vacío: título y la acción que lo arregla.',
     ],
-    screens: 'Directivas, órdenes de servicio, solicitudes de soporte, cuentas funcionales, cola de citas, registros de grados y títulos.',
+    screens: 'Documentos de gestión, órdenes de servicio, solicitudes de soporte, cuentas funcionales, cola de citas, registros de grados y títulos.',
   },
   {
     id: 'detail',
@@ -31,7 +31,7 @@ export const SCREEN_RECIPES: ScreenRecipe[] = [
       'Las descargas con variantes (Word, PDF, firmada) van en un <code>p-splitbutton</code>.',
       'Si algo bloquea una acción, un <code>p-message</code> dice por qué junto al botón.',
     ],
-    screens: 'Detalle de directiva, de orden de servicio y de incidencia del banco.',
+    screens: 'Detalle de documento de gestión, de orden de servicio y de incidencia del banco.',
   },
   {
     id: 'form',
@@ -43,7 +43,7 @@ export const SCREEN_RECIPES: ScreenRecipe[] = [
       'Una fila con <code>flex-wrap</code>: dos campos en escritorio, uno en teléfono.',
       'Guardar es el botón primario; Cancelar es secundario y vuelve sin guardar.',
     ],
-    screens: 'Directiva nueva, orden de servicio, semestres y usuarios.',
+    screens: 'Documento de gestión nuevo, orden de servicio, semestres y usuarios.',
   },
   {
     id: 'settings',
@@ -55,7 +55,7 @@ export const SCREEN_RECIPES: ScreenRecipe[] = [
       'Un interruptor general apaga el módulo; lo propio de cada módulo se configura en su pantalla.',
       'Los cambios aplican hacia adelante y la pantalla lo dice con un <code>p-message</code>.',
     ],
-    screens: 'Configuración de citas, de directivas, de módulos del estudiante y del carné.',
+    screens: 'Configuración de citas, de documentos de gestión, de módulos del estudiante y del carné.',
   },
   {
     id: 'dashboard',
@@ -110,7 +110,7 @@ export const SCREEN_RECIPES: ScreenRecipe[] = [
       'Formulario: <code>p-dialog</code> modal con <code>appendTo="body"</code>; el botón primario a la derecha del pie.',
       'Destructivo con motivo: <code>pTextarea</code> obligatorio (mínimo 10 caracteres) y botón <code>severity="danger"</code> deshabilitado hasta cumplirlo.',
     ],
-    screens: 'Rechazo y anulación de directivas, cierre de titulares de cuenta.',
+    screens: 'Rechazo y anulación de documentos, cierre de titulares de cuenta.',
   },
   {
     id: 'upload',
@@ -121,7 +121,7 @@ export const SCREEN_RECIPES: ScreenRecipe[] = [
       'Tipo y tamaño máximos declarados en el propio control y repetidos en el aviso de ayuda.',
       'Nunca un <code>&lt;input type="file"&gt;</code> oculto detrás de un botón.',
     ],
-    screens: 'Directiva y resolución, foto del carné, importaciones.',
+    screens: 'Documento y resolución, foto del carné, importaciones.',
   },
   {
     id: 'readonly',
@@ -132,7 +132,7 @@ export const SCREEN_RECIPES: ScreenRecipe[] = [
       'Los campos van deshabilitados con su valor; no se ocultan.',
       'Quien tiene permiso de editar no ve el aviso.',
     ],
-    screens: 'Carné cerrado la ventana, directivas visibles por consulta.',
+    screens: 'Carné cerrado la ventana, documentos visibles por consulta.',
   },
   {
     id: 'states',

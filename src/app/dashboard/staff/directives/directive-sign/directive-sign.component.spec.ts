@@ -285,7 +285,7 @@ describe('DirectiveSignComponent', () => {
     service.detail.and.returnValue(throwError(() => ({ status: 404 })));
     await create();
 
-    expect(text('load-error')).toContain('No encontramos esa directiva');
+    expect(text('load-error')).toContain('No encontramos ese documento');
   });
   it('has the tracking button in its header, like the other screens of the module', async () => {
     await create();

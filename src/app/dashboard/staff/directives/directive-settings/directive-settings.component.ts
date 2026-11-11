@@ -21,13 +21,13 @@ export const SETTING_RULES: { key: keyof DirectiveSettingsValues; title: string;
   {
     key: 'pending_docs',
     title: 'Documentos para oficinas a las que aún no les toca',
-    hint: 'Por ejemplo, Presidencia mientras la directiva está en Asesoría Jurídica.',
+    hint: 'Por ejemplo, Presidencia mientras el documento está en Asesoría Jurídica.',
     options: [{ label: 'Pueden ver los PDF', value: 'yes' }, { label: 'Solo el estado, sin PDF', value: 'no' }],
   },
   {
     key: 'signed_versions',
     title: 'Versiones para oficinas que ya firmaron',
-    hint: 'Cuando la directiva se devuelve y hay una versión nueva.',
+    hint: 'Cuando el documento se devuelve y hay una versión nueva.',
     options: [{ label: 'Solo la que firmaron', value: 'own' }, { label: 'Todas las versiones', value: 'all' }],
   },
   {
@@ -41,15 +41,15 @@ export const SETTING_RULES: { key: keyof DirectiveSettingsValues; title: string;
 /** Los avisos por correo que el administrador puede apagar; todos vienen encendidos. */
 export const NOTICE_RULES: { key: keyof DirectiveSettingsValues; title: string; hint: string }[] = [
   { key: 'notify_turn', title: 'Le toca firmar', hint: 'A la persona designada de la oficina a la que llega el turno.' },
-  { key: 'notify_returned', title: 'Directiva devuelta', hint: 'A quien la envió, con el motivo.' },
+  { key: 'notify_returned', title: 'Documento devuelto', hint: 'A quien la envió, con el motivo.' },
   { key: 'notify_void', title: 'Firma sin efecto', hint: 'A las oficinas que ya habían firmado la versión devuelta, sin motivo.' },
-  { key: 'notify_completed', title: 'Firmaron todas las oficinas', hint: 'A quien envió la directiva.' },
-  { key: 'notify_cancelled', title: 'Directiva anulada', hint: 'A la persona con el turno y a las oficinas que ya firmaron; a quien la envió si otra persona la anuló.' },
+  { key: 'notify_completed', title: 'Firmaron todas las oficinas', hint: 'A quien envió el documento.' },
+  { key: 'notify_cancelled', title: 'Documento anulado', hint: 'A la persona con el turno y a las oficinas que ya firmaron; a quien lo envió si otra persona lo anuló.' },
 ];
 
 const KEY_LABELS: Record<string, string> = {
   pending_docs: 'Documentos sin turno', signed_versions: 'Versiones de quien firmó', reason_visibility: 'Motivo del rechazo',
-  notify_turn: 'Aviso: le toca firmar', notify_returned: 'Aviso: directiva devuelta', notify_void: 'Aviso: firma sin efecto', notify_completed: 'Aviso: firmaron todas', notify_cancelled: 'Aviso: directiva anulada',
+  notify_turn: 'Aviso: le toca firmar', notify_returned: 'Aviso: documento devuelto', notify_void: 'Aviso: firma sin efecto', notify_completed: 'Aviso: firmaron todas', notify_cancelled: 'Aviso: documento anulado',
 };
 const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'Solo el estado', own: 'Solo la que firmaron', all: 'Todas las versiones', origin: 'Origen y quien rechazó', route: 'Toda la ruta' };
 

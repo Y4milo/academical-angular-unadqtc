@@ -135,7 +135,7 @@ describe('DirectiveDetailComponent', () => {
     await create();
 
     const events = findAll('directive-event');
-    expect(events[1].textContent).toContain('Devolvió la directiva con observaciones');
+    expect(events[1].textContent).toContain('Devolvió el documento con observaciones');
     expect(events[1].querySelector('[data-testid="event-detail"]')?.textContent).toBe('Oficina de Asesoría Jurídica · Carlos Paucar · Falta el anexo de costos');
     expect(events[1].textContent).toContain('Firmador');
   });
@@ -176,7 +176,7 @@ describe('DirectiveDetailComponent', () => {
     await create();
 
     expect(service.route).not.toHaveBeenCalled();
-    expect(document.body.textContent).toContain('queda registrada al enviarla a firma');
+    expect(document.body.textContent).toContain('queda registrada al enviarlo a firma');
     expect(html().querySelector('[data-testid="send-directive"]')).toBeNull();
   });
 
@@ -231,7 +231,7 @@ describe('DirectiveDetailComponent', () => {
     service.detail.and.returnValue(throwError(() => ({ status: 404 })));
     await create();
 
-    expect(text('load-error')).toContain('No encontramos esa directiva');
+    expect(text('load-error')).toContain('No encontramos ese documento');
   });
 
   describe('a returned directive', () => {
@@ -461,7 +461,7 @@ describe('DirectiveDetailComponent', () => {
       }))));
       await create();
 
-      expect(text('directive-event')).toContain('Aviso enviado: la directiva fue anulada');
+      expect(text('directive-event')).toContain('Aviso enviado: el documento fue anulado');
       expect(text('event-detail')).toBe('Para Carlos Paucar V. · Asesoría Jurídica');
     });
   });

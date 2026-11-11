@@ -152,7 +152,7 @@ export const MODULE_LABELS: Record<string, string> = {
   service_orders: 'Órdenes de servicio',
   users: 'Usuarios',
   support: 'Soporte',
-  directives: 'Directivas',
+  directives: 'Documentos de gestión',
   interface: 'Interfaz',
   other: 'Otro',
 };
