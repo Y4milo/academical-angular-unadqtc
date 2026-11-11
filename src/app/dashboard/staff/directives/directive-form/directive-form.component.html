@@ -33,7 +33,7 @@
           <h3 id="origin-title">¿Por qué oficina es este documento? *</h3>
           <p class="field-hint">Solo ves las oficinas por las que Core te autoriza a pedir documentos. La ruta cambia con tu elección.</p>
           @if (originAsCards()) {
-            <p-selectbutton styleClass="origin-options" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [allowEmpty]="false" ariaLabelledBy="origin-title" data-testid="origin-cards"></p-selectbutton>
+            <p-selectbutton class="origin-options" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [allowEmpty]="false" ariaLabelledBy="origin-title" data-testid="origin-cards"></p-selectbutton>
           } @else {
             <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [filter]="true" placeholder="Elige la oficina" [fluid]="true" appendTo="body" ariaLabelledBy="origin-title"></p-select>
           }
@@ -53,7 +53,7 @@
         @if (needsSubtype()) {
           <div class="field" data-testid="subtype-field">
             <span class="label" id="document-subtype-label">Subtipo * <small class="field-hint">(obligatorio en este tipo)</small></span>
-            <p-selectbutton styleClass="subtype-options" [options]="subtypeOptions()" optionLabel="label" optionValue="code" [ngModel]="documentSubtype()" (ngModelChange)="documentSubtype.set($event)" [allowEmpty]="true" size="small" ariaLabelledBy="document-subtype-label" data-testid="document-subtype"></p-selectbutton>
+            <p-selectbutton class="subtype-options" [options]="subtypeOptions()" optionLabel="label" optionValue="code" [ngModel]="documentSubtype()" (ngModelChange)="documentSubtype.set($event)" [allowEmpty]="true" size="small" ariaLabelledBy="document-subtype-label" data-testid="document-subtype"></p-selectbutton>
             @if (submitted() && errors()['subtype']; as message) { <small class="field-error" role="alert" data-testid="error-subtype">{{ message }}</small> }
           </div>
         }
@@ -113,20 +113,52 @@
       </section>
      </div>
 
-      <p-panel [toggleable]="true" [(collapsed)]="routeCollapsed" styleClass="route-panel" data-testid="route-panel">
-        <ng-template #header>
-          <div class="route-head">
-            <h3 id="route-title">Ruta de firmas</h3>
-            @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
-          </div>
-        </ng-template>
+      <div class="shelf" [class.shelf--open]="routeOpen() && !overlay()" [class.shelf--overlay]="overlay()" data-testid="route-shelf">
+        <button type="button" class="rail" (click)="openRoute()" [attr.aria-expanded]="routeOpen()" aria-controls="route-drawer" aria-label="Abrir la ruta de firmas" data-testid="route-rail">
+          <span class="pi pi-angle-left rail__icon" aria-hidden="true"></span>
+          @if (routeSummary(); as summary) {
+            <span class="rail__count" [class.rail__count--warn]="summary.severity === 'warn'" data-testid="route-rail-count">{{ routeCount() }}</span>
+            <span class="rail__dots" aria-hidden="true">@for (dot of routeDots(); track $index) { <i [class.rail__dot--warn]="dot === 'warn'"></i> }</span>
+          }
+          <span class="rail__title">Ruta de firmas</span>
+        </button>
+
+        @if (!overlay()) {
+          <aside id="route-drawer" class="drawer" [attr.aria-hidden]="!routeOpen()" [attr.inert]="routeOpen() ? null : ''" (keydown.escape)="closeRoute()" data-testid="route-panel">
+            <div class="drawer__inner">
+              <div class="route-box">
+                <div class="route-head">
+                  <h3 id="route-title">Ruta de firmas</h3>
+                  @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
+                  <p-button class="route-close" icon="pi pi-times" [text]="true" [rounded]="true" severity="secondary" size="small" ariaLabel="Cerrar la ruta de firmas" data-testid="route-close" (onClick)="closeRoute()"></p-button>
+                </div>
+                <div class="route-body"><ng-container [ngTemplateOutlet]="routeBody"></ng-container></div>
+              </div>
+            </div>
+          </aside>
+        }
+      </div>
+
+      @if (overlay()) {
+        <p-drawer [visible]="routeOpen()" (visibleChange)="routeOpen.set($event)" position="right" [modal]="true" [dismissible]="true" styleClass="route-drawer" data-testid="route-panel">
+          <ng-template #header>
+            <div class="route-head">
+              <h3 id="route-title">Ruta de firmas</h3>
+              @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
+            </div>
+          </ng-template>
+          <ng-container [ngTemplateOutlet]="routeBody"></ng-container>
+        </p-drawer>
+      }
+
+      <ng-template #routeBody>
         <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</p>
         @if (!origin()) {
           <p-message severity="info" data-testid="route-pick-origin">Elige la oficina de origen para ver la ruta.</p-message>
         } @else {
           <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
         }
-      </p-panel>
+      </ng-template>
     </div>
   }
 </div>

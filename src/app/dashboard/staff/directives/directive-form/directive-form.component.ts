@@ -1,11 +1,12 @@
-import { Component, OnInit, computed, effect, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { PanelModule } from 'primeng/panel';
+import { DrawerModule } from 'primeng/drawer';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -35,7 +36,7 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
  */
 @Component({
   selector: 'app-directive-form',
-  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, PanelModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, DirectiveRouteStepsComponent],
+  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, DrawerModule, NgTemplateOutlet, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, DirectiveRouteStepsComponent],
   templateUrl: './directive-form.component.html',
   styleUrl: './directive-form.component.css',
 })
@@ -78,8 +79,13 @@ export class DirectiveFormComponent implements OnInit {
   readonly fixedOrigin = computed(() => this.editing() || this.originOptions().length === 1);
   readonly originName = computed(() => this.originOptions().find(option => option.code === this.origin())?.name ?? this.existing()?.origin.name ?? this.origin() ?? '');
   readonly originAsCards = computed(() => !this.fixedOrigin() && this.originOptions().length <= MAX_ORIGIN_CARDS);
-  /** En el celular la ruta empieza plegada para no empujar el formulario; el resumen de su cabecera dice cómo está. */
-  readonly routeCollapsed = signal(typeof window !== 'undefined' && window.innerWidth <= 640);
+  /** Desde este ancho la ruta de firmas se abre sobre el formulario (cajón con velo); por encima, empuja el formulario y se ve a su lado. */
+  private static readonly OVERLAY_QUERY = '(max-width: 1099px)';
+  private static readonly ROUTE_OPEN_KEY = 'directive-form.route-open';
+  private readonly media = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(DirectiveFormComponent.OVERLAY_QUERY) : null;
+  readonly overlay = signal(this.media?.matches ?? false);
+  /** Abierta en escritorio (se ve a quién irá antes de enviar), cerrada en tableta y móvil; en escritorio se recuerda la última elección. */
+  readonly routeOpen = signal(this.overlay() ? false : DirectiveFormComponent.storedRouteOpen());
   readonly routeSummary = computed<{ label: string; severity: 'success' | 'warn' } | null>(() => {
     const route = this.route();
     if (!route) return null;
@@ -87,6 +93,16 @@ export class DirectiveFormComponent implements OnInit {
     const ready = route.steps.filter(step => !step.skipped).length - missing;
 
     return missing > 0 ? { label: missing === 1 ? 'Falta 1' : `Faltan ${missing}`, severity: 'warn' } : { label: ready === 1 ? '1 lista' : `${ready} listas`, severity: 'success' };
+  });
+  /** Cuántos pasos tiene la ruta: es el número del carril cerrado. */
+  readonly routeCount = computed(() => this.route()?.steps.filter(step => !step.skipped).length ?? 0);
+  /** Un punto por paso en el carril: verdes los que ya tienen quién firme y ámbar los que falta designar. */
+  readonly routeDots = computed<('ok' | 'warn')[]>(() => {
+    const route = this.route();
+    if (!route) return [];
+    const missing = Math.min(route.issues.length, this.routeCount());
+
+    return [...Array(this.routeCount() - missing).fill('ok'), ...Array(missing).fill('warn')];
   });
   readonly errors = computed<Record<string, string>>(() => {
     const errors: Record<string, string> = {};
@@ -119,6 +135,13 @@ export class DirectiveFormComponent implements OnInit {
     private router: Router,
     private activatedRoute: ActivatedRoute,
   ) {
+    const onChange = (event: MediaQueryListEvent): void => {
+      this.overlay.set(event.matches);
+      this.routeOpen.set(event.matches ? false : DirectiveFormComponent.storedRouteOpen());
+    };
+    this.media?.addEventListener('change', onChange);
+    inject(DestroyRef).onDestroy(() => this.media?.removeEventListener('change', onChange));
+
     // La ruta se vuelve a pedir a Core cuando cambia la oficina de origen o la opción de calidad.
     effect(() => {
       const origin = this.origin();
@@ -130,6 +153,31 @@ export class DirectiveFormComponent implements OnInit {
         this.route.set(null);
       }
     });
+  }
+
+  openRoute(): void {
+    this.setRouteOpen(true);
+  }
+
+  closeRoute(): void {
+    this.setRouteOpen(false);
+  }
+
+  private setRouteOpen(open: boolean): void {
+    this.routeOpen.set(open);
+
+    if (!this.overlay()) {
+      try { localStorage.setItem(DirectiveFormComponent.ROUTE_OPEN_KEY, open ? '1' : '0'); } catch { /* sin almacenamiento: no se recuerda la elección */ }
+    }
+
+    // El foco va al botón de cerrar al abrir y vuelve al carril al cerrar (el cajón de PrimeNG ya lo hace solo en móvil).
+    if (!this.overlay()) {
+      setTimeout(() => document.querySelector<HTMLElement>(open ? '[data-testid="route-close"] button' : '[data-testid="route-rail"]')?.focus());
+    }
+  }
+
+  private static storedRouteOpen(): boolean {
+    try { return localStorage.getItem(DirectiveFormComponent.ROUTE_OPEN_KEY) !== '0'; } catch { return true; }
   }
 
   ngOnInit(): void {
