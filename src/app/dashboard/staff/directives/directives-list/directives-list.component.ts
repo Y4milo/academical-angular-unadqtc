@@ -20,7 +20,7 @@ import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveAccess, DirectiveStatus, DirectiveSummary, DirectivesService, PendingDirective } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
-import { DIRECTIVE_STATUS } from '../directive-status';
+import { DIRECTIVE_STATUS, STEP_ROLE } from '../directive-status';
 import { pagesLabel } from '../pdf-pages';
 import { SUBTYPE_DOCUMENT_TYPE, documentTypeColor, documentTypeText } from '../document-type';
 
@@ -57,6 +57,10 @@ export class DirectivesListComponent implements OnInit {
   /** En el celular cada documento es una tarjeta en vez de una fila. */
   private readonly media = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 640px)') : null;
   readonly isMobile = signal(this.media?.matches ?? false);
+  roleOf(directive: PendingDirective) {
+    return directive.step.role ? STEP_ROLE[directive.step.role] : null;
+  }
+
   readonly documentTypeColor = documentTypeColor;
   readonly documentTypeText = documentTypeText;
 

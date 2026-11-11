@@ -55,6 +55,25 @@
             </p-card>
           }
 
+          <p-card styleClass="settings-card" data-testid="roles-panel">
+            <div class="card-body">
+              <div>
+                <strong id="roles-title">Rol de cada oficina</strong>
+                <p class="hint">Por defecto todas dan su visto bueno. El rol se fija al enviar: los documentos que ya están en firma no cambian.</p>
+              </div>
+              <div class="role-row" data-testid="role-origin">
+                <span>Oficina de origen</span>
+                <p-tag value="Autor del documento · fijo" severity="info"></p-tag>
+              </div>
+              @for (rule of roleRules; track rule.key) {
+                <div class="role-row" [attr.data-testid]="'role-' + rule.key">
+                  <span [id]="'role-' + rule.key">{{ rule.office }}</span>
+                  <p-selectbutton [options]="roleOptions" optionLabel="label" optionValue="value" [ngModel]="current[rule.key]" (ngModelChange)="choose(rule.key, $event)" [allowEmpty]="false" size="small" [ariaLabelledBy]="'role-' + rule.key"></p-selectbutton>
+                </div>
+              }
+            </div>
+          </p-card>
+
           <p-card styleClass="settings-card" data-testid="notices-panel">
             <div class="card-body">
               <div>

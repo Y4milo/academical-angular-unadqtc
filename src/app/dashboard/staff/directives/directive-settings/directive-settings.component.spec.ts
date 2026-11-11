@@ -11,7 +11,7 @@ describe('DirectiveSettingsComponent', () => {
   let service: jasmine.SpyObj<DirectivesService>;
   let notifications: jasmine.SpyObj<NotificationService>;
 
-  const defaults = { pending_docs: 'yes', signed_versions: 'own', reason_visibility: 'origin', notify_turn: 'yes', notify_returned: 'yes', notify_void: 'yes', notify_completed: 'yes', notify_cancelled: 'yes' } as const;
+  const defaults = { pending_docs: 'yes', signed_versions: 'own', reason_visibility: 'origin', notify_turn: 'yes', notify_returned: 'yes', notify_void: 'yes', notify_completed: 'yes', notify_cancelled: 'yes', role_quality: 'visto_bueno', role_legal: 'visto_bueno', role_modernization: 'visto_bueno', role_presidency: 'visto_bueno' } as const;
   const settings = (overrides: Partial<DirectiveSettings> = {}): DirectiveSettings => ({ values: { ...defaults }, defaults: { ...defaults }, history: [], ...overrides });
   const html = () => fixture.nativeElement as HTMLElement;
   /** El registro de cambios vive en un cajón de PrimeNG que se pega al `body`: se busca en la pantalla y, si no está, en la página. */
@@ -199,5 +199,18 @@ describe('DirectiveSettingsComponent', () => {
       expect(component.dirty()).toBeFalse();
       expect(component.values()?.pending_docs).toBe('yes');
     });
+  });
+
+  it('lets the administrator choose visto bueno or approval per office, with the origin fixed as author, and saves it with the rest', async () => {
+    service.updateSettings.and.returnValue(of(ok(settings({ values: { ...defaults, role_presidency: 'aprobacion' } }))));
+    await create();
+
+    expect(text('role-origin')).toContain('Autor del documento');
+    expect(html().querySelectorAll('[data-testid^="role-role_"]').length).toBe(4);
+    fixture.componentInstance.choose('role_presidency', 'aprobacion');
+    expect(fixture.componentInstance.dirty()).toBeTrue();
+    fixture.componentInstance.save();
+
+    expect(service.updateSettings).toHaveBeenCalledOnceWith({ ...defaults, role_presidency: 'aprobacion' });
   });
 });

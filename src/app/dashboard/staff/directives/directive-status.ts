@@ -1,4 +1,4 @@
-import { DirectiveStatus, ProgressState } from '../../../services/directives.service';
+import { DirectiveStatus, ProgressState, StepRole } from '../../../services/directives.service';
 
 /** El color de cada estado lo decide su significado, igual en toda la aplicación. */
 export const DIRECTIVE_STATUS: Record<DirectiveStatus, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }> = {
@@ -28,6 +28,13 @@ export const DIRECTIVE_PROGRESS_CANCELLED: Partial<Record<ProgressState, { label
 export const DIRECTIVE_PROGRESS_RETURNED: Partial<Record<ProgressState, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }>> = {
   signed: { label: 'Firmó la versión anterior', severity: 'secondary' },
   waiting: { label: 'Sin turno', severity: 'secondary' },
+};
+
+/** El rol de cada oficina: el color lo decide su significado (autora, visto bueno, aprueba). */
+export const STEP_ROLE: Record<StepRole, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary'; action: string }> = {
+  author: { label: 'Autor del documento', severity: 'info', action: 'Firmar como autor' },
+  visto_bueno: { label: 'Visto bueno', severity: 'success', action: 'Dar visto bueno' },
+  aprobacion: { label: 'Aprueba', severity: 'warn', action: 'Aprobar' },
 };
 
 /** Lo que dice cada hecho de la línea de tiempo. */

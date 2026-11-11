@@ -43,6 +43,15 @@ export const SETTING_RULES: { key: keyof DirectiveSettingsValues; title: string;
   },
 ];
 
+/** Las oficinas cuyo rol decide el administrador; la de origen siempre es la autora. */
+export const ROLE_RULES: { key: keyof DirectiveSettingsValues; office: string }[] = [
+  { key: 'role_quality', office: 'Calidad' },
+  { key: 'role_legal', office: 'Asesoría jurídica' },
+  { key: 'role_modernization', office: 'Modernización' },
+  { key: 'role_presidency', office: 'Presidencia' },
+];
+export const ROLE_OPTIONS: Option<string>[] = [{ label: 'Visto bueno', value: 'visto_bueno' }, { label: 'Aprueba', value: 'aprobacion' }];
+
 /** Los avisos por correo que el administrador puede apagar; todos vienen encendidos. */
 export const NOTICE_RULES: { key: keyof DirectiveSettingsValues; title: string; hint: string }[] = [
   { key: 'notify_turn', title: 'Le toca firmar', hint: 'A la persona designada de la oficina a la que llega el turno.' },
@@ -54,9 +63,10 @@ export const NOTICE_RULES: { key: keyof DirectiveSettingsValues; title: string; 
 
 const KEY_LABELS: Record<string, string> = {
   pending_docs: 'Documentos sin turno', signed_versions: 'Versiones de quien firmó', reason_visibility: 'Motivo de la devolución',
+  role_quality: 'Rol de Calidad', role_legal: 'Rol de Asesoría jurídica', role_modernization: 'Rol de Modernización', role_presidency: 'Rol de Presidencia',
   notify_turn: 'Aviso: le toca firmar', notify_returned: 'Aviso: documento devuelto', notify_void: 'Aviso: firma sin efecto', notify_completed: 'Aviso: firmaron todas', notify_cancelled: 'Aviso: documento anulado',
 };
-const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'Solo el estado', own: 'Solo la que firmaron', all: 'Todas las versiones', origin: 'Origen y quien devolvió', route: 'Toda la ruta' };
+const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'Solo el estado', own: 'Solo la que firmaron', all: 'Todas las versiones', origin: 'Origen y quien devolvió', route: 'Toda la ruta', visto_bueno: 'Visto bueno', aprobacion: 'Aprueba' };
 
 /**
  * Qué ve cada oficina de la ruta de firmas de una directiva: solo para el administrador. Las reglas aplican a todas las directivas, también a las
@@ -74,6 +84,8 @@ export class DirectiveSettingsComponent implements OnInit {
   readonly crumbs: MenuItem[] = [{ label: 'Documentos de gestión', command: () => this.router.navigateByUrl(PATHS.directives.link) }, { label: 'Visibilidad de documentos' }];
   readonly rules = SETTING_RULES;
   readonly notices = NOTICE_RULES;
+  readonly roleRules = ROLE_RULES;
+  readonly roleOptions = ROLE_OPTIONS;
   /** El cajón del registro de cambios (botón de la cabecera). */
   readonly historyOpen = signal(false);
   readonly saved = signal<DirectiveSettings | null>(null);
@@ -87,7 +99,7 @@ export class DirectiveSettingsComponent implements OnInit {
     const saved = this.saved()?.values;
     const current = this.values();
 
-    return !!saved && !!current && [...SETTING_RULES, ...NOTICE_RULES].some(rule => saved[rule.key] !== current[rule.key]);
+    return !!saved && !!current && [...SETTING_RULES, ...ROLE_RULES, ...NOTICE_RULES].some(rule => saved[rule.key] !== current[rule.key]);
   });
   readonly preview = computed(() => {
     const current = this.values();

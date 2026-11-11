@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
+import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
@@ -18,6 +19,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SigningSession } from '../../../../services/directives.service';
 import { FirmaPeruSignerService } from '../../../../services/firma-peru-signer.service';
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
+import { STEP_ROLE } from '../directive-status';
 import { documentTypeColor, documentTypeText } from '../document-type';
 
 /** En qué va la firma: nada empezado, abriendo la sesión, esperando al firmador local, confirmando con el servidor o terminada. */
@@ -37,7 +39,7 @@ const CONFIRM_EVERY_MS = 3000;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TextareaModule, TimelineModule, DirectiveTrackingComponent],
+  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, DirectiveTrackingComponent],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })
@@ -78,6 +80,11 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
     const index = steps.findIndex(step => step.state === 'active');
 
     return { number: index + 1, total: steps.length };
+  });
+  readonly myRole = computed(() => {
+    const role = this.directive()?.my_step?.role;
+
+    return role ? STEP_ROLE[role] : null;
   });
   readonly busy = computed(() => this.phase() === 'opening' || this.phase() === 'waiting' || this.phase() === 'confirming');
   readonly documentTypeColor = documentTypeColor;
