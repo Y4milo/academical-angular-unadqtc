@@ -1,9 +1,15 @@
 import { ApiData } from '../../../../models/api/api-data.model';
-import { DirectiveAccess, DirectiveDetail, DirectiveRoute, DirectiveSummary, RouteHolder } from '../../../../services/directives.service';
+import { DirectiveAccess, DirectiveDetail, DirectiveRoute, DirectiveSummary, DocumentTypeOption, RouteHolder } from '../../../../services/directives.service';
 
 export const access: DirectiveAccess = {
   can_request: true, request_units: ['adm', 'adm_sub'], request_unit_names: { adm: 'Oficina de Administración', adm_sub: 'Unidad de Logística' }, can_sign: false, sign_units: [],
 };
+
+/** El catálogo de tipos de documento, como lo da el servidor: solo «Documentos de gestión institucional» tiene subtipos. */
+export const documentTypes: DocumentTypeOption[] = [
+  { code: 'gestion_institucional', label: 'Documentos de gestión institucional', subtypes: ['Estatuto', 'POI', 'PEI', 'ROF', 'MCC', 'TUPA', 'MAPRO', 'CAP', 'PAP', 'PIA'].map(label => ({ code: label.toLowerCase(), label })) },
+  ...['Reglamentos', 'Políticas', 'Directivas', 'Planes', 'Manuales'].map(label => ({ code: label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), label, subtypes: [] })),
+];
 
 export function ok<T>(data: T): ApiData<T> {
   return { status: 'success', encoded: false, decoded: true, payload: { iat: 0, exp: 0, message: 'OK', title: 'OK', data, log: data, error: '' } };
@@ -30,8 +36,8 @@ export function route(overrides: Partial<DirectiveRoute> = {}): DirectiveRoute {
 
 export function summary(overrides: Partial<DirectiveSummary> = {}): DirectiveSummary {
   return {
-    id: 7, title: 'Directiva para el control de bienes patrimoniales', origin: { code: 'adm', name: 'Oficina de Administración' }, is_quality: false, status: 'draft', status_label: 'Borrador',
-    version: 1, created_by: { id: 5, nick: 'ana' }, created_at: '2026-11-03T10:00:00Z', updated_at: '2026-11-03T10:00:00Z', can_edit: true,
+    id: 7, title: 'Directiva para el control de bienes patrimoniales', document_type: { code: 'directivas', label: 'Directivas' }, document_subtype: null, origin: { code: 'adm', name: 'Oficina de Administración' }, is_quality: false, status: 'draft', status_label: 'Borrador',
+    version: 1, created_by: { id: 5, nick: 'ana', name: 'Ana María Quispe Rojas' }, created_at: '2026-11-03T10:00:00Z', updated_at: '2026-11-03T10:00:00Z', can_edit: true,
     files: { directive: { name: 'directiva.pdf', size: 1800000, pages: 14 }, resolution: { name: 'resolucion.pdf', size: 600000, pages: 3 } }, ...overrides,
   };
 }
@@ -39,7 +45,7 @@ export function summary(overrides: Partial<DirectiveSummary> = {}): DirectiveSum
 export function detail(overrides: Partial<DirectiveDetail> = {}): DirectiveDetail {
   return {
     ...summary(), sha256: { directive: 'a'.repeat(64), resolution: 'b'.repeat(64) },
-    events: [{ type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana' }, data: {} }],
+    events: [{ type: 'created', version: 1, at: '2026-11-03T10:00:00Z', by: { id: 5, nick: 'ana', name: 'Ana María Quispe Rojas', office: 'Oficina de Administración' }, data: {} }],
     files_visible: true, versions: [], returned: null, viewer: 'origin', can_reject: false, can_resubmit: false, can_cancel: false, cancelled: null, signed: null,
     progress: [], can_sign: false, active_office: null, ...overrides,
   };

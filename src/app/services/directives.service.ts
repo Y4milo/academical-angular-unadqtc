@@ -22,15 +22,28 @@ export interface DirectiveFileInfo {
   pages: number | null;
 }
 
+/** Un tipo de documento (o un subtipo) con la clave del catálogo y el nombre que se ve. */
+export interface DirectiveDocumentType {
+  code: string;
+  label: string;
+}
+
+/** Un tipo del catálogo con sus subtipos; solo «Documentos de gestión institucional» los tiene y entonces el subtipo es obligatorio. */
+export interface DocumentTypeOption extends DirectiveDocumentType {
+  subtypes: DirectiveDocumentType[];
+}
+
 export interface DirectiveSummary {
   id: number;
   title: string;
+  document_type: DirectiveDocumentType;
+  document_subtype: DirectiveDocumentType | null;
   origin: { code: string; name: string };
   is_quality: boolean;
   status: DirectiveStatus;
   status_label: string;
   version: number;
-  created_by: { id: number; nick: string | null };
+  created_by: { id: number; nick: string | null; name: string | null };
   created_at: string | null;
   updated_at: string | null;
   can_edit: boolean;
@@ -41,7 +54,7 @@ export interface DirectiveEvent {
   type: string;
   version: number | null;
   at: string | null;
-  by: { id: number; nick: string | null } | null;
+  by: { id: number; nick: string | null; name: string | null; office: string | null } | null;
   data: Record<string, unknown>;
 }
 
@@ -203,6 +216,11 @@ export class DirectivesService {
   private readonly apiURL = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
+
+  /** Los tipos de documento y sus subtipos, para el formulario. */
+  types(): Observable<ApiData<DocumentTypeOption[]>> {
+    return this.http.get<ApiData<DocumentTypeOption[]>>(`${this.apiURL}/directives/types`);
+  }
 
   access(): Observable<ApiData<DirectiveAccess>> {
     return this.http.get<ApiData<DirectiveAccess>>(`${this.apiURL}/directives/access`);

@@ -12,7 +12,7 @@
    @if (directive(); as current) {
     <div class="page-heading">
       <div>
-        <p class="caption">Directiva · {{ current.origin.name }}</p>
+        <p class="caption" data-testid="directive-type"><span class="type-dot" [style.background]="documentTypeColor(current.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(current.document_type, current.document_subtype) }} · {{ current.origin.name }}</p>
         <h2 data-testid="directive-title">{{ current.title }}</h2>
         <p class="meta">
           <p-tag [value]="statuses[current.status].label" [severity]="statuses[current.status].severity" data-testid="directive-status"></p-tag>
@@ -124,7 +124,7 @@
             }
             <div class="file-row">
               <div class="file-info">
-                <strong>Directiva</strong>
+                <strong>Documento</strong>
                 <span class="muted">{{ files.directive.name }} · {{ formatBytes(files.directive.size) }}{{ files.directive.pages ? ' · ' + pagesLabel(files.directive.pages) : '' }}</span>
                 @if (staged().directive; as pending) {
                   <span class="staged" data-testid="staged-directive">
@@ -148,7 +148,7 @@
             </div>
             <div class="file-row">
               <div class="file-info">
-                <strong>Resolución que la aprueba</strong>
+                <strong>Resolución que lo aprueba</strong>
                 <span class="muted">{{ files.resolution.name }} · {{ formatBytes(files.resolution.size) }}{{ files.resolution.pages ? ' · ' + pagesLabel(files.resolution.pages) : '' }}</span>
                 @if (staged().resolution; as pending) {
                   <span class="staged" data-testid="staged-resolution">
@@ -234,6 +234,19 @@
             <div class="event" data-testid="directive-event">
               <strong>{{ eventLabel(event) }}</strong>
               @if (eventDetail(event); as detail) { <span data-testid="event-detail">{{ detail }}</span> }
+              @if (eventChanges(event); as changes) {
+                @if (changes.length > 0) {
+                  <div class="event-changes" data-testid="event-changes">
+                    @for (change of changes; track change.label) {
+                      <div class="change" data-testid="event-change">
+                        <span class="muted">{{ change.label }}</span>
+                        <span class="change__before">{{ change.before }}</span>
+                        <span class="change__after"><i class="pi pi-arrow-right change__arrow" aria-hidden="true"></i>{{ change.after }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
               <span class="muted">{{ eventAuthor(event) }} · {{ event.at | date: 'dd/MM/yyyy HH:mm' }}</span>
             </div>
           </ng-template>

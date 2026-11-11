@@ -62,21 +62,21 @@ describe('DirectivesListComponent', () => {
 
     fixture.componentInstance.filter.set('signed');
     fixture.detectChanges();
-    expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Ninguna directiva en este estado');
+    expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Ningún documento en este estado');
   });
 
   it('invites to upload the first one when there are none', async () => {
     service.list.and.returnValue(of(ok([])));
     await create();
 
-    expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Sube tu primera directiva');
+    expect(html().querySelector('[data-testid="directives-empty"]')?.textContent).toContain('Sube tu primer documento');
   });
 
   it('explains that Core authorizes neither requesting nor signing, and does not ask for anything else', async () => {
     service.access.and.returnValue(of(ok({ ...access, can_request: false, request_units: [] })));
     await create();
 
-    expect(html().querySelector('[data-testid="no-request-access"]')?.textContent).toContain('Core no te autoriza a pedir ni a firmar directivas');
+    expect(html().querySelector('[data-testid="no-request-access"]')?.textContent).toContain('Core no te autoriza a pedir ni a firmar documentos');
     expect(service.list).not.toHaveBeenCalled();
     expect(service.pending).not.toHaveBeenCalled();
   });
@@ -128,7 +128,7 @@ describe('DirectivesListComponent', () => {
     service.access.and.returnValue(throwError(() => ({ status: 503 })));
     await create();
 
-    expect(html().querySelector('[data-testid="load-error"]')?.textContent).toContain('No se pudieron consultar las directivas');
+    expect(html().querySelector('[data-testid="load-error"]')?.textContent).toContain('No se pudieron consultar los documentos');
 
     service.access.and.returnValue(of(ok(access)));
     fixture.componentInstance.load();
@@ -144,5 +144,63 @@ describe('DirectivesListComponent', () => {
     fixture.componentInstance.create();
 
     expect(navigate.calls.allArgs()).toEqual([['directivas/8'], ['directivas/nueva']]);
+  });
+  const gestion = { code: 'gestion_institucional', label: 'Documentos de gestión institucional' };
+  const plans = [
+    summary({ id: 1, title: 'Una directiva de prueba' }),
+    summary({ id: 2, title: 'Plan operativo anual', document_type: gestion, document_subtype: { code: 'poi', label: 'POI' } }),
+    summary({ id: 3, title: 'Estatuto de la universidad', document_type: gestion, document_subtype: { code: 'estatuto', label: 'Estatuto' } }),
+    summary({ id: 4, title: 'Reglamento de prácticas', document_type: { code: 'reglamentos', label: 'Reglamentos' } }),
+  ];
+  const typeLabels = () => Array.from(html().querySelectorAll('[data-testid="type-filter"] .p-togglebutton')).map(button => button.textContent?.trim());
+
+  it('shows the type of each document in its own column, with the subtype when it has one', async () => {
+    service.list.and.returnValue(of(ok(plans)));
+    await create();
+
+    expect(Array.from(html().querySelectorAll('[data-testid="directive-type"]')).map(cell => cell.textContent?.trim())).toEqual([
+      'Directivas', 'Documentos de gestión institucional · POI', 'Documentos de gestión institucional · Estatuto', 'Reglamentos',
+    ]);
+  });
+
+  it('offers the types that are in the list with how many there are, and filters by the one chosen', async () => {
+    service.list.and.returnValue(of(ok(plans)));
+    await create();
+
+    expect(typeLabels()).toEqual(['Todos (4)', 'Directivas (1)', 'Documentos de gestión institucional (2)', 'Reglamentos (1)']);
+
+    fixture.componentInstance.changeType('reglamentos');
+    fixture.detectChanges();
+    expect(rows().length).toBe(1);
+    expect(rows()[0].textContent).toContain('Reglamento de prácticas');
+
+    fixture.componentInstance.changeType(null);
+    fixture.detectChanges();
+    expect(rows().length).toBe(4);
+  });
+
+  it('offers the subtypes only inside documents de gestión institucional, and filters by them', async () => {
+    service.list.and.returnValue(of(ok(plans)));
+    await create();
+    expect(html().querySelector('[data-testid="subtype-filters"]')).toBeNull();
+
+    fixture.componentInstance.changeType('gestion_institucional');
+    fixture.detectChanges();
+    expect(Array.from(html().querySelectorAll('[data-testid="subtype-filter"] .p-togglebutton')).map(button => button.textContent?.trim())).toEqual(['Todos los subtipos', 'POI (1)', 'Estatuto (1)']);
+
+    fixture.componentInstance.subtypeFilter.set('poi');
+    fixture.detectChanges();
+    expect(rows().length).toBe(1);
+    expect(rows()[0].textContent).toContain('Plan operativo anual');
+
+    fixture.componentInstance.changeType('reglamentos');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.subtypeFilter()).toBeNull();
+  });
+
+  it('does not offer a type filter when everything is of the same type', async () => {
+    await create();
+
+    expect(html().querySelector('[data-testid="type-filters"]')).toBeNull();
   });
 });

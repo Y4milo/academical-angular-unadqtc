@@ -22,6 +22,7 @@ import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
 import { MAX_PDF_BYTES } from '../directive-form/directive-form.component';
 import { PageCount, countPdfPages, pagesLabel, pagesTag } from '../pdf-pages';
+import { documentTypeColor, documentTypeText } from '../document-type';
 import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_SIGNED_FAILURES, DIRECTIVE_STATUS, formatBytes } from '../directive-status';
 
 /** Un PDF elegido para reemplazar a otro del borrador, con sus páginas contadas en el navegador. */
@@ -81,6 +82,8 @@ export class DirectiveDetailComponent implements OnInit {
   readonly formatBytes = formatBytes;
   readonly pagesTag = pagesTag;
   readonly pagesLabel = pagesLabel;
+  readonly documentTypeColor = documentTypeColor;
+  readonly documentTypeText = documentTypeText;
   readonly isDraft = computed(() => this.directive()?.status === 'draft');
   readonly canSend = computed(() => this.isDraft() && this.route()?.can_send === true);
   readonly sendBlockedReason = computed(() => {
@@ -175,9 +178,13 @@ export class DirectiveDetailComponent implements OnInit {
   });
 
   eventLabel(event: DirectiveEvent): string {
-    const data = event.data as { notice?: string; reason?: string; directive_replaced?: boolean; resolution_replaced?: boolean };
-    if (event.type === 'edited' && (data.directive_replaced || data.resolution_replaced)) {
-      return data.directive_replaced && data.resolution_replaced ? 'Reemplazó la directiva y la resolución' : `Reemplazó ${data.directive_replaced ? 'la directiva' : 'la resolución'}`;
+    const data = event.data as { notice?: string; reason?: string; directive_replaced?: boolean; resolution_replaced?: boolean; changes?: Record<string, unknown> };
+    if (event.type === 'edited') {
+      const files = data.directive_replaced || data.resolution_replaced;
+      const fields = Object.keys(data.changes ?? {}).length > 0;
+      if (files && fields) return 'Corrigió el borrador';
+      if (files) return data.directive_replaced && data.resolution_replaced ? 'Reemplazó el documento y la resolución' : `Reemplazó ${data.directive_replaced ? 'el documento' : 'la resolución'}`;
+      if (fields) return 'Corrigió los datos';
     }
     if (event.type === 'notice_sent') return `Aviso enviado: ${DIRECTIVE_NOTICE_LABELS[data.notice ?? ''] ?? 'aviso'}`;
     if (event.type === 'signed_copy_failed') return `No se pudo traer el documento firmado: ${DIRECTIVE_SIGNED_FAILURES[data.reason ?? ''] ?? 'error desconocido'}`;
@@ -188,7 +195,7 @@ export class DirectiveDetailComponent implements OnInit {
 
   /** Los avisos los envía Academical; los demás hechos los cuenta el firmador o una persona. */
   eventAuthor(event: DirectiveEvent): string {
-    if (event.by?.nick) return event.by.nick;
+    if (event.by) return [event.by.name ?? 'Usuario de Academical', event.by.office].filter(Boolean).join(' · ');
 
     return event.type.startsWith('notice_') || event.type.startsWith('signed_copy_') ? 'Academical' : 'Firmador';
   }
@@ -196,11 +203,6 @@ export class DirectiveDetailComponent implements OnInit {
   /** Lo que el hecho cuenta además: la oficina, la persona y, si la devolvió, su motivo. */
   eventDetail(event: DirectiveEvent): string {
     const data = event.data as { office?: string; person?: string; reason?: string; notice?: string; signatures?: number; directive_before?: string | null; directive_after?: string | null; resolution_before?: string | null; resolution_after?: string | null };
-    if (event.type === 'edited') {
-      const change = (before?: string | null, after?: string | null) => (before && after ? `${before} → ${after}` : '');
-
-      return [change(data.directive_before, data.directive_after), change(data.resolution_before, data.resolution_after)].filter(Boolean).join(' · ');
-    }
     if (event.type === 'signed_copy_saved') return data.signatures ? `${data.signatures} firmas` : '';
     if (event.type === 'signed_copy_failed') return 'se vuelve a intentar al pulsar «Descargar firmada»';
     if (event.type.startsWith('notice_')) {
@@ -211,6 +213,24 @@ export class DirectiveDetailComponent implements OnInit {
     }
 
     return [data.office, data.person, data.reason].filter(Boolean).join(' · ');
+  }
+
+  /**
+   * Lo que cambió en un borrador, para mostrarlo como «antes → ahora»: los datos que se corrigieron y los PDF que se reemplazaron.
+   */
+  eventChanges(event: DirectiveEvent): { label: string; before: string; after: string }[] {
+    if (event.type !== 'edited') return [];
+    const data = event.data as {
+      changes?: Record<string, { before: unknown; after: unknown }>;
+      directive_before?: string | null; directive_after?: string | null; resolution_before?: string | null; resolution_after?: string | null;
+    };
+    const labels: Record<string, string> = { title: 'Título', is_quality: 'Proceso de calidad', document_type: 'Tipo de documento', document_subtype: 'Subtipo' };
+    const show = (value: unknown): string => (value === null || value === undefined || value === '' ? '—' : typeof value === 'boolean' ? (value ? 'Sí' : 'No') : String(value));
+    const rows = Object.entries(data.changes ?? {}).map(([field, change]) => ({ label: labels[field] ?? field, before: show(change.before), after: show(change.after) }));
+    if (data.directive_before && data.directive_after) rows.push({ label: 'Documento', before: data.directive_before, after: data.directive_after });
+    if (data.resolution_before && data.resolution_after) rows.push({ label: 'Resolución', before: data.resolution_before, after: data.resolution_after });
+
+    return rows;
   }
 
   openFile(kind: DirectiveFileKind, version?: number): void {

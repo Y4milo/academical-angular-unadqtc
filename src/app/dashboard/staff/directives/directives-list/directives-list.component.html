@@ -1,11 +1,11 @@
 <div class="directives">
   <div class="page-heading">
     <div>
-      <h2>Directivas</h2>
-      <p>Cada directiva pasa por la firma de las oficinas que Core tiene designadas, en orden.</p>
+      <h2>Documentos de gestión</h2>
+      <p>Cada documento pasa por la firma de las oficinas que Core tiene designadas, en orden.</p>
     </div>
     @if (canRequest() && section() === 'mine' && directives().length > 0) {
-      <p-button label="Nueva directiva" icon="pi pi-plus" data-testid="new-directive" (onClick)="create()"></p-button>
+      <p-button label="Nuevo documento" icon="pi pi-plus" data-testid="new-directive" (onClick)="create()"></p-button>
     }
   </div>
 
@@ -13,19 +13,35 @@
     <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
     <div><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button></div>
   } @else if (!loading() && !canRequest() && !canSign()) {
-    <p-message severity="info" data-testid="no-request-access">Core no te autoriza a pedir ni a firmar directivas.</p-message>
+    <p-message severity="info" data-testid="no-request-access">Core no te autoriza a pedir ni a firmar documentos.</p-message>
   } @else {
     @if (sectionOptions().length > 1) {
-      <div class="filters" role="group" aria-label="Qué directivas ver">
-        <p-selectbutton [options]="sectionOptions()" optionLabel="label" optionValue="value" [ngModel]="section()" (ngModelChange)="section.set($event ?? 'mine')" [allowEmpty]="false" size="small" data-testid="section-switch"></p-selectbutton>
+      <div class="filters" role="group" aria-label="Qué documentos ver">
+        <p-selectbutton [options]="sectionOptions()" optionLabel="label" optionValue="value" [ngModel]="section()" (ngModelChange)="changeSection($event)" [allowEmpty]="false" size="small" data-testid="section-switch"></p-selectbutton>
       </div>
     }
 
+    @if (typeOptions().length > 0) {
+      <div class="filters type-filters" role="group" aria-label="Filtrar por tipo de documento" data-testid="type-filters">
+        <p-selectbutton styleClass="type-options" [options]="typeOptions()" optionLabel="label" optionValue="value" [ngModel]="typeFilter()" (ngModelChange)="changeType($event)" [allowEmpty]="false" size="small" data-testid="type-filter">
+          <ng-template #item let-item>
+            <span class="type-dot" [style.background]="item.code ? documentTypeColor(item.code) : 'var(--p-surface-400)'" aria-hidden="true"></span>{{ item.label }}
+          </ng-template>
+        </p-selectbutton>
+      </div>
+      @if (subtypeOptions().length > 0) {
+        <div class="filters type-filters" role="group" aria-label="Filtrar por subtipo" data-testid="subtype-filters">
+          <p-selectbutton styleClass="type-options" [options]="subtypeOptions()" optionLabel="label" optionValue="value" [ngModel]="subtypeFilter()" (ngModelChange)="subtypeFilter.set($event ?? null)" [allowEmpty]="false" size="small" data-testid="subtype-filter"></p-selectbutton>
+        </div>
+      }
+    }
+
     @if (section() === 'route') {
-      <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="participating()" [tableStyle]="{ 'min-width': '44rem' }">
+      <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="participatingRows()" [tableStyle]="{ 'min-width': '44rem' }">
         <ng-template #header>
           <tr>
-            <th>Directiva</th>
+            <th>Documento</th>
+            <th>Tipo</th>
             <th>Oficina de origen</th>
             <th>Estado</th>
             <th>Actualizada</th>
@@ -40,6 +56,7 @@
                 <span class="muted">Versión {{ directive.version }}{{ directive.is_quality ? ' · Proceso de calidad' : '' }}</span>
               </div>
             </td>
+            <td><span class="type-cell" data-testid="route-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span></td>
             <td>{{ directive.origin.name }}</td>
             <td><p-tag [value]="statusOf(directive.status).label" [severity]="statusOf(directive.status).severity"></p-tag></td>
             <td>{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
@@ -48,10 +65,11 @@
         </ng-template>
       </p-table>
     } @else if (section() === 'pending' && canSign()) {
-      <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="pending()" [tableStyle]="{ 'min-width': '44rem' }">
+      <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="pendingRows()" [tableStyle]="{ 'min-width': '44rem' }">
         <ng-template #header>
           <tr>
-            <th>Directiva</th>
+            <th>Documento</th>
+            <th>Tipo</th>
             <th>Oficina de origen</th>
             <th>Tu turno</th>
             <th>Actualizada</th>
@@ -66,6 +84,7 @@
                 <span class="muted">Versión {{ directive.version }}{{ directive.is_quality ? ' · Proceso de calidad' : '' }}</span>
               </div>
             </td>
+            <td><span class="type-cell" data-testid="pending-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span></td>
             <td>{{ directive.origin.name }}</td>
             <td>
               <div class="cell-stack">
@@ -79,11 +98,11 @@
         </ng-template>
         <ng-template #emptymessage>
           <tr>
-            <td colspan="5">
+            <td colspan="6">
               <div class="empty" data-testid="pending-empty">
                 <i class="pi pi-check-circle empty__icon" aria-hidden="true"></i>
                 <h3>No tienes firmas pendientes</h3>
-                <p>Cuando una directiva llegue a tu oficina, aparecerá aquí.</p>
+                <p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p>
               </div>
             </td>
           </tr>
@@ -97,7 +116,8 @@
     <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="rows()" [tableStyle]="{ 'min-width': '44rem' }" [attr.aria-busy]="loading()">
       <ng-template #header>
         <tr>
-          <th>Directiva</th>
+          <th>Documento</th>
+          <th>Tipo</th>
           <th>Oficina de origen</th>
           <th>Estado</th>
           <th>Actualizada</th>
@@ -108,6 +128,7 @@
         @if (loading()) {
           <tr aria-hidden="true">
             <td><p-skeleton width="16rem" height="1rem"></p-skeleton></td>
+            <td><p-skeleton width="8rem" height="1rem"></p-skeleton></td>
             <td><p-skeleton width="10rem" height="1rem"></p-skeleton></td>
             <td><p-skeleton width="5rem" height="1.25rem"></p-skeleton></td>
             <td><p-skeleton width="6rem" height="1rem"></p-skeleton></td>
@@ -123,6 +144,7 @@
                 </span>
               </div>
             </td>
+            <td><span class="type-cell" data-testid="directive-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span></td>
             <td>{{ directive.origin.name }}</td>
             <td><p-tag [value]="statusOf(directive.status).label" [severity]="statusOf(directive.status).severity" data-testid="directive-status"></p-tag></td>
             <td>{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
@@ -132,16 +154,16 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="5">
+          <td colspan="6">
             <div class="empty" data-testid="directives-empty">
               <i class="pi pi-file-edit empty__icon" aria-hidden="true"></i>
               @if (filter() === 'all') {
-                <h3>Sube tu primera directiva</h3>
-                <p>Con la directiva y la resolución que la aprueba, Academical arma la ruta de firmas con las personas que Core tiene designadas.</p>
-                <p-button label="Nueva directiva" icon="pi pi-plus" (onClick)="create()"></p-button>
+                <h3>Sube tu primer documento</h3>
+                <p>Con el documento y la resolución que lo aprueba, Academical arma la ruta de firmas con las personas que Core tiene designadas.</p>
+                <p-button label="Nuevo documento" icon="pi pi-plus" (onClick)="create()"></p-button>
               } @else {
-                <h3>Ninguna directiva en este estado</h3>
-                <p>Cambia el filtro para ver las demás.</p>
+                <h3>Ningún documento en este estado</h3>
+                <p>Cambia el filtro para ver los demás.</p>
               }
             </div>
           </td>
