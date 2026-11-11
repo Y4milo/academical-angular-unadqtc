@@ -154,7 +154,7 @@ describe('DirectiveDetailComponent', () => {
 
     fixture.componentInstance.edit();
 
-    expect(navigate).toHaveBeenCalledWith('directivas/7/editar');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/7/editar');
   });
 
   it('asks before deleting the draft and goes back to the list after', async () => {
@@ -168,7 +168,7 @@ describe('DirectiveDetailComponent', () => {
 
     expect(confirm).toHaveBeenCalled();
     expect(service.remove).toHaveBeenCalledWith(7);
-    expect(navigate).toHaveBeenCalledWith('directivas');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion');
   });
 
   it('does not ask Core for the route of a directive that is already in signature', async () => {
@@ -217,7 +217,7 @@ describe('DirectiveDetailComponent', () => {
     expect(steps[1]).toContain('Le toca');
     expect(steps[2]).toContain('Espera su turno');
     (html().querySelector('[data-testid="sign-directive"] button') as HTMLButtonElement).click();
-    expect(navigate).toHaveBeenCalledWith('directivas/7/firmar');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/7/firmar');
   });
 
   it('offers no signing to someone whose turn it is not', async () => {
@@ -258,7 +258,7 @@ describe('DirectiveDetailComponent', () => {
 
       const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
       (html().querySelector('[data-testid="resubmit-directive"] button') as HTMLButtonElement).click();
-      expect(navigate).toHaveBeenCalledWith('directivas/7/corregir');
+      expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/7/corregir');
     });
 
     it('marks what was signed as the previous version and who has no turn', async () => {

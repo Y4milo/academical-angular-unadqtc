@@ -218,7 +218,7 @@ describe('DirectiveFormComponent', () => {
     expect(body.get('is_quality')).toBe('1');
     expect((body.get('directive') as File).name).toBe('directiva.pdf');
     expect((body.get('resolution') as File).name).toBe('resolucion.pdf');
-    expect(navigate).toHaveBeenCalledWith('directivas/12');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/12');
   });
 
   it('shows what the server answers when it refuses the files', async () => {
@@ -260,7 +260,7 @@ describe('DirectiveFormComponent', () => {
     expect(body.get('title')).toBe('Directiva corregida de bienes');
     expect(body.has('origin')).toBeFalse();
     expect(body.has('directive')).toBeFalse();
-    expect(navigate).toHaveBeenCalledWith('directivas/7');
+    expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/7');
   });
 
   it('does not let correct a directive that is no longer a draft, nor request without Core', async () => {

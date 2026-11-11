@@ -273,8 +273,13 @@ export const routes: Routes = [
           },
         ]
       },
+      // Las direcciones de antes (`directivas/...`, de los correos y favoritos ya enviados) llevan a las de los documentos de gestión.
+      {path: PATHS.directives.legacyPath, pathMatch: 'full', redirectTo: PATHS.directives.path},
+      {path: `${PATHS.directives.legacyPath}/configuracion`, pathMatch: 'full', redirectTo: PATHS.directives.settingsPath},
+      {path: `${PATHS.directives.legacyPath}/:id`, pathMatch: 'full', redirectTo: `${PATHS.directives.path}/:id`},
+      {path: `${PATHS.directives.legacyPath}/:id/:action`, pathMatch: 'full', redirectTo: `${PATHS.directives.path}/:id/:action`},
       {
-        // Directivas con firma digital: las ve quien Core autoriza (el menú y el API lo deciden); cualquier rol del personal puede entrar.
+        // Documentos de gestión con firma digital: los ve quien Core autoriza (el menú y el API lo deciden); cualquier rol del personal puede entrar.
         path: PATHS.directives.path,
         canActivate: [AuthRoleGuard],
         data: {roles: [ROLE.admin, ROLE.administrative, ROLE.professor, ROLE.accounting, ROLE.academic, ROLE.degrees_titles, ROLE.hr, ROLE.dbu_admin, ROLE.dbu]},
@@ -289,7 +294,7 @@ export const routes: Routes = [
           },
           {
             // Qué ve cada oficina de la ruta: solo el administrador del sistema (el API también lo exige).
-            path: 'configuracion',
+            path: 'visibilidad',
             canActivate: [AuthRoleGuard],
             data: {roles: [ROLE.admin], permissions: ['directives.settings']},
             loadComponent: () => import('./dashboard/staff/directives/directive-settings/directive-settings.component').then(m => m.DirectiveSettingsComponent)
