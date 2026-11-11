@@ -8,7 +8,7 @@
   @if (route(); as current) {
   @if (!current.can_send) {
     <p-message severity="warn" data-testid="route-blocked">
-      Core no tiene a nadie designado en {{ current.issues.length === 1 ? 'una oficina' : current.issues.length + ' oficinas' }} de la ruta. La directiva no se puede enviar hasta que OTI designe a quien firma.
+      Core no tiene a nadie designado en {{ current.issues.length === 1 ? 'una oficina' : current.issues.length + ' oficinas' }} de la ruta. El documento no se puede enviar hasta que OTI designe a quien firma.
     </p-message>
   }
   <p-timeline [value]="visibleSteps()" align="left" styleClass="route-timeline">
@@ -20,7 +20,7 @@
         <div class="route-step__main">
           <strong>{{ step.label }}</strong>
           @if (step.skipped) {
-            <span class="muted">No firma: la directiva no es de un proceso de calidad.</span>
+            <span class="muted">No firma: el documento no es de un proceso de calidad.</span>
           } @else {
             @if (step.holder; as holder) {
               <span data-testid="route-holder">{{ holder.full_name }}</span>

@@ -4,9 +4,9 @@ import { DirectiveStatus, ProgressState } from '../../../services/directives.ser
 export const DIRECTIVE_STATUS: Record<DirectiveStatus, { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }> = {
   draft: { label: 'Borrador', severity: 'secondary' },
   in_signature: { label: 'En firma', severity: 'info' },
-  returned: { label: 'Devuelta', severity: 'warn' },
-  signed: { label: 'Firmada', severity: 'success' },
-  cancelled: { label: 'Anulada', severity: 'secondary' },
+  returned: { label: 'Devuelto', severity: 'warn' },
+  signed: { label: 'Firmado', severity: 'success' },
+  cancelled: { label: 'Anulado', severity: 'secondary' },
 };
 
 /** El estado de cada oficina en la ruta ya enviada. */
@@ -34,16 +34,16 @@ export const DIRECTIVE_PROGRESS_RETURNED: Partial<Record<ProgressState, { label:
 export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
   created: 'Creó el borrador',
   edited: 'Corrigió el borrador',
-  sent: 'Envió la directiva a firma',
+  sent: 'Envió el documento a firma',
   signed: 'Firmó',
-  rejected: 'Devolvió la directiva con observaciones',
-  resubmitted: 'Corrigió y reenvió la directiva a firma',
+  rejected: 'Devolvió el documento con observaciones',
+  resubmitted: 'Corrigió y reenvió el documento a firma',
   notice_sent: 'Aviso enviado',
   notice_failed: 'No se pudo avisar',
   signed_copy_saved: 'Se guardó la copia del documento firmado',
   signed_copy_failed: 'No se pudo traer el documento firmado',
-  cancelled: 'Se anuló la directiva',
-  expired: 'La directiva venció sin completar las firmas',
+  cancelled: 'Se anuló el documento',
+  expired: 'El documento venció sin completar las firmas',
   step_activated: 'Le tocó firmar',
   completed: 'Todas las oficinas firmaron',
   signature_invalid: 'Una firma no pasó la validación',
@@ -57,10 +57,10 @@ export const DIRECTIVE_EVENT_LABELS: Record<string, string> = {
 /** Qué dice cada aviso por correo, con el nombre que se le da en la línea de tiempo. */
 export const DIRECTIVE_NOTICE_LABELS: Record<string, string> = {
   turn: 'te toca firmar',
-  returned: 'la directiva fue devuelta',
+  returned: 'el documento fue devuelto',
   void: 'tu firma quedó sin efecto',
   completed: 'firmaron todas las oficinas',
-  cancelled: 'la directiva fue anulada',
+  cancelled: 'el documento fue anulado',
 };
 
 /** Por qué no salió un aviso. */
@@ -75,7 +75,7 @@ export const DIRECTIVE_SIGNED_FAILURES: Record<string, string> = {
   signer_error: 'el firmador devolvió un error',
   not_pdf: 'lo recibido no es un PDF',
   hash_mismatch: 'la huella no coincide con la que declara el firmador',
-  no_document: 'la directiva no tiene el documento registrado en el firmador',
+  no_document: 'el documento no tiene su archivo registrado en el firmador',
 };
 
 export function formatBytes(size: number): string {

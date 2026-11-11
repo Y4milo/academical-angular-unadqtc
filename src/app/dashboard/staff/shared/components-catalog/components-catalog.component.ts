@@ -230,7 +230,7 @@ export class ComponentsCatalogComponent implements OnInit {
   pinned = false;
 
   readonly timelineEvents = [
-    { status: 'Directiva creada', date: '02/11/2026 09:10', severity: 'info' },
+    { status: 'Documento creado', date: '02/11/2026 09:10', severity: 'info' },
     { status: 'Enviada a firma', date: '02/11/2026 09:40', severity: 'warn' },
     { status: 'Firmada', date: '03/11/2026 11:05', severity: 'success' },
   ];
@@ -243,9 +243,9 @@ export class ComponentsCatalogComponent implements OnInit {
   readonly rowMenu: MenuItem[] = [{ label: 'Ver detalle', icon: 'pi pi-eye' }, { label: 'Descargar', icon: 'pi pi-download' }];
   readonly panelItems: MenuItem[] = [
     { label: 'Bienestar', items: [{ label: 'Cola de citas' }, { label: 'Configuración de citas' }] },
-    { label: 'Directivas', items: [{ label: 'Directivas' }] },
+    { label: 'Documentos de gestión', items: [{ label: 'Documentos de gestión' }] },
   ];
-  readonly pagedRows = Array.from({ length: 12 }, (_, index) => ({ code: `D-${100 + index}`, title: `Directiva de ejemplo ${index + 1}`, state: index % 3 === 0 ? 'Firmada' : 'En firma' }));
+  readonly pagedRows = Array.from({ length: 12 }, (_, index) => ({ code: `D-${100 + index}`, title: `Documento de ejemplo ${index + 1}`, state: index % 3 === 0 ? 'Firmada' : 'En firma' }));
   progress = 65;
   dialogOpen = false;
   drawerOpen = false;
@@ -266,11 +266,11 @@ export class ComponentsCatalogComponent implements OnInit {
   constructor(private readonly confirmation: ConfirmationService, private readonly messages: MessageService) {}
 
   confirmPopup(event: Event): void {
-    this.confirmation.confirm({ target: event.target as EventTarget, message: '¿Anular esta directiva?', acceptLabel: 'Anular', rejectLabel: 'Volver', key: 'popup' });
+    this.confirmation.confirm({ target: event.target as EventTarget, message: '¿Anular este documento?', acceptLabel: 'Anular', rejectLabel: 'Volver', key: 'popup' });
   }
 
   confirmDialog(): void {
-    this.confirmation.confirm({ header: 'Anular directiva', message: 'La directiva dejará de circular y no se podrá reactivar.', acceptLabel: 'Anular', rejectLabel: 'Volver', key: 'dialog' });
+    this.confirmation.confirm({ header: 'Anular documento', message: 'El documento dejará de circular y no se podrá reactivar.', acceptLabel: 'Anular', rejectLabel: 'Volver', key: 'dialog' });
   }
 
   showToast(): void {

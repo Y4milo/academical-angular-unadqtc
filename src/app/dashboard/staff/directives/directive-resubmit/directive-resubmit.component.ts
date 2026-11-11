@@ -52,8 +52,8 @@ export class DirectiveResubmitComponent implements OnInit {
   readonly nextVersion = computed(() => (this.directive()?.version ?? 1) + 1);
   readonly errors = computed<Record<string, string>>(() => {
     const errors: Record<string, string> = {};
-    if (this.title().trim().length < 5) errors['title'] = 'Escribe el título de la directiva (mínimo 5 letras).';
-    if (!this.directiveFile()) errors['directive'] = 'Sube la directiva corregida en PDF.';
+    if (this.title().trim().length < 5) errors['title'] = 'Escribe el título del documento (mínimo 5 letras).';
+    if (!this.directiveFile()) errors['directive'] = 'Sube el documento corregido en PDF.';
     if (this.fileError().directive) errors['directive'] = this.fileError().directive;
     if (this.fileError().resolution) errors['resolution'] = this.fileError().resolution;
 
@@ -84,7 +84,7 @@ export class DirectiveResubmitComponent implements OnInit {
       next: response => {
         this.loading.set(false);
         if (response.status !== STATUS.success || !response.payload.data.can_resubmit) {
-          this.loadError.set('Esta directiva no se puede corregir: ya no está devuelta o no es de tu oficina.');
+          this.loadError.set('Este documento no se puede corregir: ya no está devuelto o no es de tu oficina.');
 
           return;
         }
@@ -96,7 +96,7 @@ export class DirectiveResubmitComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.loadError.set('No se pudo consultar la directiva. Inténtalo nuevamente.');
+        this.loadError.set('No se pudo consultar el documento. Inténtalo nuevamente.');
       },
     });
   }
@@ -126,7 +126,7 @@ export class DirectiveResubmitComponent implements OnInit {
   }
 
   pick(kind: 'directive' | 'resolution', file: File | null): void {
-    const label = kind === 'directive' ? 'La directiva' : 'La resolución';
+    const label = kind === 'directive' ? 'El documento' : 'La resolución';
     let problem = '';
 
     if (file && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
@@ -162,13 +162,13 @@ export class DirectiveResubmitComponent implements OnInit {
           this.notificationService.notifyApiData(response);
           this.router.navigateByUrl(`${PATHS.directives.link}/${this.id}`);
         } else {
-          this.serverError.set(response.payload?.message || 'No se pudo reenviar la directiva.');
+          this.serverError.set(response.payload?.message || 'No se pudo reenviar el documento.');
         }
       },
       error: error => {
         this.sending.set(false);
         const firstValidation = error?.error?.errors ? (Object.values(error.error.errors) as string[][])[0]?.[0] : null;
-        this.serverError.set(error?.error?.payload?.message || firstValidation || 'No se pudo reenviar la directiva. Inténtalo nuevamente.');
+        this.serverError.set(error?.error?.payload?.message || firstValidation || 'No se pudo reenviar el documento. Inténtalo nuevamente.');
       },
     });
   }

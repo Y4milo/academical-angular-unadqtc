@@ -96,7 +96,7 @@ describe('DirectiveSettingsComponent', () => {
     await create();
 
     expect(html().querySelectorAll('[data-testid^="notice-"]').length).toBe(5);
-    expect(text('notice-notify_cancelled')).toContain('Directiva anulada');
+    expect(text('notice-notify_cancelled')).toContain('Documento anulado');
     expect(text('notice-notify_void')).toContain('Firma sin efecto');
     expect(fixture.componentInstance.dirty()).toBeFalse();
 

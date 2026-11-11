@@ -285,7 +285,7 @@
           <p-button icon="pi pi-download" [rounded]="true" [text]="true" aria-label="Descargar" pTooltip="Descargar el PDF firmado"></p-button>
         </div>
         <p-popover #helpRef><span>Ayuda breve junto al botón que la abre.</span></p-popover>
-        <p-dialog header="Nueva directiva" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: 'min(30rem, 92vw)' }" appendTo="body">
+        <p-dialog header="Nuevo documento" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: 'min(30rem, 92vw)' }" appendTo="body">
           <span>El diálogo bloquea la pantalla; su botón principal va a la derecha del pie.</span>
           <ng-template #footer><p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="dialogOpen = false"></p-button><p-button label="Guardar" (onClick)="dialogOpen = false"></p-button></ng-template>
         </p-dialog>
@@ -303,7 +303,7 @@
 
         <h3>Mensajes en pantalla</h3>
         <div class="catalog__stack">
-          <p-message severity="success" text="La directiva quedó firmada."></p-message>
+          <p-message severity="success" text="El documento quedó firmado."></p-message>
           <p-message severity="info" text="Los cambios aplican hacia adelante."></p-message>
           <p-message severity="warn" text="2027 no tiene fechas cargadas."></p-message>
           <p-message severity="error" text="No se pudo cargar la configuración."></p-message>

@@ -150,7 +150,7 @@ export class DirectiveFormComponent implements OnInit {
     this.service.access().subscribe({
       next: response => {
         if (response.status !== STATUS.success || !response.payload.data.can_request) {
-          this.fail('Core no te autoriza a pedir directivas.');
+          this.fail('Core no te autoriza a pedir documentos.');
 
           return;
         }
@@ -170,7 +170,7 @@ export class DirectiveFormComponent implements OnInit {
           next: detail => {
             this.loading.set(false);
             if (detail.status !== STATUS.success || !detail.payload.data.can_edit) {
-              this.fail('Esta directiva ya no se puede corregir.');
+              this.fail('Este documento ya no se puede corregir.');
 
               return;
             }
@@ -182,7 +182,7 @@ export class DirectiveFormComponent implements OnInit {
             this.quality.set(directive.is_quality);
             this.origin.set(directive.origin.code);
           },
-          error: () => this.fail('No se pudo consultar la directiva.'),
+          error: () => this.fail('No se pudo consultar el documento.'),
         });
       },
       error: () => this.fail('No se pudo consultar a Core. Inténtalo nuevamente.'),
@@ -306,14 +306,14 @@ export class DirectiveFormComponent implements OnInit {
           this.notificationService.notifyApiData(response);
           this.router.navigateByUrl(`${PATHS.directives.link}/${response.payload.data.id}`);
         } else {
-          this.serverError.set(response.payload?.message || 'No se pudo guardar la directiva.');
+          this.serverError.set(response.payload?.message || 'No se pudo guardar el documento.');
         }
       },
       error: error => {
         this.saving.set(false);
         const payload = error?.error?.payload;
         const firstValidation = error?.error?.errors ? (Object.values(error.error.errors) as string[][])[0]?.[0] : null;
-        this.serverError.set(payload?.message || firstValidation || 'No se pudo guardar la directiva. Inténtalo nuevamente.');
+        this.serverError.set(payload?.message || firstValidation || 'No se pudo guardar el documento. Inténtalo nuevamente.');
       },
     });
   }

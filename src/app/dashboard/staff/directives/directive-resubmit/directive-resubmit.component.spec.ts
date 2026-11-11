@@ -78,7 +78,7 @@ describe('DirectiveResubmitComponent', () => {
     fixture.detectChanges();
 
     expect(service.resubmit).not.toHaveBeenCalled();
-    expect(text('error-directive')).toContain('Sube la directiva corregida');
+    expect(text('error-directive')).toContain('Sube el documento corregido');
   });
 
   it('rejects what is not a PDF and what is too big', async () => {

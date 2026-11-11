@@ -65,7 +65,7 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
   readonly canReject = computed(() => this.rejectReason().trim().length >= REASON_MIN && this.rejectAck() && !this.rejectSending());
 
   readonly kindOptions: { label: string; value: DirectiveFileKind }[] = [
-    { label: 'Directiva', value: 'directive' },
+    { label: 'Documento', value: 'directive' },
     { label: 'Resolución', value: 'resolution' },
   ];
   readonly environment = signal<{ browser: string; recommended: boolean; windows: boolean }>({ browser: '', recommended: true, windows: true });
@@ -117,7 +117,7 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
       next: response => {
         this.loading.set(false);
         if (response.status !== STATUS.success) {
-          this.loadError.set(response.payload?.message || 'No se pudo consultar la directiva.');
+          this.loadError.set(response.payload?.message || 'No se pudo consultar el documento.');
 
           return;
         }
@@ -126,7 +126,7 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
       },
       error: error => {
         this.loading.set(false);
-        this.loadError.set(error?.status === 404 ? 'No encontramos esa directiva, o no te corresponde.' : 'No se pudo consultar la directiva. Inténtalo nuevamente.');
+        this.loadError.set(error?.status === 404 ? 'No encontramos ese documento, o no te corresponde.' : 'No se pudo consultar el documento. Inténtalo nuevamente.');
       },
     });
   }
@@ -199,12 +199,12 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
           this.rejectedDone.set(true);
           this.directive.update(current => (current ? { ...current, can_sign: false, can_reject: false, status: 'returned' } : current));
         } else {
-          this.rejectError.set(response.payload?.message || 'No se pudo rechazar la directiva.');
+          this.rejectError.set(response.payload?.message || 'No se pudo rechazar el documento.');
         }
       },
       error: error => {
         this.rejectSending.set(false);
-        this.rejectError.set(error?.error?.payload?.message || error?.error?.message || 'No se pudo rechazar la directiva. Inténtalo nuevamente.');
+        this.rejectError.set(error?.error?.payload?.message || error?.error?.message || 'No se pudo rechazar el documento. Inténtalo nuevamente.');
       },
     });
   }

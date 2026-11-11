@@ -1,7 +1,7 @@
 <div class="directive-resubmit">
   @if (loadError()) {
     <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
-    <div><p-button label="Volver a la directiva" severity="secondary" [outlined]="true" size="small" (onClick)="cancel()"></p-button></div>
+    <div><p-button label="Volver al documento" severity="secondary" [outlined]="true" size="small" (onClick)="cancel()"></p-button></div>
   } @else if (loading()) {
     <div class="form-skeleton" aria-busy="true" data-testid="resubmit-skeleton">
       <p-skeleton height="3rem"></p-skeleton>
@@ -11,7 +11,7 @@
    @if (directive(); as current) {
     <div class="page-heading">
       <div>
-        <p class="caption">Directiva · {{ current.origin.name }}</p>
+        <p class="caption">Documento de gestión · {{ current.origin.name }}</p>
         <h2>Corregir y reenviar</h2>
         <p>Vas a crear la <strong>versión {{ nextVersion() }}</strong>. La ruta empieza de cero y todas las oficinas vuelven a firmar.</p>
       </div>
@@ -36,7 +36,7 @@
         <section class="panel" aria-labelledby="data-title">
           <h3 id="data-title">Datos</h3>
           <div class="field">
-            <label for="resubmit-title">Título de la directiva *</label>
+            <label for="resubmit-title">Título del documento *</label>
             <input pInputText id="resubmit-title" type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" [attr.aria-invalid]="submitted() && !!errors()['title']" />
             @if (submitted() && errors()['title']; as message) { <small class="field-error" role="alert" data-testid="error-title">{{ message }}</small> }
           </div>
@@ -50,7 +50,7 @@
         <section class="panel" aria-labelledby="files-title">
           <h3 id="files-title">Documentos de la versión {{ nextVersion() }}</h3>
           <div class="field">
-            <span class="label" id="resubmit-directive-label">Directiva corregida (PDF) *</span>
+            <span class="label" id="resubmit-directive-label">Documento de gestión corregido (PDF) *</span>
             <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true}" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             @if (directiveFile(); as file) { <small class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</small> }
             <small class="field-hint">Sin firmar: la firman las oficinas desde Academical.</small>

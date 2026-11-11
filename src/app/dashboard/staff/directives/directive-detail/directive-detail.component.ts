@@ -122,7 +122,7 @@ export class DirectiveDetailComponent implements OnInit {
       next: response => {
         this.loading.set(false);
         if (response.status !== STATUS.success) {
-          this.loadError.set(response.payload?.message || 'No se pudo consultar la directiva.');
+          this.loadError.set(response.payload?.message || 'No se pudo consultar el documento.');
 
           return;
         }
@@ -132,7 +132,7 @@ export class DirectiveDetailComponent implements OnInit {
       },
       error: error => {
         this.loading.set(false);
-        this.loadError.set(error?.status === 404 ? 'No encontramos esa directiva, o no es de tu oficina.' : 'No se pudo consultar la directiva. Inténtalo nuevamente.');
+        this.loadError.set(error?.status === 404 ? 'No encontramos ese documento, o no es de tu oficina.' : 'No se pudo consultar el documento. Inténtalo nuevamente.');
       },
     });
   }
@@ -171,11 +171,11 @@ export class DirectiveDetailComponent implements OnInit {
   readonly viewerNote = computed(() => {
     switch (this.directive()?.viewer) {
       case 'signed':
-        return 'Tu oficina ya firmó esta directiva. La ves en modo consulta: solo puedes leerla.';
+        return 'Tu oficina ya firmó este documento. La ves en modo consulta: solo puedes leerla.';
       case 'rejecter':
-        return 'Tú devolviste esta directiva. La ves en modo consulta.';
+        return 'Tú devolviste este documento. La ves en modo consulta.';
       case 'pending':
-        return 'Esta directiva pasará por tu oficina. La ves en modo consulta hasta que te toque firmar.';
+        return 'Este documento pasará por tu oficina. La ves en modo consulta hasta que te toque firmar.';
       default:
         return '';
     }
@@ -224,7 +224,7 @@ export class DirectiveDetailComponent implements OnInit {
         const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
         const link = document.createElement('a');
         link.href = url;
-        link.download = directive.signed?.name || 'directiva_firmada.pdf';
+        link.download = directive.signed?.name || 'documento_firmado.pdf';
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
         if (directive.signed && !directive.signed.available) this.refresh();
@@ -295,13 +295,13 @@ export class DirectiveDetailComponent implements OnInit {
           this.directive.set(response.payload.data);
           this.notificationService.notifyApiData(response);
         } else {
-          this.cancelError.set(response.payload?.message || 'No se pudo anular la directiva.');
+          this.cancelError.set(response.payload?.message || 'No se pudo anular el documento.');
         }
       },
       error: error => {
         this.cancelSending.set(false);
         const firstValidation = error?.error?.errors ? (Object.values(error.error.errors) as string[][])[0]?.[0] : null;
-        this.cancelError.set(error?.error?.payload?.message || firstValidation || 'No se pudo anular la directiva. Inténtalo nuevamente.');
+        this.cancelError.set(error?.error?.payload?.message || firstValidation || 'No se pudo anular el documento. Inténtalo nuevamente.');
       },
     });
   }
@@ -324,7 +324,7 @@ export class DirectiveDetailComponent implements OnInit {
     upload.clear();
     if (!file) return;
 
-    const label = kind === 'directive' ? 'La directiva' : 'La resolución';
+    const label = kind === 'directive' ? 'El documento' : 'La resolución';
     this.replaceError.set('');
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       this.replaceError.set(`${label} debe ser un PDF.`);
@@ -384,7 +384,7 @@ export class DirectiveDetailComponent implements OnInit {
   askSend(): void {
     this.confirmation.confirm({
       header: 'Enviar a firma',
-      message: `${this.hasStaged() ? 'Elegiste un PDF nuevo que no guardaste: NO se enviará. ' : ''}Se enviará la directiva con su resolución a ${this.route()?.steps.filter(step => !step.skipped).length ?? 0} oficinas, en orden. Después de enviarla ya no se puede corregir.`,
+      message: `${this.hasStaged() ? 'Elegiste un PDF nuevo que no guardaste: NO se enviará. ' : ''}Se enviará el documento con su resolución a ${this.route()?.steps.filter(step => !step.skipped).length ?? 0} oficinas, en orden. Después de enviarla ya no se puede corregir.`,
       acceptLabel: 'Enviar a firma',
       rejectLabel: 'Cancelar',
       rejectButtonProps: { severity: 'secondary', outlined: true },
@@ -403,12 +403,12 @@ export class DirectiveDetailComponent implements OnInit {
           this.directive.set(response.payload.data);
           this.route.set(null);
         } else {
-          this.sendError.set(response.payload?.message || 'No se pudo enviar la directiva.');
+          this.sendError.set(response.payload?.message || 'No se pudo enviar el documento.');
         }
       },
       error: error => {
         this.sending.set(false);
-        this.sendError.set(error?.error?.payload?.message || 'No se pudo enviar la directiva. Inténtalo nuevamente.');
+        this.sendError.set(error?.error?.payload?.message || 'No se pudo enviar el documento. Inténtalo nuevamente.');
       },
     });
   }
@@ -416,7 +416,7 @@ export class DirectiveDetailComponent implements OnInit {
   askDelete(): void {
     this.confirmation.confirm({
       header: 'Eliminar el borrador',
-      message: 'Se eliminará la directiva con sus dos PDF. Esta acción no se puede deshacer.',
+      message: 'Se eliminará el documento con sus dos PDF. Esta acción no se puede deshacer.',
       acceptLabel: 'Eliminar borrador',
       rejectLabel: 'Cancelar',
       acceptButtonProps: { severity: 'danger' },

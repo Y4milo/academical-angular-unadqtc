@@ -47,11 +47,11 @@ export class DirectivesListComponent implements OnInit {
 
   readonly skeletonRows = [1, 2, 3, 4];
   readonly filterOptions: { label: string; value: StatusFilter }[] = [
-    { label: 'Todas', value: 'all' },
+    { label: 'Todos', value: 'all' },
     { label: 'Borrador', value: 'draft' },
     { label: 'En firma', value: 'in_signature' },
-    { label: 'Devueltas', value: 'returned' },
-    { label: 'Firmadas', value: 'signed' },
+    { label: 'Devueltos', value: 'returned' },
+    { label: 'Firmados', value: 'signed' },
   ];
   /** Lo que muestra la sección elegida, antes de filtrar por tipo: de ahí salen los tipos que se ofrecen y cuántos hay de cada uno. */
   private readonly sectionRows = computed<DirectiveSummary[]>(() => {

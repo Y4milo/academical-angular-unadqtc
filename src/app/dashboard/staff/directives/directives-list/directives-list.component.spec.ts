@@ -119,7 +119,7 @@ describe('DirectivesListComponent', () => {
     fixture.componentInstance.section.set('route');
     fixture.detectChanges();
     expect(html().querySelectorAll('[data-testid="route-row"]').length).toBe(1);
-    expect(html().querySelector('[data-testid="route-row"]')?.textContent).toContain('Devuelta');
+    expect(html().querySelector('[data-testid="route-row"]')?.textContent).toContain('Devuelto');
     (html().querySelector('[data-testid="open-route"] button') as HTMLButtonElement).click();
     expect(navigate).toHaveBeenCalledWith('directivas/12');
   });

@@ -1,7 +1,7 @@
 <div class="directive-sign">
   @if (loadError()) {
     <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
-    <div><p-button label="Volver a las directivas" severity="secondary" [outlined]="true" size="small" (onClick)="backToList()"></p-button></div>
+    <div><p-button label="Volver a los documentos" severity="secondary" [outlined]="true" size="small" (onClick)="backToList()"></p-button></div>
   } @else if (loading()) {
     <div class="sign-skeleton" aria-busy="true" data-testid="sign-skeleton">
       <p-skeleton width="min(22rem, 100%)" height="2rem"></p-skeleton>
@@ -12,7 +12,7 @@
     <div class="page-heading">
       <div>
         <p class="caption">Firmas pendientes</p>
-        <h2>Firmar directiva</h2>
+        <h2>Firmar documento</h2>
         @if (current.can_sign) {
           <p class="meta" data-testid="turn">Es tu turno: paso {{ position().number }} de {{ position().total }} · {{ current.active_office }}</p>
         }
@@ -25,13 +25,13 @@
 
     @if (rejectedDone()) {
       <section class="panel" aria-labelledby="rejected-title" data-testid="rejected-done">
-        <h3 id="rejected-title">Directiva devuelta</h3>
+        <h3 id="rejected-title">Documento devuelto</h3>
         <p-message severity="success">Volvió a la oficina de origen con tu motivo. Ya no tienes nada pendiente en ella.</p-message>
-        <div><p-button label="Volver a las directivas" (onClick)="backToList()"></p-button></div>
+        <div><p-button label="Volver a los documentos" (onClick)="backToList()"></p-button></div>
       </section>
     } @else if (!current.can_sign && phase() !== 'done') {
       <p-message severity="info" data-testid="not-your-turn">
-        Esta directiva no espera tu firma{{ current.active_office ? ': ahora le toca a ' + current.active_office : '' }}.
+        Este documento no espera tu firma{{ current.active_office ? ': ahora le toca a ' + current.active_office : '' }}.
       </p-message>
     } @else {
       <div class="layout">
@@ -56,7 +56,7 @@
 
             @if (phase() === 'done') {
               @if (confirmed()) {
-                <p-message severity="success" data-testid="signed-ok">Tu firma quedó registrada. La directiva sigue con la siguiente oficina.</p-message>
+                <p-message severity="success" data-testid="signed-ok">Tu firma quedó registrada. El documento sigue con la siguiente oficina.</p-message>
               } @else {
                 <p-message severity="info" data-testid="signed-pending">Tu firma se envió. La confirmación puede tardar unos segundos: revísala en el seguimiento.</p-message>
               }
@@ -104,7 +104,7 @@
    }
   }
 
-  <p-dialog header="Rechazar directiva" [visible]="rejectOpen()" (visibleChange)="!$event && closeReject()" [modal]="true" [draggable]="false" [closable]="!rejectSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="reject-dialog">
+  <p-dialog header="Rechazar documento" [visible]="rejectOpen()" (visibleChange)="!$event && closeReject()" [modal]="true" [draggable]="false" [closable]="!rejectSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="reject-dialog">
     <div class="reject-form">
       <p-message severity="warn" size="small">
         <span>Volverá a la oficina de origen para corregirla. La ruta se detiene y, con la versión nueva, <strong>todas las oficinas firmarán otra vez</strong>.</span>
@@ -125,7 +125,7 @@
     </div>
     <ng-template #footer>
       <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="rejectSending()" (onClick)="closeReject()"></p-button>
-      <p-button label="Rechazar directiva" severity="danger" [loading]="rejectSending()" [disabled]="!canReject()" data-testid="reject-confirm" (onClick)="reject()"></p-button>
+      <p-button label="Rechazar documento" severity="danger" [loading]="rejectSending()" [disabled]="!canReject()" data-testid="reject-confirm" (onClick)="reject()"></p-button>
     </ng-template>
   </p-dialog>
 </div>
