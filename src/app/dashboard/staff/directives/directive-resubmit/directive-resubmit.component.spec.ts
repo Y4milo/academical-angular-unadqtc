@@ -159,4 +159,49 @@ describe('DirectiveResubmitComponent', () => {
 
     expect(html().querySelector('[data-testid="tracking-button"]')).not.toBeNull();
   });
+
+  describe('redesigned screen', () => {
+    it('has breadcrumbs, the next version as a tag and the reason of the return as a warning', async () => {
+      await create();
+
+      expect(text('breadcrumb')).toContain('Documentos de gestión');
+      expect(text('breadcrumb')).toContain('Corregir y reenviar');
+      expect(text('next-version')).toContain('Versión');
+      expect(text('returned-reason')).toContain('Por qué se devolvió');
+      expect(html().querySelector('[data-testid="returned-reason"] .p-message-warn')).not.toBeNull();
+    });
+
+    it('explains what will happen: the new version, the route from zero and the notice to the origin office', async () => {
+      await create();
+      const steps = Array.from(html().querySelectorAll('[data-testid="what-step"]')).map(step => step.textContent ?? '');
+
+      expect(steps.length).toBe(3);
+      expect(steps[0]).toContain('Se crea la versión');
+      expect(steps[1]).toContain('La ruta empieza de cero');
+      expect(steps[2]).toContain('Se avisa a la oficina de origen');
+    });
+
+    it('keeps the resolution with a switch and only offers the uploader when it is turned off', async () => {
+      await create();
+      expect(fixture.componentInstance.keepCurrent()).toBeTrue();
+      expect(html().querySelector('[data-testid="pick-resolution"]')).toBeNull();
+
+      fixture.componentInstance.setKeep(false);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.keepCurrent()).toBeFalse();
+      expect(html().querySelector('[data-testid="pick-resolution"]')).not.toBeNull();
+
+      fixture.componentInstance.keepResolution();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.keepCurrent()).toBeTrue();
+      expect(html().querySelector('[data-testid="pick-resolution"]')).toBeNull();
+    });
+
+    it('has the sticky toolbar with the send button and the warning that it cannot be undone', async () => {
+      await create();
+
+      expect(text('action-bar')).toContain('No se puede deshacer una vez enviado');
+      expect(html().querySelector('[data-testid="action-bar"] [data-testid="resubmit-send"]')).not.toBeNull();
+    });
+  });
 });
