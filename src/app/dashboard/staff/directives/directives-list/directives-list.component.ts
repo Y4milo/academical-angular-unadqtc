@@ -1,18 +1,26 @@
-import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
+import { ChipModule } from 'primeng/chip';
+import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveAccess, DirectiveStatus, DirectiveSummary, DirectivesService, PendingDirective } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DIRECTIVE_STATUS } from '../directive-status';
+import { pagesLabel } from '../pdf-pages';
 import { SUBTYPE_DOCUMENT_TYPE, documentTypeColor, documentTypeText } from '../document-type';
 
 type StatusFilter = DirectiveStatus | 'all';
@@ -24,7 +32,7 @@ type Section = 'mine' | 'pending' | 'route';
  */
 @Component({
   selector: 'app-directives-list',
-  imports: [DatePipe, FormsModule, ButtonModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TagModule],
+  imports: [DatePipe, NgTemplateOutlet, FormsModule, BadgeModule, ButtonModule, ChipModule, DialogModule, IconFieldModule, InputIconModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule],
   templateUrl: './directives-list.component.html',
   styleUrl: './directives-list.component.css',
 })
@@ -42,6 +50,12 @@ export class DirectivesListComponent implements OnInit {
   /** El tipo (y el subtipo, en gestión institucional) por el que se filtra lo que se ve; nulo es «Todos». */
   readonly typeFilter = signal<string | null>(null);
   readonly subtypeFilter = signal<string | null>(null);
+  /** Lo que se escribe en el buscador: filtra por título, oficina de origen y tipo. */
+  readonly search = signal('');
+  readonly filtersOpen = signal(false);
+  /** En el celular cada documento es una tarjeta en vez de una fila. */
+  private readonly media = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 640px)') : null;
+  readonly isMobile = signal(this.media?.matches ?? false);
   readonly documentTypeColor = documentTypeColor;
   readonly documentTypeText = documentTypeText;
 
@@ -80,7 +94,11 @@ export class DirectivesListComponent implements OnInit {
     return counts.size === 0 ? [] : [{ label: 'Todos los subtipos', value: null }, ...[...counts.entries()].map(([code, item]) => ({ label: `${item.label} (${item.count})`, value: code }))];
   });
   private byType<T extends DirectiveSummary>(rows: T[]): T[] {
-    return rows.filter(row => (this.typeFilter() === null || row.document_type.code === this.typeFilter()) && (this.subtypeFilter() === null || row.document_subtype?.code === this.subtypeFilter()));
+    const query = this.search().trim().toLowerCase();
+
+    return rows.filter(row => (this.typeFilter() === null || row.document_type.code === this.typeFilter())
+      && (this.subtypeFilter() === null || row.document_subtype?.code === this.subtypeFilter())
+      && (query === '' || `${row.title} ${row.origin.name} ${documentTypeText(row.document_type, row.document_subtype)}`.toLowerCase().includes(query)));
   }
   readonly participatingRows = computed(() => this.byType(this.participating()));
   readonly pendingRows = computed(() => this.byType(this.pending()));
@@ -88,17 +106,54 @@ export class DirectivesListComponent implements OnInit {
   readonly rows = computed<unknown[]>(() => (this.loading() ? this.skeletonRows : this.visible()));
   readonly canRequest = computed(() => this.access()?.can_request === true);
   readonly canSign = computed(() => this.access()?.can_sign === true);
-  readonly sectionOptions = computed<{ label: string; value: Section }[]>(() => [
-    ...(this.canRequest() ? [{ label: 'Mis documentos', value: 'mine' as Section }] : []),
-    ...(this.canSign() ? [{ label: `Por firmar${this.pending().length > 0 ? ` (${this.pending().length})` : ''}`, value: 'pending' as Section }] : []),
-    ...(this.participating().length > 0 ? [{ label: `En tu ruta (${this.participating().length})`, value: 'route' as Section }] : []),
+  readonly sectionOptions = computed<{ label: string; value: Section; count: number }[]>(() => [
+    ...(this.canRequest() ? [{ label: 'Mis documentos', value: 'mine' as Section, count: 0 }] : []),
+    ...(this.canSign() ? [{ label: 'Por firmar', value: 'pending' as Section, count: this.pending().length }] : []),
+    ...(this.participating().length > 0 ? [{ label: 'En tu ruta', value: 'route' as Section, count: this.participating().length }] : []),
   ]);
+  /** El buscador y los filtros solo salen cuando hay algo que filtrar (o ya hay algo aplicado, para poder quitarlo). */
+  readonly showToolbar = computed(() => !this.loading() && (this.sectionRows().length > 0 || this.search().trim() !== '' || this.activeFilters().length > 0));
+  /** Lo aplicado, para mostrarlo como etiquetas que se quitan una a una. */
+  readonly activeFilters = computed<{ key: 'status' | 'type' | 'subtype'; label: string }[]>(() => {
+    const result: { key: 'status' | 'type' | 'subtype'; label: string }[] = [];
+    if (this.section() === 'mine' && this.filter() !== 'all') result.push({ key: 'status', label: `Estado: ${DIRECTIVE_STATUS[this.filter() as DirectiveStatus].label}` });
+    const type = this.sectionRows().find(row => row.document_type.code === this.typeFilter())?.document_type.label;
+    if (this.typeFilter() !== null) result.push({ key: 'type', label: `Tipo: ${type ?? this.typeFilter()}` });
+    const subtype = this.sectionRows().find(row => row.document_subtype?.code === this.subtypeFilter())?.document_subtype?.label;
+    if (this.subtypeFilter() !== null) result.push({ key: 'subtype', label: `Subtipo: ${subtype ?? this.subtypeFilter()}` });
+
+    return result;
+  });
+
+  /** «14 páginas · » o «1 página · »; nada si el documento no trae su cuenta. */
+  pagesText(directive: DirectiveSummary): string {
+    const pages = directive.files?.directive?.pages;
+
+    return pages ? `${pagesLabel(pages)} · ` : '';
+  }
+
+  stepsOf(total: number): number[] {
+    return Array.from({ length: Math.max(0, total) }, (_, index) => index);
+  }
+
+  removeFilter(key: 'status' | 'type' | 'subtype'): void {
+    if (key === 'status') this.filter.set('all');
+    if (key === 'type') this.changeType(null);
+    if (key === 'subtype') this.subtypeFilter.set(null);
+  }
+
+  clearFilters(): void {
+    this.filter.set('all');
+    this.typeFilter.set(null);
+    this.subtypeFilter.set(null);
+  }
 
   /** Cambiar de sección o de tipo empieza de nuevo: el filtro de una sección no tiene por qué existir en la otra. */
   changeSection(value: Section | null): void {
     this.section.set(value ?? 'mine');
     this.typeFilter.set(null);
     this.subtypeFilter.set(null);
+    this.search.set('');
   }
 
   changeType(code: string | null): void {
@@ -110,7 +165,11 @@ export class DirectivesListComponent implements OnInit {
     private service: DirectivesService,
     private notificationService: NotificationService,
     private router: Router,
-  ) {}
+  ) {
+    const onChange = (event: MediaQueryListEvent): void => this.isMobile.set(event.matches);
+    this.media?.addEventListener('change', onChange);
+    inject(DestroyRef).onDestroy(() => this.media?.removeEventListener('change', onChange));
+  }
 
   ngOnInit(): void {
     this.load();

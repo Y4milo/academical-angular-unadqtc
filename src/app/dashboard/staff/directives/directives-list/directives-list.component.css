@@ -3,22 +3,52 @@
 .page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
 .page-heading h2 { margin: 0 0 var(--space-1); }
 .page-heading p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
-.filters { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.tab-label { display: inline-flex; align-items: center; gap: var(--space-2); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.toolbar__search { flex: 1 1 14rem; max-width: 26rem; }
+.toolbar__search input { width: 100%; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .type-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; flex: none; }
-.type-cell { display: inline-flex; align-items: center; gap: var(--space-2); }
-:host ::ng-deep .type-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-:host ::ng-deep .type-options .p-togglebutton { border-radius: 999px; }
-:host ::ng-deep .type-options .type-dot { margin-inline-end: var(--space-2); }
-.cell-stack { display: grid; gap: var(--space-1); min-width: 0; }
+.type-cell { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-small); }
+.cell-stack { display: grid; gap: var(--space-1); min-width: 0; justify-items: start; }
+.cell-stack strong { font-size: var(--text-body); }
 .muted { color: var(--p-text-muted-color); font-size: var(--text-small); }
 .actions-col { text-align: right; white-space: nowrap; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:host ::ng-deep tr.row { cursor: pointer; }
+:host ::ng-deep tr.row:hover td { background: var(--p-content-hover-background); }
+
+/* El avance de las firmas: una barrita por oficina; verde las que firmaron y el color del tema la que tiene el turno. */
+.progress { display: inline-flex; gap: 3px; align-items: center; }
+.progress i { display: block; width: 1.1rem; height: .3rem; border-radius: 2px; background: var(--p-content-border-color); }
+.progress i.progress__done { background: var(--p-green-500); }
+.progress i.progress__now { background: var(--p-primary-color); }
+
+.cards { display: grid; gap: var(--space-3); }
+.row-card { display: grid; gap: var(--space-2); padding: var(--space-3); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); cursor: pointer; }
+.row-card:focus-visible { outline: 2px solid var(--p-primary-color); outline-offset: 2px; }
+.row-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); }
+.row-card__head strong { overflow-wrap: anywhere; }
+.row-card__foot { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+
 .empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6) var(--space-4); text-align: center; }
 .empty h3 { margin: 0; font-size: var(--text-card-title); }
 .empty p { margin: 0 0 var(--space-2); max-width: 32rem; color: var(--p-text-muted-color); font-size: var(--text-small); }
 .empty__icon { font-size: var(--text-title); color: var(--p-text-muted-color); }
 
+/* Filtros: grupos de píldoras que se parten en las líneas que hagan falta (la clase va en el grupo, no en cada botón). */
+.filters-dialog { display: grid; gap: var(--space-4); }
+.filter-group { display: grid; gap: var(--space-2); }
+.filter-group__label { font-weight: 600; font-size: var(--text-small); }
+:host ::ng-deep p-selectbutton.pills { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+:host ::ng-deep p-selectbutton.pills .p-togglebutton { flex: 0 0 auto; border-radius: 999px; border-width: 1px; padding-inline: var(--space-3); }
+:host ::ng-deep p-selectbutton.pills .p-togglebutton.p-togglebutton-checked { background: var(--p-highlight-background); color: var(--p-highlight-color); border-color: var(--p-primary-color); font-weight: 600; }
+:host ::ng-deep p-selectbutton.pills .p-togglebutton.p-togglebutton-checked .p-togglebutton-content { background: transparent; box-shadow: none; }
+:host ::ng-deep p-selectbutton.pills .type-dot { margin-inline-end: var(--space-2); }
+
 @media (max-width: 640px) {
   .directives { padding: var(--space-2); }
   .page-heading h2 { font-size: var(--text-card-title); }
+  .toolbar__search { max-width: none; }
+  :host ::ng-deep .p-tab { padding: var(--space-3) var(--space-3); }
 }
