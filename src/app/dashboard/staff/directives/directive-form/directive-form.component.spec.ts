@@ -494,14 +494,15 @@ describe('DirectiveFormComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(text('route-strip-title')).toBe('Falta alguien en la ruta');
-    expect(find('route-strip')!.classList).toContain('route-strip--warn');
+    expect(fixture.componentInstance.routeStrip().severity).toBe('warn');
 
     service.route.and.returnValue(of(ok(route({ issues: [], can_send: true }))));
     fixture.componentInstance.origin.set('adm_sub');
     fixture.detectChanges();
     await fixture.whenStable();
     expect(text('route-strip-title')).toBe('Ruta lista: 4 oficinas, todas con firmante designado');
-    expect(find('route-strip')!.classList).toContain('route-strip--ok');
+    expect(fixture.componentInstance.routeStrip().severity).toBe('success');
+    expect(find('route-strip')!.querySelector('.p-message-success')).not.toBeNull();
   });
 
   it('opens the route drawer from the strip', async () => {
