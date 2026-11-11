@@ -9,95 +9,124 @@
     </div>
   } @else {
    @if (directive(); as current) {
+    <p-breadcrumb [model]="crumbs(current)" styleClass="sign-crumbs" data-testid="breadcrumb"></p-breadcrumb>
+
     <div class="page-heading">
-      <div>
+      <div class="page-heading__text">
         <p class="caption">Firmas pendientes</p>
         <h2>Firmar documento</h2>
+        <p class="meta">
+          <span class="type-dot" [style.background]="documentTypeColor(current.document_type.code)" aria-hidden="true"></span>
+          <span>{{ documentTypeText(current.document_type, current.document_subtype) }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ current.title }}</span>
+        </p>
         @if (current.can_sign) {
           <p class="meta" data-testid="turn">Es tu turno: paso {{ position().number }} de {{ position().total }} · {{ current.active_office }}</p>
         }
       </div>
       <div class="header-actions">
         <app-directive-tracking [events]="current.events" [(open)]="trackingOpen"></app-directive-tracking>
-        <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="back()"></p-button>
       </div>
     </div>
 
     @if (rejectedDone()) {
-      <section class="panel" aria-labelledby="rejected-title" data-testid="rejected-done">
-        <h3 id="rejected-title">Documento devuelto</h3>
-        <p-message severity="success">Volvió a la oficina de origen con tu motivo. Ya no tienes nada pendiente en ella.</p-message>
-        <div><p-button label="Volver a los documentos" (onClick)="backToList()"></p-button></div>
-      </section>
+      <p-card styleClass="sign-card" data-testid="rejected-done">
+        <div class="card-body">
+          <strong>Documento devuelto</strong>
+          <p-message severity="success">Volvió a la oficina de origen con tu motivo. Ya no tienes nada pendiente en ella.</p-message>
+          <div><p-button label="Volver a los documentos" (onClick)="backToList()"></p-button></div>
+        </div>
+      </p-card>
     } @else if (!current.can_sign && phase() !== 'done') {
       <p-message severity="info" data-testid="not-your-turn">
         Este documento no espera tu firma{{ current.active_office ? ': ahora le toca a ' + current.active_office : '' }}.
       </p-message>
     } @else {
       <div class="layout">
-        <section class="panel" aria-labelledby="doc-title">
-          <h3 id="doc-title">{{ current.title }}</h3>
-          <p-selectbutton [options]="kindOptions" optionLabel="label" optionValue="value" [ngModel]="kind()" (ngModelChange)="$event && preview($event)" [allowEmpty]="false" size="small" aria-label="Documento que se muestra"></p-selectbutton>
-          @if (previewError()) {
-            <p-message severity="error" data-testid="preview-error">{{ previewError() }}</p-message>
-          } @else if (rejectOpen()) {
-            <!-- El visor de PDF se pinta por encima de cualquier ventana: se oculta mientras el diálogo está abierto. -->
-            <p-skeleton height="26rem" data-testid="preview-paused"></p-skeleton>
-          } @else if (previewLoading() || !previewUrl()) {
-            <p-skeleton height="26rem" data-testid="preview-skeleton"></p-skeleton>
-          } @else {
-            <iframe class="preview" [src]="previewUrl()!" title="Vista previa del documento" data-testid="preview"></iframe>
-          }
-        </section>
+        <p-card styleClass="sign-card" data-testid="preview-card">
+          <div class="card-body">
+            <div class="card-head">
+              <strong>{{ current.title }}</strong>
+              <p-selectbutton [options]="kindOptions" optionLabel="label" optionValue="value" [ngModel]="kind()" (ngModelChange)="$event && preview($event)" [allowEmpty]="false" size="small" aria-label="Documento que se muestra"></p-selectbutton>
+            </div>
+            @if (previewError()) {
+              <p-message severity="error" data-testid="preview-error">{{ previewError() }}</p-message>
+            } @else if (rejectOpen()) {
+              <!-- El visor de PDF se pinta por encima de cualquier ventana: se oculta mientras el diálogo está abierto. -->
+              <p-skeleton height="26rem" data-testid="preview-paused"></p-skeleton>
+            } @else if (previewLoading() || !previewUrl()) {
+              <p-skeleton height="26rem" data-testid="preview-skeleton"></p-skeleton>
+            } @else {
+              <iframe class="preview" [src]="previewUrl()!" title="Vista previa del documento" data-testid="preview"></iframe>
+            }
+          </div>
+        </p-card>
 
         <div class="side">
-          <section class="panel" aria-labelledby="sign-title">
-            <h3 id="sign-title">Tu firma</h3>
+          <p-card styleClass="sign-card" data-testid="sign-card">
+            <div class="card-body">
+              <strong>Tu firma</strong>
 
-            @if (phase() === 'done') {
-              @if (confirmed()) {
-                <p-message severity="success" data-testid="signed-ok">Tu firma quedó registrada. El documento sigue con la siguiente oficina.</p-message>
+              @if (phase() === 'done') {
+                @if (confirmed()) {
+                  <p-message severity="success" data-testid="signed-ok">Tu firma quedó registrada. El documento sigue con la siguiente oficina.</p-message>
+                } @else {
+                  <p-message severity="info" data-testid="signed-pending">Tu firma se envió. La confirmación puede tardar unos segundos: revísala en el seguimiento.</p-message>
+                }
+                <p-button label="Ver el seguimiento" (onClick)="back()" data-testid="go-detail"></p-button>
+                <p-button label="Volver a la lista" severity="secondary" [outlined]="true" (onClick)="backToList()" data-testid="go-list"></p-button>
               } @else {
-                <p-message severity="info" data-testid="signed-pending">Tu firma se envió. La confirmación puede tardar unos segundos: revísala en el seguimiento.</p-message>
+                @if (session()?.stamp_reason; as reason) {
+                  <p class="reason" data-testid="stamp-reason"><span class="muted">Motivo de la firma</span>{{ reason }}</p>
+                }
+                <p-timeline [value]="checklist()" align="left" styleClass="check-timeline" data-testid="checklist">
+                  <ng-template pTemplate="marker" let-item>
+                    <span class="check-marker" [attr.data-state]="item.state" aria-hidden="true">
+                      @switch (item.state) {
+                        @case ('ok') { <i class="pi pi-check"></i> }
+                        @case ('warn') { <i class="pi pi-exclamation-triangle"></i> }
+                        @case ('now') { <i class="pi pi-spin pi-spinner"></i> }
+                        @default { {{ item.number }} }
+                      }
+                    </span>
+                  </ng-template>
+                  <ng-template pTemplate="content" let-item>
+                    <div class="check-item" [attr.data-state]="item.state" [attr.data-testid]="'check-' + item.key">
+                      <strong>{{ item.title }}</strong>
+                      <span class="muted" [attr.data-testid]="item.testId" [attr.role]="item.testId?.startsWith('status') ? 'status' : null">{{ item.hint }}</span>
+                    </div>
+                  </ng-template>
+                </p-timeline>
+                <p-message severity="info" size="small">Usa el certificado a tu nombre. Si es de otra persona, la firma se rechaza.</p-message>
+                @if (signError()) { <p-message severity="error" data-testid="sign-error">{{ signError() }}</p-message> }
+                @if (notice()) { <p-message severity="warn" data-testid="sign-notice">{{ notice() }}</p-message> }
+                <p-button [label]="busy() ? 'Firmando…' : 'Firmar con Firma Perú'" icon="pi pi-pen-to-square" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
+                @if (current.can_reject) {
+                  <p-button label="Rechazar y devolver" icon="pi pi-undo" styleClass="reject-button" severity="danger" [outlined]="true" [disabled]="busy()" data-testid="reject-button" (onClick)="openReject()"></p-button>
+                }
               }
-              <p-button label="Ver el seguimiento" (onClick)="back()" data-testid="go-detail"></p-button>
-            } @else {
-              @if (session()?.stamp_reason; as reason) {
-                <p class="reason" data-testid="stamp-reason"><span class="muted">Motivo de la firma</span>{{ reason }}</p>
-              }
-              <p-message severity="info" size="small">Usa el certificado a tu nombre. Si es de otra persona, la firma se rechaza.</p-message>
-              @if (!environment().recommended || !environment().windows) {
-                <p-message severity="warn" size="small" data-testid="environment-warning">
-                  Estás en {{ environment().browser }}. Para firmar usa Microsoft Edge en Windows, con el firmador de Firma Perú abierto.
-                </p-message>
-              }
-              @if (signError()) { <p-message severity="error" data-testid="sign-error">{{ signError() }}</p-message> }
-              @if (notice()) { <p-message severity="warn" data-testid="sign-notice">{{ notice() }}</p-message> }
-              @switch (phase()) {
-                @case ('waiting') { <p class="status" role="status" data-testid="status-waiting">Elige tu certificado en la ventana de Firma Perú y escribe tu PIN.</p> }
-                @case ('confirming') { <p class="status" role="status" data-testid="status-confirming">Confirmando tu firma con el firmador…</p> }
-              }
-              <p-button label="Firmar con Firma Perú" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
-              @if (current.can_reject) {
-                <p-button label="Rechazar y devolver" styleClass="reject-button" severity="danger" [outlined]="true" [disabled]="busy()" data-testid="reject-button" (onClick)="openReject()"></p-button>
-              }
-            }
-          </section>
+            </div>
+          </p-card>
 
-          @if (before().length > 0) {
-            <section class="panel" aria-labelledby="before-title">
-              <h3 id="before-title">Antes de ti</h3>
-              <p-timeline [value]="before()" align="left" styleClass="before-timeline">
-                <ng-template pTemplate="marker"><span class="before-marker" aria-hidden="true"></span></ng-template>
-                <ng-template pTemplate="content" let-step>
-                  <div class="before-step" data-testid="before-step">
-                    <strong>{{ step.person }}</strong>
-                    <span class="muted">{{ step.label }}</span>
-                  </div>
-                </ng-template>
-              </p-timeline>
-            </section>
-          }
+          <p-card styleClass="sign-card" data-testid="before-card">
+            <div class="card-body">
+              <strong>Antes de ti</strong>
+              @if (before().length > 0) {
+                <p-timeline [value]="before()" align="left" styleClass="before-timeline">
+                  <ng-template pTemplate="marker"><span class="before-marker" aria-hidden="true"></span></ng-template>
+                  <ng-template pTemplate="content" let-step>
+                    <div class="before-step" data-testid="before-step">
+                      <strong>{{ step.person }}</strong>
+                      <span class="muted">{{ step.label }}</span>
+                    </div>
+                  </ng-template>
+                </p-timeline>
+              } @else {
+                <span class="muted" data-testid="before-empty">Eres la primera persona de la ruta: nadie firmó antes.</span>
+              }
+            </div>
+          </p-card>
         </div>
       </div>
     }

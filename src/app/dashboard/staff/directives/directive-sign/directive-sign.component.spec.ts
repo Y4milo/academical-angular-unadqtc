@@ -292,4 +292,61 @@ describe('DirectiveSignComponent', () => {
 
     expect(html().querySelector('[data-testid="tracking-button"]')).not.toBeNull();
   });
+
+  describe('redesigned screen', () => {
+    it('has breadcrumbs back to the list and to the document instead of a Volver button', async () => {
+      await create();
+
+      expect(text('breadcrumb')).toContain('Documentos de gestión');
+      expect(text('breadcrumb')).toContain('Firmar');
+      expect(html().querySelector('p-button[label="Volver"]')).toBeNull();
+    });
+
+    it('lists what has to be ready before signing: the turn, a compatible browser and Firma Perú', async () => {
+      await create();
+
+      expect(text('check-turn')).toContain('Es tu turno');
+      expect(text('check-turn')).toContain('Paso 2 de 3');
+      expect(html().querySelector('[data-testid="check-browser"]')!.getAttribute('data-state')).toBe('ok');
+      expect(text('check-browser')).toContain('Microsoft Edge en Windows');
+      expect(html().querySelector('[data-testid="check-signer"]')!.getAttribute('data-state')).toBe('wait');
+      expect(text('check-signer')).toContain('Ábrelo antes de firmar');
+    });
+
+    it('marks the browser item as a warning and the signer item as in progress while it waits', async () => {
+      signer.environment.and.returnValue({ browser: 'Firefox', recommended: false, windows: true });
+      await create();
+      expect(html().querySelector('[data-testid="check-browser"]')!.getAttribute('data-state')).toBe('warn');
+
+      await sign();
+      expect(html().querySelector('[data-testid="check-signer"]')!.getAttribute('data-state')).toBe('now');
+    });
+
+    it('says the person is the first of the route when nobody signed before', async () => {
+      service.detail.and.returnValue(of(ok(detail({
+        status: 'in_signature', status_label: 'En firma', can_edit: false, can_sign: true, active_office: 'Oficina de Administración',
+        progress: [{ key: 'origin', label: 'Oficina de Administración', person: 'Ana Torres', title: 'Jefa', state: 'active' }],
+      }))));
+      await create();
+
+      expect(text('before-empty')).toContain('primera persona de la ruta');
+      expect(html().querySelector('[data-testid="before-step"]')).toBeNull();
+    });
+
+    it('offers to see the tracking or go back to the list once the signature is registered', async () => {
+      await create();
+      await sign();
+      service.detail.and.returnValue(of(ok(detail({ ...turn(), can_sign: false }))));
+      jasmine.clock().install();
+      handlers.ok?.();
+      jasmine.clock().tick(3100);
+      fixture.detectChanges();
+      jasmine.clock().uninstall();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(html().querySelector('[data-testid="go-detail"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="go-list"]')).not.toBeNull();
+    });
+  });
 });
