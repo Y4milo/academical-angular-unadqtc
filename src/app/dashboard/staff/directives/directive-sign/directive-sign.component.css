@@ -49,3 +49,11 @@
   :host ::ng-deep .sign-crumbs li:not(:first-child) { display: none; }
   .preview { height: 20rem; }
 }
+.confirm-head { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.confirm-title { font-weight: 600; font-size: 1.125rem; }
+.confirm-body { display: grid; grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.confirm-sheet { background: var(--p-content-hover-background); border-radius: var(--p-border-radius-md); padding: var(--space-2); border: 1px solid var(--p-content-border-color); }
+.confirm-side { display: grid; gap: var(--space-4); }
+.confirm-steps { display: grid; gap: var(--space-2); font-size: var(--text-small); color: var(--p-text-muted-color); }
+.confirm-steps ol { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--space-2); }
+@media (max-width: 40rem) { .confirm-body { grid-template-columns: minmax(0, 1fr); } }

@@ -16,9 +16,10 @@ import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
-import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SigningSession } from '../../../../services/directives.service';
+import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SignatureSheetResponse, SigningSession } from '../../../../services/directives.service';
 import { FirmaPeruSignerService } from '../../../../services/firma-peru-signer.service';
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
+import { SignatureSheetViewComponent } from '../signature-sheet-view/signature-sheet-view.component';
 import { STEP_ROLE } from '../directive-status';
 import { documentTypeColor, documentTypeText } from '../document-type';
 
@@ -41,7 +42,7 @@ const REFUSAL_EVERY_MS = 1500;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, DirectiveTrackingComponent],
+  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, DirectiveTrackingComponent, SignatureSheetViewComponent],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })
@@ -60,6 +61,12 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
   readonly previewLoading = signal(false);
   readonly previewError = signal('');
   readonly confirmed = signal(false);
+
+  /** El diálogo «Confirmar firma»: la hoja dibujada con lo que entrega el firmador (vista referencial) antes de abrir Firma Perú. */
+  readonly confirmOpen = signal(false);
+  readonly sheet = signal<SignatureSheetResponse | null>(null);
+  readonly sheetLoading = signal(false);
+  readonly sheetError = signal(false);
 
   readonly rejectOpen = signal(false);
   readonly rejectReason = signal('');
@@ -192,6 +199,36 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
         this.previewError.set('No se pudo abrir el PDF. Inténtalo nuevamente.');
       },
     });
+  }
+
+  /** Abre «Confirmar firma» y pide la hoja al servidor; si no se puede dibujar, igual se puede firmar: la vista es solo una ayuda. */
+  askSign(): void {
+    if (this.busy()) return;
+    this.confirmOpen.set(true);
+    this.sheet.set(null);
+    this.sheetError.set(false);
+    this.sheetLoading.set(true);
+    this.service.signatureSheet(this.id).subscribe({
+      next: response => {
+        this.sheetLoading.set(false);
+        if (response.status === STATUS.success) this.sheet.set(response.payload.data);
+        else this.sheetError.set(true);
+      },
+      error: () => {
+        this.sheetLoading.set(false);
+        this.sheetError.set(true);
+      },
+    });
+  }
+
+  closeConfirm(): void {
+    this.confirmOpen.set(false);
+  }
+
+  /** Confirma desde el diálogo: se cierra y empieza la firma. */
+  confirmSign(): void {
+    this.confirmOpen.set(false);
+    this.sign();
   }
 
   sign(): void {
