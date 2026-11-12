@@ -205,6 +205,40 @@ export interface SigningSession {
   firmaperu: { script_url: string; port: number; param: string };
 }
 
+/** Una fila de la hoja de firmas que entrega el firmador: la oficina, el rol y, si ya firmó, quién y cuándo. */
+export interface SignatureSheetRow {
+  ordinal: number;
+  signer_id: string;
+  office: string;
+  role: string;
+  status: string;
+  holder_name: string | null;
+  title: string | null;
+  reason: string | null;
+  signed_at: string | null;
+}
+
+/** Lo necesario para dibujar la hoja de firmas; la entrega el firmador (texto legal, dirección y clave, plantilla y filas). Es una vista referencial, no el documento. */
+export interface SignatureSheetData {
+  referential: boolean;
+  test: boolean;
+  page_mm: { width: number; height: number };
+  document: { id: string; name: string };
+  verification: { site: string; url: string; code: string };
+  legal_text: string;
+  institution: string;
+  title: string;
+  template_svg: string;
+  layout: { first_row_top_mm: number; row_pitch_mm: number; rows_per_sheet: number; stamp_width_mm: number; stamp_height_mm: number };
+  sheets: { number: number; rows: SignatureSheetRow[] }[];
+}
+
+/** La hoja y el firmante al que le toca a quien mira (nulo si no le toca). */
+export interface SignatureSheetResponse {
+  sheet: SignatureSheetData;
+  mine: string | null;
+}
+
 /** Cómo terminó la sesión, visto desde la página: el firmador no lo puede ver por sí mismo, así que se le avisa. */
 export type SessionEventType = 'started' | 'ok_reported' | 'cancelled' | 'timeout' | 'error';
 
@@ -312,6 +346,11 @@ export class DirectivesService {
   /** Abre la sesión de firma en el firmador (desde el servidor) y devuelve lo que Firma Perú necesita. */
   openSigningSession(id: number): Observable<ApiData<SigningSession>> {
     return this.http.post<ApiData<SigningSession>>(`${this.apiURL}/directives/${id}/signing-sessions`, {});
+  }
+
+  /** La hoja de firmas dibujada con los datos del firmador, para mostrarla antes de confirmar la firma. */
+  signatureSheet(id: number): Observable<ApiData<SignatureSheetResponse>> {
+    return this.http.get<ApiData<SignatureSheetResponse>>(`${this.apiURL}/directives/${id}/signature-sheet`);
   }
 
   /** Avisa cómo terminó la sesión; cancelar, tiempo agotado y error son obligatorios. `seq` crece en cada aviso de la sesión. */

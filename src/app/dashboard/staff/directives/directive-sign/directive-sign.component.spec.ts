@@ -41,14 +41,18 @@ describe('DirectiveSignComponent', () => {
     (html().querySelector('[data-testid="sign-button"] button') as HTMLButtonElement).click();
     await fixture.whenStable();
     fixture.detectChanges();
+    (html().querySelector('[data-testid="sign-confirm"] button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    fixture.detectChanges();
   }
 
   beforeEach(async () => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'file', 'openSigningSession', 'reportSigningEvent', 'reject']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'file', 'openSigningSession', 'reportSigningEvent', 'reject', 'signatureSheet']);
     signer = jasmine.createSpyObj<FirmaPeruSignerService>('FirmaPeruSignerService', ['environment', 'load', 'start']);
     service.detail.and.returnValue(of(ok(turn())));
     service.file.and.returnValue(of(new Blob(['%PDF'])));
     service.openSigningSession.and.returnValue(of(ok(session)));
+    service.signatureSheet.and.returnValue(throwError(() => ({ status: 404 })));
     service.reportSigningEvent.and.returnValue(of(ok({})));
     signer.environment.and.returnValue({ browser: 'Microsoft Edge', recommended: true, windows: true });
     signer.load.and.resolveTo();
@@ -420,6 +424,68 @@ describe('DirectiveSignComponent', () => {
       asRole('aprobacion');
       await create();
       expect(html().querySelector('[data-testid="sign-button"]')?.textContent).toContain('Aprobar');
+    });
+  });
+
+  describe('confirm dialog with the referential sheet', () => {
+    const sheetData = {
+      referential: true, test: true, page_mm: { width: 210, height: 297 }, document: { id: 'doc_a', name: 'Directiva de ejemplo' },
+      verification: { site: 'https://firmador.test', url: 'https://firmador.test/K7F9M', code: 'K7F9M' },
+      legal_text: 'Texto legal del firmador. Clave: K7F9M', institution: 'Institución de ejemplo', title: 'Hoja de firmas',
+      template_svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89"><g fill="#d21317"><path d="M0,0h10v10z"/></g></svg>',
+      layout: { first_row_top_mm: 54, row_pitch_mm: 23, rows_per_sheet: 8, stamp_width_mm: 62, stamp_height_mm: 22 },
+      sheets: [{ number: 1, rows: [
+        { ordinal: 1, signer_id: 'sg_1', office: 'Administración', role: 'Autor del documento', status: 'signed', holder_name: 'Ana Torres', title: 'Jefa', reason: 'Soy el autor del documento', signed_at: '2026-11-12T10:00:00Z' },
+        { ordinal: 2, signer_id: 'sg_2', office: 'Asesoría Jurídica', role: 'Visto bueno', status: 'pending', holder_name: null, title: null, reason: null, signed_at: null },
+      ] }],
+    };
+
+    const openDialog = async () => {
+      (html().querySelector('[data-testid="sign-button"] button') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+
+    it('shows the drawn sheet as a referential view and opens Firma Perú only after confirming', async () => {
+      service.signatureSheet.and.returnValue(of(ok({ sheet: sheetData, mine: 'sg_2' })));
+      await create();
+
+      await openDialog();
+
+      expect(service.signatureSheet).toHaveBeenCalledWith(7);
+      expect(service.openSigningSession).not.toHaveBeenCalled();
+      expect(text('confirm-referential')).toContain('Vista referencial');
+      expect(text('confirm-note')).toContain('vista referencial');
+      expect(html().querySelector('[data-testid="sheet-row-mine"]')?.textContent).toContain('Tu firma aparecerá aquí');
+      expect(html().querySelectorAll('[data-testid="sheet-row"]').length).toBe(1);
+      expect(html().querySelector('app-signature-sheet-view')?.textContent).toContain('ANA TORRES');
+      expect(html().querySelector('app-signature-sheet-view')?.textContent).toContain('K7F9M');
+
+      (html().querySelector('[data-testid="sign-confirm"] button') as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      expect(service.openSigningSession).toHaveBeenCalledWith(7);
+    });
+
+    it('cancelling the dialog does not open a session', async () => {
+      service.signatureSheet.and.returnValue(of(ok({ sheet: sheetData, mine: 'sg_2' })));
+      await create();
+      await openDialog();
+
+      fixture.componentInstance.closeConfirm();
+      await fixture.whenStable();
+
+      expect(service.openSigningSession).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.confirmOpen()).toBeFalse();
+    });
+
+    it('still lets the person sign when the sheet cannot be drawn, and says so', async () => {
+      await create();
+
+      await openDialog();
+
+      expect(text('confirm-no-sheet')).toContain('Puedes firmar igual');
+      expect(html().querySelector('[data-testid="sign-confirm"]')).not.toBeNull();
     });
   });
 });

@@ -128,7 +128,7 @@
                   </p-message>
                 }
                 @if (notice()) { <p-message severity="warn" data-testid="sign-notice">{{ notice() }}</p-message> }
-                <p-button [label]="busy() ? 'Firmando…' : (myRole()?.action ?? 'Firmar con Firma Perú')" icon="pi pi-pen-to-square" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="sign()"></p-button>
+                <p-button [label]="busy() ? 'Firmando…' : (myRole()?.action ?? 'Firmar con Firma Perú')" icon="pi pi-pen-to-square" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="askSign()"></p-button>
                 @if (current.can_reject) {
                   <p-button label="Rechazar y devolver" icon="pi pi-undo" styleClass="reject-button" severity="danger" [outlined]="true" [disabled]="busy()" data-testid="reject-button" (onClick)="openReject()"></p-button>
                 }
@@ -159,6 +159,43 @@
     }
    }
   }
+
+  <p-dialog [visible]="confirmOpen()" (visibleChange)="!$event && closeConfirm()" [modal]="true" [draggable]="false" [style]="{ width: 'min(96vw, 56rem)' }" data-testid="confirm-dialog">
+    <ng-template #header>
+      <div class="confirm-head">
+        <span class="confirm-title">Confirmar firma</span>
+        <p-tag severity="warn" icon="pi pi-eye" value="Vista referencial" data-testid="confirm-referential"></p-tag>
+      </div>
+    </ng-template>
+    <div class="confirm-body">
+      <div class="confirm-sheet" data-testid="confirm-sheet">
+        @if (sheetLoading()) {
+          <p-skeleton height="26rem"></p-skeleton>
+        } @else if (sheet()) {
+          <app-signature-sheet-view [sheet]="sheet()!.sheet" [mine]="sheet()!.mine"></app-signature-sheet-view>
+        } @else {
+          <p-message severity="secondary" data-testid="confirm-no-sheet">No pudimos dibujar la hoja de firmas. Puedes firmar igual: el PDF final la incluye.</p-message>
+        }
+      </div>
+      <div class="confirm-side">
+        <p-message severity="warn" size="small" data-testid="confirm-note">
+          <span><strong>Es una vista referencial.</strong> El PDF firmado lo genera el Firmador y puede variar levemente (posición del sello, tipografía). El QR y la clave son los de la verificación pública del documento.</span>
+        </p-message>
+        <div class="confirm-steps">
+          <strong>Qué pasará al confirmar</strong>
+          <ol>
+            <li>Se abre el firmador de Firma Perú en tu equipo.</li>
+            <li>Eliges tu certificado y firmas.</li>
+            <li>Tu sello aparece en el recuadro azul del PDF final.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancelar" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="closeConfirm()"></p-button>
+      <p-button label="Confirmar y firmar" icon="pi pi-pen-to-square" data-testid="sign-confirm" (onClick)="confirmSign()"></p-button>
+    </ng-template>
+  </p-dialog>
 
   <p-dialog header="Rechazar documento" [visible]="rejectOpen()" (visibleChange)="!$event && closeReject()" [modal]="true" [draggable]="false" [closable]="!rejectSending()" [style]="{ width: 'min(94vw, 32rem)' }" data-testid="reject-dialog">
     <div class="reject-form">
