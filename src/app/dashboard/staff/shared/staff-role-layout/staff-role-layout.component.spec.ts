@@ -23,8 +23,10 @@ describe('StaffRoleLayoutComponent', () => {
   let logoutStaff: jasmine.Spy;
   let removeUser: jasmine.Spy;
   let goTo: jasmine.Spy;
+  let openedWithCore: boolean;
 
   beforeEach(async () => {
+    openedWithCore = false;
     getStaffMenu = jasmine.createSpy('getStaffMenu').and.returnValue(of({payload: {data: groups}}));
     logoutStaff = jasmine.createSpy('logoutStaff').and.returnValue(of({payload: {}}));
     removeUser = jasmine.createSpy('removeUser');
@@ -38,7 +40,7 @@ describe('StaffRoleLayoutComponent', () => {
         {provide: UsersService, useValue: {getStaffMenu, logoutStaff}},
         {provide: NotificationService, useValue: {notifyApiData: () => undefined}},
         {provide: CoreSsoService, useValue: {goTo}},
-        {provide: LoginService, useValue: {getUser: () => ({id: '7', position: {label: 'Jefa de RR. HH.'}, staff: {names: 'Ana Pérez'}}), removeUser}},
+        {provide: LoginService, useValue: {getUser: () => ({id: '7', position: {label: 'Jefa de RR. HH.'}, staff: {names: 'Ana Pérez'}}), removeUser, openedWithCore: () => openedWithCore}},
       ],
     }).compileComponents();
 
@@ -126,6 +128,52 @@ describe('StaffRoleLayoutComponent', () => {
 
   it('goes to the Academical login when the API says Core but gives no portal address', async () => {
     const navigate = await signOutWith({next: 'core_portal', portal_url: null});
+
+    expect(goTo).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['login-admin']);
+  });
+  const closeCoreButton = (fixture: {nativeElement: unknown}) => (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-testid="logout-core"] button, button[data-testid="logout-core"]');
+
+  it('offers to close Core too only to someone who signed in with their Core account', async () => {
+    expect(closeCoreButton(await render())).toBeNull();
+
+    openedWithCore = true;
+    expect(closeCoreButton(await render())).not.toBeNull();
+  });
+
+  it('asks the API to close Core too and sends the browser through Core', async () => {
+    openedWithCore = true;
+    logoutStaff.and.returnValue(of({payload: {data: {next: 'core_logout', portal_url: 'https://core.example.test/mis-sistemas', core_logout_url: 'https://core.example.test/api/v1/auth/sso/logout?client_id=abc'}}}));
+    const fixture = await render();
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    closeCoreButton(fixture)?.click();
+    await fixture.whenStable();
+
+    expect(logoutStaff).toHaveBeenCalledOnceWith(true);
+    expect(removeUser).toHaveBeenCalled();
+    expect(goTo).toHaveBeenCalledOnceWith('https://core.example.test/api/v1/auth/sso/logout?client_id=abc');
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('keeps the plain sign out asking only for Academical', async () => {
+    openedWithCore = true;
+    const fixture = await render();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-testid="logout"] button, button[data-testid="logout"]')?.click();
+    await fixture.whenStable();
+
+    expect(logoutStaff).toHaveBeenCalledOnceWith(false);
+  });
+
+  it('goes to the Academical login when the API cannot send the browser through Core', async () => {
+    openedWithCore = true;
+    logoutStaff.and.returnValue(of({payload: {data: {next: 'local_login', portal_url: null, core_logout_url: null}}}));
+    const fixture = await render();
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    closeCoreButton(fixture)?.click();
+    await fixture.whenStable();
 
     expect(goTo).not.toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(['login-admin']);

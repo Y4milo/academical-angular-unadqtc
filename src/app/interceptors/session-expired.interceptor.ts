@@ -6,6 +6,7 @@ import {PATHS} from '../core/constants/app-paths.constants';
 import {ROLE} from '../core/constants/app-roles.constants';
 import {safeReturnUrl} from '../core/utils/return-url.util';
 import {LoginService} from '../services/login.service';
+import {NotificationService} from '../services/notification.service';
 
 const SESSION_EXPIRED_STATUSES = [401, 419];
 const AUTH_ENDPOINTS = [
@@ -16,6 +17,7 @@ const AUTH_ENDPOINTS = [
 export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const loginService = inject(LoginService);
+  const notifications = inject(NotificationService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -29,6 +31,12 @@ export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
 
         // Sesión vencida: tras volver a entrar se regresa a la página donde estaba.
         const returnUrl = safeReturnUrl(router.url);
+
+        // Si el API dice por qué se cerró (Core cerró la sesión, duración máxima, inactividad), se le dice a la persona.
+        const message = error.error?.payload?.reason ? error.error?.payload?.message : null;
+        if (message && user) {
+          notifications.warning('Sesión cerrada', message, 8000);
+        }
 
         loginService.removeUser();
         router.navigate([loginPath], returnUrl ? {queryParams: {returnUrl}} : {});

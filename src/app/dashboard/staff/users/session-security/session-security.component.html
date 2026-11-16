@@ -1,0 +1,57 @@
+<div class="session-security">
+  <div class="page-heading">
+    <div>
+      <p class="caption">Administración · Usuarios y accesos</p>
+      <h2>Seguridad de sesión</h2>
+      <p>Cuándo se cierra sola una sesión de Academical. Aplica a las sesiones abiertas con Core y a las que se abren con usuario y contraseña.</p>
+    </div>
+    <p-tag value="Solo administradores" severity="secondary"></p-tag>
+  </div>
+
+  @if (loadError()) {
+    <p-message severity="error" data-testid="load-error">{{ loadError() }}</p-message>
+    <div><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button></div>
+  } @else if (loading()) {
+    <div class="settings-skeleton" aria-busy="true" data-testid="settings-skeleton">
+      <p-skeleton height="6rem"></p-skeleton>
+      <p-skeleton height="6rem"></p-skeleton>
+      <p-skeleton height="6rem"></p-skeleton>
+    </div>
+  } @else {
+    @if (values(); as current) {
+      <div class="layout">
+        <div class="column">
+          <section class="panel" aria-labelledby="times-title" data-testid="times-panel">
+            <h3 id="times-title">Tiempos de cierre</h3>
+            @for (field of fields; track field.key) {
+              <div class="field" [attr.data-testid]="'field-' + field.key">
+                <label [for]="'input-' + field.key">{{ field.label }}</label>
+                <p-inputnumber [inputId]="'input-' + field.key" [ngModel]="current[field.key]" (ngModelChange)="change(field.key, $event)" [min]="limits(field.key)[0]" [max]="limits(field.key)[1]" [showButtons]="true" [suffix]="' ' + field.unit" size="small"></p-inputnumber>
+                <span class="hint">{{ field.hint }} De {{ limits(field.key)[0] }} a {{ limits(field.key)[1] }} {{ field.unit }}.</span>
+              </div>
+            }
+            <p-message severity="info" data-testid="effect-text">{{ effect() }}</p-message>
+          </section>
+
+          @if (saveError()) { <p-message severity="error" data-testid="save-error">{{ saveError() }}</p-message> }
+          <div class="actions">
+            <p-button label="Guardar cambios" [disabled]="!dirty() || !valid()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
+            <p-button label="Descartar" severity="secondary" [outlined]="true" [disabled]="!dirty() || saving()" data-testid="reset-settings" (onClick)="reset()"></p-button>
+            <p-button label="Usar los recomendados" severity="secondary" [text]="true" [disabled]="saving()" data-testid="use-defaults" (onClick)="useDefaults()"></p-button>
+            <span class="hint" data-testid="settings-state">{{ dirty() ? 'Tienes cambios sin guardar.' : 'Sin cambios sin guardar.' }}</span>
+          </div>
+        </div>
+
+        <div class="column">
+          <section class="panel" aria-labelledby="rules-title" data-testid="rules-panel">
+            <h3 id="rules-title">Cómo se aplica</h3>
+            <p class="hint">Los cambios rigen desde la próxima petición de cada persona; no hace falta que vuelvan a entrar.</p>
+            <p class="hint">Cuando alguien cierra su sesión en Core, Core avisa a Academical y las sesiones que esa persona abrió con Core se cierran de inmediato, aunque no haya vencido ningún tiempo.</p>
+            <p class="hint">Los tiempos de Academical no deben superar los de Core (inactividad de 30 minutos, 20 para quien gestiona; duración máxima de 12 horas).</p>
+            <p-tag [value]="saved()?.values?.source === 'database' ? 'Rigen los valores guardados' : 'Rigen los valores recomendados'" [severity]="saved()?.values?.source === 'database' ? 'info' : 'secondary'" data-testid="source-tag"></p-tag>
+          </section>
+        </div>
+      </div>
+    }
+  }
+</div>

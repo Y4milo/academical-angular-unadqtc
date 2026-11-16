@@ -10,10 +10,17 @@ export class LoginService {
 
   constructor() { }
 
-  setUser(apiData:  ApiData<StaffUser>): StaffUser {
+  /** `via` dice cómo se abrió la sesión: solo una sesión `core` ofrece «Cerrar también en Core» (el API es quien decide el destino de verdad). */
+  setUser(apiData:  ApiData<StaffUser>, via: 'core' | 'local' = 'local'): StaffUser {
     const user = apiData.payload.data as StaffUser;
     sessionStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('auth_via', via);
     return user;
+  }
+
+  /** ¿La sesión se abrió con la cuenta de Core? */
+  openedWithCore(): boolean {
+    return sessionStorage.getItem('auth_via') === 'core';
   }
 
   getUser(): StaffUser | null {
@@ -22,6 +29,7 @@ export class LoginService {
 
   removeUser(): void {
     sessionStorage.removeItem('user');
+    sessionStorage.removeItem('auth_via');
   }
 
   setStudent(apiData:  ApiData<StudentUser>): StudentUser {

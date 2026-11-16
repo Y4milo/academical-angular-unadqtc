@@ -129,14 +129,18 @@ export class StaffRoleLayoutComponent implements OnInit {
     this.showChangePasswordDialog.set(true);
   }
 
-  logout(): void {
+  /** ¿Se ofrece «Cerrar también en Core»? Solo al personal que entró con su cuenta de Core. */
+  readonly canCloseCore = computed(() => this.audience() === 'staff' && this.loginService.openedWithCore());
+
+  /** Con `everywhere` cierra también la sesión de Core (y Core avisa a los demás sistemas). */
+  logout(everywhere = false): void {
     if (this.loggingOut()) {
       return;
     }
 
     this.loggingOut.set(true);
 
-    const request: Observable<ApiData<unknown>> = this.audience() === 'student' ? this.studentModules.logout() : this.usersService.logoutStaff();
+    const request: Observable<ApiData<unknown>> = this.audience() === 'student' ? this.studentModules.logout() : this.usersService.logoutStaff(everywhere);
 
     request.subscribe({
       next: (response) => {
@@ -152,7 +156,8 @@ export class StaffRoleLayoutComponent implements OnInit {
 
   /**
    * Cierra la sesión del navegador y va a donde el API dijo: al portal de Core si la sesión se abrió por Core, al ingreso de Academical si no
-   * (o si el API no contestó). La sesión de Core no se toca.
+   * (o si el API no contestó). La sesión de Core no se toca, salvo en «Cerrar también en Core»: entonces el navegador pasa por Core, que cierra
+   * su sesión y lleva al ingreso de Core.
    */
   private finishLogout(destination?: StaffLogoutDestination): void {
     this.loggingOut.set(false);
@@ -160,6 +165,11 @@ export class StaffRoleLayoutComponent implements OnInit {
     this.menuStore.clear();
     if (this.audience() === 'student') {
       this.studentMenu.clear();
+    }
+    if (destination?.next === 'core_logout' && destination.core_logout_url) {
+      this.coreSso.goTo(destination.core_logout_url);
+
+      return;
     }
     if (destination?.next === 'core_portal' && destination.portal_url) {
       this.coreSso.goTo(destination.portal_url);

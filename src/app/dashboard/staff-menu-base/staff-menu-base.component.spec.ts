@@ -26,7 +26,7 @@ describe('StaffMenuBaseComponent (marco único del personal)', () => {
           {path: 'inicio', component: ScreenComponent},
           {path: 'grados', component: ScreenComponent, data: {banner: 'degrees-titles'}, children: [{path: 'registros', component: ScreenComponent}]},
         ]),
-        {provide: LoginService, useValue: {getUser: () => ({id: '1', role: {value: role}, staff: {names: 'Rosa Quispe'}, position: {label: 'RR.HH.'}})}},
+        {provide: LoginService, useValue: {getUser: () => ({id: '1', role: {value: role}, staff: {names: 'Rosa Quispe'}, position: {label: 'RR.HH.'}}), openedWithCore: () => false}},
       ],
     });
     router = TestBed.inject(Router);

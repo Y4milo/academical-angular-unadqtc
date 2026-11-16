@@ -172,6 +172,10 @@ export const PATHS = {
     path: `users/core-integration`,
     link: `users/core-integration`,
   },
+  sessionSecurity: {
+    path: `users/session-security`,
+    link: `users/session-security`,
+  },
   profiles: {
     path: `users`,
     list: {
