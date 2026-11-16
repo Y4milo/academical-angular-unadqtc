@@ -31,21 +31,72 @@ const typography = {
   tabs: {tab: {fontWeight: 'var(--weight-strong)'}},
 };
 
+/**
+ * Colors of the UNADQTC identity manual, taken from the signer (signner-app `unadqtc.preset.ts`): 500 of the primary is
+ * the official cardinal red #D61016 and the neutral surfaces are the manual's. The only deviation is the dark primary:
+ * the signer uses #E14E53 (4.19:1 as text on a dark card); #E7666B reaches 4.5:1 on cards and highlighted rows too.
+ */
 export const InstitutionalPreset = definePreset(Aura, {
   components: typography,
   semantic: {
     primary: {
-      50: '#fff1f2',
-      100: '#ffe4e6',
-      200: '#fecdd3',
-      300: '#fda4af',
-      400: '#fb7185',
-      500: '#d40f1c',
-      600: '#bd0d19',
-      700: '#a50812',
-      800: '#881018',
-      900: '#74121a',
-      950: '#41070b',
+      50: '#FCEEEF',
+      100: '#F8D9DA',
+      200: '#F2B3B4',
+      300: '#EA888A',
+      400: '#E14E53',
+      500: '#D61016',
+      600: '#B80E13',
+      700: '#960B0F',
+      800: '#74090C',
+      900: '#510608',
+      950: '#330405',
+    },
+    colorScheme: {
+      light: {
+        primary: {
+          color: '{primary.500}',
+          contrastColor: '#ffffff',
+          hoverColor: '{primary.600}',
+          activeColor: '{primary.700}',
+        },
+        surface: {
+          0: '#ffffff',
+          50: '#FAFAFA',
+          100: '#F4F4F5',
+          200: '#E4E4E7',
+          300: '#D4D4D8',
+          400: '#A1A1AA',
+          500: '#6B6B6A',
+          600: '#52525B',
+          700: '#3D393B',
+          800: '#27272A',
+          900: '#1D1D1B',
+          950: '#09090B',
+        },
+      },
+      dark: {
+        primary: {
+          color: '#E7666B',
+          contrastColor: '#18181B',
+          hoverColor: '{primary.300}',
+          activeColor: '{primary.200}',
+        },
+        surface: {
+          0: '#ffffff',
+          50: '#FAFAFA',
+          100: '#F4F4F5',
+          200: '#E4E4E7',
+          300: '#D4D4D8',
+          400: '#A1A1AA',
+          500: '#71717A',
+          600: '#52525B',
+          700: '#3F3F46',
+          800: '#27272A',
+          900: '#202024',
+          950: '#18181B',
+        },
+      },
     },
   },
 });
