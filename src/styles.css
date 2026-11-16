@@ -366,6 +366,13 @@ label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-datepicker 
   background: transparent;
 }
 
+/* PrimeNG 21 wraps the submenu in a bare <ul ppanelmenulist> (no class): without this it gets the browser's 40 px padding, 15 px margin and bullets. */
+.p-panelmenu-content > ul[ppanelmenulist] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .shell__menu .p-panelmenu-submenu {
   display: grid;
   gap: var(--space-1);
