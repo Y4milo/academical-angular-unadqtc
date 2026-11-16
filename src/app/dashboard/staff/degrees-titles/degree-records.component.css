@@ -80,7 +80,8 @@ code { white-space: nowrap; font-size: var(--text-small); }
 .checks .ok { color: var(--green-500); }.checks .bad { color: var(--red-500); }.checks .warn { color: var(--orange-500); }
 @media (max-width: 760px) {
   .page-heading { align-items: stretch; flex-direction: column; }
-  .filters, .form-grid { grid-template-columns: 1fr; }
+  .filters, .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .filters > * { min-width: 0; }
   .full { grid-column: auto; }
   .comparison-grid, .checks { grid-template-columns: 1fr; }
   .authority-list { grid-template-columns: 1fr; }
