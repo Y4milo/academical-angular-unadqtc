@@ -28,6 +28,19 @@ describe('staff menu util', () => {
     expect(holdsUrl(GROUPS[0], '/hr/staff/attendances')).toBeFalse();
   });
 
+  it('matches exactly a link that is the parent path of another one, so only one is highlighted', () => {
+    const menu = buildStaffMenu([{label: 'RR. HH.', items: [
+      {label: 'Asistencias del personal', routerLink: '/hr/staff/attendance'},
+      {label: 'Registrar asistencia', routerLink: '/hr/staff/attendance/register'},
+      {label: 'Reportes', routerLink: '/hr/staff/reports'},
+    ]}], '/');
+    const [list, register, reports] = menu[0].items ?? [];
+
+    expect(list.routerLinkActiveOptions).toEqual({exact: true});
+    expect(register.routerLinkActiveOptions).toBeUndefined();
+    expect(reports.routerLinkActiveOptions).toBeUndefined();
+  });
+
   it('does not change the groups it receives', () => {
     buildStaffMenu(GROUPS, '/hr/staff/reports');
 
