@@ -1,6 +1,9 @@
 :host {
   display: block;
   min-height: 100%;
+  /* Con margin auto el elemento de la rejilla se ajusta a su contenido: sin esto la tabla (ancho mínimo de 40rem) lo ensancha más que la pantalla. */
+  width: 100%;
+  box-sizing: border-box;
   padding: 1rem;
   max-width: 62rem;
   margin: 0 auto;
