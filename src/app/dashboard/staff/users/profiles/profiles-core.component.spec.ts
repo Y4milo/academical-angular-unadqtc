@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { CorePublicationStatus, ProfilesService } from '../../../../services/profiles.service';
@@ -19,7 +18,7 @@ describe('ProfilesCoreComponent', () => {
 
   function create(current: CorePublicationStatus = status(), publish = of({ payload: { data: status() } } as never)) {
     service = { coreStatus: jasmine.createSpy('coreStatus').and.returnValue(of({ payload: { data: current } } as never)), publishToCore: jasmine.createSpy('publishToCore').and.returnValue(publish), publishPeopleToCore: jasmine.createSpy('publishPeopleToCore').and.returnValue(of({ payload: { data: { people: 118, received: 118 } } } as never)) };
-    TestBed.configureTestingModule({ imports: [ProfilesCoreComponent], providers: [provideNoopAnimations(), provideRouter([]), { provide: ProfilesService, useValue: service }] });
+    TestBed.configureTestingModule({ imports: [ProfilesCoreComponent], providers: [provideRouter([]), { provide: ProfilesService, useValue: service }] });
     const fixture = TestBed.createComponent(ProfilesCoreComponent);
     fixture.detectChanges();
 

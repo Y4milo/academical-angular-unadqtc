@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { NotificationService } from '../../../../services/notification.service';
 import { CaseActionResponse, UserCase, UserCasesPage, UserCasesService } from '../../../../services/user-cases.service';
@@ -38,7 +37,6 @@ describe('UserCasesComponent', () => {
     TestBed.configureTestingModule({
       imports: [UserCasesComponent],
       providers: [
-        provideNoopAnimations(),
         { provide: UserCasesService, useValue: service },
         { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'error']) },
       ],

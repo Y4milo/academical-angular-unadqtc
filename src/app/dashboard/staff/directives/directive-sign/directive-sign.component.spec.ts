@@ -1,4 +1,3 @@
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
@@ -63,8 +62,7 @@ describe('DirectiveSignComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DirectiveSignComponent],
       providers: [
-        provideRouter([]), provideNoopAnimations(),
-        { provide: DirectivesService, useValue: service },
+        provideRouter([]), { provide: DirectivesService, useValue: service },
         { provide: FirmaPeruSignerService, useValue: signer },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },
       ],

@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
@@ -40,7 +39,7 @@ describe('DirectiveDetailComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DirectiveDetailComponent],
       providers: [
-        provideRouter([]), provideNoopAnimations(), provideHttpClient(), provideHttpClientTesting(),
+        provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
         { provide: DirectivesService, useValue: service },
         { provide: NotificationService, useValue: notifications },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },

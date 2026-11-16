@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { DEFAULT_REVIEW_THRESHOLDS } from '../../../core/utils/photo-review.util';
@@ -42,7 +41,6 @@ describe('StudentCardRegistrationComponent', () => {
     TestBed.configureTestingModule({
       imports: [StudentCardRegistrationComponent],
       providers: [
-        provideNoopAnimations(),
         provideHttpClient(),
         provideRouter([]),
         { provide: StudentCardFlowService, useValue: flow },

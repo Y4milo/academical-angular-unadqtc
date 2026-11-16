@@ -90,7 +90,7 @@
               <input pInputText id="card-phone" formControlName="cellphone" inputmode="tel" autocomplete="tel" />
             </app-form-field>
             <app-form-field label="Fecha de nacimiento" for="card-birth" [required]="true" [error]="form.controls.birthdate.touched && form.controls.birthdate.invalid ? 'Elige tu fecha de nacimiento.' : ''">
-              <p-datepicker inputId="card-birth" formControlName="birthdate" dateFormat="dd/mm/yy" [showIcon]="true" [maxDate]="maxBirthdate" [yearNavigator]="true" yearRange="1940:2015" appendTo="body" styleClass="card-page__full" />
+              <p-datepicker inputId="card-birth" formControlName="birthdate" dateFormat="dd/mm/yy" [showIcon]="true" [maxDate]="maxBirthdate" appendTo="body" styleClass="card-page__full" />
             </app-form-field>
             <app-form-field label="Dirección de domicilio" for="card-address" [required]="true" [error]="form.controls.address.touched && form.controls.address.invalid ? 'Escribe tu dirección.' : ''">
               <textarea pTextarea id="card-address" formControlName="address" rows="2" autocomplete="street-address"></textarea>

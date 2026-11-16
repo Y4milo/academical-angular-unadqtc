@@ -231,7 +231,7 @@
             </ng-template>
           </p-dataview>
           <p-timeline [value]="timelineEvents">
-            <ng-template #content let-event><strong>{{ event.status }}</strong> <small>{{ event.date }}</small></ng-template>
+            <ng-template pTemplate="content" let-event><strong>{{ event.status }}</strong> <small>{{ event.date }}</small></ng-template>
           </p-timeline>
         </div>
 

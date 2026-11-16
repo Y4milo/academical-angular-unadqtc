@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ProfileDetail, ProfileItem, ProfilesService } from '../../../../services/profiles.service';
@@ -28,7 +27,7 @@ describe('ProfilesComponent', () => {
 
   function create(list = of({ status: 'success', payload: { data: { profiles, permissions: {} } } } as never)) {
     service = { list: jasmine.createSpy('list').and.returnValue(list), show: jasmine.createSpy('show').and.returnValue(of({ payload: { data: detail } } as never)), retire: jasmine.createSpy('retire').and.returnValue(of({} as never)) };
-    TestBed.configureTestingModule({ imports: [ProfilesComponent], providers: [provideNoopAnimations(), provideRouter([]), { provide: ProfilesService, useValue: service }] });
+    TestBed.configureTestingModule({ imports: [ProfilesComponent], providers: [provideRouter([]), { provide: ProfilesService, useValue: service }] });
     const fixture = TestBed.createComponent(ProfilesComponent);
     fixture.detectChanges();
 

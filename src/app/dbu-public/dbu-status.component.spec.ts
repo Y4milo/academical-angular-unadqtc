@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { DbuPublicAppointment, DbuPublicService, dbuErrorMessage } from './dbu-public.service';
@@ -19,7 +18,7 @@ describe('DbuStatusComponent', () => {
     service.cancel.calls.reset();
     await TestBed.configureTestingModule({
       imports: [DbuStatusComponent],
-      providers: [provideNoopAnimations(), provideRouter([]), { provide: DbuPublicService, useValue: service }],
+      providers: [provideRouter([]), { provide: DbuPublicService, useValue: service }],
     }).compileComponents();
   });
 

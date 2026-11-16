@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
@@ -24,7 +23,7 @@ describe('UserAccountsComponent', () => {
   function create(list = of({ status: 'success', payload: { data: rows } } as never)) {
     TestBed.configureTestingModule({
       imports: [UserAccountsComponent],
-      providers: [provideNoopAnimations(), provideRouter([]), { provide: UserAccountsService, useValue: { list: () => list } }],
+      providers: [provideRouter([]), { provide: UserAccountsService, useValue: { list: () => list } }],
     });
     const fixture = TestBed.createComponent(UserAccountsComponent);
     fixture.detectChanges();
@@ -83,7 +82,7 @@ describe('UserAccountSheetComponent', () => {
     TestBed.configureTestingModule({
       imports: [UserAccountSheetComponent],
       providers: [
-        provideNoopAnimations(), provideRouter([]), MessageService,
+        provideRouter([]), MessageService,
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '1' }) } } },
         { provide: UserAccountsService, useValue: service },
         { provide: NotificationService, useValue: { notifyApiData: () => undefined } },

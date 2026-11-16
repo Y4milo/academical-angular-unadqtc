@@ -2,7 +2,6 @@ import {provideHttpClient} from '@angular/common/http';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {Component} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {MessageService} from 'primeng/api';
 import {provideRouter, Router} from '@angular/router';
 import {LoginService} from '../../services/login.service';
@@ -22,7 +21,7 @@ describe('StaffMenuBaseComponent (marco único del personal)', () => {
   async function create(url: string) {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(), provideHttpClientTesting(), provideNoopAnimations(), MessageService,
+        provideHttpClient(), provideHttpClientTesting(), MessageService,
         provideRouter([
           {path: 'inicio', component: ScreenComponent},
           {path: 'grados', component: ScreenComponent, data: {banner: 'degrees-titles'}, children: [{path: 'registros', component: ScreenComponent}]},

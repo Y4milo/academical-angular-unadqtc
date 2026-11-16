@@ -1,6 +1,5 @@
 import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {Router, provideRouter} from '@angular/router';
 import {providePrimeNG} from 'primeng/config';
 import {of} from 'rxjs';
@@ -34,7 +33,6 @@ describe('StaffRoleLayoutComponent', () => {
     await TestBed.configureTestingModule({
       imports: [StaffRoleLayoutComponent],
       providers: [
-        provideNoopAnimations(),
         provideRouter([{path: 'hr/staff/reports', component: BlankComponent}, {path: '**', component: BlankComponent}]),
         providePrimeNG({theme: {preset: InstitutionalPreset, options: {darkModeSelector: '.app-dark'}}}),
         {provide: UsersService, useValue: {getStaffMenu, logoutStaff}},

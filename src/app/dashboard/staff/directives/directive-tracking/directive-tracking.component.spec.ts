@@ -1,6 +1,5 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { DirectiveEvent } from '../../../../services/directives.service';
 import { DirectiveTrackingComponent } from './directive-tracking.component';
 
@@ -19,7 +18,7 @@ describe('DirectiveTrackingComponent', () => {
   const event = (type: string, data: Record<string, unknown> = {}): DirectiveEvent => ({ type, version: 1, at: '2026-11-10T18:37:00Z', by: { id: 1, nick: 'yp', name: 'Yamil Peña', office: 'OTI' }, data });
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [HostComponent], providers: [provideNoopAnimations()] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [HostComponent], providers: [] }).compileComponents();
     fixture = TestBed.createComponent(HostComponent);
     fixture.autoDetectChanges();
     await fixture.whenStable();

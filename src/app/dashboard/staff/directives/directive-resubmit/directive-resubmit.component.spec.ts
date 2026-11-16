@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
@@ -39,7 +38,7 @@ describe('DirectiveResubmitComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DirectiveResubmitComponent],
       providers: [
-        provideRouter([]), provideNoopAnimations(), provideHttpClient(), provideHttpClientTesting(),
+        provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
         { provide: DirectivesService, useValue: service },
         { provide: NotificationService, useValue: notifications },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },
@@ -168,7 +167,7 @@ describe('DirectiveResubmitComponent', () => {
       expect(text('breadcrumb')).toContain('Corregir y reenviar');
       expect(text('next-version')).toContain('Versión');
       expect(text('returned-reason')).toContain('Por qué se devolvió');
-      expect(html().querySelector('[data-testid="returned-reason"] .p-message-warn')).not.toBeNull();
+      expect(html().querySelector('[data-testid="returned-reason"].p-message-warn')).not.toBeNull();
     });
 
     it('explains what will happen: the new version, the route from zero and the notice to the origin office', async () => {

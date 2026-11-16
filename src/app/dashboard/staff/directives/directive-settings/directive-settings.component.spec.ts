@@ -1,4 +1,3 @@
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { DirectiveSettings, DirectivesService } from '../../../../services/directives.service';
@@ -33,7 +32,7 @@ describe('DirectiveSettingsComponent', () => {
     service.settings.and.returnValue(of(ok(settings())));
     await TestBed.configureTestingModule({
       imports: [DirectiveSettingsComponent],
-      providers: [provideNoopAnimations(), { provide: DirectivesService, useValue: service }, { provide: NotificationService, useValue: notifications }],
+      providers: [{ provide: DirectivesService, useValue: service }, { provide: NotificationService, useValue: notifications }],
     }).compileComponents();
   });
 

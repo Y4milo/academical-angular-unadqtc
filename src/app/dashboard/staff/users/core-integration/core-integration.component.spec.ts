@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, Subject, throwError } from 'rxjs';
 import { CoreIntegrationService, CoreIntegrationSettings } from '../../../../services/core-integration.service';
 import { NotificationService } from '../../../../services/notification.service';
@@ -38,7 +37,7 @@ describe('CoreIntegrationComponent', () => {
     service.settings.and.returnValue(of(ok(settings())));
     await TestBed.configureTestingModule({
       imports: [CoreIntegrationComponent],
-      providers: [provideNoopAnimations(), { provide: CoreIntegrationService, useValue: service }, { provide: NotificationService, useValue: notifications }],
+      providers: [{ provide: CoreIntegrationService, useValue: service }, { provide: NotificationService, useValue: notifications }],
     }).compileComponents();
   });
 

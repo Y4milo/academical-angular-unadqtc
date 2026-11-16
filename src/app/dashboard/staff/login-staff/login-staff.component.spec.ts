@@ -2,7 +2,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 
 import { CoreSsoService } from '../core-sso/core-sso.service';
@@ -17,7 +16,6 @@ describe('LoginStaffComponent', () => {
       imports: [LoginStaffComponent],
       providers: [
         provideRouter([]),
-        provideNoopAnimations(),
         provideHttpClient(),
         provideHttpClientTesting(),
         MessageService,
