@@ -32,9 +32,9 @@ const typography = {
 };
 
 /**
- * Colors of the UNADQTC identity manual, taken from the signer (signner-app `unadqtc.preset.ts`): 500 of the primary is
- * the official cardinal red #D61016 and the neutral surfaces are the manual's. The only deviation is the dark primary:
- * the signer uses #E14E53 (4.19:1 as text on a dark card); #E7666B reaches 4.5:1 on cards and highlighted rows too.
+ * Colors of the UNADQTC identity manual, identical to the signer (signner-app `unadqtc.preset.ts`, owner's rule: both
+ * systems look the same): 500 of the primary is the official cardinal red #D61016, dark mode lightens it to #E14E53,
+ * and the neutral surfaces are the manual's. Do not tune a value here without changing the signer too.
  */
 export const InstitutionalPreset = definePreset(Aura, {
   components: typography,
@@ -77,7 +77,7 @@ export const InstitutionalPreset = definePreset(Aura, {
       },
       dark: {
         primary: {
-          color: '#E7666B',
+          color: '{primary.400}',
           contrastColor: '#18181B',
           hoverColor: '{primary.300}',
           activeColor: '{primary.200}',
