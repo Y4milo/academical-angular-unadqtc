@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { CoreSsoFailure, CoreSsoService } from './core-sso.service';
 import { CoreResultComponent } from './core-result.component';
@@ -32,7 +31,7 @@ describe('CoreResultComponent', () => {
     service.redirectUrl.and.returnValue('/api/auth/core/redirect');
     await TestBed.configureTestingModule({
       imports: [CoreResultComponent],
-      providers: [provideNoopAnimations(), { provide: CoreSsoService, useValue: service }],
+      providers: [{ provide: CoreSsoService, useValue: service }],
     }).compileComponents();
   });
 

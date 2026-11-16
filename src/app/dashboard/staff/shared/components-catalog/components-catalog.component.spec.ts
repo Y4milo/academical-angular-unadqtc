@@ -1,7 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { InstitutionalPreset } from '../../../../app.config';
@@ -14,7 +13,7 @@ describe('ComponentsCatalogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ComponentsCatalogComponent],
-      providers: [provideHttpClient(), provideRouter([]), MessageService, provideNoopAnimations(), providePrimeNG({ theme: { preset: InstitutionalPreset, options: { darkModeSelector: '.app-dark' } } })],
+      providers: [provideHttpClient(), provideRouter([]), MessageService, providePrimeNG({ theme: { preset: InstitutionalPreset, options: { darkModeSelector: '.app-dark' } } })],
     }).compileComponents();
   });
 
@@ -77,7 +76,7 @@ describe('ComponentsCatalogComponent', () => {
       await fixture.whenStable();
 
       const panel = root.querySelector<HTMLElement>(`p-tabpanel[ng-reflect-value="${section.value}"]`) ?? root;
-      expect(panel.querySelectorAll('ul:not([class*="p-"]):not([role])').length).withContext(section.label).toBe(0);
+      expect(panel.querySelectorAll('ul:not([class*="p-"]):not([role]):not([ppanelmenulist])').length).withContext(section.label).toBe(0);
     }
     // Lo que PrimeNG renderiza por dentro (tabla, botones) lleva sus clases; lo propio del catálogo no usa etiquetas sueltas.
     expect(root.querySelectorAll('app-components-catalog > .catalog > :not(header):not(p-tabs)').length).toBe(0);

@@ -2,9 +2,8 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeng/themes/aura';
-import {definePreset} from '@primeng/themes';
-import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
+import Aura from '@primeuix/themes/aura';
+import {definePreset} from '@primeuix/themes';
 import {MessageService} from 'primeng/api';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {credentialsInterceptor} from './interceptors/credentials.interceptor';
@@ -61,7 +60,6 @@ export const appConfig: ApplicationConfig = {
     ),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideAnimationsAsync(),
     providePrimeNG({
       theme: {
         preset: InstitutionalPreset,

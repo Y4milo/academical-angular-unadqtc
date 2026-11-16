@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { SemestersComponent } from './semesters.component';
 import { Semester, SemestersService } from '../../../../services/semesters.service';
@@ -22,7 +21,6 @@ describe('SemestersComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SemestersComponent],
       providers: [
-        provideNoopAnimations(),
         { provide: SemestersService, useValue: service },
         { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'error']) },
       ],

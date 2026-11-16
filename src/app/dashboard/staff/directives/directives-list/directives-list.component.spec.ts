@@ -1,4 +1,3 @@
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
@@ -36,7 +35,7 @@ describe('DirectivesListComponent', () => {
     service.list.and.returnValue(of(ok([summary(), summary({ id: 8, title: 'Directiva de viáticos', status: 'in_signature', status_label: 'En firma' })])));
     await TestBed.configureTestingModule({
       imports: [DirectivesListComponent],
-      providers: [provideRouter([]), provideNoopAnimations(), { provide: DirectivesService, useValue: service }, { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['notifyApiData', 'error']) }],
+      providers: [provideRouter([]), { provide: DirectivesService, useValue: service }, { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['notifyApiData', 'error']) }],
     }).compileComponents();
     router = TestBed.inject(Router);
   });

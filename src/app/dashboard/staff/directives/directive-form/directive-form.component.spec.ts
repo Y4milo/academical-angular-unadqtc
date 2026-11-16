@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -39,7 +38,7 @@ describe('DirectiveFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DirectiveFormComponent],
       providers: [
-        provideRouter([]), provideNoopAnimations(), provideHttpClient(), provideHttpClientTesting(),
+        provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
         { provide: DirectivesService, useValue: service },
         { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['notifyApiData', 'error']) },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(id ? { id } : {}) } } },
@@ -502,7 +501,7 @@ describe('DirectiveFormComponent', () => {
     await fixture.whenStable();
     expect(text('route-strip-title')).toBe('Ruta lista: 4 oficinas, todas con firmante designado');
     expect(fixture.componentInstance.routeStrip().severity).toBe('success');
-    expect(find('route-strip')!.querySelector('.p-message-success')).not.toBeNull();
+    expect(find('route-strip')!.classList.contains('p-message-success')).toBeTrue();
   });
 
   it('opens the route drawer from the strip', async () => {

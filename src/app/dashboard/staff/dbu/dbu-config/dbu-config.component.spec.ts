@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { DbuConfig, DbuConfigService } from '../../../../services/dbu-config.service';
 import { NotificationService } from '../../../../services/notification.service';
@@ -24,7 +23,6 @@ describe('DbuConfigComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DbuConfigComponent],
       providers: [
-        provideNoopAnimations(),
         { provide: DbuConfigService, useValue: { config: () => of({ status: 'success', payload: { data: config } }), logs: () => of({ status: 'success', payload: { data: [] } }) } },
         { provide: NotificationService, useValue: { notifyApiData: () => undefined } },
       ],

@@ -1,4 +1,3 @@
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DirectiveRoute } from '../../../../services/directives.service';
 import { holder, route } from '../testing/directive-fixtures';
@@ -19,7 +18,7 @@ describe('DirectiveRouteStepsComponent', () => {
   }
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [DirectiveRouteStepsComponent], providers: [provideNoopAnimations()] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [DirectiveRouteStepsComponent], providers: [] }).compileComponents();
   });
 
   it('shows each office with the person Core designated, the written title and the resolution', () => {

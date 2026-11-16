@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { NotificationService } from '../../../../services/notification.service';
 import { StudentModuleSwitch, StudentModulesService } from '../../../../services/student-modules.service';
@@ -20,7 +19,7 @@ describe('StudentModulesComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [StudentModulesComponent],
-      providers: [provideNoopAnimations(), { provide: StudentModulesService, useValue: service }, { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'error']) }],
+      providers: [{ provide: StudentModulesService, useValue: service }, { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'error']) }],
     });
     const fixture = TestBed.createComponent(StudentModulesComponent);
     fixture.autoDetectChanges();

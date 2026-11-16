@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { DbuQueueItem, DbuQueueResult, DbuQueueService } from '../../../../services/dbu-queue.service';
 import { NotificationService } from '../../../../services/notification.service';
@@ -32,7 +31,7 @@ describe('DbuQueueComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [DbuQueueComponent],
-      providers: [provideNoopAnimations(), { provide: DbuQueueService, useValue: service }, { provide: NotificationService, useValue: { notifyApiData: () => undefined } }],
+      providers: [{ provide: DbuQueueService, useValue: service }, { provide: NotificationService, useValue: { notifyApiData: () => undefined } }],
     }).compileComponents();
   });
 

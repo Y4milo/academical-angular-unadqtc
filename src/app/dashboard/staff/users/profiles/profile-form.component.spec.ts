@@ -1,5 +1,4 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ProfileItem, ProfilesIndex, ProfilesService } from '../../../../services/profiles.service';
@@ -34,7 +33,7 @@ describe('ProfileFormComponent', () => {
     };
     TestBed.configureTestingModule({
       imports: [ProfileFormComponent],
-      providers: [provideNoopAnimations(), provideRouter([]), { provide: ProfilesService, useValue: service },
+      providers: [provideRouter([]), { provide: ProfilesService, useValue: service },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(code ? { code } : {}) } } }],
     });
     navigate = spyOn(TestBed.inject(Router), 'navigateByUrl');

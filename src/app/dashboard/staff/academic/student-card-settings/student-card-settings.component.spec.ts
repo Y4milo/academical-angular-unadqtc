@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { NotificationService } from '../../../../services/notification.service';
 import { Semester, SemestersService } from '../../../../services/semesters.service';
@@ -36,7 +35,6 @@ describe('StudentCardSettingsComponent', () => {
     TestBed.configureTestingModule({
       imports: [StudentCardSettingsComponent],
       providers: [
-        provideNoopAnimations(),
         { provide: StudentCardModuleService, useValue: service },
         { provide: SemestersService, useValue: semesters },
         { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'error']) },
