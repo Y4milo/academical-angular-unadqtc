@@ -95,10 +95,14 @@ export interface ManualAttendanceRequest {
   reason: string;
   campus_id: number;
   source: ManualAttendanceSource;
+  day_role: DayRole;
   confirm_duplicate?: boolean;
 }
 
 export type PunchKind = 'entry' | 'exit' | 'outside';
+
+/** La marcación que quien registra elige a mano. */
+export type DayRole = 'entry' | 'lunch_out' | 'lunch_in' | 'exit';
 
 export interface PunchSlot {
   kind: PunchKind;
@@ -122,6 +126,7 @@ export interface ManualAttendanceResult {
     contract_type: string | null;
   };
   slot: PunchSlot;
+  day_role: DayRole | null;
   verified_in_core: boolean;
   warnings: string[];
 }
@@ -134,6 +139,7 @@ export interface ManualAttendanceRow {
   source: 'barcode' | 'keyboard';
   punch_kind: PunchKind | null;
   punch_status: string | null;
+  day_role: DayRole | null;
   reason: string | null;
 }
 

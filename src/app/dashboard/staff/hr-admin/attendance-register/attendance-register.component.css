@@ -144,3 +144,27 @@
     flex-wrap: wrap;
   }
 }
+
+.register-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.register-role-entry { color: var(--p-green-400, #4ade80); }
+.register-role-lunch { color: var(--p-orange-400, #fb923c); }
+.register-role-exit { color: var(--p-sky-400, #38bdf8); }
+
+.register-dup-text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+:host ::ng-deep .register-roles {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+:host ::ng-deep .register-roles .p-togglebutton {
+  flex: 1 1 10rem;
+}
