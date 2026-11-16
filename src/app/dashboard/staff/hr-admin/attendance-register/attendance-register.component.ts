@@ -6,10 +6,13 @@ import {TextareaModule} from 'primeng/textarea';
 import {SelectModule} from 'primeng/select';
 import {TagModule} from 'primeng/tag';
 import {TableModule} from 'primeng/table';
+import {SelectButtonModule} from 'primeng/selectbutton';
+import {DialogModule} from 'primeng/dialog';
 import {MessageModule} from 'primeng/message';
 import {SkeletonModule} from 'primeng/skeleton';
 import {
   AttendanceService,
+  DayRole,
   ManualAttendanceResult,
   ManualAttendanceRow,
   ManualAttendanceSource,
@@ -23,6 +26,7 @@ type Severity = 'success' | 'warn' | 'danger' | 'info';
 
 const CAMPUS_KEY = 'attendance-register.campus';
 const REASON_KEY = 'attendance-register.reason';
+const ROLE_KEY = 'attendance-register.day-role';
 const DNI_LENGTH = 8;
 /** Un lector de barras escribe los 8 dígitos en una ráfaga: por debajo de este promedio entre teclas no es una persona escribiendo. */
 const SCANNER_MAX_MS_PER_KEY = 35;
@@ -34,7 +38,7 @@ const SCANNER_MAX_MS_PER_KEY = 35;
 @Component({
   selector: 'app-attendance-register',
   standalone: true,
-  imports: [FormsModule, ButtonModule, InputTextModule, TextareaModule, SelectModule, TagModule, TableModule, MessageModule, SkeletonModule],
+  imports: [FormsModule, ButtonModule, InputTextModule, TextareaModule, SelectModule, TagModule, TableModule, MessageModule, SkeletonModule, SelectButtonModule, DialogModule],
   templateUrl: './attendance-register.component.html',
   styleUrl: './attendance-register.component.css',
 })
@@ -49,6 +53,15 @@ export class AttendanceRegisterComponent implements OnInit {
   campusId: number | null = null;
   reason = '';
   dni = '';
+  dayRole: DayRole = 'entry';
+  readonly dayRoles: {value: DayRole; label: string; icon: string; tone: string}[] = [
+    {value: 'entry', label: 'Entrada', icon: 'pi pi-sign-in', tone: 'entry'},
+    {value: 'lunch_out', label: 'Salida a almuerzo', icon: 'pi pi-clock', tone: 'lunch'},
+    {value: 'lunch_in', label: 'Regreso de almuerzo', icon: 'pi pi-replay', tone: 'lunch'},
+    {value: 'exit', label: 'Salida', icon: 'pi pi-sign-out', tone: 'exit'},
+  ];
+  /** Una marcación repetida espera la decisión de quien registra: se registra de todos modos o se descarta. */
+  duplicateVisible = false;
 
   sending = false;
   loadingToday = true;
@@ -70,6 +83,8 @@ export class AttendanceRegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.reason = this.read(REASON_KEY) ?? '';
+    const savedRole = this.read(ROLE_KEY);
+    this.dayRole = this.dayRoles.some((r) => r.value === savedRole) ? (savedRole as DayRole) : 'entry';
     const saved = Number(this.read(CAMPUS_KEY));
 
     this.dictionaryService.getCampusList().subscribe({
@@ -89,6 +104,11 @@ export class AttendanceRegisterComponent implements OnInit {
   onCampusChange(): void {
     this.write(CAMPUS_KEY, String(this.campusId ?? ''));
     this.loadToday();
+    this.focusDni();
+  }
+
+  onDayRoleChange(): void {
+    this.write(ROLE_KEY, this.dayRole);
     this.focusDni();
   }
 
@@ -179,6 +199,7 @@ export class AttendanceRegisterComponent implements OnInit {
       reason: this.reason.trim(),
       campus_id: this.campusId!,
       source: this.detectSource(),
+      day_role: this.dayRole,
       confirm_duplicate: confirmDuplicate,
     }).subscribe({
       next: (res) => {
@@ -198,11 +219,11 @@ export class AttendanceRegisterComponent implements OnInit {
           message: payload.message ?? 'Intente de nuevo.',
           reason: payload.reason ?? 'unknown',
         };
-        // Un duplicado espera confirmación: se conserva el DNI. Cualquier otro aviso deja listo el campo para la siguiente persona.
-        if (this.notice.reason !== 'duplicate') {
-          this.resetDni();
+        // Un duplicado espera la decisión en un modal: se conserva el DNI. Cualquier otro aviso deja listo el campo para la siguiente persona.
+        if (this.notice.reason === 'duplicate') {
+          this.duplicateVisible = true;
         } else {
-          this.focusDni();
+          this.resetDni();
         }
       },
       error: () => {
@@ -211,6 +232,26 @@ export class AttendanceRegisterComponent implements OnInit {
         this.focusDni();
       },
     });
+  }
+
+  confirmDuplicate(): void {
+    this.duplicateVisible = false;
+    this.submit(true);
+  }
+
+  /** «No registrar»: se descarta la lectura y el campo queda listo para la siguiente persona. */
+  discardDuplicate(): void {
+    this.duplicateVisible = false;
+    this.notice = null;
+    this.resetDni();
+  }
+
+  roleLabel(role: DayRole | null | undefined): string | null {
+    return this.dayRoles.find((r) => r.value === role)?.label ?? null;
+  }
+
+  roleTone(role: DayRole | null | undefined): Severity {
+    return role === 'entry' ? 'success' : role === 'exit' ? 'info' : role ? 'warn' : 'info';
   }
 
   severity(status: string | null | undefined): Severity {

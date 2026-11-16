@@ -37,6 +37,24 @@
   </div>
 </div>
 
+<div class="flex flex-column gap-2 mb-3">
+  <label class="form-label" id="day-role-label">Marcación</label>
+  <p-selectbutton
+    [options]="dayRoles"
+    [(ngModel)]="dayRole"
+    optionLabel="label"
+    optionValue="value"
+    [allowEmpty]="false"
+    styleClass="register-roles"
+    ariaLabelledBy="day-role-label"
+    (onChange)="onDayRoleChange()">
+    <ng-template #item let-item>
+      <span class="register-role"><i [class]="item.icon + ' register-role-' + item.tone" aria-hidden="true"></i>{{ item.label }}</span>
+    </ng-template>
+  </p-selectbutton>
+  <small class="register-hint">Se queda elegida para las siguientes personas, igual que la sede y el motivo.</small>
+</div>
+
 <div class="register-scan">
   <label class="form-label" for="dni">Escanee el DNI o escríbalo y presione Enter</label>
   <div class="register-scan-row">
@@ -89,7 +107,7 @@
         @if (result.person.contract_type) { · {{ result.person.contract_type }} }
       </div>
       <div class="register-slot">
-        <p-tag [value]="kindLabel(result.slot.kind)" [severity]="severity(result.slot.status)"/>
+        <p-tag [value]="roleLabel(result.day_role) ?? kindLabel(result.slot.kind)" [severity]="result.day_role ? roleTone(result.day_role) : severity(result.slot.status)"/>
         <span>{{ result.slot.label }}</span>
         @if (result.slot.scheduled) {
           <span class="register-hint">(horario: {{ result.slot.scheduled }})</span>
@@ -106,14 +124,26 @@
   </div>
 }
 
-@if (notice) {
+@if (notice && notice.reason !== 'duplicate') {
   <div class="register-notice" role="alert">
-    <p-message [severity]="notice.reason === 'duplicate' ? 'warn' : 'error'" [text]="notice.title + ': ' + notice.message"/>
-    @if (notice.reason === 'duplicate') {
-      <p-button label="Registrar de todos modos" severity="secondary" icon="pi pi-replay" (onClick)="submit(true)"/>
-    }
+    <p-message severity="error" [text]="notice.title + ': ' + notice.message"/>
   </div>
 }
+
+<p-dialog
+  [(visible)]="duplicateVisible"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  header="Marcación repetida"
+  [style]="{ width: '28rem', maxWidth: '95vw' }"
+  [closeOnEscape]="false">
+  <p class="register-dup-text">{{ notice?.message }}</p>
+  <ng-template #footer>
+    <p-button label="No registrar" severity="secondary" icon="pi pi-times" (onClick)="discardDuplicate()"/>
+    <p-button label="Registrar de todos modos" icon="pi pi-check" (onClick)="confirmDuplicate()"/>
+  </ng-template>
+</p-dialog>
 
 <div class="register-today">
   <h4>Últimas lecturas de hoy</h4>
@@ -135,7 +165,7 @@
         <td>{{ row.dni }}</td>
         <td>{{ row.full_name ?? '—' }}</td>
         <td>{{ row.profile_type ?? '—' }}</td>
-        <td><p-tag [value]="kindLabel(row.punch_kind)" [severity]="severity(row.punch_status)"/></td>
+        <td><p-tag [value]="roleLabel(row.day_role) ?? kindLabel(row.punch_kind)" [severity]="row.day_role ? roleTone(row.day_role) : severity(row.punch_status)"/></td>
         <td>{{ sourceLabel(row.source) }}</td>
         <td class="register-reason" [title]="row.reason">{{ row.reason }}</td>
       </tr>
