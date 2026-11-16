@@ -96,6 +96,11 @@
       <p-button label="Cerrar sesión" severity="secondary" [text]="true" size="small" [loading]="loggingOut()" data-testid="logout" (onClick)="logout()">
         <ng-template #icon><app-lucide-icon name="log-out" [size]="16"></app-lucide-icon></ng-template>
       </p-button>
+      @if (canCloseCore()) {
+        <p-button label="Cerrar también en Core" severity="secondary" [text]="true" size="small" [loading]="loggingOut()" data-testid="logout-core" (onClick)="logout(true)">
+          <ng-template #icon><app-lucide-icon name="log-out" [size]="16"></app-lucide-icon></ng-template>
+        </p-button>
+      }
     </div>
   </div>
 </ng-template>

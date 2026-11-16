@@ -212,6 +212,13 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/staff/users/core-integration/core-integration.component').then(m => m.CoreIntegrationComponent)
       },
       {
+        // «Seguridad de sesión»: los tiempos de cierre automático de sesión; solo el administrador (el API también lo exige).
+        path: PATHS.sessionSecurity.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin], permissions: ['users.manage']},
+        loadComponent: () => import('./dashboard/staff/users/session-security/session-security.component').then(m => m.SessionSecurityComponent)
+      },
+      {
         // Perfiles: una sola dirección para el administrador y Recursos humanos; el API decide qué ve y qué puede dar cada uno.
         path: PATHS.profiles.path,
         canActivate: [AuthRoleGuard],

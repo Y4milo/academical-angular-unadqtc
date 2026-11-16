@@ -26,7 +26,8 @@ export class UsersService {
     return this.http.post<ApiData<null>>(`${this.apiURL}/users/v1/staff/change-password`, passwordData);
   }
 
-  logoutStaff(): Observable<ApiData<StaffLogoutDestination>> {
-    return this.http.post<ApiData<StaffLogoutDestination>>(`${this.apiURL}/users/v1/staff/logout`, {});
+  /** Con `everywhere` («Cerrar también en Core») el API manda al navegador a Core para que cierre también su sesión. */
+  logoutStaff(everywhere = false): Observable<ApiData<StaffLogoutDestination>> {
+    return this.http.post<ApiData<StaffLogoutDestination>>(`${this.apiURL}/users/v1/staff/logout`, everywhere ? {everywhere: true} : {});
   }
 }

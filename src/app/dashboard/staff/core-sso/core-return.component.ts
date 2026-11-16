@@ -37,7 +37,7 @@ export class CoreReturnComponent implements OnInit {
       next: response => {
         if (response.status !== STATUS.success) return this.goToLogin();
 
-        const user = this.loginService.setUser(response);
+        const user = this.loginService.setUser(response, 'core');
         void this.router.navigateByUrl(home_link[user.role.value as HomeKey] ?? PATHS.login.staff);
       },
       error: () => this.goToLogin(),
