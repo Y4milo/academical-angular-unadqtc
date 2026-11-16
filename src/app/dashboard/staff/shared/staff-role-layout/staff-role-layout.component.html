@@ -60,7 +60,7 @@
     <p-panelmenu [model]="model" [multiple]="false" styleClass="shell__menu">
       <ng-template #item let-item>
         @if (item.routerLink) {
-          <a class="shell__link" [routerLink]="item.routerLink" routerLinkActive="is-active" (click)="closeDrawer()">
+          <a class="shell__link" [routerLink]="item.routerLink" routerLinkActive="is-active" [routerLinkActiveOptions]="item.routerLinkActiveOptions ?? {exact: false}" (click)="closeDrawer()">
             @if (item.icon) {
               <app-lucide-icon class="shell__link-icon" [name]="item.icon" [size]="18"></app-lucide-icon>
             }
