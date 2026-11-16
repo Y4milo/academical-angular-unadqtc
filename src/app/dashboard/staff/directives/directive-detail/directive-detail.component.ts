@@ -30,6 +30,9 @@ import { MAX_PDF_BYTES } from '../directive-form/directive-form.component';
 import { PageCount, countPdfPages, pagesLabel, pagesTag } from '../pdf-pages';
 import { documentTypeColor, documentTypeText } from '../document-type';
 import { DIRECTIVE_EVENT_LABELS, DIRECTIVE_NOTICE_FAILURES, DIRECTIVE_NOTICE_LABELS, DIRECTIVE_PROGRESS, DIRECTIVE_PROGRESS_CANCELLED, DIRECTIVE_PROGRESS_RETURNED, DIRECTIVE_SIGNED_FAILURES, DIRECTIVE_STATUS, STEP_ROLE, formatBytes } from '../directive-status';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {lucideClass} from '../../../../core/utils/lucide-icon.util';
+import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 
 /** Un PDF elegido para reemplazar a otro del borrador, con sus páginas contadas en el navegador. */
 interface StagedPdf {
@@ -43,7 +46,7 @@ interface StagedPdf {
  */
 @Component({
   selector: 'app-directive-detail',
-  imports: [DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, MenuModule, PanelModule, ConfirmDialogModule, DialogModule, FileUploadModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [LucideClassPipe, AppLucideIconComponent, DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, MenuModule, PanelModule, ConfirmDialogModule, DialogModule, FileUploadModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   providers: [ConfirmationService],
   templateUrl: './directive-detail.component.html',
   styleUrl: './directive-detail.component.css',
@@ -105,10 +108,10 @@ export class DirectiveDetailComponent implements OnInit {
     if (!current) return [];
     const items: MenuItem[] = [];
     if (current.can_edit) {
-      items.push({ label: 'Corregir datos y archivos', icon: 'pi pi-pencil', command: () => this.edit() });
-      items.push({ label: 'Eliminar borrador', icon: 'pi pi-trash', styleClass: 'menu-danger', command: () => this.askDelete() });
+      items.push({ label: 'Corregir datos y archivos', icon: lucideClass('pencil'), command: () => this.edit() });
+      items.push({ label: 'Eliminar borrador', icon: lucideClass('trash-2'), styleClass: 'menu-danger', command: () => this.askDelete() });
     }
-    if (current.can_cancel) items.push({ label: 'Anular documento', icon: 'pi pi-ban', styleClass: 'menu-danger', command: () => this.openCancel() });
+    if (current.can_cancel) items.push({ label: 'Anular documento', icon: lucideClass('ban'), styleClass: 'menu-danger', command: () => this.openCancel() });
 
     return items;
   });

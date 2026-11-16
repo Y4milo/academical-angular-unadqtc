@@ -52,7 +52,8 @@
     </p-datePicker>
   </div>
 
-  <p-button type="submit" icon="pi pi-search" label="Consultar"></p-button>
+  <p-button type="submit" label="Consultar">
+    <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template></p-button>
 </form>
 
 <div class="attendance-presets">
@@ -89,12 +90,13 @@
     </div>
 
     <p-button
-      icon="pi pi-file-excel"
+     
       label="Descargar Excel"
       severity="secondary"
       [outlined]="true"
       size="small"
-      (onClick)="downloadAttendancesExcel()"></p-button>
+      (onClick)="downloadAttendancesExcel()">
+      <ng-template #icon><app-lucide-icon name="file-spreadsheet" [size]="16" /></ng-template></p-button>
   </div>
 
   <dl class="profile-facts">

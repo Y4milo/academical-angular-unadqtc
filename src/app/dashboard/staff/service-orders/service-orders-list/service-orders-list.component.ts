@@ -8,11 +8,12 @@ import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { ServiceOrderSummary, ServiceOrdersService } from '../../../../services/service-orders.service';
 import { NotificationService } from '../../../../services/notification.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 /** Órdenes de servicio del contratista, con cuántos entregables ya tienen su conformidad. */
 @Component({
   selector: 'app-service-orders-list',
-  imports: [ButtonModule, MessageModule, SkeletonModule, TagModule],
+  imports: [AppLucideIconComponent, ButtonModule, MessageModule, SkeletonModule, TagModule],
   templateUrl: './service-orders-list.component.html',
   styleUrl: './service-orders-list.component.css',
 })

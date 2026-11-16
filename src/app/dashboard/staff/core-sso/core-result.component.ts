@@ -1,6 +1,9 @@
 import { Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { CoreSsoFailure, CoreSsoService } from './core-sso.service';
+import {AppLucideIconComponent} from '../../../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../../../core/pipes/lucide-class.pipe';
+import {lucideClass} from '../../../core/utils/lucide-icon.util';
 
 type Tone = 'warn' | 'danger' | 'info';
 
@@ -18,28 +21,28 @@ interface ResultCopy {
 /** Lo que se le dice a la persona por cada motivo (los códigos los fija el API; nunca se muestra texto técnico). */
 export const CORE_RESULT_COPY: Record<string, ResultCopy> = {
   not_linked: {
-    icon: 'pi-link',
+    icon: lucideClass('link'),
     tone: 'warn',
     title: 'Tu cuenta de Core aún no está vinculada',
     body: 'Entraste a Core correctamente, pero todavía no tienes un usuario de Academical asociado a esa cuenta.',
     todo: 'Pide a la Oficina de Tecnologías de la Información que vincule tu cuenta. Menciona el código para que la encuentren más rápido.',
   },
   inactive: {
-    icon: 'pi-user-minus',
+    icon: lucideClass('user-minus'),
     tone: 'warn',
     title: 'Tu usuario de Academical está inactivo',
     body: 'Tu cuenta de Core funciona, pero tu usuario en Academical está desactivado.',
     todo: 'Comunícate con la Oficina de Tecnologías de la Información para reactivarlo y menciona el código.',
   },
   core_unreachable: {
-    icon: 'pi-wifi',
+    icon: lucideClass('wifi'),
     tone: 'danger',
     title: 'No pudimos conectar con Core',
     body: 'Tu sesión de Core sigue abierta. El problema suele ser temporal: vuelve a intentarlo en unos segundos.',
     retry: true,
   },
   access_denied: {
-    icon: 'pi-times-circle',
+    icon: lucideClass('circle-x'),
     tone: 'info',
     title: 'Cancelaste el ingreso con Core',
     body: 'No se abrió ninguna sesión en Academical. Puedes intentarlo de nuevo cuando quieras.',
@@ -48,7 +51,7 @@ export const CORE_RESULT_COPY: Record<string, ResultCopy> = {
 };
 
 export const CORE_RESULT_GENERIC: ResultCopy = {
-  icon: 'pi-exclamation-triangle',
+  icon: lucideClass('triangle-alert'),
   tone: 'danger',
   title: 'No pudimos completar el ingreso',
   body: 'Algo falló al entrar con tu cuenta de Core. No se abrió ninguna sesión en Academical.',
@@ -63,7 +66,7 @@ export const CORE_RESULT_GENERIC: ResultCopy = {
  */
 @Component({
   selector: 'app-core-result',
-  imports: [ButtonModule],
+  imports: [LucideClassPipe, AppLucideIconComponent, ButtonModule],
   templateUrl: './core-result.component.html',
   styleUrl: './core-result.component.css',
 })

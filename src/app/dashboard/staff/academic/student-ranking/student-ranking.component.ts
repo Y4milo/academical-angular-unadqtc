@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {ButtonDirective} from 'primeng/button';
+import {ButtonModule} from 'primeng/button';
 import {Card} from 'primeng/card';
 import {TableModule} from 'primeng/table';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -13,11 +13,12 @@ import {STATUS} from '../../../../core/constants/api-status.constants';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {Select} from 'primeng/select';
 import {FormFieldComponent} from '../../../../core/components/form-field.component';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 @Component({
   selector: 'app-student-ranking',
-  imports: [
-    ButtonDirective,
+  imports: [AppLucideIconComponent, 
+    ButtonModule,
     Card,
     TableModule,
     FormsModule,

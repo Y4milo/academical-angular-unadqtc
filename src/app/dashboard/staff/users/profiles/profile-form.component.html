@@ -99,7 +99,9 @@
 
     <div class="pform__actions">
       @if (!readOnly()) {
-        <p-button label="Guardar" icon="pi pi-check" [disabled]="!canSave" [loading]="saving()" (onClick)="save()" />
+        <p-button label="Guardar" [disabled]="!canSave" [loading]="saving()" (onClick)="save()">
+          <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template>
+        </p-button>
         <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()" />
       } @else {
         <p-button label="Volver" severity="secondary" [outlined]="true" (onClick)="cancel()" />

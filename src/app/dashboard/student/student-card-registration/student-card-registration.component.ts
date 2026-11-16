@@ -30,6 +30,7 @@ import { CardFlowState, CardSubmitResult, StudentCardFlowService } from '../../.
 import { StudentCardService } from '../../../services/student-card.service';
 import { StudentService } from '../../../services/student.service';
 import { NotificationService } from '../../../services/notification.service';
+import {LucideClassPipe} from '../../../core/pipes/lucide-class.pipe';
 
 type Severity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
 
@@ -43,7 +44,7 @@ const CARD_STATUS: Record<string, { label: string; severity: Severity }> = {
 /** Carné universitario del estudiante: datos de contacto, DNI solo sin foto previa y foto del carné. */
 @Component({
   selector: 'app-student-card-registration',
-  imports: [
+  imports: [LucideClassPipe, 
     DatePipe, FormsModule, AccordionModule, ReactiveFormsModule, ButtonModule, CardModule, CheckboxModule, DatePickerModule, DialogModule, FileUploadModule, ImageModule,
     InputTextModule, MessageModule, SkeletonModule, StepsModule, TagModule, TextareaModule, AppLucideIconComponent, FormFieldComponent,
   ],

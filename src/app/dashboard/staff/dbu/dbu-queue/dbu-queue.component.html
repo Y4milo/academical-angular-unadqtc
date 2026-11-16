@@ -18,7 +18,7 @@
       <p-button label="Hoy" severity="secondary" [text]="true" size="small" (onClick)="today()"></p-button>
     </div>
     <p-iconfield class="queue-search">
-      <p-inputicon styleClass="pi pi-search"></p-inputicon>
+      <p-inputicon><app-lucide-icon name="search" size="1em" /></p-inputicon>
       <input pInputText type="search" [(ngModel)]="search" (keyup.enter)="load()" placeholder="Buscar alumno o código" aria-label="Buscar" />
     </p-iconfield>
     <p-select [options]="statusOptions" optionLabel="label" optionValue="value" [(ngModel)]="status" (onChange)="load()" appendTo="body" aria-label="Estado"></p-select>

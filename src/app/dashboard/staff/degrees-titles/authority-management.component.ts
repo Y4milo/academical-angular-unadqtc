@@ -42,6 +42,8 @@ import {
   INSTITUTIONAL_EMAIL_DOMAIN, isInstitutionalEmail, isResponsibleRole, isStaleSnapshot, maskDni, missingResolvedFields, personLabel, roleTitle,
   snapshotLabel, snapshotSeverity, sourceLabel, tenureLabel, vigencyColor, vigencyPercent,
 } from './degree-general-data.util';
+import {AppLucideIconComponent} from '../../../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../../../core/pipes/lucide-class.pipe';
 
 type StatusFilter = 'all' | 'active' | 'previous';
 type SortOrder = 'desc' | 'asc';
@@ -60,7 +62,7 @@ interface FieldRow {
 
 @Component({
   selector: 'app-authority-management',
-  imports: [
+  imports: [LucideClassPipe, AppLucideIconComponent, 
     Avatar, AuthorityDesignationFormComponent, BadgeModule, ButtonModule, DatePipe, DialogModule, FormsModule, IconFieldModule, InputIconModule,
     FormFieldComponent, InputTextModule, MessageModule, NgFor, NgIf, PageHeaderComponent, ProgressBarModule, Select, SelectButtonModule, SkeletonModule,
     StatusTagComponent, TableModule, TabsModule, Textarea, TimelineModule,

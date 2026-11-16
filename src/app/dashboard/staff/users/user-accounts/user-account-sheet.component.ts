@@ -20,6 +20,7 @@ import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { AccountHolder, AccountHolders, CorePersonLookup, UserAccountsService } from '../../../../services/user-accounts.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { HOLDER_EXPIRING_DAYS, KIND_LABELS } from './user-accounts.component';
+import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 
 type Severity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
 type LookupState = 'idle' | 'loading' | 'found' | 'missing' | 'error';
@@ -29,7 +30,7 @@ const MS_PER_DAY = 86_400_000;
 /** Ficha de una cuenta funcional: quién la usa hoy, con qué orden de servicio, y el historial. El titular solo lo ve el administrador. */
 @Component({
   selector: 'app-user-account-sheet',
-  imports: [
+  imports: [LucideClassPipe, 
     DatePipe, FormsModule, RouterLink, ButtonModule, DatePickerModule, DialogModule, InputTextModule, MessageModule, SharedModule, ProgressBarModule, SelectModule,
     SkeletonModule, TimelineModule, AppLucideIconComponent, FormFieldComponent, StatusTagComponent,
   ],

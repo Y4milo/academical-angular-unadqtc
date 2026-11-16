@@ -19,6 +19,7 @@ import {
   DbuPublicAppointment, DbuPublicAvailability, DbuPublicConfig, DbuPublicDay, DbuPublicService, dbuErrorMessage,
 } from './dbu-public.service';
 import { TurnstileWidgetComponent } from './turnstile-widget';
+import {AppLucideIconComponent} from '../core/components/lucide-icon/lucide-icon.component';
 
 type Step = 'identity' | 'email' | 'code' | 'choose' | 'done';
 
@@ -30,7 +31,7 @@ interface Option { label: string; value: string; disabled?: boolean }
 @Component({
   selector: 'app-dbu-booking',
   standalone: true,
-  imports: [
+  imports: [AppLucideIconComponent, 
     FormsModule, RouterLink, ButtonModule, CardModule, InputOtpModule, InputTextModule, MessageModule, Select, SelectButtonModule,
     SkeletonModule, StepsModule, TextareaModule, TestModeBannerComponent, TurnstileWidgetComponent,
   ],

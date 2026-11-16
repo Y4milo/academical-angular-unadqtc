@@ -9,6 +9,7 @@ import { FormFieldComponent } from '../../../../core/components/form-field.compo
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import { ServiceOrdersConfig, ServiceOrdersService, SignatureKind } from '../../../../services/service-orders.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 interface SettingField {
   key: string;
@@ -33,7 +34,7 @@ const SUFFIXES: SettingField[] = [
 /** Autoridades y numeración de las cartas e informes de conformidad. */
 @Component({
   selector: 'app-service-orders-config',
-  imports: [FormsModule, ButtonModule, InputNumberModule, InputTextModule, MessageModule, SkeletonModule, FormFieldComponent],
+  imports: [AppLucideIconComponent, FormsModule, ButtonModule, InputNumberModule, InputTextModule, MessageModule, SkeletonModule, FormFieldComponent],
   templateUrl: './service-orders-config.component.html',
   styleUrl: './service-orders-config.component.css',
 })

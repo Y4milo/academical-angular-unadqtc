@@ -5,7 +5,7 @@
       <p>Completa los cuatro pasos. Antes de enviarlo verás quién firma en cada oficina y podrás revisar todo.</p>
     </div>
     <div class="header-actions">
-      <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
+      <app-directive-log-drawer label="Ruta de firmas" icon="network" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
         @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
         <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</p>
         @if (!origin()) {
@@ -36,7 +36,8 @@
             <strong data-testid="route-strip-title">{{ routeStrip().title }}</strong>
             <small>{{ routeStrip().text }}</small>
           </span>
-          <p-button label="Ver ruta" icon="pi pi-sitemap" [severity]="routeStrip().severity" [outlined]="true" size="small" [disabled]="!origin()" data-testid="route-strip-open" (onClick)="routeOpen.set(true)"></p-button>
+          <p-button label="Ver ruta" [severity]="routeStrip().severity" [outlined]="true" size="small" [disabled]="!origin()" data-testid="route-strip-open" (onClick)="routeOpen.set(true)">
+            <ng-template #icon><app-lucide-icon name="network" [size]="16" /></ng-template></p-button>
         </div>
       </p-message>
 
@@ -49,12 +50,13 @@
           </div>
           @if (fixedOrigin()) {
             <div class="origin-card" data-testid="origin-card">
-              <span class="pi pi-building origin-card__icon" aria-hidden="true"></span>
+              <app-lucide-icon name="building-2" size="1em" class="origin-card__icon" />
               <div class="origin-card__text">
                 <strong data-testid="origin-name">{{ originName() }}</strong>
                 <small class="field-hint">{{ editing() ? 'Fijada al crear el borrador. Si necesitas otra oficina, elimina el borrador y crea uno nuevo.' : 'Fijada por tu perfil en Core.' }}</small>
               </div>
-              <p-tag [value]="editing() ? 'No editable' : 'Por tu perfil'" [severity]="editing() ? 'secondary' : 'info'" icon="pi pi-lock" data-testid="origin-tag"></p-tag>
+              <p-tag [value]="editing() ? 'No editable' : 'Por tu perfil'" [severity]="editing() ? 'secondary' : 'info'" data-testid="origin-tag">
+                <ng-template #icon><app-lucide-icon name="lock" [size]="14" /></ng-template></p-tag>
             </div>
           } @else {
             <div data-testid="origin-choice" class="field">
@@ -127,7 +129,7 @@
             <div class="field">
               <span class="label" id="directive-file-label">Documento de gestión (PDF){{ editing() ? '' : ' *' }}</span>
               <div class="dropzone" [class.dropzone--over]="dragging() === 'directive'" [class.dropzone--filled]="!!directiveFile()" [class.dropzone--error]="(submitted() || fileError().directive) && !!errors()['directive']" data-testid="drop-directive" (dragover)="dragOver('directive', $event)" (dragleave)="dragging.set(null)" (drop)="dropFile('directive', $event)">
-                <span class="pi pi-file-pdf dropzone__icon" aria-hidden="true"></span>
+                <app-lucide-icon name="file-text" size="1em" class="dropzone__icon" />
                 <div class="dropzone__text">
                   @if (directiveFile(); as file) {
                     <strong class="file-name" data-testid="directive-file">{{ file.name }} · {{ formatBytes(file.size) }}</strong>
@@ -140,7 +142,7 @@
                     <small class="field-hint">Se firma en Academical por las oficinas de la ruta.</small>
                   }
                 </div>
-                <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar' : (editing() ? 'Reemplazar' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar' : (editing() ? 'Reemplazar' : 'Elegir PDF')" [chooseIcon]="'upload' | lucideClass" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'directive-file-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
               </div>
               @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
             </div>
@@ -148,7 +150,7 @@
             <div class="field">
               <span class="label" id="resolution-file-label">Resolución que lo aprueba (PDF){{ editing() ? '' : ' *' }}</span>
               <div class="dropzone" [class.dropzone--over]="dragging() === 'resolution'" [class.dropzone--filled]="!!resolutionFile()" [class.dropzone--error]="(submitted() || fileError().resolution) && !!errors()['resolution']" data-testid="drop-resolution" (dragover)="dragOver('resolution', $event)" (dragleave)="dragging.set(null)" (drop)="dropFile('resolution', $event)">
-                <span class="pi pi-file-pdf dropzone__icon" aria-hidden="true"></span>
+                <app-lucide-icon name="file-text" size="1em" class="dropzone__icon" />
                 <div class="dropzone__text">
                   @if (resolutionFile(); as file) {
                     <strong class="file-name" data-testid="resolution-file">{{ file.name }} · {{ formatBytes(file.size) }}</strong>
@@ -161,7 +163,7 @@
                     <small class="field-hint">Solo se adjunta, no se firma. Puede venir ya firmada.</small>
                   }
                 </div>
-                <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar' : (editing() ? 'Reemplazar' : 'Elegir PDF')" chooseIcon="pi pi-upload" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar' : (editing() ? 'Reemplazar' : 'Elegir PDF')" [chooseIcon]="'upload' | lucideClass" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" [attr.aria-labelledby]="'resolution-file-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
               </div>
               @if ((submitted() || fileError().resolution) && errors()['resolution']; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
             </div>

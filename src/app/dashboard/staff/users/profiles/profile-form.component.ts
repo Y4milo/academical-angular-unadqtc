@@ -15,6 +15,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { StatusTagComponent } from '../../../../core/components/status-tag.component';
 import { MODULE_LABELS, PermissionOption, ProfileInput, ProfileItem, ProfilesService, profileError } from '../../../../services/profiles.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 /** Un módulo del formulario: el permiso de todo el módulo (si lo tiene) y las demás filas, una por pantalla o permiso. */
 export interface PermissionModule {
@@ -38,7 +39,7 @@ const HIDE_ONLY = ['student_card.ranking', 'student_card.average'];
  */
 @Component({
   selector: 'app-profile-form',
-  imports: [FormsModule, ButtonModule, CheckboxModule, DialogModule, InputTextModule, MessageModule, PanelModule, PanelMenuModule, SelectButtonModule, SkeletonModule, TextareaModule, StatusTagComponent],
+  imports: [AppLucideIconComponent, FormsModule, ButtonModule, CheckboxModule, DialogModule, InputTextModule, MessageModule, PanelModule, PanelMenuModule, SelectButtonModule, SkeletonModule, TextareaModule, StatusTagComponent],
   templateUrl: './profile-form.component.html',
   styleUrl: './profile-form.component.css',
 })

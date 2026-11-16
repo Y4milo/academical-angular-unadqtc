@@ -50,7 +50,8 @@
               @if (turnstileFailed()) { <small class="hint">No pudimos cargar la verificación de seguridad. Recarga la página.</small> }
             }
             <div class="dbu-actions">
-              <p-button label="Continuar" icon="pi pi-arrow-right" iconPos="right" [loading]="busy()" [disabled]="!canSubmitIdentity()" (onClick)="submitIdentity()"></p-button>
+              <p-button label="Continuar" iconPos="right" [loading]="busy()" [disabled]="!canSubmitIdentity()" (onClick)="submitIdentity()">
+                <ng-template #icon><app-lucide-icon name="arrow-right" [size]="16" /></ng-template></p-button>
             </div>
           </section>
         }
@@ -69,7 +70,8 @@
               <app-turnstile [siteKey]="config()!.turnstile.site_key ?? ''" (tokenChange)="turnstileToken.set($event)" (failed)="turnstileFailed.set(true)"></app-turnstile>
             }
             <div class="dbu-actions">
-              <p-button label="Enviar código" icon="pi pi-send" iconPos="right" [loading]="busy()" [disabled]="!canSendCode()" (onClick)="sendCode()"></p-button>
+              <p-button label="Enviar código" iconPos="right" [loading]="busy()" [disabled]="!canSendCode()" (onClick)="sendCode()">
+                <ng-template #icon><app-lucide-icon name="send" [size]="16" /></ng-template></p-button>
             </div>
           </section>
         }
@@ -130,7 +132,8 @@
             }
 
             <div class="dbu-actions">
-              <p-button label="Reservar cita" icon="pi pi-check" iconPos="right" [loading]="busy()" [disabled]="!canReserve()" (onClick)="reserve()"></p-button>
+              <p-button label="Reservar cita" iconPos="right" [loading]="busy()" [disabled]="!canReserve()" (onClick)="reserve()">
+                <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template></p-button>
             </div>
           </section>
         }

@@ -25,16 +25,17 @@
       size="small"
       severity="secondary"
       [text]="true"
-      icon="pi pi-filter-slash"
+     
       label="Limpiar filtros"
-      (onClick)="clearFilters()"></p-button>
+      (onClick)="clearFilters()">
+      <ng-template #icon><app-lucide-icon name="funnel-x" [size]="16" /></ng-template></p-button>
   </div>
 
   <div class="attendance-toolbar">
     <div class="attendance-toolbar-field attendance-toolbar-search">
       <label class="attendance-label" for="attendance-search">Buscar</label>
       <p-iconfield>
-        <p-inputicon styleClass="pi pi-search"></p-inputicon>
+        <p-inputicon><app-lucide-icon name="search" size="1em" /></p-inputicon>
         <input
           id="attendance-search"
           type="text"
@@ -127,8 +128,9 @@
         class="day-campus"
         severity="info"
         [rounded]="true"
-        icon="pi pi-map-marker"
-        [value]="stop.campus"></p-tag>
+       
+        [value]="stop.campus">
+        <ng-template #icon><app-lucide-icon name="map-pin" [size]="14" /></ng-template></p-tag>
 
       <p-timeline [value]="stop.attendances" styleClass="attendance-timeline">
         <ng-template pTemplate="marker" let-item>

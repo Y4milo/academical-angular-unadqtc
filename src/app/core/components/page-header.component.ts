@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgIf} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
+import {AppLucideIconComponent} from './lucide-icon/lucide-icon.component';
 
 /**
  * Encabezado de página o de sección: enlace opcional de retorno, título, subtítulo y 24 px de separación
@@ -8,11 +9,12 @@ import {ButtonModule} from 'primeng/button';
  */
 @Component({
   selector: 'app-page-header',
-  imports: [ButtonModule, NgIf],
+  imports: [AppLucideIconComponent, ButtonModule, NgIf],
   template: `
     <header class="page-header" [class.page-header--section]="size === 'section'">
-      <p-button *ngIf="backLabel" [label]="backLabel" icon="pi pi-arrow-left" [text]="true" size="small"
-                styleClass="page-header-back" (onClick)="back.emit()"></p-button>
+      <p-button *ngIf="backLabel" [label]="backLabel" [text]="true" size="small"
+                styleClass="page-header-back" (onClick)="back.emit()">
+        <ng-template #icon><app-lucide-icon name="arrow-left" [size]="16" /></ng-template></p-button>
       <h1 *ngIf="size === 'page'">{{ title }}</h1>
       <h2 *ngIf="size === 'section'">{{ title }}</h2>
       <p *ngIf="subtitle">{{ subtitle }}</p>

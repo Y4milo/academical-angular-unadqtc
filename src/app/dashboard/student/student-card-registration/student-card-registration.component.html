@@ -116,7 +116,7 @@
                   <div class="card-page__placeholder"><app-lucide-icon name="id-card" [size]="36" /><small>Aquí verás tu DNI</small></div>
                 }
               </div>
-              <p-fileupload mode="basic" name="dni" accept=".jpg,.jpeg,.png,.pdf" [maxFileSize]="20971520" [auto]="false" [chooseLabel]="dniName() ? 'Cambiar archivo' : 'Elegir archivo'" chooseIcon="pi pi-upload" (onSelect)="onDniSelect($event)" />
+              <p-fileupload mode="basic" name="dni" accept=".jpg,.jpeg,.png,.pdf" [maxFileSize]="20971520" [auto]="false" [chooseLabel]="dniName() ? 'Cambiar archivo' : 'Elegir archivo'" [chooseIcon]="'upload' | lucideClass" (onSelect)="onDniSelect($event)" />
               <div class="card-page__chips">
                 <p-tag severity="secondary" value="JPG, PNG o PDF" />
                 <p-tag severity="secondary" value="Hasta 20 MB" />
@@ -204,7 +204,7 @@
                 @if (photoLabel() && photoPreviewUrl()) {
                   <small class="card-page__muted">{{ photoLabel() }}</small>
                 }
-                <p-fileupload mode="basic" name="photo" accept=".jpg,.jpeg" [auto]="false" [chooseLabel]="photoPreviewUrl() ? 'Cambiar foto' : 'Elegir foto'" chooseIcon="pi pi-camera" (onSelect)="onPhotoSelect($event)" />
+                <p-fileupload mode="basic" name="photo" accept=".jpg,.jpeg" [auto]="false" [chooseLabel]="photoPreviewUrl() ? 'Cambiar foto' : 'Elegir foto'" [chooseIcon]="'camera' | lucideClass" (onSelect)="onPhotoSelect($event)" />
                 <div class="card-page__chips">
                   <p-tag severity="secondary" value="JPG" />
                   <p-tag severity="secondary" [value]="current.rules.photo_width + ' × ' + current.rules.photo_height + ' px'" />

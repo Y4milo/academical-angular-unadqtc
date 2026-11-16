@@ -19,7 +19,7 @@
         <p>Se crea la <strong>versión {{ nextVersion() }}</strong>. La ruta empieza de cero y todas las oficinas vuelven a firmar.</p>
       </div>
       <div class="header-actions">
-        <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
+        <app-directive-log-drawer label="Ruta de firmas" icon="network" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
           <h4 class="route-title" id="route-title">Ruta que empezará de cero</h4>
           <p class="field-hint">Con las personas que Core tiene designadas hoy, no las de la versión {{ current.version }}.</p>
           <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
@@ -60,7 +60,7 @@
             <strong>Archivos de la versión {{ nextVersion() }}</strong>
 
             <div class="file-box" [class.file-box--error]="(submitted() || fileError().directive) && !!errors()['directive']">
-              <span class="pi pi-file-pdf file-box__icon" aria-hidden="true"></span>
+              <app-lucide-icon name="file-text" size="1em" class="file-box__icon" />
               <div class="file-box__text">
                 <span class="label" id="resubmit-directive-label">Documento de gestión corregido (PDF) *</span>
                 @if (directiveFile(); as file) {
@@ -69,12 +69,12 @@
                   <small class="field-hint">Obligatorio: sube el PDF corregido. Sin firmar: la firman las oficinas desde Academical.</small>
                 }
               </div>
-              <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" chooseIcon="pi pi-upload" [chooseButtonProps]="{ size: 'small' }" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+              <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="directiveFile() ? 'Cambiar PDF' : 'Elegir PDF'" [chooseIcon]="'upload' | lucideClass" [chooseButtonProps]="{ size: 'small' }" [attr.aria-labelledby]="'resubmit-directive-label'" data-testid="pick-directive" (onSelect)="pickFromUpload('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
             </div>
             @if ((submitted() || fileError().directive) && errors()['directive']; as message) { <small class="field-error" role="alert" data-testid="error-directive">{{ message }}</small> }
 
             <div class="file-box">
-              <span class="pi pi-file-pdf file-box__icon" aria-hidden="true"></span>
+              <app-lucide-icon name="file-text" size="1em" class="file-box__icon" />
               <div class="file-box__text">
                 <span class="label" id="resubmit-resolution-label">Resolución que la aprueba (PDF) <p-tag value="Opcional" severity="secondary"></p-tag></span>
                 @if (resolutionFile(); as file) {
@@ -90,7 +90,7 @@
             </div>
             @if (!keepCurrent()) {
               <div class="pick">
-                <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar PDF' : 'Elegir la resolución nueva'" chooseIcon="pi pi-upload" [chooseButtonProps]="{ severity: 'secondary', outlined: true, size: 'small' }" [attr.aria-labelledby]="'resubmit-resolution-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" [chooseLabel]="resolutionFile() ? 'Cambiar PDF' : 'Elegir la resolución nueva'" [chooseIcon]="'upload' | lucideClass" [chooseButtonProps]="{ severity: 'secondary', outlined: true, size: 'small' }" [attr.aria-labelledby]="'resubmit-resolution-label'" data-testid="pick-resolution" (onSelect)="pickFromUpload('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
                 <p-button label="Volver a la anterior" severity="secondary" [outlined]="true" size="small" data-testid="keep-resolution" (onClick)="keepResolution()"></p-button>
               </div>
             }
@@ -130,7 +130,8 @@
       <ng-template #end>
         <span class="actions">
           <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="sending()" (onClick)="cancel()"></p-button>
-          <p-button [label]="'Enviar versión ' + nextVersion() + ' a firma'" icon="pi pi-send" [loading]="sending()" data-testid="resubmit-send" (onClick)="send()"></p-button>
+          <p-button [label]="'Enviar versión ' + nextVersion() + ' a firma'" [loading]="sending()" data-testid="resubmit-send" (onClick)="send()">
+            <ng-template #icon><app-lucide-icon name="send" [size]="16" /></ng-template></p-button>
         </span>
       </ng-template>
     </p-toolbar>

@@ -18,11 +18,12 @@ import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.cons
 import {DatePicker} from 'primeng/datepicker';
 import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards/staff-attendance-cards.component';
 import {StaffAttendanceSkeletonComponent} from '../../shared/staff-attendance-skeleton/staff-attendance-skeleton.component';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 // @ts-ignore
 @Component({
   selector: 'app-attendace-admin',
-  imports: [
+  imports: [AppLucideIconComponent, 
     ReactiveFormsModule,
     TableModule,
     NgIf,

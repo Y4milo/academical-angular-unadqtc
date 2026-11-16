@@ -99,7 +99,7 @@
           <p-card styleClass="settings-card settings-preview" data-testid="preview-panel">
             <div class="card-body">
               <div>
-                <strong id="preview-title"><i class="pi pi-eye" aria-hidden="true"></i> Así lo vería una oficina sin turno</strong>
+                <strong id="preview-title"><app-lucide-icon name="eye" size="1em" /> Así lo vería una oficina sin turno</strong>
                 <p class="hint">Por ejemplo, Presidencia. Se actualiza al elegir.</p>
               </div>
               @if (preview(); as view) {
@@ -120,7 +120,8 @@
           <span class="actions">
             <p-button label="Valores predeterminados" severity="secondary" [text]="true" [disabled]="saving()" data-testid="reset-settings" (onClick)="reset()"></p-button>
             <p-button label="Descartar" severity="secondary" [outlined]="true" [disabled]="!dirty() || saving()" data-testid="discard-settings" (onClick)="discard()"></p-button>
-            <p-button label="Guardar cambios" icon="pi pi-save" [disabled]="!dirty()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
+            <p-button label="Guardar cambios" [disabled]="!dirty()" [loading]="saving()" data-testid="save-settings" (onClick)="save()">
+              <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template></p-button>
           </span>
         </ng-template>
       </p-toolbar>

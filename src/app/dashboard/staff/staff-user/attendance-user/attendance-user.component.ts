@@ -11,10 +11,11 @@ import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.cons
 import {STATUS} from '../../../../core/constants/api-status.constants';
 import {StaffAttendanceCardsComponent} from '../../shared/staff-attendance-cards/staff-attendance-cards.component';
 import {StaffAttendanceSkeletonComponent} from '../../shared/staff-attendance-skeleton/staff-attendance-skeleton.component';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 @Component({
   selector: 'app-attendance-user',
-  imports: [
+  imports: [AppLucideIconComponent, 
     ReactiveFormsModule,
     NgIf,
     FormsModule,

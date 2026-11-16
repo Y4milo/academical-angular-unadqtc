@@ -59,7 +59,7 @@
         <p-skeleton width="72px" height="90px" borderRadius="8px" />
       } @else if (!hasStudentPhoto(student)) {
         <div class="sc-photo-placeholder" role="img" aria-label="Sin foto">
-          <i class="pi pi-user" aria-hidden="true"></i>
+          <app-lucide-icon name="user" size="1em" />
         </div>
       } @else {
         <p-image
@@ -82,10 +82,10 @@
         <div class="sc-student-meta">
           <span [class.student-data-warning]="isCodeSameAsDocument(student)">Código <b>{{ student.code }}</b></span>
           <span>DNI <b>{{ student.number || student.id_student }}</b></span>
-          <span [class.student-data-warning]="hasMissingCampus(student)"><i class="pi pi-map-marker" aria-hidden="true"></i> <b>{{ getCampusLabel(student) }}</b></span>
+          <span [class.student-data-warning]="hasMissingCampus(student)"><app-lucide-icon name="map-pin" size="1em" /> <b>{{ getCampusLabel(student) }}</b></span>
         </div>
         @if (student.cellphone) {
-          <span class="sc-student-cell"><i class="pi pi-phone" aria-hidden="true"></i> {{ student.cellphone }}</span>
+          <span class="sc-student-cell"><app-lucide-icon name="phone" size="1em" /> {{ student.cellphone }}</span>
         }
       </div>
     </div>
@@ -99,7 +99,9 @@
             @if (getStudentFileFlags(student, type === 'photo' ? 'photo' : 'dni').length > 0) {
               <div class="sc-observations-tags">
                 @for (flag of getStudentFileFlags(student, type === 'photo' ? 'photo' : 'dni'); track flag.code || flag.id || flag.name || flag.label) {
-                  <p-tag [value]="flag.name || flag.label" severity="warn" icon="pi pi-exclamation-triangle" />
+                  <p-tag [value]="flag.name || flag.label" severity="warn">
+                    <ng-template #icon><app-lucide-icon name="triangle-alert" [size]="14" /></ng-template>
+                  </p-tag>
                 }
               </div>
             } @else {
@@ -123,11 +125,15 @@
       />
       <div class="sc-actions">
         @if (kind === 'unmatched') {
-          <p-button label="Registrar manualmente" icon="pi pi-pencil" size="small" severity="secondary" [outlined]="true" (onClick)="openManualRegistrationDialog(student)" />
+          <p-button label="Registrar manualmente" size="small" severity="secondary" [outlined]="true" (onClick)="openManualRegistrationDialog(student)">
+            <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template>
+          </p-button>
         } @else if (kind === 'validated') {
-          <p-button class="semester-read-only-allowed" label="Ver" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true" (onClick)="openValidatedDetail(student)" />
+          <p-button class="semester-read-only-allowed" label="Ver" size="small" severity="secondary" [outlined]="true" (onClick)="openValidatedDetail(student)">
+            <ng-template #icon><app-lucide-icon name="eye" [size]="16" /></ng-template>
+          </p-button>
           <p-button
-            icon="pi pi-ellipsis-v"
+           
             size="small"
             [text]="true"
             [rounded]="true"
@@ -135,12 +141,15 @@
             ariaLabel="Más acciones"
             pTooltip="Más acciones"
             tooltipPosition="top"
-            (onClick)="openRowMenu($event, student, 'validated')"
-          />
+            (onClick)="openRowMenu($event, student, 'validated')">
+            <ng-template #icon><app-lucide-icon name="ellipsis-vertical" [size]="16" /></ng-template>
+          </p-button>
         } @else {
-          <p-button label="Revisar" icon="pi pi-search" size="small" (onClick)="openReviewDialog(student)" />
+          <p-button label="Revisar" size="small" (onClick)="openReviewDialog(student)">
+            <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template>
+          </p-button>
           <p-button
-            icon="pi pi-ellipsis-v"
+           
             size="small"
             [text]="true"
             [rounded]="true"
@@ -148,8 +157,9 @@
             ariaLabel="Más acciones"
             pTooltip="Más acciones"
             tooltipPosition="top"
-            (onClick)="openRowMenu($event, student, kind)"
-          />
+            (onClick)="openRowMenu($event, student, kind)">
+            <ng-template #icon><app-lucide-icon name="ellipsis-vertical" [size]="16" /></ng-template>
+          </p-button>
         }
       </div>
     </div>
@@ -158,7 +168,7 @@
 
 <ng-template #emptyCards>
   <div class="sc-empty">
-    <i class="pi pi-inbox" aria-hidden="true"></i>
+    <app-lucide-icon name="inbox" size="1em" />
     <strong>{{ hasActiveFilters ? 'Sin resultados' : 'No hay estudiantes en esta lista' }}</strong>
     <p>{{ hasActiveFilters ? 'Ningún estudiante coincide con los filtros.' : 'Cuando haya estudiantes en este estado aparecerán aquí.' }}</p>
     @if (hasActiveFilters) {
@@ -213,15 +223,18 @@
           </ng-template>
         </p-select>
         @if (selectedSemester?.is_current) {
-          <p-tag value="Semestre vigente" severity="success" icon="pi pi-check-circle" [rounded]="true" />
+          <p-tag value="Semestre vigente" severity="success" [rounded]="true">
+            <ng-template #icon><app-lucide-icon name="circle-check" [size]="14" /></ng-template>
+          </p-tag>
         } @else if (selectedSemester) {
           <p-tag
             value="Solo consulta"
             severity="warn"
-            icon="pi pi-eye"
+           
             [rounded]="true"
-            [pTooltip]="'Está consultando ' + selectedSemester.label + '. Las modificaciones solo se permiten en el semestre vigente.'"
-          />
+            [pTooltip]="'Está consultando ' + selectedSemester.label + '. Las modificaciones solo se permiten en el semestre vigente.'">
+            <ng-template #icon><app-lucide-icon name="eye" [size]="14" /></ng-template>
+          </p-tag>
         }
       </div>
     </header>
@@ -263,7 +276,7 @@
 
     <div class="sc-bar">
       <p-iconfield class="sc-bar-search">
-        <p-inputicon styleClass="pi pi-search" />
+        <p-inputicon><app-lucide-icon name="search" size="1em" /></p-inputicon>
         <input
           pInputText
           type="text"
@@ -461,7 +474,7 @@
                     @if (isPhotoLoading(student)) {
                       <p-skeleton width="40px" height="50px" borderRadius="6px" />
                     } @else if (!hasStudentPhoto(student)) {
-                      <div class="sc-photo-mini" role="img" aria-label="Sin foto"><i class="pi pi-user" aria-hidden="true"></i></div>
+                      <div class="sc-photo-mini" role="img" aria-label="Sin foto"><app-lucide-icon name="user" size="1em" /></div>
                     } @else {
                       <p-image
                         [src]="getStudentPhotoUrl(student)"
@@ -493,9 +506,11 @@
                 <td>{{ displayDate(student.validated_at) }}</td>
                 <td class="align-content-center">
                   <div class="sc-actions">
-                    <p-button class="semester-read-only-allowed" label="Ver" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true" (onClick)="openValidatedDetail(student)" />
+                    <p-button class="semester-read-only-allowed" label="Ver" size="small" severity="secondary" [outlined]="true" (onClick)="openValidatedDetail(student)">
+                      <ng-template #icon><app-lucide-icon name="eye" [size]="16" /></ng-template>
+                    </p-button>
                     <p-button
-                      icon="pi pi-ellipsis-v"
+                     
                       size="small"
                       [text]="true"
                       [rounded]="true"
@@ -503,8 +518,9 @@
                       ariaLabel="Más acciones"
                       pTooltip="Más acciones"
                       tooltipPosition="top"
-                      (onClick)="openRowMenu($event, student, 'validated')"
-                    />
+                      (onClick)="openRowMenu($event, student, 'validated')">
+                      <ng-template #icon><app-lucide-icon name="ellipsis-vertical" [size]="16" /></ng-template>
+                    </p-button>
                   </div>
                 </td>
               </tr>
@@ -516,7 +532,7 @@
                 <tr>
                   <td colspan="5">
                     <div class="sc-empty">
-                      <i class="pi pi-inbox" aria-hidden="true"></i>
+                      <app-lucide-icon name="inbox" size="1em" />
                       <strong>{{ hasActiveFilters ? 'Sin resultados' : 'Aún no hay estudiantes validados' }}</strong>
                       <p>{{ hasActiveFilters ? 'Ningún estudiante coincide con los filtros.' : 'Los estudiantes validados aparecerán aquí.' }}</p>
                       @if (hasActiveFilters) {
@@ -597,7 +613,7 @@
                   (onImageError)="onStudentPhotoError(detailStudent)"
                 ></p-image>
               } @else {
-                <div class="sc-detail-empty"><i class="pi pi-user" aria-hidden="true"></i><span>Sin foto</span></div>
+                <div class="sc-detail-empty"><app-lucide-icon name="user" size="1em" /><span>Sin foto</span></div>
               }
             </figure>
             <figure class="sc-detail-fig">
@@ -621,9 +637,15 @@
           </dl>
 
           <div class="sc-detail-actions">
-            <p-button class="semester-read-only-allowed" label="Descargar foto" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="downloadStudentPhoto(detailStudent)" />
-            <p-button class="semester-read-only-allowed" label="Descargar DNI" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="downloadStudentDni(detailStudent)" />
-            <p-button label="Volver a pendiente" icon="pi pi-undo" severity="danger" [text]="true" [disabled]="isHistoricalSemester" (onClick)="returnToPending(detailStudent)" />
+            <p-button class="semester-read-only-allowed" label="Descargar foto" severity="secondary" [outlined]="true" (onClick)="downloadStudentPhoto(detailStudent)">
+              <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template>
+            </p-button>
+            <p-button class="semester-read-only-allowed" label="Descargar DNI" severity="secondary" [outlined]="true" (onClick)="downloadStudentDni(detailStudent)">
+              <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template>
+            </p-button>
+            <p-button label="Volver a pendiente" severity="danger" [text]="true" [disabled]="isHistoricalSemester" (onClick)="returnToPending(detailStudent)">
+              <ng-template #icon><app-lucide-icon name="undo-2" [size]="16" /></ng-template>
+            </p-button>
           </div>
         </div>
       }
@@ -660,8 +682,12 @@
             @if (reviewTotal > 1) {
               <div class="sc-review-nav" role="group" aria-label="Moverse entre estudiantes">
                 <span class="sc-review-count">{{ reviewPosition }} de {{ reviewTotal }}</span>
-                <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Estudiante anterior" pTooltip="Anterior (←)" [disabled]="!hasPrevReview" (onClick)="goToReview(-1)" />
-                <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Estudiante siguiente" pTooltip="Siguiente (→)" [disabled]="!hasNextReview" (onClick)="goToReview(1)" />
+                <p-button [text]="true" [rounded]="true" severity="secondary" ariaLabel="Estudiante anterior" pTooltip="Anterior (←)" [disabled]="!hasPrevReview" (onClick)="goToReview(-1)">
+                  <ng-template #icon><app-lucide-icon name="chevron-left" [size]="16" /></ng-template>
+                </p-button>
+                <p-button [text]="true" [rounded]="true" severity="secondary" ariaLabel="Estudiante siguiente" pTooltip="Siguiente (→)" [disabled]="!hasNextReview" (onClick)="goToReview(1)">
+                  <ng-template #icon><app-lucide-icon name="chevron-right" [size]="16" /></ng-template>
+                </p-button>
               </div>
             }
           </div>
@@ -814,11 +840,11 @@
               <div class="review-decision-action">
                 <p-button
                   [label]="hasNextReview ? 'Validar y pasar al siguiente' : 'Validar estudiante'"
-                  icon="pi pi-check"
+                 
                   severity="success"
                   [disabled]="!canValidateReview()"
-                  (onClick)="confirmReviewValidation()"
-                ></p-button>
+                  (onClick)="confirmReviewValidation()">
+                  <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template></p-button>
               </div>
             </div>
 
@@ -853,11 +879,11 @@
               <div class="review-decision-action">
                 <p-button
                   [label]="hasNextReview ? 'Observar y pasar al siguiente' : 'Observar estudiante'"
-                  icon="pi pi-flag"
+                 
                   severity="warn"
                   [disabled]="isReviewSubmitting || !reviewStudent.photo || !reviewStudent.dni"
-                  (onClick)="confirmReviewObservation()"
-                ></p-button>
+                  (onClick)="confirmReviewObservation()">
+                  <ng-template #icon><app-lucide-icon name="flag" [size]="16" /></ng-template></p-button>
               </div>
             </div>
           </div>
@@ -1219,26 +1245,26 @@
           @if (isManualRegistrationEdit && manualRegistrationStep === 1) {
             <p-button
               label="Volver"
-              icon="pi pi-arrow-left"
+             
               severity="secondary"
               [outlined]="true"
-              (onClick)="previousManualRegistrationStep()"
-            ></p-button>
+              (onClick)="previousManualRegistrationStep()">
+              <ng-template #icon><app-lucide-icon name="arrow-left" [size]="16" /></ng-template></p-button>
           }
           @if (isManualRegistrationEdit && manualRegistrationStep === 0) {
             <p-button
               label="Siguiente"
-              icon="pi pi-arrow-right"
+             
               iconPos="right"
-              (onClick)="nextManualRegistrationStep()"
-            ></p-button>
+              (onClick)="nextManualRegistrationStep()">
+              <ng-template #icon><app-lucide-icon name="arrow-right" [size]="16" /></ng-template></p-button>
           } @else {
           <p-button
             [label]="isManualRegistrationEdit ? 'Registrar estudiante' : 'Guardar cambios'"
-            icon="pi pi-save"
+           
             [disabled]="isEditSubmitting"
-            (onClick)="saveEditStudent()"
-          ></p-button>
+            (onClick)="saveEditStudent()">
+            <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template></p-button>
           }
         </div>
       </ng-template>
@@ -1246,7 +1272,9 @@
 
     <p-popover #overlayObservations appendTo="body" (onHide)="clearObservationPanelState()">
       <div class="flex flex-column gap-3" style="width: 18rem">
-        <p-button icon="pi pi-times" [rounded]="true" [text]="true" size="small" severity="secondary" ariaLabel="Cerrar" class="align-self-end" (onClick)="overlayObservations.hide()" />
+        <p-button [rounded]="true" [text]="true" size="small" severity="secondary" ariaLabel="Cerrar" class="align-self-end" (onClick)="overlayObservations.hide()">
+          <ng-template #icon><app-lucide-icon name="x" [size]="16" /></ng-template>
+        </p-button>
         <p-multiSelect
           #observationsMultiSelect
           [options]="statusStudentCardOptions"
@@ -1271,10 +1299,10 @@
                 ></p-button>
                 <p-button
                   label="Confirmar"
-                  icon="pi pi-check"
+                 
                   severity="warn"
-                  (onClick)="onConfirmObservations()"
-                ></p-button>
+                  (onClick)="onConfirmObservations()">
+                  <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template></p-button>
               </div>
             </div>
           </ng-template>
@@ -1285,7 +1313,9 @@
 
     <p-popover #overlayUploadPhoto appendTo="body">
       <div class="flex flex-column gap-3" style="width: 18rem">
-        <p-button icon="pi pi-times" [rounded]="true" [text]="true" size="small" severity="secondary" ariaLabel="Cerrar" class="align-self-end" (onClick)="overlayUploadPhoto.hide()" />
+        <p-button [rounded]="true" [text]="true" size="small" severity="secondary" ariaLabel="Cerrar" class="align-self-end" (onClick)="overlayUploadPhoto.hide()">
+          <ng-template #icon><app-lucide-icon name="x" [size]="16" /></ng-template>
+        </p-button>
         <img [src]="previewUrl" alt="Vista previa" width="120" height="140" class="align-self-center" />
         <p-fileUpload
           #fileUploader
@@ -1305,10 +1335,10 @@
           ></p-button>
           <p-button
             label="Subir"
-            icon="pi pi-upload"
+           
             severity="success"
-            (onClick)="onConfirmUploadPhoto()"
-          ></p-button>
+            (onClick)="onConfirmUploadPhoto()">
+            <ng-template #icon><app-lucide-icon name="upload" [size]="16" /></ng-template></p-button>
         </div>
       </div>
     </p-popover>

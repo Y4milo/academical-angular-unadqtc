@@ -1,6 +1,6 @@
 <main class="core-result" data-testid="core-result">
   <section class="result-card" [attr.aria-labelledby]="'result-title'" role="alert">
-    <span class="result-icon" [attr.data-tone]="copy.tone" aria-hidden="true"><i class="pi" [class]="'pi ' + copy.icon"></i></span>
+    <span class="result-icon" [attr.data-tone]="copy.tone" aria-hidden="true"><i [class]="copy.icon"></i></span>
     <h1 id="result-title" data-testid="result-title">{{ copy.title }}</h1>
     <p class="result-body" data-testid="result-body">{{ copy.body }}</p>
 
@@ -22,16 +22,18 @@
     @if (failure()?.reference; as reference) {
       <div class="result-reference" data-testid="result-reference">
         <span class="mono">{{ reference }}</span>
-        <p-button [label]="copied() ? 'Copiado' : 'Copiar'" [icon]="copied() ? 'pi pi-check' : 'pi pi-copy'" severity="secondary" [text]="true" size="small" data-testid="copy-reference" (onClick)="copyReference()"></p-button>
+        <p-button [label]="copied() ? 'Copiado' : 'Copiar'" [icon]="copied() ? ('check' | lucideClass) : ('copy' | lucideClass)" severity="secondary" [text]="true" size="small" data-testid="copy-reference" (onClick)="copyReference()"></p-button>
       </div>
     }
 
     <div class="result-actions">
       @if (copy.retry) {
-        <p-button label="Reintentar" icon="pi pi-refresh" data-testid="retry" (onClick)="retry()"></p-button>
+        <p-button label="Reintentar" data-testid="retry" (onClick)="retry()">
+          <ng-template #icon><app-lucide-icon name="refresh-cw" [size]="16" /></ng-template></p-button>
       }
       @if (portalUrl()) {
-        <p-button label="Volver a Core" icon="pi pi-arrow-left" [severity]="copy.retry ? 'secondary' : undefined" [outlined]="copy.retry" data-testid="back-to-core" (onClick)="backToCore()"></p-button>
+        <p-button label="Volver a Core" [severity]="copy.retry ? 'secondary' : undefined" [outlined]="copy.retry" data-testid="back-to-core" (onClick)="backToCore()">
+          <ng-template #icon><app-lucide-icon name="arrow-left" [size]="16" /></ng-template></p-button>
       }
       @if (!required()) {
         <p-button label="Entrar con usuario y contraseña" severity="secondary" [outlined]="true" data-testid="use-local-login" (onClick)="useLocalLogin.emit()"></p-button>

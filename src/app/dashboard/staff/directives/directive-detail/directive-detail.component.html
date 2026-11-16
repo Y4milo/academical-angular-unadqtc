@@ -24,7 +24,7 @@
       </div>
       <div class="header-actions">
         <app-directive-tracking [events]="current.events" [(open)]="trackingOpen"></app-directive-tracking>
-        <app-directive-log-drawer label="Ruta de firmas" icon="pi-sitemap" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
+        <app-directive-log-drawer label="Ruta de firmas" icon="network" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
           @if (isDraft()) {
             <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
           } @else if (current.progress.length > 0) {
@@ -50,17 +50,22 @@
         </app-directive-log-drawer>
         @if (isDraft()) {
           <span [pTooltip]="sendBlockedReason()" tooltipPosition="top">
-            <p-button label="Enviar a firma" icon="pi pi-send" [disabled]="!canSend()" [loading]="sending()" data-testid="send-directive" (onClick)="askSend()"></p-button>
+            <p-button label="Enviar a firma" [disabled]="!canSend()" [loading]="sending()" data-testid="send-directive" (onClick)="askSend()">
+              <ng-template #icon><app-lucide-icon name="send" [size]="16" /></ng-template></p-button>
           </span>
         } @else if (current.can_sign) {
-          <p-button label="Firmar" icon="pi pi-pen-to-square" data-testid="sign-directive" (onClick)="sign()"></p-button>
+          <p-button label="Firmar" data-testid="sign-directive" (onClick)="sign()">
+            <ng-template #icon><app-lucide-icon name="square-pen" [size]="16" /></ng-template></p-button>
         } @else if (current.can_resubmit) {
-          <p-button label="Corregir y reenviar" icon="pi pi-refresh" data-testid="resubmit-directive" (onClick)="resubmit()"></p-button>
+          <p-button label="Corregir y reenviar" data-testid="resubmit-directive" (onClick)="resubmit()">
+            <ng-template #icon><app-lucide-icon name="refresh-cw" [size]="16" /></ng-template></p-button>
         } @else if (current.signed?.can_download) {
-          <p-button [label]="signedLoading() ? 'Trayendo el documento…' : (signedError() ? 'Reintentar descarga' : 'Descargar firmada')" icon="pi pi-download" [loading]="signedLoading()" data-testid="download-signed" (onClick)="downloadSigned()"></p-button>
+          <p-button [label]="signedLoading() ? 'Trayendo el documento…' : (signedError() ? 'Reintentar descarga' : 'Descargar firmada')" [loading]="signedLoading()" data-testid="download-signed" (onClick)="downloadSigned()">
+            <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template></p-button>
         }
         @if (moreItems().length > 0) {
-          <p-button icon="pi pi-ellipsis-h" severity="secondary" [outlined]="true" ariaLabel="Más acciones" aria-haspopup="menu" [loading]="deleting()" data-testid="more-actions" (onClick)="moreMenu.toggle($event)"></p-button>
+          <p-button severity="secondary" [outlined]="true" ariaLabel="Más acciones" aria-haspopup="menu" [loading]="deleting()" data-testid="more-actions" (onClick)="moreMenu.toggle($event)">
+            <ng-template #icon><app-lucide-icon name="ellipsis" [size]="16" /></ng-template></p-button>
           <p-menu #moreMenu [model]="moreItems()" [popup]="true" appendTo="body" data-testid="more-menu"></p-menu>
         }
       </div>
@@ -109,7 +114,8 @@
           @if (signed.code) {
             <div class="signed__key">
               <span>Clave de verificación <code data-testid="signed-code">{{ signed.code }}</code></span>
-              <p-button [label]="codeCopied() ? 'Copiada' : 'Copiar'" icon="pi pi-copy" size="small" severity="secondary" [outlined]="true" data-testid="copy-code" (onClick)="copyCode()"></p-button>
+              <p-button [label]="codeCopied() ? 'Copiada' : 'Copiar'" size="small" severity="secondary" [outlined]="true" data-testid="copy-code" (onClick)="copyCode()">
+                <ng-template #icon><app-lucide-icon name="copy" [size]="16" /></ng-template></p-button>
               @if (signed.verify_url) {
                 <a class="signed__verify" [href]="signed.verify_url" target="_blank" rel="noopener noreferrer" data-testid="verify-link">Verificar en el sitio público</a>
               }
@@ -162,7 +168,8 @@
         <div class="progress-head">
           <strong>Avance de las firmas</strong>
           <span class="muted" data-testid="progress-count">{{ signedCount() }} de {{ visibleProgress().length }} firmas</span>
-          <p-button label="Ver ruta" icon="pi pi-sitemap" size="small" severity="secondary" [outlined]="true" data-testid="progress-open-route" (onClick)="routeOpen.set(true)"></p-button>
+          <p-button label="Ver ruta" size="small" severity="secondary" [outlined]="true" data-testid="progress-open-route" (onClick)="routeOpen.set(true)">
+            <ng-template #icon><app-lucide-icon name="network" [size]="16" /></ng-template></p-button>
         </div>
         <div class="progress-scroll">
           <p-timeline [value]="visibleProgress()" layout="horizontal" align="top" styleClass="progress-timeline">
@@ -207,12 +214,13 @@
               </div>
               <div class="file-actions">
                 @if (staged().directive) {
-                  <p-button label="Guardar cambio" size="small" icon="pi pi-save" [loading]="replacing() === 'directive'" [disabled]="staged().directive?.pages === 'reading'" data-testid="save-replace-directive" (onClick)="saveReplacement('directive')"></p-button>
+                  <p-button label="Guardar cambio" size="small" [loading]="replacing() === 'directive'" [disabled]="staged().directive?.pages === 'reading'" data-testid="save-replace-directive" (onClick)="saveReplacement('directive')">
+                    <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template></p-button>
                   <p-button label="Descartar" size="small" severity="secondary" [outlined]="true" [disabled]="replacing() === 'directive'" data-testid="discard-replace-directive" (onClick)="discardReplacement('directive')"></p-button>
                 } @else {
                   <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'directive'" data-testid="open-directive" (onClick)="openFile('directive')"></p-button>
                   @if (current.can_edit) {
-                    <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" chooseIcon="pi pi-refresh" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar el documento de gestión" data-testid="replace-directive" (onSelect)="pickReplacement('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                    <p-fileupload #directiveUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" [chooseIcon]="'refresh-cw' | lucideClass" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar el documento de gestión" data-testid="replace-directive" (onSelect)="pickReplacement('directive', $event, directiveUpload)"><ng-template #filelabel></ng-template></p-fileupload>
                   }
                 }
               </div>
@@ -231,12 +239,13 @@
               </div>
               <div class="file-actions">
                 @if (staged().resolution) {
-                  <p-button label="Guardar cambio" size="small" icon="pi pi-save" [loading]="replacing() === 'resolution'" [disabled]="staged().resolution?.pages === 'reading'" data-testid="save-replace-resolution" (onClick)="saveReplacement('resolution')"></p-button>
+                  <p-button label="Guardar cambio" size="small" [loading]="replacing() === 'resolution'" [disabled]="staged().resolution?.pages === 'reading'" data-testid="save-replace-resolution" (onClick)="saveReplacement('resolution')">
+                    <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template></p-button>
                   <p-button label="Descartar" size="small" severity="secondary" [outlined]="true" [disabled]="replacing() === 'resolution'" data-testid="discard-replace-resolution" (onClick)="discardReplacement('resolution')"></p-button>
                 } @else {
                   <p-button label="Ver PDF" size="small" severity="secondary" [outlined]="true" [loading]="opening() === 'resolution'" data-testid="open-resolution" (onClick)="openFile('resolution')"></p-button>
                   @if (current.can_edit) {
-                    <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" chooseIcon="pi pi-refresh" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar la resolución" data-testid="replace-resolution" (onSelect)="pickReplacement('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
+                    <p-fileupload #resolutionUpload mode="basic" accept="application/pdf" [customUpload]="true" [auto]="false" chooseLabel="Reemplazar PDF" [chooseIcon]="'refresh-cw' | lucideClass" [chooseButtonProps]="{severity: 'secondary', outlined: true, size: 'small'}" aria-label="Reemplazar la resolución" data-testid="replace-resolution" (onSelect)="pickReplacement('resolution', $event, resolutionUpload)"><ng-template #filelabel></ng-template></p-fileupload>
                   }
                 }
               </div>

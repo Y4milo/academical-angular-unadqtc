@@ -21,6 +21,8 @@ import {DictionaryService} from '../../../../services/dictionary.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {Dictionary} from '../../../../models/dictionary.model';
 import {STATUS} from '../../../../core/constants/api-status.constants';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {lucideClass} from '../../../../core/utils/lucide-icon.util';
 
 type Severity = 'success' | 'warn' | 'danger' | 'info';
 
@@ -38,7 +40,7 @@ const SCANNER_MAX_MS_PER_KEY = 35;
 @Component({
   selector: 'app-attendance-register',
   standalone: true,
-  imports: [FormsModule, ButtonModule, InputTextModule, TextareaModule, SelectModule, TagModule, TableModule, MessageModule, SkeletonModule, SelectButtonModule, DialogModule],
+  imports: [AppLucideIconComponent, FormsModule, ButtonModule, InputTextModule, TextareaModule, SelectModule, TagModule, TableModule, MessageModule, SkeletonModule, SelectButtonModule, DialogModule],
   templateUrl: './attendance-register.component.html',
   styleUrl: './attendance-register.component.css',
 })
@@ -55,10 +57,10 @@ export class AttendanceRegisterComponent implements OnInit {
   dni = '';
   dayRole: DayRole = 'entry';
   readonly dayRoles: {value: DayRole; label: string; icon: string; tone: string}[] = [
-    {value: 'entry', label: 'Entrada', icon: 'pi pi-sign-in', tone: 'entry'},
-    {value: 'lunch_out', label: 'Salida a almuerzo', icon: 'pi pi-clock', tone: 'lunch'},
-    {value: 'lunch_in', label: 'Regreso de almuerzo', icon: 'pi pi-replay', tone: 'lunch'},
-    {value: 'exit', label: 'Salida', icon: 'pi pi-sign-out', tone: 'exit'},
+    {value: 'entry', label: 'Entrada', icon: lucideClass('log-in'), tone: 'entry'},
+    {value: 'lunch_out', label: 'Salida a almuerzo', icon: lucideClass('clock'), tone: 'lunch'},
+    {value: 'lunch_in', label: 'Regreso de almuerzo', icon: lucideClass('rotate-ccw'), tone: 'lunch'},
+    {value: 'exit', label: 'Salida', icon: lucideClass('log-out'), tone: 'exit'},
   ];
   /** Una marcación repetida espera la decisión de quien registra: se registra de todos modos o se descarta. */
   duplicateVisible = false;

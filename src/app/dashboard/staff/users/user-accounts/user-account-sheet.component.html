@@ -155,7 +155,7 @@
     </div>
 
     @if (lookupState === 'found' && lookupPerson) {
-      <p-message severity="success" icon="pi pi-check-circle">
+      <p-message severity="success" [icon]="'circle-check' | lucideClass">
         <div class="sheet__alert">
           <strong>{{ lookupPerson.full_name }}</strong>
           <span>{{ lookupPerson.is_staff ? 'Core la tiene como personal.' : 'Core la tiene como persona, sin ficha de personal.' }} Puedes registrarla como titular.</span>

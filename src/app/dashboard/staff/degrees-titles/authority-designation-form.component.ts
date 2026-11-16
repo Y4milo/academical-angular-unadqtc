@@ -23,6 +23,7 @@ import {
   DegreesTitlesService,
 } from '../../../services/degrees-titles.service';
 import {initials, INSTITUTIONAL_EMAIL_DOMAIN, isInstitutionalEmail} from './degree-general-data.util';
+import {LucideClassPipe} from '../../../core/pipes/lucide-class.pipe';
 
 interface DesignationFormModel {
   professional_prefix_id: number | null;
@@ -35,7 +36,7 @@ interface DesignationFormModel {
 
 @Component({
   selector: 'app-authority-designation-form',
-  imports: [Avatar, ButtonModule, FormFieldComponent, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, StepperModule, StatusTagComponent],
+  imports: [LucideClassPipe, Avatar, ButtonModule, FormFieldComponent, FormsModule, InputTextModule, MessageModule, NgFor, NgIf, Select, SkeletonModule, StepperModule, StatusTagComponent],
   templateUrl: './authority-designation-form.component.html',
   styleUrl: './degree-general-data.shared.css',
 })

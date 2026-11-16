@@ -26,6 +26,9 @@ import {
   DeliverableStatus, DocumentFormat, DocumentKind, DocumentSignature, DocumentVoid, VoidReason, ServiceOrder, ServiceOrderDeliverable, ServiceOrdersConfig,
   ServiceOrdersService, fromIsoDate, toIsoDate,
 } from '../../../../services/service-orders.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {lucideClass} from '../../../../core/utils/lucide-icon.util';
+import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 
 type TagSeverity = 'success' | 'info' | 'warn' | 'secondary';
 
@@ -58,7 +61,7 @@ const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes
 /** Una orden de servicio y sus entregables: carta, conformidad y descarga en Word o PDF. */
 @Component({
   selector: 'app-service-order-detail',
-  imports: [
+  imports: [LucideClassPipe, AppLucideIconComponent, 
     FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, DialogModule, InputNumberModule, InputTextModule, MenuModule, MessageModule, SelectModule,
     SkeletonModule, TagModule, TextareaModule, TooltipModule, FormFieldComponent, DocumentSignDialogComponent,
   ],
@@ -82,22 +85,22 @@ export class ServiceOrderDetailComponent implements OnInit {
       if (d.letter_number) {
         const signed = d.letter_signature.signed;
         rows.push({
-          kind: 'letter', icon: 'pi-file', title: this.letterTitle(d), issued: true, signed, emit: null, history: d.letter_history, extras: this.extrasOf(signed),
+          kind: 'letter', icon: lucideClass('file'), title: this.letterTitle(d), issued: true, signed, emit: null, history: d.letter_history, extras: this.extrasOf(signed),
           meta: `${this.shortDate(d.letter_date)}${d.letter_signed ? ' · con firma y huella' : ''}${this.signedText(d.letter_signature)}`,
           tag: canSign ? (signed ? { label: 'Firmada', severity: 'success' } : { label: 'Sin firmar', severity: 'warn' }) : null,
         });
       } else if (d.status === 'pending_letter') {
-        rows.push({ kind: 'letter', icon: 'pi-file', title: 'Carta', issued: false, signed: false, emit: 'letter', meta: 'Aún no se emite.', tag: null, history: d.letter_history, extras: 0 });
+        rows.push({ kind: 'letter', icon: lucideClass('file'), title: 'Carta', issued: false, signed: false, emit: 'letter', meta: 'Aún no se emite.', tag: null, history: d.letter_history, extras: 0 });
       }
       if (d.status === 'finished') {
         const signed = d.conformity_signature.signed;
         rows.push({
-          kind: 'conformity', icon: 'pi-file-check', title: `Informe N°${d.report_number}-${d.report_year}`, issued: true, signed, emit: null, history: d.conformity_history, extras: this.extrasOf(signed),
+          kind: 'conformity', icon: lucideClass('file-check'), title: `Informe N°${d.report_number}-${d.report_year}`, issued: true, signed, emit: null, history: d.conformity_history, extras: this.extrasOf(signed),
           meta: `Acta ${d.record_number}-${d.record_year} · ${this.shortDate(d.conformity_date)}${this.signedText(d.conformity_signature)}`,
           tag: canSign ? (signed ? { label: 'Firmado', severity: 'success' } : { label: 'Sin firmar', severity: 'warn' }) : null,
         });
       } else if (d.status === 'pending_conformity') {
-        rows.push({ kind: 'conformity', icon: 'pi-file-check', title: 'Informe de conformidad', issued: false, signed: false, emit: 'conformity', meta: 'Se emite con el N° de acta de conformidad.', tag: null, history: d.conformity_history, extras: 0 });
+        rows.push({ kind: 'conformity', icon: lucideClass('file-check'), title: 'Informe de conformidad', issued: false, signed: false, emit: 'conformity', meta: 'Se emite con el N° de acta de conformidad.', tag: null, history: d.conformity_history, extras: 0 });
       }
       result[d.id] = rows;
     }
@@ -112,18 +115,18 @@ export class ServiceOrderDetailComponent implements OnInit {
     const deliverables = this.order()?.deliverables ?? [];
     const current = deliverables.find(d => d.status !== 'finished');
     if (current?.status === 'pending_letter') {
-      return { title: `Emitir la carta del ${this.ordinal(current).toLowerCase()} entregable`, label: 'Emitir carta', icon: 'pi pi-file-edit', run: () => this.openLetter(current) };
+      return { title: `Emitir la carta del ${this.ordinal(current).toLowerCase()} entregable`, label: 'Emitir carta', icon: lucideClass('file-pen'), run: () => this.openLetter(current) };
     }
     if (current?.status === 'pending_conformity') {
-      return { title: `Emitir la conformidad del ${this.ordinal(current).toLowerCase()} entregable`, label: 'Emitir conformidad', icon: 'pi pi-file-check', run: () => this.openConformity(current) };
+      return { title: `Emitir la conformidad del ${this.ordinal(current).toLowerCase()} entregable`, label: 'Emitir conformidad', icon: lucideClass('file-check'), run: () => this.openConformity(current) };
     }
     if (!current && this.canSign) {
       for (const d of [...deliverables].reverse()) {
         if (!d.conformity_signature.signed) {
-          return { title: `Firmar el informe N°${d.report_number}-${d.report_year}`, label: 'Firmar informe', icon: 'pi pi-pencil', run: () => this.openSign(d, 'conformity') };
+          return { title: `Firmar el informe N°${d.report_number}-${d.report_year}`, label: 'Firmar informe', icon: lucideClass('pencil'), run: () => this.openSign(d, 'conformity') };
         }
         if (!d.letter_signature.signed) {
-          return { title: `Firmar la ${this.letterTitle(d).toLowerCase()}`, label: 'Firmar carta', icon: 'pi pi-pencil', run: () => this.openSign(d, 'letter') };
+          return { title: `Firmar la ${this.letterTitle(d).toLowerCase()}`, label: 'Firmar carta', icon: lucideClass('pencil'), run: () => this.openSign(d, 'letter') };
         }
       }
     }
@@ -138,14 +141,14 @@ export class ServiceOrderDetailComponent implements OnInit {
       for (const kind of ['letter', 'conformity'] as DocumentKind[]) {
         const signed = this.signatureOf(d, kind).signed;
         result[`${d.id}-${kind}-download`] = [
-          { label: 'Word', icon: 'pi pi-file-word', command: () => this.download(d, kind, 'docx') },
-          { label: signed ? 'PDF firmado' : 'PDF', icon: 'pi pi-file-pdf', command: () => this.download(d, kind, 'pdf') },
+          { label: 'Word', icon: lucideClass('file-text'), command: () => this.download(d, kind, 'docx') },
+          { label: signed ? 'PDF firmado' : 'PDF', icon: lucideClass('file-text'), command: () => this.download(d, kind, 'pdf') },
         ];
         const items: MenuItem[] = signed
-          ? [{ label: 'Corregir…', icon: 'pi pi-pencil', command: () => this.openCorrect(d, kind) }]
-          : [{ label: 'Editar datos', icon: 'pi pi-pencil', command: () => (kind === 'letter' ? this.openLetterEdit(d) : this.openConformityEdit(d)) }];
+          ? [{ label: 'Corregir…', icon: lucideClass('pencil'), command: () => this.openCorrect(d, kind) }]
+          : [{ label: 'Editar datos', icon: lucideClass('pencil'), command: () => (kind === 'letter' ? this.openLetterEdit(d) : this.openConformityEdit(d)) }];
         if (canSign && signed) {
-          items.push({ label: 'Agregar otra firma', icon: 'pi pi-signature', command: () => this.openSign(d, kind) });
+          items.push({ label: 'Agregar otra firma', icon: lucideClass('signature'), command: () => this.openSign(d, kind) });
         }
         result[`${d.id}-${kind}-more`] = items;
       }

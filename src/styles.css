@@ -387,3 +387,29 @@ label:has(input, textarea, p-select, p-datepicker, p-inputnumber) .p-datepicker 
 .shell__notice {
   margin-bottom: var(--space-2);
 }
+
+/* Lucide icons painted as a class (see lucideClass in core/utils/lucide-icon.util.ts) and the spinner of <app-lucide-icon class="lucide-spin"> */
+.lu {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  background-color: currentColor;
+  vertical-align: -0.125em;
+}
+
+@keyframes lucide-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lucide-spin {
+  animation: lucide-spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lucide-spin {
+    animation-duration: 3s;
+  }
+}

@@ -23,11 +23,11 @@
 
           <p-button
             label="Seleccionar TXT"
-            icon="pi pi-upload"
+           
             severity="success"
             variant="outlined"
-            (onClick)="txtInput.click()"
-          ></p-button>
+            (onClick)="txtInput.click()">
+            <ng-template #icon><app-lucide-icon name="upload" [size]="16" /></ng-template></p-button>
 
           @if (selectedFile) {
             <span class="approved-average-file-name">{{ selectedFile.name }}</span>
@@ -42,21 +42,21 @@
         <div class="approved-average-actions">
           <p-button
             label="Vista previa"
-            icon="pi pi-search"
+           
             severity="secondary"
             variant="outlined"
             [disabled]="!selectedFile || isPreviewLoading"
             [loading]="isPreviewLoading"
-            (onClick)="generatePreview()"
-          ></p-button>
+            (onClick)="generatePreview()">
+            <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template></p-button>
           <p-button
             label="Descargar Excel"
-            icon="pi pi-file-excel"
+           
             severity="success"
             [disabled]="!selectedFile || !preview || isDownloading"
             [loading]="isDownloading"
-            (onClick)="downloadExcel()"
-          ></p-button>
+            (onClick)="downloadExcel()">
+            <ng-template #icon><app-lucide-icon name="file-spreadsheet" [size]="16" /></ng-template></p-button>
         </div>
       </ng-template>
     </p-toolbar>

@@ -4,7 +4,7 @@
       <img src="/img/logo-unadqtc-rojo.png" alt="Escudo de la Universidad Nacional de Arte Diego Quispe Tito del Cusco">
       <div class="brand-copy"><strong>Universidad Nacional de Arte</strong><span>Diego Quispe Tito del Cusco</span><small>Oficina de Tecnologías de la Información</small></div>
     </div>
-    <button pButton type="button" [icon]="themeMode === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" class="theme-toggle"
+    <button pButton type="button" [icon]="themeMode === 'dark' ? ('sun' | lucideClass) : ('moon' | lucideClass)" class="theme-toggle"
             [rounded]="true" [outlined]="true" severity="secondary"
             [attr.aria-label]="themeMode === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
             [pTooltip]="themeMode === 'dark' ? 'Tema claro' : 'Tema oscuro'" (click)="toggleTheme()"></button>
@@ -16,7 +16,7 @@
     <div *ngIf="!ticket">
       <div class="form-title"><span class="eyebrow">FORMULARIO OFICIAL</span><h1>Solicitud de correo institucional</h1>
         <p class="intro">Identifique su vínculo universitario y el trámite que necesita. Academical validará sus datos antes de atender la solicitud.</p></div>
-      <div class="privacy-note"><i class="pi pi-shield"></i><span>Sus datos se usarán únicamente para validar su identidad y atender esta solicitud. Nunca escriba contraseñas ni códigos de autenticación.</span></div>
+      <div class="privacy-note"><app-lucide-icon name="shield" size="1em" /><span>Sus datos se usarán únicamente para validar su identidad y atender esta solicitud. Nunca escriba contraseñas ni códigos de autenticación.</span></div>
 
       <p-steps styleClass="support-steps" [class.step-error-0]="stepError === 0" [class.step-error-1]="stepError === 1" [class.step-error-2]="stepError === 2" [model]="steps" [activeIndex]="activeStep" [readonly]="true"></p-steps>
       <div class="form-message" *ngIf="error && activeStep !== 2"><p-message severity="error" [text]="error"></p-message></div>
@@ -28,12 +28,18 @@
           <label>Número de documento <b>*</b><input pInputText [(ngModel)]="form.document_number" maxlength="20" autocomplete="off" placeholder="Ingrese su DNI o documento"></label>
           <label *ngIf="form.requester_type === 'student'" class="full-field">Código de estudiante <b>*</b><input pInputText [(ngModel)]="form.student_code" maxlength="30" autocomplete="off" placeholder="Ingrese su código académico"></label>
         </div>
-        <button pButton type="button" class="submit-button step-action" label="Validar y continuar" icon="pi pi-arrow-right" iconPos="right" [loading]="saving" (click)="validateIdentity()"></button>
+        <p-button type="button" class="submit-button step-action" label="Validar y continuar" iconPos="right" [loading]="saving" (click)="validateIdentity()">
+          <ng-template #icon><app-lucide-icon name="arrow-right" [size]="16" /></ng-template>
+        </p-button>
       </section>
 
       <section *ngIf="activeStep === 1" class="question step-panel"><div class="question-number">02</div><label>¿Qué atención necesita? <b>*</b></label>
         <p-select class="wide-select" [(ngModel)]="form.request_type" [options]="requestOptions" optionLabel="label" optionValue="value" appendTo="body"></p-select>
-        <div class="step-buttons"><button pButton type="button" label="Atrás" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (click)="backToIdentity()"></button><button pButton type="button" class="institutional-button" label="Continuar" icon="pi pi-arrow-right" iconPos="right" (click)="goToContact()"></button></div>
+        <div class="step-buttons"><p-button type="button" label="Atrás" severity="secondary" [outlined]="true" (click)="backToIdentity()">
+          <ng-template #icon><app-lucide-icon name="arrow-left" [size]="16" /></ng-template>
+        </p-button><p-button type="button" class="institutional-button" label="Continuar" iconPos="right" (click)="goToContact()">
+          <ng-template #icon><app-lucide-icon name="arrow-right" [size]="16" /></ng-template>
+        </p-button></div>
       </section>
 
       <div *ngIf="activeStep === 2">
@@ -52,16 +58,20 @@
       </section>
 
       <div class="form-message" *ngIf="error"><p-message severity="error" [text]="error"></p-message></div>
-      <button pButton type="button" class="submit-button" label="Registrar solicitud" icon="pi pi-send" [loading]="saving" (click)="submit()"></button>
-      <button pButton type="button" class="back-button" label="Atrás" icon="pi pi-arrow-left" severity="secondary" [text]="true" (click)="activeStep = 1"></button>
+      <p-button type="button" class="submit-button" label="Registrar solicitud" [loading]="saving" (click)="submit()">
+        <ng-template #icon><app-lucide-icon name="send" [size]="16" /></ng-template>
+      </p-button>
+      <p-button type="button" class="back-button" label="Atrás" severity="secondary" [text]="true" (click)="activeStep = 1">
+        <ng-template #icon><app-lucide-icon name="arrow-left" [size]="16" /></ng-template>
+      </p-button>
       <p class="required-note">* Campos obligatorios</p>
       </div>
     </div>
 
-    <div *ngIf="ticket" class="result"><p-steps styleClass="support-steps result-steps" [model]="steps" [activeIndex]="3" [readonly]="true"></p-steps><i class="pi pi-check-circle"></i><span class="eyebrow">SOLICITUD REGISTRADA</span><h2>{{ ticket }}</h2>
+    <div *ngIf="ticket" class="result"><p-steps styleClass="support-steps result-steps" [model]="steps" [activeIndex]="3" [readonly]="true"></p-steps><app-lucide-icon name="circle-check" size="1em" /><span class="eyebrow">SOLICITUD REGISTRADA</span><h2>{{ ticket }}</h2>
       <p-message *ngIf="wasDuplicate" severity="warn" [text]="responseMessage"></p-message>
       <p *ngIf="status === 'manual_review'">Un administrador revisará los datos porque no fue posible validarlos automáticamente.</p>
-      <div *ngIf="verificationRequired" class="verification"><div class="identity-icon"><i class="pi pi-envelope"></i></div><div><strong>Verifique su identidad</strong><p>{{form.contact_channel === 'phone' ? 'Enviamos un enlace al nuevo correo personal. Ábralo para confirmar que tiene acceso.' : 'Enviamos un código al correo personal que coincide con el registrado.'}}</p></div>
+      <div *ngIf="verificationRequired" class="verification"><div class="identity-icon"><app-lucide-icon name="mail" size="1em" /></div><div><strong>Verifique su identidad</strong><p>{{form.contact_channel === 'phone' ? 'Enviamos un enlace al nuevo correo personal. Ábralo para confirmar que tiene acceso.' : 'Enviamos un código al correo personal que coincide con el registrado.'}}</p></div>
         <label *ngIf="form.contact_channel === 'email'">Código de seis dígitos<input pInputText [(ngModel)]="code" maxlength="6" inputmode="numeric" autocomplete="one-time-code"></label>
         <button *ngIf="form.contact_channel === 'email'" pButton class="submit-button" label="Validar identidad" [loading]="saving" (click)="verify()"></button></div>
       <p *ngIf="status === 'automatically_validated'">Su identidad fue validada correctamente. La solicitud está lista para ser atendida.</p>

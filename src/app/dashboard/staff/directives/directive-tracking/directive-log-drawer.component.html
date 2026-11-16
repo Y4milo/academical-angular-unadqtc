@@ -1,5 +1,5 @@
 <button type="button" class="track-btn" (click)="open.set(true)" aria-haspopup="dialog" [attr.aria-expanded]="open()" [attr.data-testid]="testId() + '-button'">
-  <span class="pi" [class]="'pi ' + icon()" aria-hidden="true"></span>
+  <app-lucide-icon [name]="icon()" size="1em" />
   <span>{{ label() }}</span>
   <span class="track-btn__count" [attr.data-testid]="testId() + '-count'">{{ count() }}</span>
 </button>

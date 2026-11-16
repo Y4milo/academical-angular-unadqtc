@@ -2,7 +2,7 @@
   <div class="sign">
     <ul class="checks" aria-label="Tu equipo">
       <li>
-        <i class="pi" [class.pi-check-circle]="environment.recommended && environment.windows" [class.pi-exclamation-circle]="!(environment.recommended && environment.windows)" aria-hidden="true"></i>
+        <app-lucide-icon [name]="environment.recommended && environment.windows ? 'circle-check' : 'circle-alert'" size="1em" />
         <span>{{ environment.browser }}{{ environment.recommended ? '' : ': Firma Perú recomienda Microsoft Edge en Windows' }}</span>
       </li>
     </ul>
@@ -14,21 +14,23 @@
     <p class="hint">El PIN se escribe en la ventana del firmador; nunca pasa por Academical. Ubicas el sello en el visor del firmador.</p>
 
     @if (phase() === 'waiting') {
-      <p-message severity="info" variant="simple" icon="pi pi-spin pi-spinner">{{ message() }}</p-message>
+      <p-message severity="info" variant="simple" [icon]="('loader-circle' | lucideClass) + ' lucide-spin'">{{ message() }}</p-message>
     }
     @if (phase() === 'failed') {
       <p-message severity="error" variant="simple">{{ message() }}</p-message>
     }
     @if (phase() === 'done') {
-      <p-message severity="success" variant="simple" icon="pi pi-check-circle">Documento firmado y validado.</p-message>
+      <p-message severity="success" variant="simple" [icon]="'circle-check' | lucideClass">Documento firmado y validado.</p-message>
     }
   </div>
   <ng-template #footer>
     @if (phase() === 'done') {
-      <p-button label="Listo" icon="pi pi-check" (onClick)="close()"></p-button>
+      <p-button label="Listo" (onClick)="close()">
+        <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template></p-button>
     } @else {
       <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="phase() === 'preparing'" (onClick)="close()"></p-button>
-      <p-button label="Firmar" icon="pi pi-pencil" [loading]="busy" (onClick)="start()"></p-button>
+      <p-button label="Firmar" [loading]="busy" (onClick)="start()">
+        <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
     }
   </ng-template>
 </p-dialog>

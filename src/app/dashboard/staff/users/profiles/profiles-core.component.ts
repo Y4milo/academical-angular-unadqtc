@@ -7,6 +7,7 @@ import { TableModule } from 'primeng/table';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { StatusTagComponent } from '../../../../core/components/status-tag.component';
 import { CorePublication, CorePublicationStatus, ProfilesService, profileError } from '../../../../services/profiles.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 type Severity = 'success' | 'info' | 'warn' | 'danger' | 'secondary';
 
@@ -23,7 +24,7 @@ const CORE_STATUS: Record<string, { label: string; severity: Severity; meaning: 
  */
 @Component({
   selector: 'app-profiles-core',
-  imports: [ButtonModule, MessageModule, SkeletonModule, TableModule, StatusTagComponent],
+  imports: [AppLucideIconComponent, ButtonModule, MessageModule, SkeletonModule, TableModule, StatusTagComponent],
   templateUrl: './profiles-core.component.html',
   styleUrl: './profiles-core.component.css',
 })

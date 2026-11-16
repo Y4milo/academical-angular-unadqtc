@@ -5,6 +5,7 @@ import { TimelineModule } from 'primeng/timeline';
 import { DirectiveEvent } from '../../../../services/directives.service';
 import { DirectiveLogDrawerComponent } from './directive-log-drawer.component';
 import { eventAuthor, eventChanges, eventDetail, eventLabel } from './directive-events';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 /**
  * El seguimiento de una directiva: un botón pequeño y en negrita con el número de movimientos y, al pulsarlo, un cajón que entra por la derecha con la
@@ -12,7 +13,7 @@ import { eventAuthor, eventChanges, eventDetail, eventLabel } from './directive-
  */
 @Component({
   selector: 'app-directive-tracking',
-  imports: [DatePipe, DirectiveLogDrawerComponent, PrimeTemplate, TimelineModule],
+  imports: [AppLucideIconComponent, DatePipe, DirectiveLogDrawerComponent, PrimeTemplate, TimelineModule],
   templateUrl: './directive-tracking.component.html',
   styleUrl: './directive-tracking.component.css',
 })

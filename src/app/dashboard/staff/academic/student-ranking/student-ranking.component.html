@@ -34,14 +34,16 @@
       </app-form-field>
       <!-- Botón buscar -->
       <div class="col-12 md:col-6 lg:col-3 flex flex-column gap-2 justify-content-end">
-        <button
-          pButton
+        <p-button
+         
           type="button"
-          icon="pi pi-search"
+         
           label="Obtener Ranking"
           class="w-full"
           (click)="loadRanking()">
-        </button>
+          <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template>
+        
+        </p-button>
       </div>
       @if (show_ranking){
         <div class="col-12 flex flex-column gap-2 justify-content-end">

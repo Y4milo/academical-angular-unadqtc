@@ -1,12 +1,13 @@
 import {Component, Input} from '@angular/core';
 import {MessageModule} from 'primeng/message';
 import {TooltipModule} from 'primeng/tooltip';
+import {lucideClass} from '../utils/lucide-icon.util';
 
 @Component({
   selector: 'app-test-mode-banner',
   standalone: true,
   imports: [MessageModule, TooltipModule],
-  template: `<p-message severity="warn" icon="pi pi-flask" styleClass="test-mode-banner"
+  template: `<p-message severity="warn" [icon]="icon" styleClass="test-mode-banner"
     [text]="message" [pTooltip]="recipient ? 'Buzón de prueba: ' + recipient : ''"></p-message>`,
   styles: [`
     :host{display:block;margin:.85rem 0}
@@ -16,6 +17,7 @@ import {TooltipModule} from 'primeng/tooltip';
   `],
 })
 export class TestModeBannerComponent {
+  readonly icon = lucideClass('flask-conical');
   @Input() area = 'Este módulo';
   @Input() recipient: string | null = null;
   @Input() publicView = false;

@@ -760,7 +760,7 @@
   text-align: center;
 }
 
-.empty-state i {
+.empty-state i, .empty-state app-lucide-icon {
   font-size: 1.75rem;
   color: var(--p-text-muted-color);
 }

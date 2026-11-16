@@ -20,6 +20,8 @@ import { DirectiveLogDrawerComponent } from '../directive-tracking/directive-log
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
 import { formatBytes } from '../directive-status';
 import { PageCount, countPdfPages, pagesLabel, pagesTag } from '../pdf-pages';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 
 /** Hasta cuántas oficinas se muestran como tarjetas de elección; con más vuelve el desplegable con buscador. */
 export const MAX_ORIGIN_CARDS = 4;
@@ -37,7 +39,7 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
  */
 @Component({
   selector: 'app-directive-form',
-  imports: [FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, ToolbarModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [LucideClassPipe, AppLucideIconComponent, FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, ToolbarModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   templateUrl: './directive-form.component.html',
   styleUrl: './directive-form.component.css',
 })
