@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, Subject, throwError } from 'rxjs';
 import { NotificationService } from '../../../../services/notification.service';
 import { SessionSecurityService, SessionSecuritySettings } from '../../../../services/session-security.service';
@@ -42,7 +41,7 @@ describe('SessionSecurityComponent', () => {
     service.settings.and.returnValue(of(ok(settings())));
     await TestBed.configureTestingModule({
       imports: [SessionSecurityComponent],
-      providers: [provideNoopAnimations(), { provide: SessionSecurityService, useValue: service }, { provide: NotificationService, useValue: notifications }],
+      providers: [{ provide: SessionSecurityService, useValue: service }, { provide: NotificationService, useValue: notifications }],
     }).compileComponents();
   });
 
@@ -68,7 +67,7 @@ describe('SessionSecurityComponent', () => {
     expect(text('field-warning_seconds')).toContain('De 30 a 180 segundos');
     expect(text('effect-text')).toContain('20 minutos sin actividad');
     expect(text('effect-text')).toContain('12 horas');
-    expect(text('source-tag')).toBe('Valores recomendados');
+    expect(text('source-tag')).toBe('Rigen los valores recomendados');
   });
 
   it('does not save until something changes', async () => {
@@ -92,7 +91,7 @@ describe('SessionSecurityComponent', () => {
 
     expect(service.update).toHaveBeenCalledOnceWith({ idle_minutes: 10, max_hours: 8, warning_seconds: 60 });
     expect(notifications.notifyApiData).toHaveBeenCalled();
-    expect(text('source-tag')).toBe('Valores guardados');
+    expect(text('source-tag')).toBe('Rigen los valores guardados');
     expect(saveButton().disabled).toBeTrue();
   });
 

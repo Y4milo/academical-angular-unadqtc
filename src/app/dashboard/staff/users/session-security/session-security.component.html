@@ -37,7 +37,7 @@
           <div class="actions">
             <p-button label="Guardar cambios" [disabled]="!dirty() || !valid()" [loading]="saving()" data-testid="save-settings" (onClick)="save()"></p-button>
             <p-button label="Descartar" severity="secondary" [outlined]="true" [disabled]="!dirty() || saving()" data-testid="reset-settings" (onClick)="reset()"></p-button>
-            <p-button label="Valores recomendados" severity="secondary" [text]="true" [disabled]="saving()" data-testid="use-defaults" (onClick)="useDefaults()"></p-button>
+            <p-button label="Usar los recomendados" severity="secondary" [text]="true" [disabled]="saving()" data-testid="use-defaults" (onClick)="useDefaults()"></p-button>
             <span class="hint" data-testid="settings-state">{{ dirty() ? 'Tienes cambios sin guardar.' : 'Sin cambios sin guardar.' }}</span>
           </div>
         </div>
@@ -48,7 +48,7 @@
             <p class="hint">Los cambios rigen desde la próxima petición de cada persona; no hace falta que vuelvan a entrar.</p>
             <p class="hint">Cuando alguien cierra su sesión en Core, Core avisa a Academical y las sesiones que esa persona abrió con Core se cierran de inmediato, aunque no haya vencido ningún tiempo.</p>
             <p class="hint">Los tiempos de Academical no deben superar los de Core (inactividad de 30 minutos, 20 para quien gestiona; duración máxima de 12 horas).</p>
-            <p-tag [value]="saved()?.values?.source === 'database' ? 'Valores guardados' : 'Valores recomendados'" [severity]="saved()?.values?.source === 'database' ? 'info' : 'secondary'" data-testid="source-tag"></p-tag>
+            <p-tag [value]="saved()?.values?.source === 'database' ? 'Rigen los valores guardados' : 'Rigen los valores recomendados'" [severity]="saved()?.values?.source === 'database' ? 'info' : 'secondary'" data-testid="source-tag"></p-tag>
           </section>
         </div>
       </div>
