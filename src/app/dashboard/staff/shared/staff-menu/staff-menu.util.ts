@@ -6,9 +6,34 @@ import {MenuItem} from 'primeng/api';
  * own attendance) is not part of this model: the layout draws it above the menu.
  */
 export function buildStaffMenu(groups: MenuItem[], currentUrl: string): MenuItem[] {
+  const links = groups.flatMap((group) => linksOf(group));
+
   return groups
     .filter((group) => group.items?.length)
-    .map((group) => ({...group, expanded: holdsUrl(group, currentUrl)}));
+    .map((group) => ({...group, items: withExactParents(group.items ?? [], links), expanded: holdsUrl(group, currentUrl)}));
+}
+
+function linksOf(item: MenuItem): string[] {
+  const own = typeof item.routerLink === 'string' ? [item.routerLink] : [];
+
+  return [...own, ...(item.items ?? []).flatMap((child) => linksOf(child))];
+}
+
+/**
+ * A link that is the parent path of another one in the menu (/staff/attendance and /staff/attendance/register) must match
+ * exactly, or both would be highlighted on the child screen. The others keep prefix matching so their detail screens still light them.
+ */
+function withExactParents(items: MenuItem[], links: string[]): MenuItem[] {
+  return items.map((item) => {
+    const link = typeof item.routerLink === 'string' ? item.routerLink : null;
+    const isParent = link !== null && links.some((other) => other.startsWith(`${link}/`));
+
+    return {
+      ...item,
+      ...(isParent ? {routerLinkActiveOptions: {exact: true}} : {}),
+      ...(item.items ? {items: withExactParents(item.items, links)} : {}),
+    };
+  });
 }
 
 /** Whether a screen of the group (or the item itself) is the one being shown. */
