@@ -34,14 +34,16 @@
     </app-form-field>
 
     <div class="col-12 lg:col-4 flex flex-column gap-2 justify-content-end">
-      <button
-        pButton
+      <p-button
+       
         type="button"
-        icon="pi pi-file-excel"
+       
         label="Descargar Excel"
         [loading]="downloading"
         (click)="downloadReportExcel()">
-      </button>
+        <ng-template #icon><app-lucide-icon name="file-spreadsheet" [size]="16" /></ng-template>
+      
+      </p-button>
     </div>
 
     <div class="col-12 md:col-4 flex flex-column gap-2">

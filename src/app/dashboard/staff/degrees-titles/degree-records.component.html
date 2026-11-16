@@ -5,9 +5,11 @@
       <h1>Padrón de aptos</h1>
       <p>Registro de estudiantes aptos por convocatoria de grados y títulos.</p>
     </div>
-    <button pButton type="button" icon="pi pi-plus" label="Agregar estudiante" (click)="openCreate()"
+    <p-button type="button" label="Agregar estudiante" (click)="openCreate()"
             [disabled]="!calls.length"
-            [pTooltip]="calls.length ? '' : 'Abra una convocatoria antes de registrar estudiantes aptos.'"></button>
+            [pTooltip]="calls.length ? '' : 'Abra una convocatoria antes de registrar estudiantes aptos.'">
+      <ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template>
+    </p-button>
   </div>
 
   <app-test-mode-banner *ngIf="mailTestMode" area="Grados y Títulos" [recipient]="mailTestRecipient"></app-test-mode-banner>
@@ -29,8 +31,12 @@
       </ng-template>
     </p-select>
     <input pInputText [(ngModel)]="search" (keyup.enter)="loadRecords(1)" placeholder="Código, DNI, nombres o código de barras">
-    <button pButton type="button" icon="pi pi-search" label="Buscar" severity="secondary" (click)="loadRecords(1)"></button>
-    <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" [text]="true" (click)="clearFilters()"></button>
+    <p-button type="button" label="Buscar" severity="secondary" (click)="loadRecords(1)">
+      <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template>
+    </p-button>
+    <p-button type="button" label="Limpiar" [text]="true" (click)="clearFilters()">
+      <ng-template #icon><app-lucide-icon name="funnel-x" [size]="16" /></ng-template>
+    </p-button>
   </div>
 
   <div class="bulk-actions" *ngIf="selectedRecords.length">
@@ -38,12 +44,18 @@
     <small *ngIf="selectedRecords.length > bulkLimit('ethnicity-email')" class="form-field__error" role="status">
       Los formularios se envían de {{ bulkLimit('ethnicity-email') }} en {{ bulkLimit('ethnicity-email') }} y los PDF de {{ bulkLimit('pdf') }} en {{ bulkLimit('pdf') }}.
     </small>
-    <button pButton type="button" icon="pi pi-file-pdf" label="Generar PDFs" severity="danger"
-            [loading]="bulkStarting" [disabled]="selectedRecords.length > bulkLimit('pdf')" (click)="startBulkProcess('pdf')"></button>
-    <button pButton type="button" icon="pi pi-envelope" label="Enviar formularios" severity="success"
-            [loading]="bulkStarting" [disabled]="selectedRecords.length > bulkLimit('ethnicity-email')" (click)="startBulkProcess('ethnicity-email')"></button>
-    <button pButton type="button" icon="pi pi-times" label="Limpiar selección" severity="secondary"
-            [text]="true" (click)="selectedRecords = []"></button>
+    <p-button type="button" label="Generar PDFs" severity="danger"
+            [loading]="bulkStarting" [disabled]="selectedRecords.length > bulkLimit('pdf')" (click)="startBulkProcess('pdf')">
+      <ng-template #icon><app-lucide-icon name="file-text" [size]="16" /></ng-template>
+    </p-button>
+    <p-button type="button" label="Enviar formularios" severity="success"
+            [loading]="bulkStarting" [disabled]="selectedRecords.length > bulkLimit('ethnicity-email')" (click)="startBulkProcess('ethnicity-email')">
+      <ng-template #icon><app-lucide-icon name="mail" [size]="16" /></ng-template>
+    </p-button>
+    <p-button type="button" label="Limpiar selección" severity="secondary"
+            [text]="true" (click)="selectedRecords = []">
+      <ng-template #icon><app-lucide-icon name="x" [size]="16" /></ng-template>
+    </p-button>
   </div>
 
   <p-table [value]="records" [loading]="loading" [paginator]="true" [rows]="perPage"
@@ -70,56 +82,72 @@
             <p-tag [value]="record.status?.label" [severity]="record.status?.value === 'annulled' ? 'danger' : 'success'"></p-tag>
             <div class="ethnicity-status">
             <ng-container *ngIf="record.ethnicity_form?.submitted_at">
-              <p-tag value="Variables étnicas recibidas" icon="pi pi-check-circle" severity="success"></p-tag>
+              <p-tag value="Variables étnicas recibidas" severity="success">
+                <ng-template #icon><app-lucide-icon name="circle-check" [size]="14" /></ng-template></p-tag>
               <small class="status-activity">
-                <i class="pi pi-calendar" aria-hidden="true"></i>
+                <app-lucide-icon name="calendar-days" size="1em" />
                 <span>Formulario recibido</span><b aria-hidden="true">·</b>
                 <time>{{ record.ethnicity_form.submitted_at | date:'dd/MM/yyyy HH:mm' }}</time>
               </small>
             </ng-container>
             <p-tag *ngIf="record.ethnicity_form?.generated && !record.ethnicity_form?.submitted_at"
-                   value="Formulario étnico pendiente" icon="pi pi-clock" severity="warn"></p-tag>
+                   value="Formulario étnico pendiente" severity="warn">
+              <ng-template #icon><app-lucide-icon name="clock" [size]="14" /></ng-template></p-tag>
             </div>
             <small class="status-activity" *ngIf="record.ethnicity_form?.email_sent_at">
-              <i class="pi pi-envelope" aria-hidden="true"></i>
+              <app-lucide-icon name="mail" size="1em" />
               <span>{{ record.ethnicity_form.email_test_mode ? 'Correo de prueba enviado' : 'Correo enviado' }}</span>
               <b aria-hidden="true">·</b>
               <time>{{ record.ethnicity_form.email_sent_at | date:'dd/MM/yyyy HH:mm' }}</time>
             </small>
             <small class="institutional-email" *ngIf="record.institutional_identity?.institutional_email">
-              <i class="pi pi-at" aria-hidden="true"></i>
+              <app-lucide-icon name="at-sign" size="1em" />
               <span>{{ record.institutional_identity.institutional_email }}</span>
             </small>
             <p-tag *ngIf="isInstitutionalEmailVerified(record)" value="Correo verificado con Microsoft 365"
-                   icon="pi pi-verified" severity="success"></p-tag>
+                   severity="success">
+              <ng-template #icon><app-lucide-icon name="badge-check" [size]="14" /></ng-template></p-tag>
             <p-tag *ngIf="record.institutional_identity?.status && !isInstitutionalEmailVerified(record)
                           && record.institutional_identity.status !== 'test'"
                    [value]="identityLabel(record.institutional_identity.status)"
                    [severity]="identitySeverity(record.institutional_identity.status)"></p-tag>
             <p-tag *ngIf="record.institutional_identity?.status === 'test'" value="Correo de prueba"
-                   icon="pi pi-info-circle" severity="secondary"></p-tag>
+                   severity="secondary">
+              <ng-template #icon><app-lucide-icon name="info" [size]="14" /></ng-template></p-tag>
           </div>
         </td>
         <td class="actions">
-          <button pButton type="button" icon="pi pi-pencil" [text]="true" pTooltip="Editar"
-                  [disabled]="!canModify(record)" (click)="openEdit(record)"></button>
-          <button pButton type="button" icon="pi pi-file-pdf" severity="danger" [text]="true"
+          <p-button type="button" [text]="true" pTooltip="Editar"
+                  [disabled]="!canModify(record)" (click)="openEdit(record)">
+            <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template>
+          </p-button>
+          <p-button type="button" severity="danger" [text]="true"
                   pTooltip="Descargar diploma PDF" [loading]="downloadingPdfId === record.id"
                   [disabled]="record.status?.value === 'annulled' || (downloadingPdfId !== null && downloadingPdfId !== record.id)"
-                  (click)="downloadPdf(record)"></button>
-          <button pButton type="button" icon="pi pi-link" severity="info" [text]="true"
+                  (click)="downloadPdf(record)">
+            <ng-template #icon><app-lucide-icon name="file-text" [size]="16" /></ng-template>
+          </p-button>
+          <p-button type="button" severity="info" [text]="true"
                   [loading]="generatingLinkId === record.id"
                   [pTooltip]="record.ethnicity_form?.submitted_at ? 'Generar un nuevo enlace' : 'Formulario de variables étnicas'"
-                  [disabled]="record.status?.value === 'annulled'" (click)="generateEthnicityLink(record)"></button>
-          <button *ngIf="canVerifyInstitutionalEmail(record)" pButton type="button" icon="pi pi-id-card"
+                  [disabled]="record.status?.value === 'annulled'" (click)="generateEthnicityLink(record)">
+            <ng-template #icon><app-lucide-icon name="link" [size]="16" /></ng-template>
+          </p-button>
+          <p-button *ngIf="canVerifyInstitutionalEmail(record)" type="button"
                   severity="secondary" [text]="true" [loading]="checkingIdentityId === record.id"
-                  [pTooltip]="institutionalEmailActionLabel(record)" (click)="checkInstitutionalIdentity(record)"></button>
-          <button pButton type="button" icon="pi pi-envelope" severity="success" [text]="true"
+                  [pTooltip]="institutionalEmailActionLabel(record)" (click)="checkInstitutionalIdentity(record)">
+            <ng-template #icon><app-lucide-icon name="id-card" [size]="16" /></ng-template>
+          </p-button>
+          <p-button type="button" severity="success" [text]="true"
                   [loading]="sendingEmailId === record.id" pTooltip="Enviar formulario al correo institucional"
                   [disabled]="record.status?.value === 'annulled' || !isInstitutionalEmailVerified(record)"
-                  (click)="sendEthnicityEmail(record)"></button>
-          <button pButton type="button" icon="pi pi-ban" severity="danger" [text]="true" pTooltip="Anular"
-                  [disabled]="!canModify(record)" (click)="annul(record)"></button>
+                  (click)="sendEthnicityEmail(record)">
+            <ng-template #icon><app-lucide-icon name="mail" [size]="16" /></ng-template>
+          </p-button>
+          <p-button type="button" severity="danger" [text]="true" pTooltip="Anular"
+                  [disabled]="!canModify(record)" (click)="annul(record)">
+            <ng-template #icon><app-lucide-icon name="ban" [size]="16" /></ng-template>
+          </p-button>
         </td>
       </tr>
     </ng-template>
@@ -142,7 +170,7 @@
     <p-fieldset [legend]="'Completados (' + completedBulkResults.length + ')'" [toggleable]="true">
       <p-table [value]="completedBulkResults" [scrollable]="true" scrollHeight="220px">
         <ng-template pTemplate="body" let-result>
-          <tr><td><i class="pi pi-check-circle bulk-success"></i></td><td>{{ bulkStudentName(result) }}</td><td>#{{ result.record_id }}</td></tr>
+          <tr><td><app-lucide-icon name="circle-check" size="1em" class="bulk-success" /></td><td>{{ bulkStudentName(result) }}</td><td>#{{ result.record_id }}</td></tr>
         </ng-template>
         <ng-template pTemplate="emptymessage"><tr><td colspan="3">Todavía no hay registros completados.</td></tr></ng-template>
       </p-table>
@@ -151,15 +179,17 @@
                 [collapsed]="failedBulkResults.length === 0">
       <p-table [value]="failedBulkResults" [scrollable]="true" scrollHeight="220px">
         <ng-template pTemplate="body" let-result>
-          <tr><td><i class="pi pi-times-circle bulk-error"></i></td><td><strong>{{ bulkStudentName(result) }}</strong><small>{{ result.message }}</small></td><td>#{{ result.record_id }}</td></tr>
+          <tr><td><app-lucide-icon name="circle-x" size="1em" class="bulk-error" /></td><td><strong>{{ bulkStudentName(result) }}</strong><small>{{ result.message }}</small></td><td>#{{ result.record_id }}</td></tr>
         </ng-template>
         <ng-template pTemplate="emptymessage"><tr><td colspan="3">No se registraron errores.</td></tr></ng-template>
       </p-table>
     </p-fieldset>
   </div>
   <ng-template pTemplate="footer">
-    <button *ngIf="bulkProcess?.download_available" pButton type="button" icon="pi pi-download"
-            label="Descargar ZIP" (click)="downloadBulkPdf()"></button>
+    <p-button *ngIf="bulkProcess?.download_available" type="button"
+            label="Descargar ZIP" (click)="downloadBulkPdf()">
+      <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template>
+    </p-button>
     <button pButton type="button" label="Cerrar" severity="secondary"
             [disabled]="bulkProcess?.status !== 'completed'" (click)="bulkDialogVisible = false"></button>
   </ng-template>
@@ -183,7 +213,9 @@
       <label class="form-field__label" for="student-search">Buscar estudiante por código, DNI o nombres</label>
       <div class="search-row">
         <input pInputText id="student-search" [(ngModel)]="studentSearch" (keyup.enter)="findStudents()" (input)="studentSearchError = ''" placeholder="Ejemplo: 20191234 o apellido">
-        <button pButton type="button" label="Buscar" icon="pi pi-search" [loading]="searchingStudents" (click)="findStudents()"></button>
+        <p-button type="button" label="Buscar" [loading]="searchingStudents" (click)="findStudents()">
+          <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template>
+        </p-button>
       </div>
       <small *ngIf="studentSearchError" class="form-field__error" role="alert">{{ studentSearchError }}</small>
       <p-listbox *ngIf="students.length" class="student-results" [options]="students" optionLabel="full_name"
@@ -192,7 +224,7 @@
           <div class="student-option"><strong>{{ student.full_name }}</strong>
             <span>Código {{ student.code }} · {{ student.document.type }} {{ student.document.number }}</span>
             <span *ngIf="student.institutional_email?.verified || student.institutional_email?.candidate">
-              <i class="pi pi-envelope"></i> {{ student.institutional_email.verified || student.institutional_email.candidate }}</span>
+              <app-lucide-icon name="mail" size="1em" /> {{ student.institutional_email.verified || student.institutional_email.candidate }}</span>
           </div>
         </ng-template>
       </p-listbox>
@@ -214,9 +246,9 @@
               </span>
               <span class="core-candidate-action">
                 <ng-container *ngIf="syncingCoreCandidateCode === candidate.code; else selectLabel">
-                  <i class="pi pi-spin pi-spinner"></i>
+                  <app-lucide-icon name="loader-circle" size="1em" class="lucide-spin" />
                 </ng-container>
-                <ng-template #selectLabel>Seleccionar <i class="pi pi-arrow-right"></i></ng-template>
+                <ng-template #selectLabel>Seleccionar <app-lucide-icon name="arrow-right" size="1em" /></ng-template>
               </span>
             </button>
           </li>
@@ -238,8 +270,10 @@
               <input pInputText [(ngModel)]="identityDni" maxlength="8" inputmode="numeric"
                      (blur)="identityDniTouched = true" (keyup.enter)="resolveIdentityByDni()"
                      placeholder="Ingrese 8 dígitos">
-              <button pButton type="button" icon="pi pi-id-card" label="Verificar identidad"
-                      [loading]="resolvingStudentIdentity" (click)="resolveIdentityByDni()"></button>
+              <p-button type="button" label="Verificar identidad"
+                      [loading]="resolvingStudentIdentity" (click)="resolveIdentityByDni()">
+                <ng-template #icon><app-lucide-icon name="id-card" [size]="16" /></ng-template>
+              </p-button>
             </div>
             <small class="field-error" *ngIf="identityDniTouched && identityDniInvalid">
               El DNI es obligatorio y debe contener exactamente 8 dígitos.
@@ -252,7 +286,7 @@
                      text="No fue posible verificar la identidad en este momento. Intente nuevamente."></p-message>
 
           <div *ngIf="resolvedStudentIdentity" class="selected-student identity-readonly">
-            <i class="pi pi-verified"></i>
+            <app-lucide-icon name="badge-check" size="1em" />
             <span class="selected-student-content">
               <strong>Identidad encontrada</strong>
               <span>DNI: {{ resolvedStudentIdentity.document_number }}</span>
@@ -263,8 +297,10 @@
               <span>Fuente: Identidad institucional verificada</span>
             </span>
           </div>
-          <button *ngIf="resolvedStudentIdentity" pButton type="button" icon="pi pi-arrow-right"
-                  label="Continuar con datos académicos" (click)="startManualAcademicProfile()"></button>
+          <p-button *ngIf="resolvedStudentIdentity" type="button"
+                  label="Continuar con datos académicos" (click)="startManualAcademicProfile()">
+            <ng-template #icon><app-lucide-icon name="arrow-right" [size]="16" /></ng-template>
+          </p-button>
         </p-fieldset>
       </div>
 
@@ -275,8 +311,10 @@
             <div class="search-row">
               <input pInputText [(ngModel)]="manualAcademic.student_code" maxlength="20"
                      (ngModelChange)="manualCodeStatus = null" placeholder="Ejemplo: A211104">
-              <button pButton type="button" icon="pi pi-search" label="Verificar código"
-                      [loading]="manualCodeChecking" (click)="checkManualAcademicCode()"></button>
+              <p-button type="button" label="Verificar código"
+                      [loading]="manualCodeChecking" (click)="checkManualAcademicCode()">
+                <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template>
+              </p-button>
             </div>
           </label>
           <div>
@@ -314,34 +352,36 @@
         </div>
         <p-message *ngIf="manualAcademicCreated" severity="success"
                    text="El perfil académico excepcional fue registrado con estado Listo."></p-message>
-        <button pButton type="button" icon="pi pi-save" label="Guardar perfil excepcional"
+        <p-button type="button" label="Guardar perfil excepcional"
                 [loading]="manualAcademicSaving" [disabled]="manualAcademicCreated || manualCodeStatus !== 'code_available'"
-                (click)="saveManualAcademicProfile()"></button>
+                (click)="saveManualAcademicProfile()">
+          <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template>
+        </p-button>
       </p-fieldset>
       <div class="selected-student" *ngIf="selectedStudent">
-        <i class="pi pi-check-circle"></i>
+        <app-lucide-icon name="circle-check" size="1em" />
         <span class="selected-student-content"><strong>{{ selectedStudent.full_name }}</strong>
           <span>Código {{ selectedStudent.code }} · {{ selectedStudent.document.type }} {{ selectedStudent.document.number }}</span>
-          <span><i class="pi pi-envelope"></i>{{ selectedInstitutionalEmail }}</span>
+          <span><app-lucide-icon name="mail" size="1em" />{{ selectedInstitutionalEmail }}</span>
           <span *ngIf="selectedStudent.faculty.label || selectedStudent.major.label">
-            <i class="pi pi-graduation-cap"></i>{{ selectedStudent.faculty.label || 'Facultad pendiente' }} · {{ selectedStudent.major.label || 'Carrera pendiente' }}
+            <app-lucide-icon name="graduation-cap" size="1em" />{{ selectedStudent.faculty.label || 'Facultad pendiente' }} · {{ selectedStudent.major.label || 'Carrera pendiente' }}
             <ng-container *ngIf="selectedStudent.specialization.label"> · {{ selectedStudent.specialization.label }}</ng-container>
           </span>
           <span *ngIf="selectedStudent.campus.label">
-            <i class="pi pi-map-marker"></i>{{ selectedStudent.campus.label }}
+            <app-lucide-icon name="map-pin" size="1em" />{{ selectedStudent.campus.label }}
             <ng-container *ngIf="selectedStudent.study_plan">  · Plan {{ selectedStudent.study_plan }}</ng-container>
           </span>
         </span>
       </div>
     </div>
     <div *ngIf="editing" class="selected-student full">
-      <i class="pi pi-user"></i><span><strong>{{ editing.full_name }}</strong><br>
+      <app-lucide-icon name="user" size="1em" /><span><strong>{{ editing.full_name }}</strong><br>
       Código {{ editing.student_code }} · Documento {{ editing.document_number }}</span>
     </div>
 
     <div *ngIf="editing && currentStudentIdentityStatus === 'academic_code_required'" class="academic-code-panel full">
       <div class="academic-code-heading">
-        <i class="pi pi-id-card"></i>
+        <app-lucide-icon name="id-card" size="1em" />
         <span><strong>Código académico requerido</strong>
           <small *ngIf="editing?.institutional_identity?.legacy_reference">
             Referencia de importación: {{ editing.institutional_identity.legacy_reference }}
@@ -355,7 +395,7 @@
                  maxlength="20" autocomplete="off" placeholder="Solo letras mayúsculas y números"
                  [class.ng-invalid]="officialCodeHasInvalidCharacters">
           <small *ngIf="officialCodeHasInvalidCharacters" class="field-warning">
-            <i class="pi pi-exclamation-triangle"></i> Solo se permiten letras mayúsculas y números.
+            <app-lucide-icon name="triangle-alert" size="1em" /> Solo se permiten letras mayúsculas y números.
           </small>
           <small *ngIf="officialCodeAttempted && !officialCodeHasInvalidCharacters && !isValidAcademicCode(officialStudentCode)" class="form-field__error" role="alert">
             Ingrese un código de 4 a 20 letras mayúsculas o números.
@@ -367,8 +407,10 @@
             Indique el motivo con al menos 10 caracteres.
           </small>
         </label>
-        <button pButton type="button" icon="pi pi-check" label="Confirmar código"
-                [loading]="confirmingStudentCode" (click)="confirmOfficialStudentCode()"></button>
+        <p-button type="button" label="Confirmar código"
+                [loading]="confirmingStudentCode" (click)="confirmOfficialStudentCode()">
+          <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template>
+        </p-button>
       </div>
     </div>
 
@@ -378,7 +420,7 @@
     </div>
 
     <label *ngIf="profileGenderResolved"><span>Sexo del estudiante</span><small>Registrado en la fuente académica institucional</small>
-      <span class="input-with-icon"><i class="pi pi-lock"></i>
+      <span class="input-with-icon"><app-lucide-icon name="lock" size="1em" />
         <input pInputText [value]="resolvedGenderLabel" readonly>
       </span>
     </label>
@@ -387,17 +429,19 @@
                 placeholder="Seleccione" appendTo="body"></p-select>
     </label>
     <label><span>Correo institucional</span><small>DATO INSTITUCIONAL</small>
-      <span class="input-with-icon"><i class="pi pi-envelope"></i>
+      <span class="input-with-icon"><app-lucide-icon name="mail" size="1em" />
         <input pInputText [value]="selectedInstitutionalEmail" readonly>
       </span>
       <span class="identity-inline">
         <p-tag [value]="identityLabel(currentStudentIdentityStatus)"
                [severity]="identitySeverity(currentStudentIdentityStatus)"></p-tag>
-        <button *ngIf="canVerifyCurrentInstitutionalEmail" pButton type="button"
+        <p-button *ngIf="canVerifyCurrentInstitutionalEmail" type="button"
                 [label]="currentInstitutionalEmailActionLabel"
-                icon="pi pi-verified" severity="secondary" [outlined]="true" size="small"
+                severity="secondary" [outlined]="true" size="small"
                 [loading]="!!editing && checkingIdentityId === editing.id"
-                (click)="verifyCurrentInstitutionalEmail()"></button>
+                (click)="verifyCurrentInstitutionalEmail()">
+          <ng-template #icon><app-lucide-icon name="badge-check" [size]="16" /></ng-template>
+        </p-button>
       </span>
       <p-message *ngIf="editing && identityLookup?.comparison && currentStudentIdentityStatus !== 'verified'"
                  severity="warn" text="La cuenta existe, pero los datos no alcanzan una coincidencia del 100%."></p-message>
@@ -411,17 +455,17 @@
     <label class="full"><span>Estudiante</span><input pInputText [value]="diplomaStudentName" readonly></label>
     <ng-container *ngIf="selectedStudent; else editableAcademicFields">
       <label><span>Facultad</span><small>DATO INSTITUCIONAL</small>
-        <span class="input-with-icon"><i class="pi pi-lock"></i>
+        <span class="input-with-icon"><app-lucide-icon name="lock" size="1em" />
           <input pInputText [value]="selectedStudent.faculty.label || 'Sin conciliar'" readonly>
         </span>
       </label>
       <label><span>Carrera o programa</span><small>DATO INSTITUCIONAL</small>
-        <span class="input-with-icon"><i class="pi pi-lock"></i>
+        <span class="input-with-icon"><app-lucide-icon name="lock" size="1em" />
           <input pInputText [value]="selectedStudent.major.label || 'Sin conciliar'" readonly>
         </span>
       </label>
       <label *ngIf="selectedStudent.specialization.label"><span>Especialidad o mención</span><small>DATO INSTITUCIONAL</small>
-        <span class="input-with-icon"><i class="pi pi-lock"></i>
+        <span class="input-with-icon"><app-lucide-icon name="lock" size="1em" />
           <input pInputText [value]="selectedStudent.specialization.label" readonly>
         </span>
       </label>
@@ -446,14 +490,14 @@
                 placeholder="Seleccione" appendTo="body" (onChange)="onDegreeTypeChange()"></p-select>
     </label>
     <label><span>Denominación del grado o título <b>*</b></span><small>Resuelta según el sexo registrado</small>
-      <span class="input-with-icon"><i class="pi pi-lock"></i>
+      <span class="input-with-icon"><app-lucide-icon name="lock" size="1em" />
         <input pInputText [value]="resolvedDegreeDenomination" readonly placeholder="Se asignará automáticamente">
       </span>
     </label>
     <label><span>Fecha del diploma original <b>*</b></span><p-datepicker [(ngModel)]="form.diploma_date" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker></label>
     <label><span>Escuela de posgrado</span><small>Solo cuando corresponda</small><input pInputText [(ngModel)]="form.sunedu_data['ESC_POS']"></label>
     <div class="authority-list full">
-      <article *ngFor="let authority of diplomaDefaults.authorities"><i class="pi pi-user"></i><span><small>{{ authority.role }}</small><strong>{{ authority.name }}</strong></span></article>
+      <article *ngFor="let authority of diplomaDefaults.authorities"><app-lucide-icon name="user" size="1em" /><span><small>{{ authority.role }}</small><strong>{{ authority.name }}</strong></span></article>
     </div>
       </div>
     </section>
@@ -480,7 +524,7 @@
     <label><span>Número de registro</span><small>Opcional</small><input pInputText [(ngModel)]="form.registry_number"></label>
     <div class="conditional-block full">
       <button pButton type="button" severity="secondary" [outlined]="true"
-              [icon]="revalidationEnabled ? 'pi pi-minus-circle' : 'pi pi-plus-circle'"
+              [icon]="revalidationEnabled ? ('circle-minus' | lucideClass) : ('circle-plus' | lucideClass)"
               [label]="revalidationEnabled ? 'Quitar datos de revalidación' : 'Agregar datos de revalidación'"
               (click)="toggleRevalidation()"></button>
       <div *ngIf="revalidationEnabled" class="form-grid">
@@ -516,8 +560,10 @@
   </div>
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" (click)="dialogVisible = false"></button>
-    <button pButton type="button" label="Guardar" icon="pi pi-save" [loading]="saving"
-            (click)="save()"></button>
+    <p-button type="button" label="Guardar" [loading]="saving"
+            (click)="save()">
+      <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template>
+    </p-button>
   </ng-template>
 </p-dialog>
 
@@ -561,8 +607,10 @@
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" [disabled]="saving"
             (click)="cancelStaleAcknowledgement()"></button>
-    <button pButton type="button" label="Continuar bajo mi responsabilidad" icon="pi pi-check" severity="danger"
-            [disabled]="!staleAccepted" [loading]="saving" (click)="confirmStaleAcknowledgement()"></button>
+    <p-button type="button" label="Continuar bajo mi responsabilidad" severity="danger"
+            [disabled]="!staleAccepted" [loading]="saving" (click)="confirmStaleAcknowledgement()">
+      <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template>
+    </p-button>
   </ng-template>
 </p-dialog>
 
@@ -576,7 +624,7 @@
              maxlength="20" autocomplete="off" placeholder="Solo letras mayúsculas y números"
              [class.ng-invalid]="manualCodeHasInvalidCharacters">
       <small *ngIf="manualCodeHasInvalidCharacters" class="field-warning">
-        <i class="pi pi-exclamation-triangle"></i> Solo se permiten letras mayúsculas y números.
+        <app-lucide-icon name="triangle-alert" size="1em" /> Solo se permiten letras mayúsculas y números.
       </small>
       <small *ngIf="manualStudentAttempted && !manualCodeHasInvalidCharacters && !isValidAcademicCode(manualStudent.code)" class="form-field__error" role="alert">
         Ingrese un código de 4 a 20 letras mayúsculas o números.
@@ -595,7 +643,9 @@
   </div>
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Cancelar" severity="secondary" [text]="true" (click)="manualStudentDialogVisible = false"></button>
-    <button pButton type="button" label="Registrar estudiante" icon="pi pi-save" [loading]="savingManualStudent" (click)="saveManualStudent()"></button>
+    <p-button type="button" label="Registrar estudiante" [loading]="savingManualStudent" (click)="saveManualStudent()">
+      <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template>
+    </p-button>
   </ng-template>
 </p-dialog>
 
@@ -623,17 +673,19 @@
     </div>
 
     <div *ngIf="identityLookup.comparison" class="checks">
-      <span><i [class]="identityLookup.comparison.checks.code ? 'pi pi-check-circle ok' : 'pi pi-times-circle bad'"></i>Código académico</span>
-      <span><i [class]="identityLookup.comparison.checks.at_least_one_name ? 'pi pi-check-circle ok' : 'pi pi-times-circle bad'"></i>Al menos un nombre</span>
-      <span><i [class]="identityLookup.comparison.checks.father_last_name ? 'pi pi-check-circle ok' : 'pi pi-times-circle bad'"></i>Primer apellido</span>
-      <span><i [class]="identityLookup.comparison.checks.mother_last_name ? 'pi pi-check-circle ok' : 'pi pi-info-circle warn'"></i>Segundo apellido</span>
+      <span><i [class]="identityLookup.comparison.checks.code ? ('circle-check' | lucideClass) + ' ok' : ('circle-x' | lucideClass) + ' bad'"></i>Código académico</span>
+      <span><i [class]="identityLookup.comparison.checks.at_least_one_name ? ('circle-check' | lucideClass) + ' ok' : ('circle-x' | lucideClass) + ' bad'"></i>Al menos un nombre</span>
+      <span><i [class]="identityLookup.comparison.checks.father_last_name ? ('circle-check' | lucideClass) + ' ok' : ('circle-x' | lucideClass) + ' bad'"></i>Primer apellido</span>
+      <span><i [class]="identityLookup.comparison.checks.mother_last_name ? ('circle-check' | lucideClass) + ' ok' : ('info' | lucideClass) + ' warn'"></i>Segundo apellido</span>
     </div>
     <p-message *ngFor="let difference of identityLookup.comparison?.differences" severity="warn" [text]="difference"></p-message>
   </div>
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Cerrar" severity="secondary" [text]="true" (click)="identityDialogVisible = false"></button>
-    <button *ngIf="identityLookup?.comparison?.status === 'probable'" pButton type="button" label="Confirmar vinculación"
-            icon="pi pi-check" [loading]="confirmingIdentity" (click)="confirmInstitutionalIdentity()"></button>
+    <p-button *ngIf="identityLookup?.comparison?.status === 'probable'" type="button" label="Confirmar vinculación"
+            [loading]="confirmingIdentity" (click)="confirmInstitutionalIdentity()">
+      <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template>
+    </p-button>
   </ng-template>
 </p-dialog>
 
@@ -643,7 +695,9 @@
     <p>Copie este enlace y envíelo al estudiante. Por seguridad vence en 30 días y admite un solo envío.</p>
     <div class="search-row">
       <input pInputText [value]="generatedLink" readonly aria-label="Enlace del formulario">
-      <button pButton type="button" icon="pi pi-copy" label="Copiar" (click)="copyGeneratedLink()"></button>
+      <p-button type="button" label="Copiar" (click)="copyGeneratedLink()">
+        <ng-template #icon><app-lucide-icon name="copy" [size]="16" /></ng-template>
+      </p-button>
     </div>
     <small *ngIf="generatedLinkExpiresAt">Vence: {{ generatedLinkExpiresAt | date:'dd/MM/yyyy, HH:mm' }}</small>
   </div>

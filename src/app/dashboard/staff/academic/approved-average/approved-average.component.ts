@@ -14,11 +14,12 @@ import { ApprovedAverageService } from '../../../../services/approved-average.se
 import { ApprovedAveragePreview, ApprovedAveragePreviewRow } from '../../../../models/student/approved-average-preview.model';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NOTIFICATION_MESSAGE } from '../../../../core/constants/app-messages.constants';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 @Component({
   selector: 'app-approved-average',
   standalone: true,
-  imports: [
+  imports: [AppLucideIconComponent, 
     CommonModule,
     FormsModule,
     BadgeModule,

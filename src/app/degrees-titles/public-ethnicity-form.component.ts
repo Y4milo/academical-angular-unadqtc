@@ -13,10 +13,12 @@ import {TooltipModule} from 'primeng/tooltip';
 import {DegreesTitlesService, PublicEthnicityForm} from '../services/degrees-titles.service';
 import {STATUS} from '../core/constants/api-status.constants';
 import {TestModeBannerComponent} from '../core/components/test-mode-banner.component';
+import {AppLucideIconComponent} from '../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../core/pipes/lucide-class.pipe';
 
 @Component({
   selector: 'app-public-ethnicity-form', standalone: true,
-  imports: [FormsModule, NgFor, NgIf, ButtonModule, CardModule, CheckboxModule, RadioButtonModule, Select, ProgressSpinnerModule, MessageModule, TooltipModule, TestModeBannerComponent],
+  imports: [LucideClassPipe, AppLucideIconComponent, FormsModule, NgFor, NgIf, ButtonModule, CardModule, CheckboxModule, RadioButtonModule, Select, ProgressSpinnerModule, MessageModule, TooltipModule, TestModeBannerComponent],
   templateUrl: './public-ethnicity-form.component.html', styleUrl: './public-ethnicity-form.component.css',
 })
 export class PublicEthnicityFormComponent implements OnInit, OnDestroy {

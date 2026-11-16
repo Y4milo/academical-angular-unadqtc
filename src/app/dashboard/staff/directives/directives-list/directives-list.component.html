@@ -5,7 +5,8 @@
       <p>Documentos que pasan por la firma de las oficinas que Core tiene designadas, en orden.</p>
     </div>
     @if (canRequest() && section() === 'mine' && directives().length > 0) {
-      <p-button label="Nuevo documento" icon="pi pi-plus" data-testid="new-directive" (onClick)="create()"></p-button>
+      <p-button label="Nuevo documento" data-testid="new-directive" (onClick)="create()">
+        <ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template></p-button>
     }
   </div>
 
@@ -30,10 +31,11 @@
     @if (showToolbar()) {
       <div class="toolbar">
         <p-iconfield class="toolbar__search">
-          <p-inputicon class="pi pi-search"></p-inputicon>
+          <p-inputicon><app-lucide-icon name="search" size="1em" /></p-inputicon>
           <input pInputText type="search" placeholder="Buscar por título, oficina o tipo" aria-label="Buscar documentos" [ngModel]="search()" (ngModelChange)="search.set($event)" data-testid="search" />
         </p-iconfield>
-        <p-button label="Filtros" icon="pi pi-filter" severity="secondary" [outlined]="true" [badge]="activeFilters().length > 0 ? '' + activeFilters().length : undefined" data-testid="open-filters" (onClick)="filtersOpen.set(true)"></p-button>
+        <p-button label="Filtros" severity="secondary" [outlined]="true" [badge]="activeFilters().length > 0 ? '' + activeFilters().length : undefined" data-testid="open-filters" (onClick)="filtersOpen.set(true)">
+          <ng-template #icon><app-lucide-icon name="funnel" [size]="16" /></ng-template></p-button>
       </div>
 
       @if (activeFilters().length > 0) {
@@ -88,7 +90,8 @@
               <td>{{ directive.origin.name }}</td>
               <td><ng-container [ngTemplateOutlet]="statusCell" [ngTemplateOutletContext]="{ $implicit: directive }"></ng-container></td>
               <td class="muted">{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-              <td class="actions-col"><p-button icon="pi pi-angle-right" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Consultar" data-testid="open-route" (onClick)="open(directive); $event.stopPropagation()"></p-button></td>
+              <td class="actions-col"><p-button [text]="true" [rounded]="true" severity="secondary" ariaLabel="Consultar" data-testid="open-route" (onClick)="open(directive); $event.stopPropagation()">
+                <ng-template #icon><app-lucide-icon name="chevron-right" [size]="16" /></ng-template></p-button></td>
             </tr>
           </ng-template>
         </p-table>
@@ -105,7 +108,7 @@
               <p-button [label]="roleOf(directive) ? roleOf(directive)!.action : 'Revisar y firmar'" styleClass="w-full" [fluid]="true" data-testid="sign-pending" (onClick)="sign(directive)"></p-button>
             </p-card>
           } @empty {
-            <div class="empty" data-testid="pending-empty"><i class="pi pi-check-circle empty__icon" aria-hidden="true"></i><h3>No tienes firmas pendientes</h3><p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p></div>
+            <div class="empty" data-testid="pending-empty"><app-lucide-icon name="circle-check" size="1em" class="empty__icon" /><h3>No tienes firmas pendientes</h3><p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p></div>
           }
         </div>
       } @else {
@@ -132,7 +135,7 @@
             <tr>
               <td colspan="5">
                 <div class="empty" data-testid="pending-empty">
-                  <i class="pi pi-check-circle empty__icon" aria-hidden="true"></i>
+                  <app-lucide-icon name="circle-check" size="1em" class="empty__icon" />
                   <h3>No tienes firmas pendientes</h3>
                   <p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p>
                 </div>
@@ -176,7 +179,8 @@
                 <td><ng-container [ngTemplateOutlet]="statusCell" [ngTemplateOutletContext]="{ $implicit: directive }"></ng-container></td>
                 <td>{{ directive.route_progress?.active_office || '—' }}</td>
                 <td class="muted">{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-                <td class="actions-col"><p-button icon="pi pi-angle-right" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Abrir" data-testid="open-directive" (onClick)="open(directive); $event.stopPropagation()"></p-button></td>
+                <td class="actions-col"><p-button [text]="true" [rounded]="true" severity="secondary" ariaLabel="Abrir" data-testid="open-directive" (onClick)="open(directive); $event.stopPropagation()">
+                  <ng-template #icon><app-lucide-icon name="chevron-right" [size]="16" /></ng-template></p-button></td>
               </tr>
             }
           </ng-template>
@@ -189,11 +193,12 @@
 
     <ng-template #emptyMine>
       <div class="empty" data-testid="directives-empty">
-        <i class="pi pi-file-edit empty__icon" aria-hidden="true"></i>
+        <app-lucide-icon name="file-pen" size="1em" class="empty__icon" />
         @if (directives().length === 0) {
           <h3>Aún no tienes documentos de gestión</h3>
           <p>Sube el documento y la resolución que lo aprueba. Academical arma la ruta de firmas con las personas que Core tiene designadas.</p>
-          <p-button label="Nuevo documento" icon="pi pi-plus" (onClick)="create()"></p-button>
+          <p-button label="Nuevo documento" (onClick)="create()">
+            <ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template></p-button>
         } @else if (search().trim() !== '') {
           <h3>Ningún documento coincide con tu búsqueda</h3>
           <p>Prueba con otras palabras o limpia la búsqueda.</p>

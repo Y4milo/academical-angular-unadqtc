@@ -1,5 +1,6 @@
 <div class="order-detail">
-  <p-button label="Órdenes de servicio" icon="pi pi-arrow-left" severity="secondary" [text]="true" size="small" (onClick)="back()"></p-button>
+  <p-button label="Órdenes de servicio" severity="secondary" [text]="true" size="small" (onClick)="back()">
+    <ng-template #icon><app-lucide-icon name="arrow-left" [size]="16" /></ng-template></p-button>
 
   @if (loading()) {
     <div class="skeletons" aria-busy="true">
@@ -34,7 +35,7 @@
       @if (nextStep(); as next) {
         <section class="next" aria-label="Siguiente paso">
           <div class="next__text">
-            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            <app-lucide-icon name="arrow-right" size="1em" />
             <div><strong>Siguiente paso</strong><span>{{ next.title }}</span></div>
           </div>
           <p-button [label]="next.label" [icon]="next.icon" (onClick)="next.run()"></p-button>
@@ -47,9 +48,9 @@
             <div class="deliverable__head">
               <span class="deliverable__num" [class.deliverable__num--done]="d.status === 'finished'" aria-hidden="true">
                 @if (d.status === 'finished') {
-                  <i class="pi pi-check"></i>
+                  <app-lucide-icon name="check" size="1em" />
                 } @else if (d.status === 'locked') {
-                  <i class="pi pi-lock"></i>
+                  <app-lucide-icon name="lock" size="1em" />
                 } @else {
                   {{ d.position }}
                 }
@@ -60,14 +61,14 @@
             </div>
 
             @if (d.status === 'locked') {
-              <p class="deliverable__hint"><i class="pi pi-info-circle" aria-hidden="true"></i>Se habilita al finalizar el entregable anterior.</p>
+              <p class="deliverable__hint"><app-lucide-icon name="info" size="1em" />Se habilita al finalizar el entregable anterior.</p>
             } @else {
               @if (d.activity) {
                 <p class="deliverable__activity">{{ d.activity }}</p>
               }
               @if (d.non_working_reason) {
                 <p class="deliverable__note">
-                  <i class="pi pi-calendar" aria-hidden="true"></i>
+                  <app-lucide-icon name="calendar-days" size="1em" />
                   El vencimiento cae {{ d.non_working_reason === 'sábado' || d.non_working_reason === 'domingo' ? 'en ' + d.non_working_reason : 'en feriado (' + d.non_working_reason + ')' }}: se presenta el {{ dayText(d.working_date) }}.
                 </p>
               }
@@ -84,7 +85,7 @@
                 @for (doc of docs()[d.id]; track doc.kind) {
                   <article class="tile" [class.tile--todo]="!doc.issued">
                     <div class="tile__head">
-                      <i class="pi tile__icon" [class]="'pi tile__icon ' + doc.icon" aria-hidden="true"></i>
+                      <i [class]="'tile__icon ' + doc.icon" aria-hidden="true"></i>
                       <strong>{{ doc.title }}</strong>
                       @if (doc.tag) {
                         <p-tag [severity]="doc.tag.severity" [value]="doc.tag.label"></p-tag>
@@ -100,27 +101,33 @@
                       }
                       @if (doc.issued) {
                         @if (canSign && !doc.signed) {
-                          <p-button label="Firmar" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="openSign(d, doc.kind)"></p-button>
+                          <p-button label="Firmar" severity="secondary" [outlined]="true" size="small" (onClick)="openSign(d, doc.kind)">
+                            <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
                         }
                         <p-menu #downloadMenu [model]="menus()[d.id + '-' + doc.kind + '-download']" [popup]="true" appendTo="body"></p-menu>
                         <p-button severity="secondary" [outlined]="true" size="small" [loading]="!!downloading()?.startsWith(d.id + '-' + doc.kind)" aria-haspopup="true" [attr.aria-label]="'Descargar ' + doc.title" (onClick)="downloadMenu.toggle($event)">
-                          <span class="btn-inline"><i class="pi pi-download" aria-hidden="true"></i>Descargar<i class="pi pi-chevron-down" aria-hidden="true"></i></span>
+                          <span class="btn-inline"><app-lucide-icon name="download" size="1em" />Descargar<app-lucide-icon name="chevron-down" size="1em" /></span>
                         </p-button>
                         @if (doc.signed) {
-                          <p-button class="tile__inline" label="Corregir…" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="openCorrect(d, doc.kind)"></p-button>
+                          <p-button class="tile__inline" label="Corregir…" severity="secondary" [outlined]="true" size="small" (onClick)="openCorrect(d, doc.kind)">
+                            <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
                           @if (canSign) {
-                            <p-button class="tile__inline" label="Agregar otra firma" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="openSign(d, doc.kind)"></p-button>
+                            <p-button class="tile__inline" label="Agregar otra firma" severity="secondary" [outlined]="true" size="small" (onClick)="openSign(d, doc.kind)">
+                              <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
                           }
                         } @else {
-                          <p-button class="tile__inline" label="Editar datos" icon="pi pi-pencil" severity="secondary" [outlined]="true" size="small" (onClick)="doc.kind === 'letter' ? openLetterEdit(d) : openConformityEdit(d)"></p-button>
+                          <p-button class="tile__inline" label="Editar datos" severity="secondary" [outlined]="true" size="small" (onClick)="doc.kind === 'letter' ? openLetterEdit(d) : openConformityEdit(d)">
+                            <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
                         }
                         <p-menu #moreMenu [model]="menus()[d.id + '-' + doc.kind + '-more']" [popup]="true" appendTo="body"></p-menu>
-                        <p-button class="tile__more" icon="pi pi-ellipsis-h" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)"></p-button>
+                        <p-button class="tile__more" severity="secondary" [text]="true" size="small" aria-haspopup="true" ariaLabel="Más acciones" (onClick)="moreMenu.toggle($event)">
+                          <ng-template #icon><app-lucide-icon name="ellipsis" [size]="16" /></ng-template></p-button>
                       }
                     </div>
                     @if (doc.history.length) {
                       <div class="tile__history">
-                        <p-button [label]="'Historial de versiones (' + doc.history.length + ')'" icon="pi pi-history" severity="secondary" [text]="true" size="small" [attr.aria-expanded]="isHistoryOpen(d, doc.kind)" (onClick)="toggleHistory(d, doc.kind)"></p-button>
+                        <p-button [label]="'Historial de versiones (' + doc.history.length + ')'" severity="secondary" [text]="true" size="small" [attr.aria-expanded]="isHistoryOpen(d, doc.kind)" (onClick)="toggleHistory(d, doc.kind)">
+                          <ng-template #icon><app-lucide-icon name="history" [size]="16" /></ng-template></p-button>
                         @if (isHistoryOpen(d, doc.kind)) {
                           <ul class="history">
                             @for (entry of doc.history; track entry.id) {
@@ -128,7 +135,8 @@
                                 <div class="history__head"><p-tag severity="danger" value="Anulada"></p-tag><span>{{ historyWhen(entry.voided_at) }}{{ entry.voided_by ? ' · ' + entry.voided_by : '' }}</span></div>
                                 <p class="history__text"><strong>{{ entry.reason }}.</strong> {{ entry.detail }}</p>
                                 <p class="history__text">Estaba firmada por {{ historySigners(entry) }}.</p>
-                                <p-button label="PDF anulado" icon="pi pi-download" severity="secondary" [outlined]="true" size="small" (onClick)="downloadVoided(d, doc.kind, entry)"></p-button>
+                                <p-button label="PDF anulado" severity="secondary" [outlined]="true" size="small" (onClick)="downloadVoided(d, doc.kind, entry)">
+                                  <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template></p-button>
                               </li>
                             }
                           </ul>
@@ -176,7 +184,8 @@
   }
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="letterDialog = false"></p-button>
-    <p-button [label]="letterEditing ? 'Guardar cambios' : 'Emitir carta'" icon="pi pi-check" [loading]="saving()" (onClick)="saveLetter()"></p-button>
+    <p-button [label]="letterEditing ? 'Guardar cambios' : 'Emitir carta'" [loading]="saving()" (onClick)="saveLetter()">
+      <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template></p-button>
   </ng-template>
 </p-dialog>
 
@@ -217,7 +226,8 @@
   }
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="conformityDialog = false"></p-button>
-    <p-button [label]="conformityEditing ? 'Guardar cambios' : 'Emitir conformidad'" icon="pi pi-check" [loading]="saving()" (onClick)="saveConformity()"></p-button>
+    <p-button [label]="conformityEditing ? 'Guardar cambios' : 'Emitir conformidad'" [loading]="saving()" (onClick)="saveConformity()">
+      <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template></p-button>
   </ng-template>
 </p-dialog>
 
@@ -228,7 +238,7 @@
 <p-dialog header="Corregir un documento firmado" [(visible)]="correctDialog" [modal]="true" [draggable]="false" [style]="{ width: 'min(94vw, 34rem)' }" appendTo="body">
   @if (correctTarget; as t) {
     <div class="dialog-form">
-      <p-message severity="warn" variant="simple" icon="pi pi-exclamation-triangle">
+      <p-message severity="warn" variant="simple" [icon]="'triangle-alert' | lucideClass">
         La firma digital de {{ historySigners({ id: 0, signers: signatureOf(t, correctKind).signers, reason: '', detail: '', voided_by: null, voided_at: null }) }} quedará anulada. El PDF firmado se conserva en el historial y habrá que firmar de nuevo.
       </p-message>
       <app-form-field label="Motivo de la corrección" for="correct-reason" [required]="true">
@@ -244,6 +254,7 @@
   }
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="correctDialog = false"></p-button>
-    <p-button label="Anular firma y editar" icon="pi pi-pencil" [loading]="saving()" (onClick)="saveCorrect()"></p-button>
+    <p-button label="Anular firma y editar" [loading]="saving()" (onClick)="saveCorrect()">
+      <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
   </ng-template>
 </p-dialog>

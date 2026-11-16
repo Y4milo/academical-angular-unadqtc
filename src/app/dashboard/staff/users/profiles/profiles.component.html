@@ -6,9 +6,13 @@
     </div>
     <div class="profiles__header-actions">
       @if (canPublish()) {
-        <p-button label="Publicar a Core" icon="pi pi-upload" severity="secondary" [outlined]="true" (onClick)="openCore()" />
+        <p-button label="Publicar a Core" severity="secondary" [outlined]="true" (onClick)="openCore()">
+          <ng-template #icon><app-lucide-icon name="upload" [size]="16" /></ng-template>
+        </p-button>
       }
-      <p-button label="Nuevo perfil" icon="pi pi-plus" (onClick)="create()" />
+      <p-button label="Nuevo perfil" (onClick)="create()">
+        <ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template>
+      </p-button>
     </div>
   </header>
 
@@ -26,7 +30,7 @@
   <section class="profiles__panel" aria-label="Lista de perfiles">
     <div class="profiles__filters">
       <p-iconfield>
-        <p-inputicon styleClass="pi pi-search" />
+        <p-inputicon><app-lucide-icon name="search" size="1em" /></p-inputicon>
         <input pInputText type="text" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Buscar perfil" aria-label="Buscar perfil" />
       </p-iconfield>
       <div class="profiles__chips">

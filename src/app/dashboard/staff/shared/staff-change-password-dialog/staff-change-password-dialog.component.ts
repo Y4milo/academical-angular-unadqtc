@@ -1,17 +1,18 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {FormFieldComponent} from '../../../../core/components/form-field.component';
-import {ButtonDirective} from 'primeng/button';
+import {ButtonModule} from 'primeng/button';
 import {Dialog} from 'primeng/dialog';
 import {Password} from 'primeng/password';
 import {UsersService} from '../../../../services/users.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {STATUS} from '../../../../core/constants/api-status.constants';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 @Component({
   selector: 'app-staff-change-password-dialog',
-  imports: [
-    ButtonDirective,
+  imports: [AppLucideIconComponent, 
+    ButtonModule,
     Dialog,
     FormFieldComponent,
     FormsModule,

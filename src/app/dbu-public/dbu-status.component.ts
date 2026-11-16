@@ -10,12 +10,13 @@ import { finalize } from 'rxjs';
 import { PATHS } from '../core/constants/app-paths.constants';
 import { DBU_STATUS_VIEW, STATE_SEVERITY, TagSeverity } from '../shared/ui/ui-tokens';
 import { DbuPublicAppointment, DbuPublicService, dbuErrorMessage } from './dbu-public.service';
+import {AppLucideIconComponent} from '../core/components/lucide-icon/lucide-icon.component';
 
 /** Consulta y cancelación de una cita de Bienestar con su código y el número de documento. Sin cuenta. */
 @Component({
   selector: 'app-dbu-status',
   standalone: true,
-  imports: [FormsModule, RouterLink, ButtonModule, CardModule, InputTextModule, MessageModule, TagModule],
+  imports: [AppLucideIconComponent, FormsModule, RouterLink, ButtonModule, CardModule, InputTextModule, MessageModule, TagModule],
   templateUrl: './dbu-status.component.html',
   styleUrl: './dbu-booking.component.css',
 })

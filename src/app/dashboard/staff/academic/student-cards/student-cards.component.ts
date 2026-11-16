@@ -42,6 +42,7 @@ import {InputIconModule} from 'primeng/inputicon';
 import {SelectButtonModule} from 'primeng/selectbutton';
 import {MessageModule} from 'primeng/message';
 import {MenuItem} from 'primeng/api';
+import {lucideClass} from '../../../../core/utils/lucide-icon.util';
 
 @Component({
   selector: 'app-student-cards',
@@ -546,10 +547,10 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
   /** Los indicadores de arriba hacen de pestañas: el orden coincide con el de los paneles del `p-tabs`. */
   get kpiCards(): Array<{index: number; list: 'pending' | 'validated' | 'flagged' | 'unmatched'; label: string; icon: string; tone: string; count: number; hint: string}> {
     return [
-      {index: 0, list: 'pending', label: 'Pendientes de validar', icon: 'pi pi-clock', tone: 'info', count: this.pendingStudents.length, hint: 'Requieren su revisión'},
-      {index: 1, list: 'validated', label: 'Validados', icon: 'pi pi-check-circle', tone: 'success', count: this.validatedStudents.length, hint: ''},
-      {index: 2, list: 'flagged', label: 'Observados', icon: 'pi pi-exclamation-triangle', tone: 'warn', count: this.flaggedStudents.length, hint: 'Esperan corrección'},
-      {index: 3, list: 'unmatched', label: 'Sin registro', icon: 'pi pi-user-minus', tone: 'danger', count: this.unmatchedStudent.length, hint: 'No subieron foto ni DNI'},
+      {index: 0, list: 'pending', label: 'Pendientes de validar', icon: lucideClass('clock'), tone: 'info', count: this.pendingStudents.length, hint: 'Requieren su revisión'},
+      {index: 1, list: 'validated', label: 'Validados', icon: lucideClass('circle-check'), tone: 'success', count: this.validatedStudents.length, hint: ''},
+      {index: 2, list: 'flagged', label: 'Observados', icon: lucideClass('triangle-alert'), tone: 'warn', count: this.flaggedStudents.length, hint: 'Esperan corrección'},
+      {index: 3, list: 'unmatched', label: 'Sin registro', icon: lucideClass('user-minus'), tone: 'danger', count: this.unmatchedStudent.length, hint: 'No subieron foto ni DNI'},
     ];
   }
 
@@ -641,13 +642,13 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
     const items: MenuItem[] = [];
 
     if (kind !== 'validated') {
-      items.push({label: 'Editar datos del estudiante', icon: 'pi pi-pencil', command: () => this.openEditStudentDialog(student)});
+      items.push({label: 'Editar datos del estudiante', icon: lucideClass('pencil'), command: () => this.openEditStudentDialog(student)});
     }
     if (kind === 'pending') {
-      items.push({label: 'Descargar foto', icon: 'pi pi-download', command: () => this.downloadStudentPhoto(student)});
+      items.push({label: 'Descargar foto', icon: lucideClass('download'), command: () => this.downloadStudentPhoto(student)});
     }
     if (kind !== 'pending') {
-      items.push({label: kind === 'validated' ? 'Volver a pendiente' : 'Excluir estudiante', icon: kind === 'validated' ? 'pi pi-undo' : 'pi pi-times', command: () => this.pendingCardStudent(student, kind)});
+      items.push({label: kind === 'validated' ? 'Volver a pendiente' : 'Excluir estudiante', icon: kind === 'validated' ? lucideClass('undo-2') : lucideClass('x'), command: () => this.pendingCardStudent(student, kind)});
     }
 
     this.rowMenuItems = items;
@@ -687,9 +688,9 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
   sortIcon(field: 'name' | 'campus' | 'validated'): string {
     if (this.validatedSort.field !== field) {
-      return 'pi pi-sort-alt sc-sort-idle';
+      return `${lucideClass('arrow-up-down')} sc-sort-idle`;
     }
-    return this.validatedSort.order === 1 ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down';
+    return this.validatedSort.order === 1 ? lucideClass('arrow-up-narrow-wide') : lucideClass('arrow-down-wide-narrow');
   }
 
   /** La lista de validados ya filtrada, en el orden elegido. Se recuerda para no ordenar en cada ciclo de detección. */
@@ -1045,18 +1046,18 @@ export class StudentCardsComponent implements OnInit, OnDestroy {
 
   getFileStatusIcon(student: StudentCard, type: StudentFileType): string {
     if (!student[type]) {
-      return 'pi pi-lock';
+      return lucideClass('lock');
     }
 
     switch (student[type]?.status?.value) {
       case 'approved':
-        return 'pi pi-check-circle';
+        return lucideClass('circle-check');
       case 'rejected':
-        return 'pi pi-times-circle';
+        return lucideClass('circle-x');
       case 'pending':
-        return 'pi pi-clock';
+        return lucideClass('clock');
       default:
-        return 'pi pi-minus-circle';
+        return lucideClass('circle-minus');
     }
   }
 

@@ -64,7 +64,7 @@
               </app-form-field>
 
               <app-form-field label="Prefijo profesional" for="authority-prefix">
-                <app-status-tag fieldTag *ngIf="isLocked('professional_prefix_id')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isLocked('professional_prefix_id')" severity="info" value="Core" [icon]="'lock' | lucideClass"></app-status-tag>
                 <app-status-tag fieldTag *ngIf="isManual('professional_prefix_id')" severity="warn" value="Completar"></app-status-tag>
                 <p-select inputId="authority-prefix" [(ngModel)]="form.professional_prefix_id" [options]="prefixes"
                           optionLabel="label" optionValue="id" [showClear]="!isLocked('professional_prefix_id')"
@@ -72,7 +72,7 @@
               </app-form-field>
 
               <app-form-field label="Grado/Título académico completo" for="authority-title">
-                <app-status-tag fieldTag *ngIf="isLocked('academic_title')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isLocked('academic_title')" severity="info" value="Core" [icon]="'lock' | lucideClass"></app-status-tag>
                 <app-status-tag fieldTag *ngIf="isManual('academic_title')" severity="warn" value="Completar"></app-status-tag>
                 <input pInputText id="authority-title" [(ngModel)]="form.academic_title" maxlength="190"
                        [disabled]="isLocked('academic_title')" placeholder="Ej: Maestro en Ciencias de la Educación">
@@ -80,7 +80,7 @@
 
               <app-form-field label="Correo institucional" for="authority-email"
                               [error]="emailInvalid ? 'El correo debe terminar en @' + emailDomain + '.' : ''">
-                <app-status-tag fieldTag *ngIf="isLocked('email')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isLocked('email')" severity="info" value="Core" [icon]="'lock' | lucideClass"></app-status-tag>
                 <app-status-tag fieldTag *ngIf="isManual('email')" severity="warn" value="Completar"></app-status-tag>
                 <input pInputText id="authority-email" [(ngModel)]="form.email" maxlength="190" type="email"
                        [disabled]="isLocked('email')" [placeholder]="'usuario@' + emailDomain">
@@ -92,7 +92,7 @@
               </app-form-field>
 
               <app-form-field label="Teléfono" for="authority-phone">
-                <app-status-tag fieldTag *ngIf="isLocked('phone')" severity="info" value="Core" icon="pi pi-lock"></app-status-tag>
+                <app-status-tag fieldTag *ngIf="isLocked('phone')" severity="info" value="Core" [icon]="'lock' | lucideClass"></app-status-tag>
                 <app-status-tag fieldTag *ngIf="isManual('phone')" severity="warn" value="Completar"></app-status-tag>
                 <input pInputText id="authority-phone" [(ngModel)]="form.phone" maxlength="30" [disabled]="isLocked('phone')">
               </app-form-field>

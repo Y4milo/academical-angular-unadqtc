@@ -1,12 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {ButtonDirective} from 'primeng/button';
+import {ButtonModule} from 'primeng/button';
 import {Select} from 'primeng/select';
 import {FormFieldComponent} from '../../../../core/components/form-field.component';
 import {AttendanceService, ReportFilterOption} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
 import {STATUS} from '../../../../core/constants/api-status.constants';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 interface FilterChoice {
   code: string;
@@ -23,7 +24,7 @@ const FIRST_YEAR = 2022;
  */
 @Component({
   selector: 'app-hr-report-attendance-component',
-  imports: [FormsModule, ReactiveFormsModule, ButtonDirective, Select, FormFieldComponent],
+  imports: [AppLucideIconComponent, FormsModule, ReactiveFormsModule, ButtonModule, Select, FormFieldComponent],
   templateUrl: './hr-report-attendance-component.component.html',
   styleUrl: './hr-report-attendance-component.component.css'
 })

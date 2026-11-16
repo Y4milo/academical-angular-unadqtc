@@ -13,13 +13,13 @@
 
 <p-tabs *ngIf="mode === 'view' && !loading" [value]="activeTab" (valueChange)="activeTab = $any($event)" [scrollable]="true" class="management-tabs">
   <p-tablist>
-    <p-tab value="current"><i class="pi pi-user"></i>&nbsp;Autoridad actual</p-tab>
+    <p-tab value="current"><app-lucide-icon name="user" size="1em" />&nbsp;Autoridad actual</p-tab>
     <p-tab value="core">
-      <i class="pi pi-database"></i>&nbsp;Datos de Core
+      <app-lucide-icon name="database" size="1em" />&nbsp;Datos de Core
       <p-badge *ngIf="needsAttention" value="!" severity="danger" class="tab-badge"></p-badge>
     </p-tab>
-    <p-tab value="history"><i class="pi pi-history"></i>&nbsp;Historial</p-tab>
-    <p-tab value="audit"><i class="pi pi-list"></i>&nbsp;Auditoría</p-tab>
+    <p-tab value="history"><app-lucide-icon name="history" size="1em" />&nbsp;Historial</p-tab>
+    <p-tab value="audit"><app-lucide-icon name="list" size="1em" />&nbsp;Auditoría</p-tab>
   </p-tablist>
 
   <p-tabpanels>
@@ -109,11 +109,12 @@
                 </td>
                 <td data-label="Origen">
                   <app-status-tag [severity]="row.sourceSeverity" [value]="row.sourceText"
-                                  [icon]="row.source === 'core' ? 'pi pi-lock' : undefined"></app-status-tag>
+                                  [icon]="row.source === 'core' ? ('lock' | lucideClass) : undefined"></app-status-tag>
                 </td>
                 <td class="col-action">
-                  <p-button *ngIf="row.missing" label="Completar" icon="pi pi-pencil" [outlined]="true" size="small"
-                            [disabled]="verifying || refreshing" (onClick)="openComplete(row.field)"></p-button>
+                  <p-button *ngIf="row.missing" label="Completar" [outlined]="true" size="small"
+                            [disabled]="verifying || refreshing" (onClick)="openComplete(row.field)">
+                    <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
                 </td>
               </tr>
             </ng-template>
@@ -139,12 +140,14 @@
           </ul>
 
           <div class="snapshot-actions">
-            <p-button label="Verificar con Core" icon="pi pi-search" [outlined]="true" severity="secondary" size="small"
-                      [disabled]="verifying || refreshing" (onClick)="verifyWithCore()"></p-button>
-            <p-button label="Actualizar desde Core" icon="pi pi-refresh" size="small"
+            <p-button label="Verificar con Core" [outlined]="true" severity="secondary" size="small"
+                      [disabled]="verifying || refreshing" (onClick)="verifyWithCore()">
+              <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template></p-button>
+            <p-button label="Actualizar desde Core" size="small"
                       [outlined]="!isStaleSnapshot(snapshotStatus)"
                       [severity]="isStaleSnapshot(snapshotStatus) ? 'danger' : 'secondary'"
-                      [disabled]="verifying || refreshing" (onClick)="refreshFromCore()"></p-button>
+                      [disabled]="verifying || refreshing" (onClick)="refreshFromCore()">
+              <ng-template #icon><app-lucide-icon name="refresh-cw" [size]="16" /></ng-template></p-button>
           </div>
         </section>
       </ng-container>
@@ -173,14 +176,14 @@
 
         <div class="history-toolbar">
           <p-iconfield class="history-search">
-            <p-inputicon class="pi pi-search"></p-inputicon>
+            <p-inputicon><app-lucide-icon name="search" size="1em" /></p-inputicon>
             <input pInputText [(ngModel)]="searchTerm" placeholder="Buscar por nombre o DNI" aria-label="Buscar por nombre o DNI">
           </p-iconfield>
           <p-selectbutton [options]="statusOptions" [(ngModel)]="statusFilter" optionLabel="label" optionValue="value"
                           [allowEmpty]="false" aria-label="Estado"></p-selectbutton>
           <p-select [(ngModel)]="periodFilter" [options]="periodOptions" optionLabel="label" optionValue="value"
                     appendTo="body" aria-label="Periodo"></p-select>
-          <p-button [icon]="sortOrder === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up'" [outlined]="true"
+          <p-button [icon]="sortOrder === 'desc' ? ('arrow-down-wide-narrow' | lucideClass) : ('arrow-up-wide-narrow' | lucideClass)" [outlined]="true"
                     severity="secondary" [ariaLabel]="sortOrder === 'desc' ? 'Más reciente primero' : 'Más antiguo primero'"
                     [title]="sortOrder === 'desc' ? 'Más reciente primero' : 'Más antiguo primero'" (onClick)="toggleSort()"></p-button>
         </div>
@@ -188,7 +191,7 @@
         <p-timeline *ngIf="filteredHistory.length" [value]="filteredHistory" align="left" styleClass="history-timeline">
           <ng-template #marker let-entry>
             <span class="timeline-marker" [class.timeline-marker--active]="entry.active">
-              <i class="pi" [class.pi-check]="entry.active" [class.pi-history]="!entry.active"></i>
+              <i [class]="entry.active ? ('check' | lucideClass) : ('history' | lucideClass)"></i>
             </span>
           </ng-template>
           <ng-template #content let-entry>
@@ -226,15 +229,16 @@
               </dl>
 
               <footer class="history-card-actions" *ngIf="!entry.active">
-                <p-button label="Designar nuevamente" icon="pi pi-replay" [outlined]="true" severity="secondary" size="small"
-                          (onClick)="redesignate(entry)"></p-button>
+                <p-button label="Designar nuevamente" [outlined]="true" severity="secondary" size="small"
+                          (onClick)="redesignate(entry)">
+                  <ng-template #icon><app-lucide-icon name="rotate-ccw" [size]="16" /></ng-template></p-button>
               </footer>
             </article>
           </ng-template>
         </p-timeline>
 
         <div *ngIf="!filteredHistory.length" class="empty-state">
-          <i class="pi pi-inbox" aria-hidden="true"></i>
+          <app-lucide-icon name="inbox" size="1em" />
           <strong>{{ history.length ? 'Ninguna designación coincide con los filtros' : 'Aún no hay designaciones' }}</strong>
           <span class="muted">{{ history.length ? 'Pruebe con otro nombre, estado o periodo.' : 'Cuando se designe a una persona aparecerá aquí.' }}</span>
           <p-button *ngIf="history.length" label="Limpiar filtros" [outlined]="true" severity="secondary" size="small"
@@ -349,6 +353,7 @@
   </div>
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" [text]="true" [disabled]="completing" (onClick)="completeVisible = false"></p-button>
-    <p-button label="Guardar" icon="pi pi-save" [disabled]="!canComplete" [loading]="completing" (onClick)="submitComplete()"></p-button>
+    <p-button label="Guardar" [disabled]="!canComplete" [loading]="completing" (onClick)="submitComplete()">
+      <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template></p-button>
   </ng-template>
 </p-dialog>

@@ -23,6 +23,7 @@ import { NotificationService } from '../../../../services/notification.service';
 import { DIRECTIVE_STATUS, STEP_ROLE } from '../directive-status';
 import { pagesLabel } from '../pdf-pages';
 import { SUBTYPE_DOCUMENT_TYPE, documentTypeColor, documentTypeText } from '../document-type';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 type StatusFilter = DirectiveStatus | 'all';
 type Section = 'mine' | 'pending' | 'route';
@@ -33,7 +34,7 @@ type Section = 'mine' | 'pending' | 'route';
  */
 @Component({
   selector: 'app-directives-list',
-  imports: [CardModule, DatePipe, NgTemplateOutlet, FormsModule, BadgeModule, ButtonModule, ChipModule, DialogModule, IconFieldModule, InputIconModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule],
+  imports: [AppLucideIconComponent, CardModule, DatePipe, NgTemplateOutlet, FormsModule, BadgeModule, ButtonModule, ChipModule, DialogModule, IconFieldModule, InputIconModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule],
   templateUrl: './directives-list.component.html',
   styleUrl: './directives-list.component.css',
 })

@@ -23,6 +23,8 @@ import { documentTypeColor, documentTypeText } from '../document-type';
 import { formatBytes } from '../directive-status';
 import { DirectiveLogDrawerComponent } from '../directive-tracking/directive-log-drawer.component';
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 
 /**
  * La oficina de origen corrige una directiva devuelta y la reenvía: sube la directiva corregida (obligatoria), conserva la resolución salvo que suba
@@ -31,7 +33,7 @@ import { DirectiveTrackingComponent } from '../directive-tracking/directive-trac
  */
 @Component({
   selector: 'app-directive-resubmit',
-  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, TimelineModule, ToggleSwitchModule, ToolbarModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [LucideClassPipe, AppLucideIconComponent, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, TimelineModule, ToggleSwitchModule, ToolbarModule, FileUploadModule, InputTextModule, MessageModule, SkeletonModule, TagModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   templateUrl: './directive-resubmit.component.html',
   styleUrl: './directive-resubmit.component.css',
 })

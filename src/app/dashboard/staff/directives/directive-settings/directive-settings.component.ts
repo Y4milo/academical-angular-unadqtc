@@ -18,6 +18,7 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveSettings, DirectiveSettingsValues, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveLogDrawerComponent } from '../directive-tracking/directive-log-drawer.component';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 type Option<T extends string> = { label: string; value: T };
 
@@ -75,7 +76,7 @@ const VALUE_LABELS: Record<string, string> = { yes: 'Pueden ver los PDF', no: 'S
  */
 @Component({
   selector: 'app-directive-settings',
-  imports: [DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, ToolbarModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TimelineModule, ToggleSwitchModule, DirectiveLogDrawerComponent],
+  imports: [AppLucideIconComponent, DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, ToolbarModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TimelineModule, ToggleSwitchModule, DirectiveLogDrawerComponent],
   templateUrl: './directive-settings.component.html',
   styleUrl: './directive-settings.component.css',
 })

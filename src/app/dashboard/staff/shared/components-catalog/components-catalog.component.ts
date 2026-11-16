@@ -53,6 +53,9 @@ import { DATA_GUIDE, FEEDBACK_GUIDE, NAV_GUIDE, OVERLAY_GUIDE } from './catalog-
 import { CatalogNotesComponent } from './catalog-notes.component';
 import { SCREEN_RECIPES } from './catalog-recipes';
 import baseline from './primeng-baseline.json';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {lucideClass} from '../../../../core/utils/lucide-icon.util';
+import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 
 export interface TypographyRow {
   token: TypographyToken;
@@ -148,7 +151,7 @@ export const FORM_GUIDE: ComponentGuide[] = [
  */
 @Component({
   selector: 'app-components-catalog',
-  imports: [
+  imports: [LucideClassPipe, AppLucideIconComponent, 
     FormsModule, AccordionModule, AvatarModule, BadgeModule, BreadcrumbModule, ChipModule, ConfirmDialogModule, ConfirmPopupModule, DataViewModule, DialogModule, DividerModule,
     DrawerModule, MenuModule, PaginatorModule, PanelMenuModule, PopoverModule, ProgressBarModule, ProgressSpinnerModule, StepsModule, TimelineModule, ToastModule, TooltipModule,
     TreeModule, AutoCompleteModule, ButtonModule, CardModule, CheckboxModule, DatePickerModule, FileUploadModule, InputMaskModule, InputNumberModule, InputTextModule,
@@ -242,9 +245,9 @@ export class ComponentsCatalogComponent implements OnInit {
     { label: 'Rectorado', expanded: true, children: [{ label: 'Secretaría general' }, { label: 'Bienestar universitario', children: [{ label: 'Psicología' }, { label: 'Servicio social' }] }] },
   ];
   readonly breadcrumbItems: MenuItem[] = [{ label: 'Bienestar' }, { label: 'Citas' }, { label: 'Configuración' }];
-  readonly breadcrumbHome: MenuItem = { icon: 'pi pi-home' };
+  readonly breadcrumbHome: MenuItem = { icon: lucideClass('house') };
   readonly stepItems: MenuItem[] = [{ label: 'Datos' }, { label: 'Documento' }, { label: 'Foto' }];
-  readonly rowMenu: MenuItem[] = [{ label: 'Ver detalle', icon: 'pi pi-eye' }, { label: 'Descargar', icon: 'pi pi-download' }];
+  readonly rowMenu: MenuItem[] = [{ label: 'Ver detalle', icon: lucideClass('eye') }, { label: 'Descargar', icon: lucideClass('download') }];
   readonly panelItems: MenuItem[] = [
     { label: 'Bienestar', items: [{ label: 'Cola de citas' }, { label: 'Configuración de citas' }] },
     { label: 'Documentos de gestión', items: [{ label: 'Documentos de gestión' }] },

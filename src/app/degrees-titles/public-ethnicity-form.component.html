@@ -8,7 +8,7 @@
         <small>Oficina de Grados y Títulos</small>
       </div>
     </div>
-    <button pButton type="button" [icon]="themeMode === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"
+    <button pButton type="button" [icon]="themeMode === 'dark' ? ('sun' | lucideClass) : ('moon' | lucideClass)"
             class="theme-toggle" [rounded]="true" [outlined]="true" severity="secondary"
             [attr.aria-label]="themeMode === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
             [pTooltip]="themeMode === 'dark' ? 'Tema claro' : 'Tema oscuro'" (click)="toggleTheme()"></button>
@@ -21,11 +21,11 @@
     <div class="form-title"><span class="eyebrow">FORMULARIO OFICIAL</span><h1>Ficha de variables étnicas y lingüísticas</h1>
       <p class="intro">Complete esta información personal conforme al formato solicitado por SUNEDU.</p></div>
     <section class="identity">
-      <div class="identity-icon"><i class="pi pi-user"></i></div><div><small>ESTUDIANTE</small><strong>{{ data.student.full_name }}</strong>
+      <div class="identity-icon"><app-lucide-icon name="user" size="1em" /></div><div><small>ESTUDIANTE</small><strong>{{ data.student.full_name }}</strong>
         <span>Código {{ data.student.student_code }} · Documento {{ data.student.document }}</span>
         <span>{{ data.degree.denomination }} · {{ data.degree.call }}</span></div>
     </section>
-    <div class="privacy-note"><i class="pi pi-shield"></i><span>Esta declaración es confidencial. Sus datos serán utilizados exclusivamente para el registro de su grado o título ante SUNEDU.</span></div>
+    <div class="privacy-note"><app-lucide-icon name="shield" size="1em" /><span>Esta declaración es confidencial. Sus datos serán utilizados exclusivamente para el registro de su grado o título ante SUNEDU.</span></div>
 
     <section #ethnicQuestion class="question" [class.question-invalid]="invalidField === 'ethnic' || invalidField === 'ethnic-detail'">
       <div class="question-number">01</div><label>Por sus costumbres o antepasados, ¿usted se siente parte de? <b>*</b></label>
@@ -62,12 +62,14 @@
     <label #declarationQuestion class="declaration" [class.declaration-invalid]="invalidField === 'declaration'"><p-checkbox [(ngModel)]="form.declaration" [binary]="true"></p-checkbox>
       <span>Declaro que la información proporcionada es verdadera y corresponde a mi autoidentificación. *</span></label>
     <div #formMessage class="form-message" *ngIf="error"><p-message severity="error" [text]="error"></p-message></div>
-    <button pButton type="button" class="submit-button" label="Enviar declaración" icon="pi pi-send" [loading]="saving" (click)="submit()"></button>
+    <p-button type="button" class="submit-button" label="Enviar declaración" [loading]="saving" (click)="submit()">
+      <ng-template #icon><app-lucide-icon name="send" [size]="16" /></ng-template>
+    </p-button>
     <p class="required-note">* Campos obligatorios</p>
   </p-card>
 
   <p-card *ngIf="data && completed" header="Información registrada">
-    <div class="success"><i class="pi pi-check-circle"></i><p>Gracias. Sus variables étnicas y lingüísticas fueron registradas correctamente.</p><small>Ya puede cerrar esta página.</small></div>
+    <div class="success"><app-lucide-icon name="circle-check" size="1em" /><p>Gracias. Sus variables étnicas y lingüísticas fueron registradas correctamente.</p><small>Ya puede cerrar esta página.</small></div>
   </p-card>
   <footer class="page-footer">Universidad Nacional Diego Quispe Tito · Oficina de Grados y Títulos</footer>
 </main>

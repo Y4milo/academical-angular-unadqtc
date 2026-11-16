@@ -51,11 +51,14 @@ import {
   resolveDegreeDenomination,
   resolvedGenderLabel,
 } from './degree-diploma.utils';
+import {AppLucideIconComponent} from '../../../core/components/lucide-icon/lucide-icon.component';
+import {lucideClass} from '../../../core/utils/lucide-icon.util';
+import {LucideClassPipe} from '../../../core/pipes/lucide-class.pipe';
 
 @Component({
   selector: 'app-degree-records',
   standalone: true,
-  imports: [
+  imports: [LucideClassPipe, AppLucideIconComponent, 
     FormsModule, DatePipe, NgFor, NgIf, ButtonModule, CheckboxModule, DialogModule, TableModule, TagModule, TooltipModule,
     InputTextModule, Select, DatePicker, ListboxModule, ConfirmDialogModule, InputNumberModule, FieldsetModule, MessageModule, ProgressBarModule, TestModeBannerComponent,
   ],
@@ -886,7 +889,7 @@ export class DegreeRecordsComponent implements OnInit {
     this.confirmationService.confirm({
       header: 'Anular registro',
       message: `¿Desea anular el registro de ${record.full_name}? Se conservará para auditoría.`,
-      icon: 'pi pi-exclamation-triangle',
+      icon: lucideClass('triangle-alert'),
       acceptLabel: 'Sí, anular',
       rejectLabel: 'Cancelar',
       acceptButtonProps: {severity: 'danger'},

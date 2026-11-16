@@ -114,9 +114,12 @@
 
         <h3>Con ícono, de solo ícono y de texto</h3>
         <div class="catalog__row">
-          <p-button label="Agregar" icon="pi pi-plus"></p-button>
-          <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" aria-label="Editar"></p-button>
-          <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" aria-label="Eliminar"></p-button>
+          <p-button label="Agregar">
+            <ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template></p-button>
+          <p-button [rounded]="true" [text]="true" aria-label="Editar">
+            <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template></p-button>
+          <p-button [rounded]="true" [text]="true" severity="danger" aria-label="Eliminar">
+            <ng-template #icon><app-lucide-icon name="trash-2" [size]="16" /></ng-template></p-button>
           <p-button label="Ver detalle" [link]="true"></p-button>
           <p-button label="Pequeño" size="small"></p-button>
           <p-button label="Grande" size="large"></p-button>
@@ -125,7 +128,7 @@
 
         <h3>Con variantes y encendible</h3>
         <div class="catalog__row">
-          <p-splitbutton label="Descargar" icon="pi pi-download" [model]="splitItems"></p-splitbutton>
+          <p-splitbutton label="Descargar" [icon]="'download' | lucideClass" [model]="splitItems"></p-splitbutton>
           <p-togglebutton [(ngModel)]="pinned" onLabel="Fijado" offLabel="Fijar"></p-togglebutton>
         </div>
       </p-tabpanel>
@@ -270,7 +273,8 @@
           <div class="catalog__card">
             <strong>Acciones de una fila</strong>
             <p-menu #rowMenuRef [model]="rowMenu" [popup]="true" appendTo="body"></p-menu>
-            <p-button label="Acciones" icon="pi pi-ellipsis-v" severity="secondary" [outlined]="true" size="small" (onClick)="rowMenuRef.toggle($event)"></p-button>
+            <p-button label="Acciones" severity="secondary" [outlined]="true" size="small" (onClick)="rowMenuRef.toggle($event)">
+              <ng-template #icon><app-lucide-icon name="ellipsis-vertical" [size]="16" /></ng-template></p-button>
           </div>
         </div>
 
@@ -298,7 +302,8 @@
           <p-button label="Confirmar en diálogo" severity="danger" [outlined]="true" (onClick)="confirmDialog()"></p-button>
           <p-button label="Confirmar aquí" severity="danger" [outlined]="true" (onClick)="confirmPopup($event)"></p-button>
           <p-button label="Ayuda" severity="secondary" [text]="true" (onClick)="helpRef.toggle($event)"></p-button>
-          <p-button icon="pi pi-download" [rounded]="true" [text]="true" aria-label="Descargar" pTooltip="Descargar el PDF firmado"></p-button>
+          <p-button [rounded]="true" [text]="true" aria-label="Descargar" pTooltip="Descargar el PDF firmado">
+            <ng-template #icon><app-lucide-icon name="download" [size]="16" /></ng-template></p-button>
         </div>
         <p-popover #helpRef><span>Ayuda breve junto al botón que la abre.</span></p-popover>
         <p-dialog header="Nuevo documento" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: 'min(30rem, 92vw)' }" appendTo="body">

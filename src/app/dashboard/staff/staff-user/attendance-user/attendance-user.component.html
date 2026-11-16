@@ -18,14 +18,16 @@
     </div>
 
     <div class="col-12 md:col-6 lg:col-4 flex flex-column gap-2 justify-content-end">
-      <button
-        pButton
+      <p-button
+       
         type="button"
-        icon="pi pi-search"
+       
         label="Buscar"
         class="w-full"
         (click)="loadAttendances()">
-      </button>
+        <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template>
+      
+      </p-button>
     </div>
   </div>
 </div>

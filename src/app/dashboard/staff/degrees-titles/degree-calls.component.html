@@ -4,7 +4,9 @@
       <h2>Convocatorias de Grados y Títulos</h2>
       <p>Administre los grupos de aptos asociados a una resolución.</p>
     </div>
-    <button pButton type="button" icon="pi pi-plus" label="Nueva convocatoria" (click)="openCreate()"></button>
+    <p-button type="button" label="Nueva convocatoria" (click)="openCreate()">
+      <ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template>
+    </p-button>
   </div>
 
   <app-test-mode-banner *ngIf="mailTestMode" area="Grados y Títulos" [recipient]="mailTestRecipient"></app-test-mode-banner>
@@ -33,8 +35,12 @@
         </p-select>
       </div>
       <div class="filter-actions">
-        <button pButton type="button" icon="pi pi-search" label="Buscar" (click)="loadCalls(1)"></button>
-        <button pButton type="button" icon="pi pi-filter-slash" label="Limpiar" severity="secondary" (click)="clearFilters()"></button>
+        <p-button type="button" label="Buscar" (click)="loadCalls(1)">
+          <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template>
+        </p-button>
+        <p-button type="button" label="Limpiar" severity="secondary" (click)="clearFilters()">
+          <ng-template #icon><app-lucide-icon name="funnel-x" [size]="16" /></ng-template>
+        </p-button>
       </div>
     </div>
   </p-card>
@@ -84,10 +90,10 @@
           <td>{{ call.exports_count }}</td>
           <td>
             <div class="row-actions">
-              <button
-                pButton
+              <p-button
+               
                 type="button"
-                icon="pi pi-users"
+               
                 [label]="recordsActionLabel(call)"
                 size="small"
                 severity="secondary"
@@ -95,51 +101,61 @@
                 [disabled]="!canViewRecords(call)"
                 [title]="call.status.value === 'draft' ? 'Abra la convocatoria para gestionar su padrón' : recordsActionLabel(call)"
                 (click)="goToRecords(call)">
-              </button>
-              <button
+                <ng-template #icon><app-lucide-icon name="users" [size]="16" /></ng-template>
+              
+              </p-button>
+              <p-button
                 *ngIf="canEdit(call)"
-                pButton
+               
                 type="button"
-                icon="pi pi-pencil"
+               
                 [label]="['closed', 'exported'].includes(call.status.value) ? 'Completar resolución' : 'Editar'"
                 size="small"
                 severity="secondary"
                 [disabled]="actionId === call.id"
                 (click)="openEdit(call)">
-              </button>
-              <button
+                <ng-template #icon><app-lucide-icon name="pencil" [size]="16" /></ng-template>
+              
+              </p-button>
+              <p-button
                 *ngIf="canOpen(call)"
-                pButton
+               
                 type="button"
-                icon="pi pi-folder-open"
+               
                 [label]="call.status.value === 'draft' ? 'Abrir' : 'Reabrir'"
                 size="small"
                 [disabled]="actionId === call.id"
                 (click)="openCall(call)">
-              </button>
-              <button
+                <ng-template #icon><app-lucide-icon name="folder-open" [size]="16" /></ng-template>
+              
+              </p-button>
+              <p-button
                 *ngIf="canClose(call)"
-                pButton
+               
                 type="button"
-                icon="pi pi-lock"
+               
                 label="Cerrar"
                 size="small"
                 severity="warn"
                 [disabled]="actionId === call.id"
                 (click)="closeCall(call)">
-              </button>
-              <button
+                <ng-template #icon><app-lucide-icon name="lock" [size]="16" /></ng-template>
+              
+              </p-button>
+              <p-button
                 *ngIf="canAnnul(call)"
-                pButton
+               
                 type="button"
-                icon="pi pi-ban"
+               
                 label="Anular"
                 size="small"
                 severity="danger"
                 [outlined]="true"
                 [disabled]="actionId === call.id"
                 (click)="annulCall(call)">
-              </button>
+                <ng-template #icon><app-lucide-icon name="ban" [size]="16" /></ng-template>
+              
+              </p-button>
               <span *ngIf="!canEdit(call) && !canOpen(call) && !canClose(call) && !canAnnul(call)" class="no-actions">
                 Solo consulta
               </span>
@@ -214,13 +230,15 @@
 
   <ng-template pTemplate="footer">
     <button pButton type="button" label="Cancelar" severity="secondary" [disabled]="saving" (click)="formVisible = false"></button>
-    <button
-      pButton
+    <p-button
+     
       type="button"
-      icon="pi pi-save"
+     
       [label]="saving ? 'Guardando...' : 'Guardar'"
       [disabled]="saving"
       (click)="save()">
-    </button>
+      <ng-template #icon><app-lucide-icon name="save" [size]="16" /></ng-template>
+    
+    </p-button>
   </ng-template>
 </p-dialog>

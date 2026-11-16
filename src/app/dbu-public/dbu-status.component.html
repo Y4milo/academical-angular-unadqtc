@@ -56,7 +56,8 @@
           <input pInputText id="dbu-find-document" [(ngModel)]="documentNumber" maxlength="20" autocomplete="off" inputmode="numeric" (keyup.enter)="search()" />
         </div>
         <div class="dbu-actions">
-          <p-button label="Buscar mi cita" icon="pi pi-search" [loading]="busy()" [disabled]="!canSearch()" (onClick)="search()"></p-button>
+          <p-button label="Buscar mi cita" [loading]="busy()" [disabled]="!canSearch()" (onClick)="search()">
+            <ng-template #icon><app-lucide-icon name="search" [size]="16" /></ng-template></p-button>
         </div>
       </section>
     }

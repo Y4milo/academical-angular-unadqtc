@@ -22,6 +22,7 @@ import { DirectiveTrackingComponent } from '../directive-tracking/directive-trac
 import { SignatureSheetViewComponent } from '../signature-sheet-view/signature-sheet-view.component';
 import { STEP_ROLE } from '../directive-status';
 import { documentTypeColor, documentTypeText } from '../document-type';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 /** En qué va la firma: nada empezado, abriendo la sesión, esperando al firmador local, confirmando con el servidor o terminada. */
 export type SignPhase = 'idle' | 'opening' | 'waiting' | 'confirming' | 'done';
@@ -42,7 +43,7 @@ const REFUSAL_EVERY_MS = 1500;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, DirectiveTrackingComponent, SignatureSheetViewComponent],
+  imports: [AppLucideIconComponent, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, DirectiveTrackingComponent, SignatureSheetViewComponent],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })

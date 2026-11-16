@@ -1,6 +1,7 @@
 import type {LucideIcon, LucideIconData} from '@lucide/angular';
 import {
   LucideBan,
+  LucideWifi,
   LucideCalendarCheck,
   LucideCalendarDays,
   LucideChartColumn,
@@ -72,6 +73,45 @@ import {
   LucideUtensils,
   LucideUser,
   LucideUsers,
+  LucideSave,
+  LucideArrowRight,
+  LucideArrowLeft,
+  LucideSend,
+  LucideMail,
+  LucideFunnelX,
+  LucideFileSpreadsheet,
+  LucideEllipsisVertical,
+  LucideBadgeCheck,
+  LucideUndo2,
+  LucideSquarePen,
+  LucideInbox,
+  LucideFilePen,
+  LucideSun,
+  LucideArrowDownWideNarrow,
+  LucideNetwork,
+  LucideShield,
+  LucideMoon,
+  LucideCircleMinus,
+  LucideHistory,
+  LucideEllipsis,
+  LucideUserMinus,
+  LucideArrowUpNarrowWide,
+  LucideArrowUpWideNarrow,
+  LucideArrowUpDown,
+  LucideSignature,
+  LucideCirclePlus,
+  LucidePhone,
+  LucideList,
+  LucideLink,
+  LucideFolderOpen,
+  LucideFlaskConical,
+  LucideFlag,
+  LucideFunnel,
+  LucideFileCheck,
+  LucideDatabase,
+  LucideCamera,
+  LucideBuilding2,
+  LucideAtSign,
 } from '@lucide/angular';
 
 const LUCIDE_ICONS: Record<string, LucideIcon> = {
@@ -153,6 +193,48 @@ const LUCIDE_ICONS: Record<string, LucideIcon> = {
   utensils: LucideUtensils,
   user: LucideUser,
   users: LucideUsers,
+  'save': LucideSave,
+  'arrow-right': LucideArrowRight,
+  'arrow-left': LucideArrowLeft,
+  'send': LucideSend,
+  'mail': LucideMail,
+  'funnel-x': LucideFunnelX,
+  'file-spreadsheet': LucideFileSpreadsheet,
+  'ellipsis-vertical': LucideEllipsisVertical,
+  'badge-check': LucideBadgeCheck,
+  'undo-2': LucideUndo2,
+  'trash-2': LucideTrash2,
+  'square-pen': LucideSquarePen,
+  'inbox': LucideInbox,
+  'file-pen': LucideFilePen,
+  'sun': LucideSun,
+  'arrow-down-wide-narrow': LucideArrowDownWideNarrow,
+  'network': LucideNetwork,
+  'shield': LucideShield,
+  'wifi': LucideWifi,
+  'moon': LucideMoon,
+  'circle-minus': LucideCircleMinus,
+  'history': LucideHistory,
+  'ellipsis': LucideEllipsis,
+  'calendar-days': LucideCalendarDays,
+  'user-minus': LucideUserMinus,
+  'arrow-up-narrow-wide': LucideArrowUpNarrowWide,
+  'arrow-up-wide-narrow': LucideArrowUpWideNarrow,
+  'arrow-up-down': LucideArrowUpDown,
+  'signature': LucideSignature,
+  'circle-plus': LucideCirclePlus,
+  'phone': LucidePhone,
+  'list': LucideList,
+  'link': LucideLink,
+  'folder-open': LucideFolderOpen,
+  'flask-conical': LucideFlaskConical,
+  'flag': LucideFlag,
+  'funnel': LucideFunnel,
+  'file-check': LucideFileCheck,
+  'database': LucideDatabase,
+  'camera': LucideCamera,
+  'building-2': LucideBuilding2,
+  'at-sign': LucideAtSign,
 };
 
 const FONT_AWESOME_ALIASES: Record<string, string> = {
@@ -199,4 +281,31 @@ function getLucideIcon(icon?: string): LucideIcon {
   }
 
   return LUCIDE_ICONS[normalizedIcon] ?? LucideCircle;
+}
+
+const injectedClasses = new Set<string>();
+
+/**
+ * For the few places where PrimeNG only takes an icon CLASS (the `icon` of a MenuItem, a splitbutton, a model of tabs...):
+ * returns `lu lu-<name>` and, the first time, adds a rule that paints that Lucide icon with a mask in `currentColor`.
+ * Everywhere else use <app-lucide-icon>.
+ */
+export function lucideClass(name: string): string {
+  if (typeof document !== 'undefined' && !injectedClasses.has(name)) {
+    injectedClasses.add(name);
+    const nodes = getLucideIconData(name).node;
+    const inner = nodes
+      .map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`)
+      .join('');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+    const url = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    let sheet = document.getElementById('lucide-classes') as HTMLStyleElement | null;
+    if (!sheet) {
+      sheet = document.createElement('style');
+      sheet.id = 'lucide-classes';
+      document.head.appendChild(sheet);
+    }
+    sheet.appendChild(document.createTextNode(`.lu-${name}{-webkit-mask:${url} center/contain no-repeat;mask:${url} center/contain no-repeat}`));
+  }
+  return `lu lu-${name}`;
 }

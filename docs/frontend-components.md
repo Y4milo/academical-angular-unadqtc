@@ -19,6 +19,7 @@ The page **Catálogo de componentes** (`/interface/components`, `src/app/dashboa
 | `npm run check:theme` (`scripts/check-theme-tokens.mjs`) | CSS or templates using the old PrimeNG names (`--surface-card`, `--surface-border`, `--text-color-secondary`...) with a hard light fallback, or fixed palettes (`--p-surface-N`, `--p-primary-N`) as backgrounds or text. Old files have a cap in `scripts/theme-tokens-baseline.json` that can only go down; new or touched files must be at zero |
 | `npm run check:typography` (`scripts/check-typography.mjs`) | CSS or templates writing their own `font-weight` or `font-size` instead of the tokens. Old files have a cap in `scripts/typography-baseline.json` that can only go down; new or touched files must be at zero |
 | `npm run check:primeng` (`scripts/check-primeng.mjs`, tested by `npm run test:check-primeng`) | Native controls or obsolete PrimeNG modules where PrimeNG has the component: `<button>`, `<select>`, `<table>`, `<ul>`, `<ol>`, `<progress>`, `<dialog>`, `<textarea>` without `pTextarea`, `<input>` without `pInputText`, `type="date\|datetime-local\|number\|checkbox\|radio\|file\|..."`, and `calendar`, `dropdown`, `tabview`, `overlaypanel`, `inputswitch`, `sidebar`, `chips`. Old files have a cap per rule in `src/app/dashboard/staff/shared/components-catalog/primeng-baseline.json` (the catalog audit tab reads it) that can only go down (`--fix-baseline` lowers it after a cleanup); new or touched files must be at zero. A line with `primeng-ok: reason` (or the one before it) exempts a justified use. Run it before every front PR and say the result in the PR |
+| `npm run check:icons` (`scripts/check-icons.mjs`) | Any `pi pi-...`, `pi-...` or `class="pi"` (PrimeIcons) in a template or component. Icons are Lucide; the cap is zero |
 | Component specs with `autoDetectChanges` + `whenStable` | A screen that never settles (for example a value that is a new object on every change detection) |
 
 ## Light and dark theme
@@ -113,3 +114,16 @@ One module for every staff role at `/directivas` (`PATHS.directives`, `StaffMenu
 ## Checklist before finishing a screen
 
 Labels tied to their field, `aria-label` on icon-only buttons, logical focus order, contrast in light and dark, 375 / 768 / 1440 px without overflow, actions reachable by keyboard, dialogs closing with Esc, the three states (loading, empty, error), a spec that renders the screen and settles, and the catalog updated.
+
+## Icons
+
+All icons are **Lucide**; PrimeIcons (`pi pi-...`) are not used.
+
+| Where | How |
+|---|---|
+| Anywhere in a template | `<app-lucide-icon name="search" [size]="16" />`; inside text use `size="1em"` so it follows the font size |
+| Inside a `p-button` or `p-tag` | `<ng-template #icon><app-lucide-icon name="plus" [size]="16" /></ng-template>` as a child (not `icon="pi ..."`) |
+| Where PrimeNG only takes an icon class (`icon` of a message, `chooseIcon` of a file upload, a `MenuItem`...) | `[icon]="'check' | lucideClass"` in a template or `icon: lucideClass('pencil')` in TypeScript; it paints the Lucide icon with a mask in `currentColor` |
+| A spinner | `<app-lucide-icon name="loader-circle" class="lucide-spin" />` |
+
+A name that is not in the registry of `src/app/core/utils/lucide-icon.util.ts` falls back to a circle: add the icon there (import `LucideXxx` and one line in `LUCIDE_ICONS`) in the same change. Names follow Lucide's (`circle-check`, `triangle-alert`, `file-text`).

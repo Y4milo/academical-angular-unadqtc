@@ -23,6 +23,7 @@ import {LoginService} from '../../../services/login.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TestModeBannerComponent} from '../../../core/components/test-mode-banner.component';
 import {PATHS} from '../../../core/constants/app-paths.constants';
+import {AppLucideIconComponent} from '../../../core/components/lucide-icon/lucide-icon.component';
 
 interface SelectOption {
   label: string;
@@ -31,7 +32,7 @@ interface SelectOption {
 
 @Component({
   selector: 'app-degree-calls',
-  imports: [
+  imports: [AppLucideIconComponent, 
     ButtonModule,
     CardModule,
     DatePipe,

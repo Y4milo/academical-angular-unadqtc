@@ -12,10 +12,12 @@ import {MenuItem} from 'primeng/api';
 import {AvailableChannel, SupportRequestService, SupportRequestSubmission} from '../services/support-request.service';
 import {TestModeBannerComponent} from '../core/components/test-mode-banner.component';
 import {ActivatedRoute} from '@angular/router';
+import {AppLucideIconComponent} from '../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../core/pipes/lucide-class.pipe';
 
 @Component({
   selector: 'app-public-support-request', standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, Select, TooltipModule, StepsModule, TestModeBannerComponent],
+  imports: [LucideClassPipe, AppLucideIconComponent, CommonModule, FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, Select, TooltipModule, StepsModule, TestModeBannerComponent],
   templateUrl: './public-support-request.component.html', styleUrl: './public-support-request.component.css',
 })
 export class PublicSupportRequestComponent implements OnInit, OnDestroy {

@@ -11,6 +11,7 @@ import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
 import { NotificationService } from '../../../../services/notification.service';
 import { ServiceOrdersService, addDays, daysBetween, toIsoDate } from '../../../../services/service-orders.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
 
 interface DeliverableRow {
   /** Días calendario desde la notificación hasta el vencimiento. */
@@ -26,7 +27,7 @@ const ORDINALS = ['Primer', 'Segundo', 'Tercer', 'Cuarto', 'Quinto', 'Sexto', 'S
 /** Alta de una orden de servicio: contratista (por RUC, desde Core), datos de la orden y fecha de cada entregable. */
 @Component({
   selector: 'app-service-order-form',
-  imports: [FormsModule, ButtonModule, DatePickerModule, InputNumberModule, InputTextModule, TextareaModule, FormFieldComponent],
+  imports: [AppLucideIconComponent, FormsModule, ButtonModule, DatePickerModule, InputNumberModule, InputTextModule, TextareaModule, FormFieldComponent],
   templateUrl: './service-order-form.component.html',
   styleUrl: './service-order-form.component.css',
 })

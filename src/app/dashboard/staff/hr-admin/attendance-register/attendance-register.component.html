@@ -74,10 +74,12 @@
       [readOnly]="sending"/>
     <p-button
       label="Registrar"
-      icon="pi pi-check"
+     
       [loading]="sending"
       [disabled]="dni.length !== 8"
-      (onClick)="submit()"/>
+      (onClick)="submit()">
+      <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template>
+    </p-button>
   </div>
   @if (!ready) {
     <small class="register-hint">Seleccione la sede y escriba el motivo para empezar.</small>
@@ -140,8 +142,12 @@
   [closeOnEscape]="false">
   <p class="register-dup-text">{{ notice?.message }}</p>
   <ng-template #footer>
-    <p-button label="No registrar" severity="secondary" icon="pi pi-times" (onClick)="discardDuplicate()"/>
-    <p-button label="Registrar de todos modos" icon="pi pi-check" (onClick)="confirmDuplicate()"/>
+    <p-button label="No registrar" severity="secondary" (onClick)="discardDuplicate()">
+      <ng-template #icon><app-lucide-icon name="x" [size]="16" /></ng-template>
+    </p-button>
+    <p-button label="Registrar de todos modos" (onClick)="confirmDuplicate()">
+      <ng-template #icon><app-lucide-icon name="check" [size]="16" /></ng-template>
+    </p-button>
   </ng-template>
 </p-dialog>
 

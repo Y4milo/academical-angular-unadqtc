@@ -9,6 +9,8 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { FirmaPeruSignerService } from '../../../../services/firma-peru-signer.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DocumentKind, ServiceOrderDeliverable, ServiceOrdersService, SigningConfig } from '../../../../services/service-orders.service';
+import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 
 type Phase = 'idle' | 'preparing' | 'waiting' | 'done' | 'failed';
 
@@ -18,7 +20,7 @@ const MAX_POLLS = 120;
 /** Firma digital (token o DNIe, con Firma Perú) de la carta o del informe de un entregable. */
 @Component({
   selector: 'app-document-sign-dialog',
-  imports: [FormsModule, ButtonModule, DialogModule, MessageModule, SelectModule, FormFieldComponent],
+  imports: [LucideClassPipe, AppLucideIconComponent, FormsModule, ButtonModule, DialogModule, MessageModule, SelectModule, FormFieldComponent],
   templateUrl: './document-sign-dialog.component.html',
   styleUrl: './document-sign-dialog.component.css',
 })

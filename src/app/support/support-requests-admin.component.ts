@@ -14,9 +14,11 @@ import {AdminSupportRequest, SupportRequestService} from '../services/support-re
 import {TestModeBannerComponent} from '../core/components/test-mode-banner.component';
 import {StepsModule} from 'primeng/steps';
 import {MenuItem} from 'primeng/api';
+import {AppLucideIconComponent} from '../core/components/lucide-icon/lucide-icon.component';
+import {LucideClassPipe} from '../core/pipes/lucide-class.pipe';
 
 @Component({selector: 'app-support-requests-admin', standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, MessageModule, Select, TableModule, TagModule, TextareaModule, TestModeBannerComponent, StepsModule],
+  imports: [LucideClassPipe, AppLucideIconComponent, CommonModule, FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, MessageModule, Select, TableModule, TagModule, TextareaModule, TestModeBannerComponent, StepsModule],
   templateUrl: './support-requests-admin.component.html', styleUrl: './support-requests-admin.component.css'})
 export class SupportRequestsAdminComponent implements OnInit {
   requests: AdminSupportRequest[]=[]; selected: AdminSupportRequest|null=null; loading=false; saving=false;
