@@ -4,7 +4,7 @@
       <h1>Validación de cuentas</h1>
       <p>Casos donde una persona de Core y un usuario de Academical podrían ser la misma. Core es la fuente de verdad del nombre.</p>
     </div>
-    <p-button label="Revisar ahora" severity="secondary" [outlined]="true" size="small" (onClick)="detect()" />
+    <p-button label="Actualizar desde Core" severity="secondary" [outlined]="true" size="small" [loading]="refreshing()" (onClick)="refresh()" />
   </header>
 
   @if (loadError()) {
@@ -115,6 +115,7 @@
           @if (item.can_unlink) {
             <p-button label="No es la misma: quitar vínculo" severity="secondary" [outlined]="true" (onClick)="open('unlink', item)" />
           }
+          <p-button label="Actualizar desde Core" severity="secondary" [text]="true" [loading]="refreshing()" (onClick)="refresh()" />
         </div>
       </p-card>
     }
