@@ -89,6 +89,7 @@ export const routes: Routes = [
           {path: PATHS.admin.components.path, pathMatch: 'full', redirectTo: '/' + PATHS.interface.components.link},
           {path: PATHS.admin.users.accounts.path, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.accounts.link},
           {path: PATHS.admin.users.cases.path, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.cases.link},
+          {path: PATHS.admin.users.validation.path, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.validation.link},
           {path: PATHS.admin.users.accounts.sheetPath, pathMatch: 'full', redirectTo: '/' + PATHS.userAdmin.path + '/accounts/:id'},
           {
             path: PATHS.admin.accounting.bank.incidents.path,
@@ -164,6 +165,10 @@ export const routes: Routes = [
           {
             path: PATHS.userAdmin.cases.path,
             loadComponent: () => import('./dashboard/staff/users/user-cases/user-cases.component').then(m => m.UserCasesComponent)
+          },
+          {
+            path: PATHS.userAdmin.validation.path,
+            loadComponent: () => import('./dashboard/staff/users/account-validation/account-validation.component').then(m => m.AccountValidationComponent)
           },
         ]
       },

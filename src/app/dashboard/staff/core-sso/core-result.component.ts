@@ -27,6 +27,13 @@ export const CORE_RESULT_COPY: Record<string, ResultCopy> = {
     body: 'Entraste a Core correctamente, pero todavía no tienes un usuario de Academical asociado a esa cuenta.',
     todo: 'Pide a la Oficina de Tecnologías de la Información que vincule tu cuenta. Menciona el código para que la encuentren más rápido.',
   },
+  pending_review: {
+    icon: lucideClass('shield-question'),
+    tone: 'info',
+    title: 'Estamos validando tu cuenta',
+    body: 'Entraste a Core correctamente. La Oficina de Tecnologías de la Información revisa si ya tienes un usuario en Academical.',
+    todo: 'No tienes que hacer nada más: se resolverá pronto. Si te urge entrar, menciona el código a la Oficina de Tecnologías de la Información.',
+  },
   inactive: {
     icon: lucideClass('user-minus'),
     tone: 'warn',

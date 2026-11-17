@@ -61,7 +61,8 @@ describe('LoginStaffComponent', () => {
     http.expectOne('/api/auth/core/status').flush({ enabled: true, required: true, portal_url: 'https://core.test' });
     fixture.detectChanges();
 
-    expect(goTo).toHaveBeenCalledOnceWith('/api/auth/core/redirect');
+    expect(goTo).toHaveBeenCalledTimes(1);
+    expect(goTo.calls.mostRecent().args[0]).toMatch(/^\/api\/auth\/core\/redirect\?nonce=[A-Za-z0-9_-]{43}$/);
     expect(hasLogin(fixture)).toBeFalse();
     expect(html(fixture).textContent).toContain('Te llevamos a Core');
   });

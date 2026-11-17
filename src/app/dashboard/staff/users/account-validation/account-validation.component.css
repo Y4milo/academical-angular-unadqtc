@@ -1,0 +1,243 @@
+:host {
+  display: block;
+}
+
+.validation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--page-gutter);
+  color: var(--p-text-color);
+}
+
+.validation__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.validation__header h1 {
+  margin: 0;
+}
+
+.validation__header p {
+  margin: var(--space-1) 0 0;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+  max-width: 64ch;
+}
+
+.validation__skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.validation__empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.validation__empty strong {
+  color: var(--p-text-color);
+}
+
+.validation__panel {
+  min-width: 0;
+  overflow-x: auto;
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--radius-md);
+}
+
+.validation__panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.validation__panel-head p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.validation__check {
+  width: 3rem;
+}
+
+.case__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.case__who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.case__muted {
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.case__compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.case__side {
+  min-width: 0;
+}
+
+.case__side h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.case__side dl {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.case__side dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px dashed var(--p-content-border-color);
+  border-radius: var(--radius-sm);
+}
+
+.case__side dt {
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.case__side dd {
+  margin: 0;
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.case__side .case__diff {
+  background: var(--p-yellow-100, rgba(250, 204, 21, 0.18));
+}
+
+:host-context(.app-dark) .case__side .case__diff {
+  background: rgba(250, 204, 21, 0.14);
+}
+
+.case__why {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  color: var(--p-text-muted-color);
+  font-size: var(--text-small);
+}
+
+.case__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+:host ::ng-deep .case__blocked {
+  margin-top: var(--space-2);
+}
+
+:host ::ng-deep .validation__tabs .p-togglebutton {
+  white-space: nowrap;
+}
+
+.dialog {
+  display: grid;
+  gap: var(--space-3);
+}
+
+
+:host ::ng-deep .dialog__effects .p-timeline-event-opposite {
+  display: none;
+}
+
+:host ::ng-deep .dialog__effects .p-timeline-event-content {
+  padding-bottom: var(--space-3);
+}
+
+.dialog__lead,
+.dialog__proof {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.validation > * {
+  min-width: 0;
+}
+
+/* Las fuentes de identidad tienen textos largos: la etiqueta se parte en vez de ensanchar la pantalla. */
+:host ::ng-deep .case__side .status-tag {
+  white-space: normal;
+  line-height: 1.3;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .case__compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case__side dl > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .case__side dd {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .case__actions {
+    flex-direction: column;
+  }
+
+  .case__actions > * {
+    width: 100%;
+  }
+}
