@@ -46,6 +46,7 @@ export class AccountValidationComponent implements OnInit {
   readonly loading = signal(true);
   readonly loadError = signal(false);
   readonly saving = signal(false);
+  readonly refreshing = signal(false);
 
   readonly cases = signal<ValidationCase[]>([]);
   readonly counts = signal({ to_decide: 0, to_create: 0, without_core: 0, resolved: 0 });
@@ -207,8 +208,22 @@ export class AccountValidationComponent implements OnInit {
     }
   }
 
-  detect(): void {
-    this.service.detect().subscribe({ next: () => this.load(), error: error => this.notification.notifyApiData(error) });
+  /** Actualiza desde Core lo que cambió (personal, identidad y nombres) y vuelve a revisar los casos. */
+  refresh(): void {
+    if (this.refreshing()) return;
+    this.refreshing.set(true);
+
+    this.service.detect().subscribe({
+      next: response => {
+        this.refreshing.set(false);
+        this.notification.notifyApiData(response);
+        this.load();
+      },
+      error: error => {
+        this.refreshing.set(false);
+        this.notification.notifyApiData(error);
+      },
+    });
   }
 
   trackBlocked(row: WithoutCoreRow): number {

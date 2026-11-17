@@ -129,6 +129,25 @@ describe('AccountValidationComponent', () => {
     expect(service.suspendWithoutCore).toHaveBeenCalledTimes(1);
   });
 
+  it('updates from Core before reviewing, tells the result and reloads the cases', () => {
+    const fixture = create();
+    service.detect.and.returnValue(of({ status: 'success', payload: { title: 'Actualizado desde Core', message: '2 casos esperan una decisión.' } } as never));
+    service.summary.calls.reset();
+
+    fixture.componentInstance.refresh();
+
+    expect(service.detect).toHaveBeenCalledTimes(1);
+    expect(service.summary).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.refreshing()).toBeFalse();
+  });
+
+  it('offers the update from Core in every case and in the header', () => {
+    const fixture = create();
+
+    const labels = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button')).map(button => button.textContent?.trim());
+    expect(labels.filter(label => label === 'Actualizar desde Core').length).toBe(3);
+  });
+
   it('says there is nothing to decide when documents and names match everywhere', () => {
     const fixture = create([]);
 
