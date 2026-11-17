@@ -1,0 +1,248 @@
+<div class="validation">
+  <header class="validation__header">
+    <div>
+      <h1>Validación de cuentas</h1>
+      <p>Casos donde una persona de Core y un usuario de Academical podrían ser la misma. Core es la fuente de verdad del nombre.</p>
+    </div>
+    <p-button label="Revisar ahora" severity="secondary" [outlined]="true" size="small" (onClick)="detect()" />
+  </header>
+
+  @if (loadError()) {
+    <p-message severity="error" styleClass="validation__notice">
+      No se pudo cargar la validación. Revisa tu conexión e inténtalo de nuevo.
+      <p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()" />
+    </p-message>
+  } @else if (!loading() && counts().to_decide > 0) {
+    <p-message severity="warn" styleClass="validation__notice">
+      {{ counts().to_decide === 1 ? '1 caso espera' : counts().to_decide + ' casos esperan' }} una decisión. Mientras no se resuelvan, esas personas no entran por Core y ven un aviso de revisión.
+    </p-message>
+  }
+
+  <p-selectbutton
+    [options]="tabOptions()"
+    [ngModel]="tab()"
+    (ngModelChange)="tab.set($event)"
+    optionLabel="label"
+    optionValue="value"
+    [allowEmpty]="false"
+    ariaLabelledBy="Secciones de la validación"
+    styleClass="validation__tabs"
+  />
+
+  @if (loading()) {
+    <div class="validation__skeleton" aria-busy="true">
+      @for (row of skeletonRows; track row) {
+        <p-skeleton width="100%" height="9rem" />
+      }
+    </div>
+  } @else if (tab() === 'decide') {
+    @if (cases().length === 0) {
+      <div class="validation__empty">
+        <app-lucide-icon name="badge-check" [size]="28" />
+        <strong>No hay casos por decidir</strong>
+        <span>Documento y nombre calzan en todas las cuentas vinculadas.</span>
+      </div>
+    }
+
+    @for (item of cases(); track item.id) {
+      <p-card styleClass="case">
+        <div class="case__head">
+          <div class="case__who">
+            <strong>{{ item.core?.name ?? item.academical?.name }}</strong>
+            <app-status-tag [value]="typeLabel(item.type)" severity="warn" />
+            <app-status-tag [value]="strengthLabel(item.strength)" [severity]="item.strength === 'high' ? 'danger' : 'warn'" />
+            @if (item.core) {
+              <app-status-tag [value]="profileLabel(item.core.profile_type)" severity="secondary" />
+            }
+          </div>
+          <span class="case__muted">Detectado {{ item.detected_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <div class="case__compare">
+          <section class="case__side" aria-label="En Core">
+            <h2>En Core</h2>
+            @if (item.core; as core) {
+              <dl>
+                <div [class.case__diff]="!item.same_name"><dt>Nombre</dt><dd>{{ core.name }}</dd></div>
+                <div [class.case__diff]="!item.same_document"><dt>Documento</dt><dd>{{ core.document }}</dd></div>
+                <div><dt>Identidad</dt><dd>
+                  <app-status-tag [value]="core.identity.source_label" [severity]="core.identity.trusted ? 'success' : 'warn'" />
+                  @if (core.identity.verified_at) {
+                    <span class="case__muted"> · {{ core.identity.verified_at | date: 'dd/MM/yyyy' }}</span>
+                  }
+                </dd></div>
+                @if (core.email) {
+                  <div><dt>Correo</dt><dd>{{ core.email }}</dd></div>
+                }
+              </dl>
+            } @else {
+              <p class="case__muted">Core ya no tiene a esta persona en la copia local.</p>
+            }
+          </section>
+
+          <section class="case__side" aria-label="En Academical">
+            <h2>En Academical</h2>
+            @if (item.academical; as acad) {
+              <dl>
+                <div [class.case__diff]="!item.same_name"><dt>Nombre</dt><dd>{{ acad.name }}</dd></div>
+                <div [class.case__diff]="!item.same_document"><dt>Documento (ficha)</dt><dd>{{ acad.document }}</dd></div>
+                @if (acad.user; as user) {
+                  <div><dt>Usuario</dt><dd>{{ user.nick }}</dd></div>
+                  <div><dt>Último ingreso</dt><dd>{{ user.last_login_at ? (user.last_login_at | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}</dd></div>
+                } @else {
+                  <div class="case__diff"><dt>Usuario</dt><dd>No tiene</dd></div>
+                }
+              </dl>
+            }
+          </section>
+        </div>
+
+        <p class="case__why"><app-lucide-icon name="triangle-alert" [size]="16" /><span>{{ why(item) }}</span></p>
+
+        @if (item.confirm_blocked_reason) {
+          <p-message severity="warn" variant="simple" styleClass="case__blocked">
+            No se puede corregir el documento: {{ item.confirm_blocked_reason }}
+          </p-message>
+        }
+
+        <div class="case__actions">
+          <p-button label="Es la misma persona: vincular" [disabled]="!item.can_confirm" (onClick)="open('confirm', item)">
+            <ng-template pTemplate="icon"><app-lucide-icon name="link" [size]="16" /></ng-template>
+          </p-button>
+          @if (item.can_create) {
+            <p-button label="Son personas distintas: crear cuenta" severity="secondary" [outlined]="true" (onClick)="open('create-account', item)" />
+          }
+          @if (item.can_unlink) {
+            <p-button label="No es la misma: quitar vínculo" severity="secondary" [outlined]="true" (onClick)="open('unlink', item)" />
+          }
+        </div>
+      </p-card>
+    }
+  } @else if (tab() === 'create') {
+    <section class="validation__panel" aria-label="Personas de Core sin cuenta">
+      <div class="validation__panel-head">
+        <p>Personas de Core con perfil de Academical que todavía no tienen usuario. Las que tienen un motivo no se pueden crear.</p>
+        <p-button [label]="'Crear ' + selectedToCreate.length + ' cuentas'" [disabled]="selectedToCreate.length === 0" (onClick)="openCreateMany()" />
+      </div>
+      @if (toCreate().length === 0) {
+        <div class="validation__empty">
+          <app-lucide-icon name="users" [size]="28" />
+          <strong>No hay personas por crear</strong>
+          <span>Todas las personas de Core con perfil de Academical tienen su usuario.</span>
+        </div>
+      } @else {
+        <p-table [value]="toCreate()" size="small" [(selection)]="selectedToCreate" dataKey="core_person_id" [tableStyle]="{ 'min-width': '38rem' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="validation__check"><p-tableHeaderCheckbox ariaLabel="Seleccionar todas" /></th>
+              <th>Persona</th>
+              <th>Perfil</th>
+              <th>Dependencia</th>
+              <th>Estado</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td class="validation__check"><p-tableCheckbox [value]="row" [disabled]="row.blocked_reason !== null" [ariaLabel]="'Seleccionar a ' + row.name" /></td>
+              <td data-label="Persona">{{ row.name }}</td>
+              <td data-label="Perfil">{{ profileLabel(row.profile_type) }}</td>
+              <td data-label="Dependencia">{{ row.dependency ?? 'Sin dependencia' }}</td>
+              <td data-label="Estado">
+                @if (row.blocked_reason) {
+                  <app-status-tag value="No se puede crear" severity="warn" />
+                  <span class="case__muted"> {{ row.blocked_reason }}</span>
+                } @else {
+                  <app-status-tag value="Lista para crear" severity="info" />
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </section>
+  } @else {
+    <section class="validation__panel" aria-label="Usuarios que no están en Core">
+      <div class="validation__panel-head">
+        <p>Usuarios de Academical que no figuran en el personal de Core. Se suspenden, nunca se borran, y se pueden reactivar. Los casos abiertos y el último administrador activo no se suspenden.</p>
+        <p-button [label]="'Suspender ' + withoutCore().to_suspend.length + ' usuarios'" severity="danger" [disabled]="withoutCore().to_suspend.length === 0" (onClick)="openSuspend()" />
+      </div>
+      @if (withoutCore().to_suspend.length === 0 && withoutCore().blocked.length === 0) {
+        <div class="validation__empty">
+          <app-lucide-icon name="shield-check" [size]="28" />
+          <strong>Todos los usuarios activos están en Core</strong>
+        </div>
+      } @else {
+        <p-table [value]="withoutCore().to_suspend.concat(withoutCore().blocked)" size="small" [tableStyle]="{ 'min-width': '38rem' }">
+          <ng-template pTemplate="header">
+            <tr><th>Usuario</th><th>Nombre</th><th>Último ingreso</th><th>Qué pasará</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td data-label="Usuario"><code>{{ row.nick }}</code></td>
+              <td data-label="Nombre">{{ row.name || 'Sin ficha' }}</td>
+              <td data-label="Último ingreso">{{ row.last_login_at ? (row.last_login_at | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}</td>
+              <td data-label="Qué pasará">
+                @if (row.reason) {
+                  <app-status-tag value="No se suspende" severity="warn" />
+                  <span class="case__muted"> {{ row.reason }}</span>
+                } @else {
+                  <app-status-tag value="Se suspende" severity="danger" />
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </section>
+  }
+</div>
+
+<p-dialog [(visible)]="dialogOpen" [modal]="true" [draggable]="false" [header]="dialogTitle()" [style]="{ width: 'min(94vw, 40rem)' }">
+  <div class="dialog">
+    <p-message severity="info" variant="simple">Vista previa: nada cambia hasta confirmar. Queda registrado quién decidió.</p-message>
+
+    @switch (action) {
+      @case ('confirm') {
+        @if (active?.core; as core) {
+          <p class="dialog__lead"><strong>{{ core.name }}</strong></p>
+          <p-timeline [value]="confirmEffects()" styleClass="dialog__effects">
+            <ng-template pTemplate="content" let-effect>{{ effect }}</ng-template>
+          </p-timeline>
+          @if (!active?.same_document) {
+            <p class="dialog__proof">
+              <app-status-tag [value]="core.identity.source_label" [severity]="core.identity.trusted ? 'success' : 'warn'" />
+              @if (core.identity.verified_at) {
+                <span class="case__muted">Verificado el {{ core.identity.verified_at | date: 'dd/MM/yyyy' }}</span>
+              }
+            </p>
+          }
+        }
+        @if (active?.confirm_blocked_reason) {
+          <p-message severity="warn" variant="simple">{{ active?.confirm_blocked_reason }}</p-message>
+        }
+      }
+      @case ('create-account') {
+        <p>Se crea una cuenta nueva para <strong>{{ active?.core?.name }}</strong> y el caso queda decidido: no vuelve a aparecer. Usa esto solo si son dos personas distintas.</p>
+      }
+      @case ('unlink') {
+        <p>El usuario <strong>{{ active?.academical?.user?.nick }}</strong> deja de estar vinculado con esa persona de Core. Conserva su rol e historial.</p>
+      }
+      @case ('create-many') {
+        <p>Se crearán <strong>{{ selectedToCreate.length }}</strong> cuentas. Cada una nace con una clave aleatoria y el rol de su perfil; la persona entra por Core.</p>
+      }
+      @default {
+        <p>Se suspenderán <strong>{{ withoutCore().to_suspend.length }}</strong> usuarios que no figuran en el personal de Core. No se borra nada y se pueden reactivar.</p>
+        @if (withoutCore().blocked.length > 0) {
+          <p-message severity="warn" variant="simple">{{ withoutCore().blocked.length }} usuarios no se suspenden: tienen un caso abierto o son el último administrador activo.</p-message>
+        }
+      }
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog__footer">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="dialogOpen = false" />
+      <p-button [label]="confirmLabel()" [severity]="action === 'suspend' || action === 'unlink' ? 'danger' : 'primary'" [loading]="saving()" [disabled]="!canConfirmDialog()" (onClick)="confirm()" />
+    </div>
+  </ng-template>
+</p-dialog>

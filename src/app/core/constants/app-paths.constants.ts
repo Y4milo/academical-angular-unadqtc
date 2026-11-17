@@ -36,6 +36,10 @@ export const PATHS = {
         path: `users/cases`,
         link: `admin/users/cases`,
       },
+      validation: {
+        path: `users/validation`,
+        link: `admin/users/validation`,
+      },
     },
     dbu: {
       config: {
@@ -139,6 +143,10 @@ export const PATHS = {
     cases: {
       path: `cases`,
       link: `users/cases`,
+    },
+    validation: {
+      path: `validation`,
+      link: `users/validation`,
     },
     profilesCore: {
       path: `profiles/core`,

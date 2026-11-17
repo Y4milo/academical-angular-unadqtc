@@ -46,6 +46,14 @@ describe('CoreResultComponent', () => {
     expect(button('retry')).toBeNull();
   });
 
+  it('tells the person that the account is being validated and that nothing else is needed', () => {
+    create('pending_review');
+
+    expect(text('result-title')).toBe('Estamos validando tu cuenta');
+    expect(text('result-body')).toContain('revisa si ya tienes un usuario');
+    expect(text('result-todo')).toContain('No tienes que hacer nada más');
+  });
+
   it('says the user is inactive in plain words', () => {
     create('inactive');
 
