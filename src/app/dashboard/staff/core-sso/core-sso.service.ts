@@ -30,6 +30,8 @@ export interface CoreSsoFailure {
   account: { name: string | null; email: string | null } | null;
 }
 
+const NONCE_KEY = 'core_sso_nonce';
+
 /** El ingreso con la cuenta de Core: si Academical está integrada, a dónde mandar a la persona y cómo armar su sesión al volver. */
 @Injectable({ providedIn: 'root' })
 export class CoreSsoService {
@@ -48,9 +50,14 @@ export class CoreSsoService {
     return this.http.get<{ failure: CoreSsoFailure | null }>(`${environment.apiUrl}/auth/core/failure`);
   }
 
-  /** La dirección del API que manda a Core; es una navegación completa, no una llamada XHR. */
+  /**
+   * La dirección del API que manda a Core; es una navegación completa, no una llamada XHR. Lleva un `nonce` que este navegador guarda y presenta
+   * al cambiar el código: ata el intento a este navegador sin depender de la cookie de sesión, que no siempre vuelve en el primer ingreso.
+   */
   redirectUrl(): string {
-    return `${environment.apiUrl}/auth/core/redirect`;
+    const nonce = this.newNonce();
+
+    return `${environment.apiUrl}/auth/core/redirect${nonce ? `?nonce=${nonce}` : ''}`;
   }
 
   /** Navegación completa del navegador (se separa para poder probarla). */
@@ -60,11 +67,38 @@ export class CoreSsoService {
 
   /** Cambia el código de un solo uso que trae la dirección de retorno por la sesión de la persona (el API la abre en esta llamada). */
   exchange(code: string): Observable<ApiData<StaffUser>> {
-    return this.http.post<ApiData<StaffUser>>(`${environment.apiUrl}/auth/core/exchange`, { code });
+    const nonce = this.takeNonce();
+
+    return this.http.post<ApiData<StaffUser>>(`${environment.apiUrl}/auth/core/exchange`, nonce ? { code, nonce } : { code });
   }
 
   /** La cuenta con la sesión ya abierta. Solo para un API anterior al código de un solo uso. */
   session(): Observable<ApiData<StaffUser>> {
     return this.http.get<ApiData<StaffUser>>(`${environment.apiUrl}/auth/core/session`);
+  }
+
+  /** Un nonce nuevo, guardado en esta pestaña. Sin almacenamiento disponible no hay nonce y el API usa la sesión, como antes. */
+  private newNonce(): string | null {
+    try {
+      const bytes = crypto.getRandomValues(new Uint8Array(32));
+      const nonce = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      sessionStorage.setItem(NONCE_KEY, nonce);
+
+      return nonce;
+    } catch {
+      return null;
+    }
+  }
+
+  /** El nonce del intento en curso; se usa una sola vez. */
+  private takeNonce(): string | null {
+    try {
+      const nonce = sessionStorage.getItem(NONCE_KEY);
+      sessionStorage.removeItem(NONCE_KEY);
+
+      return nonce;
+    } catch {
+      return null;
+    }
   }
 }

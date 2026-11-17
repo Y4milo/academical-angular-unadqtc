@@ -27,7 +27,8 @@ describe('Core sign-in', () => {
 
       http.expectOne('/api/auth/core/status').flush({ enabled: true });
 
-      expect(goTo).toHaveBeenCalledOnceWith('/api/auth/core/redirect');
+      expect(goTo).toHaveBeenCalledTimes(1);
+      expect(goTo.calls.mostRecent().args[0]).toMatch(/^\/api\/auth\/core\/redirect\?nonce=[A-Za-z0-9_-]{43}$/);
     });
 
     it('shows the usual login when Academical is not integrated with Core', () => {
@@ -70,6 +71,21 @@ describe('Core sign-in', () => {
 
       expect(TestBed.inject(LoginService).getUser()?.role.value).toBe('hr');
       expect(navigate).toHaveBeenCalledWith('hr/home');
+    });
+
+    it('presents the nonce it kept when it left for Core, once, so the attempt does not depend on the session cookie', () => {
+      const nonce = TestBed.inject(CoreSsoService).redirectUrl().split('nonce=')[1];
+      expect(nonce).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      expect(sessionStorage.getItem('core_sso_nonce')).toBe(nonce);
+      withCode('one-use-code');
+      spyOn(router, 'navigateByUrl').and.resolveTo(true);
+      TestBed.createComponent(CoreReturnComponent).detectChanges();
+
+      const exchange = http.expectOne('/api/auth/core/exchange');
+      expect(exchange.request.body).toEqual({ code: 'one-use-code', nonce });
+      exchange.flush(session('hr'));
+
+      expect(sessionStorage.getItem('core_sso_nonce')).toBeNull();
     });
 
     it('goes back to the login when the code expired or was already used', () => {
