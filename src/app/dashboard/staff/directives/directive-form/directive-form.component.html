@@ -46,7 +46,11 @@
         <div class="step-body">
           <div>
             <h3 id="origin-title">Oficina de origen{{ fixedOrigin() ? '' : ' *' }}</h3>
-            <p class="field-hint">{{ fixedOrigin() ? 'Core te autoriza a pedir documentos por esta oficina.' : 'Solo ves las oficinas por las que Core te autoriza a pedir documentos. La ruta cambia con tu elección.' }}</p>
+            @if (access()?.as_administrator && !fixedOrigin()) {
+              <p-message severity="info" size="small" data-testid="admin-origin-note">Como administrador puedes elegir cualquier oficina. La ruta de firmas cambia con tu elección.</p-message>
+            } @else {
+              <p class="field-hint">{{ fixedOrigin() ? 'Core te autoriza a pedir documentos por esta oficina.' : 'Solo ves las oficinas por las que Core te autoriza a pedir documentos. La ruta cambia con tu elección.' }}</p>
+            }
           </div>
           @if (fixedOrigin()) {
             <div class="origin-card" data-testid="origin-card">

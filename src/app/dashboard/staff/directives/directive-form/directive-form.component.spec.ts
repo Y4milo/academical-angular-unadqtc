@@ -99,6 +99,20 @@ describe('DirectiveFormComponent', () => {
     expect(html().querySelector('[data-testid="origin-choice"] p-select')).not.toBeNull();
   });
 
+  it('tells an administrator she can choose any office, and keeps the usual hint for everyone else', async () => {
+    service.access.and.returnValue(of(ok({ ...access, request_units: ['a', 'b', 'c', 'd', 'e'], request_unit_names: {}, as_administrator: true })));
+    await create();
+
+    expect(html().querySelector('[data-testid="admin-origin-note"]')?.textContent).toContain('puedes elegir cualquier oficina');
+    expect(html().querySelector('[data-testid="origin-choice"] p-select')).not.toBeNull();
+  });
+
+  it('does not show the administrator note to someone whose offices come from Core', async () => {
+    await create();
+
+    expect(html().querySelector('[data-testid="admin-origin-note"]')).toBeNull();
+  });
+
   it('remembers the office of the last directive and starts with it', async () => {
     await create();
     const form = fixture.componentInstance;

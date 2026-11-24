@@ -12,6 +12,8 @@ export interface DirectiveAccess {
   can_request: boolean;
   request_units: string[];
   request_unit_names: Record<string, string>;
+  /** La persona es administradora de Academical: elige entre todas las oficinas, no por un perfil de Core. */
+  as_administrator?: boolean;
   can_sign: boolean;
   sign_units: string[];
 }
