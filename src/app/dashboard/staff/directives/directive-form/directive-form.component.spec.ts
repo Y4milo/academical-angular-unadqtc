@@ -47,14 +47,11 @@ describe('DirectiveFormComponent', () => {
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(DirectiveFormComponent);
     fixture.autoDetectChanges();
-    // La ruta vive en un cajón que empieza cerrado: las pruebas lo abren para ver sus pasos, como hace la persona con el botón.
-    fixture.componentInstance.routeOpen.set(true);
     await fixture.whenStable();
   }
 
   beforeEach(() => {
     localStorage.removeItem('directives.lastOrigin');
-    localStorage.removeItem('directive-form.route-open');
     service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['access', 'detail', 'route', 'create', 'update', 'types']);
     service.access.and.returnValue(of(ok(access)));
     service.types.and.returnValue(of(ok(documentTypes)));
@@ -447,29 +444,34 @@ describe('DirectiveFormComponent', () => {
 
     expect(text('server-error')).toContain('No se pudieron consultar los tipos de documento');
   });
-  describe('route button and drawer', () => {
-    it('shows the route as a button with the number of steps, and the steps inside its drawer', async () => {
+  describe('route rail', () => {
+    it('shows the route as a rail next to the form, with the steps and a summary in its header', async () => {
       await create();
       fixture.componentInstance.origin.set('adm');
       fixture.detectChanges();
       await fixture.whenStable();
 
-      expect(html().querySelector('[data-testid="route-button"]')).not.toBeNull();
-      expect(html().querySelector('[data-testid="route-rail"]')).toBeNull();
-      expect(text('route-count')).toBe(String(fixture.componentInstance.routeCount()));
+      expect(html().querySelector('.rail [data-testid="route-panel"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="route-button"]')).toBeNull();
+      expect(html().querySelector('[data-testid="route-strip"]')).toBeNull();
       expect(findAll('route-step').length).toBeGreaterThan(0);
+      expect(text('route-summary')).toBe('Falta 1');
     });
 
-    it('opens from the button of the header and starts closed', async () => {
+    it('is folded on a narrow screen until the person opens it, and always shown on a wide one', async () => {
       await create();
       const form = fixture.componentInstance;
-      form.routeOpen.set(false);
-      fixture.detectChanges();
 
-      html().querySelector<HTMLElement>('[data-testid="route-button"]')!.click();
-      fixture.detectChanges();
-      expect(form.routeOpen()).toBeTrue();
-      expect(html().querySelector('[data-testid="route-button"]')!.getAttribute('aria-expanded')).toBe('true');
+      form.wide.set(false);
+      form.routeCollapsed.set(true);
+      expect(form.routeShown()).toBeFalse();
+
+      form.routeCollapsed.set(false);
+      expect(form.routeShown()).toBeTrue();
+
+      form.routeCollapsed.set(true);
+      form.wide.set(true);
+      expect(form.routeShown()).toBeTrue();
     });
 
     it('puts the subtype pills in a group that wraps, not in each button', async () => {
@@ -499,43 +501,52 @@ describe('DirectiveFormComponent', () => {
     expect(Number(html().querySelector('[data-testid="tracking-count"]')!.textContent!.trim())).toBe(detail().events.length);
   });
 
-  it('says in a strip, without opening the drawer, whether the route is ready or who is missing', async () => {
+  it('says in the rail whether the route is ready or who is missing', async () => {
     await create();
-    expect(text('route-strip-title')).toContain('Elige la oficina de origen');
+    fixture.componentInstance.origin.set(null);
+    fixture.detectChanges();
+    expect(text('route-pick-origin')).toContain('Elige la oficina de origen');
 
     fixture.componentInstance.origin.set('adm');
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(text('route-strip-title')).toBe('Falta alguien en la ruta');
-    expect(fixture.componentInstance.routeStrip().severity).toBe('warn');
+    expect(text('route-summary')).toBe('Falta 1');
+    expect(fixture.componentInstance.routeSummary()?.severity).toBe('warn');
 
     service.route.and.returnValue(of(ok(route({ issues: [], can_send: true }))));
     fixture.componentInstance.origin.set('adm_sub');
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(text('route-strip-title')).toBe('Ruta lista: 4 oficinas, todas con firmante designado');
-    expect(fixture.componentInstance.routeStrip().severity).toBe('success');
-    expect(find('route-strip')!.classList.contains('p-message-success')).toBeTrue();
+    expect(text('route-summary')).toBe('4 listas');
+    expect(fixture.componentInstance.routeSummary()?.severity).toBe('success');
   });
 
-  it('opens the route drawer from the strip', async () => {
+  it('keeps a checklist of what is missing before saving and ticks each group as it is completed', async () => {
     await create();
-    fixture.componentInstance.routeOpen.set(false);
-    fixture.componentInstance.origin.set('adm');
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    html().querySelector<HTMLElement>('[data-testid="route-strip-open"] button')!.click();
+    const form = fixture.componentInstance;
+    form.origin.set('adm');
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.routeOpen()).toBeTrue();
+    const state = () => [...html().querySelectorAll('[data-testid="check-item"]')].map(item => item.classList.contains('check--ok'));
+    expect(state()).toEqual([false, false, false]);
+
+    form.selectType('directivas');
+    form.title.set('Directiva para el control de bienes');
+    fixture.detectChanges();
+    expect(state()).toEqual([true, true, false]);
+
+    form.directiveFile.set(new File(['a'], 'a.pdf', { type: 'application/pdf' }));
+    form.resolutionFile.set(new File(['b'], 'b.pdf', { type: 'application/pdf' }));
+    fixture.detectChanges();
+    expect(state()).toEqual([true, true, true]);
   });
 
-  it('numbers the four steps and keeps the save bar in the form', async () => {
+  it('numbers the three steps, keeps the save bar outside the columns and shows the file total in the rail', async () => {
     await create();
 
-    expect([...html().querySelectorAll('.step-num')].map(element => element.textContent!.trim())).toEqual(['1', '2', '3', '4']);
+    expect([...html().querySelectorAll('.step-num')].map(element => element.textContent!.trim())).toEqual(['1', '2', '3']);
     expect(html().querySelector('[data-testid="action-bar"] [data-testid="save-directive"]')).not.toBeNull();
+    expect(html().querySelector('.rail [data-testid="pages-total-line"]')).not.toBeNull();
     expect(text('pages-total-line')).toContain('se calcula al elegir los archivos');
   });
 

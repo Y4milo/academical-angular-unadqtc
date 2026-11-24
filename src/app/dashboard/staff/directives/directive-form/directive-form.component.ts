@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -16,7 +17,6 @@ import { STATUS } from '../../../../core/constants/api-status.constants';
 import { DirectiveAccess, DirectiveDetail, DirectiveRoute, DirectivesService, DocumentTypeOption } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { DirectiveRouteStepsComponent } from '../directive-route-steps/directive-route-steps.component';
-import { DirectiveLogDrawerComponent } from '../directive-tracking/directive-log-drawer.component';
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
 import { formatBytes } from '../directive-status';
 import { PageCount, countPdfPages, pagesLabel, pagesTag } from '../pdf-pages';
@@ -27,6 +27,9 @@ import {LucideClassPipe} from '../../../../core/pipes/lucide-class.pipe';
 export const MAX_ORIGIN_CARDS = 4;
 
 const LAST_ORIGIN_KEY = 'directives.lastOrigin';
+
+/** Desde este ancho la ruta de firmas va en un riel a la derecha. */
+const WIDE_QUERY = '(min-width: 1200px)';
 
 /** El PDF más grande que se acepta, igual que en el servidor (`DIRECTIVES_MAX_PDF_KB`). */
 export const MAX_PDF_BYTES = 20 * 1024 * 1024;
@@ -39,7 +42,7 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
  */
 @Component({
   selector: 'app-directive-form',
-  imports: [LucideClassPipe, AppLucideIconComponent, FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, ToolbarModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [LucideClassPipe, AppLucideIconComponent, FormsModule, ButtonModule, FileUploadModule, InputTextModule, MessageModule, PanelModule, SelectModule, SelectButtonModule, SkeletonModule, TagModule, ToggleSwitchModule, ToolbarModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent],
   templateUrl: './directive-form.component.html',
   styleUrl: './directive-form.component.css',
 })
@@ -87,8 +90,11 @@ export class DirectiveFormComponent implements OnInit {
   readonly fixedOrigin = computed(() => this.editing() || this.originOptions().length === 1);
   readonly originName = computed(() => this.originOptions().find(option => option.code === this.origin())?.name ?? this.existing()?.origin.name ?? this.origin() ?? '');
   readonly originAsCards = computed(() => !this.fixedOrigin() && this.originOptions().length <= MAX_ORIGIN_CARDS);
-  /** El cajón de la ruta de firmas (botón «Ruta de firmas» de la cabecera). */
-  readonly routeOpen = signal(false);
+  /** Desde 1200 px la ruta es un riel fijo a la derecha; en pantallas más angostas es una tarjeta plegable arriba del formulario. */
+  readonly wide = signal(typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(WIDE_QUERY).matches);
+  /** Si la tarjeta de la ruta está plegada (solo cuenta en pantallas angostas: en las anchas siempre se ve). */
+  readonly routeCollapsed = signal(true);
+  readonly routeShown = computed(() => this.wide() || !this.routeCollapsed());
   readonly routeSummary = computed<{ label: string; severity: 'success' | 'warn' } | null>(() => {
     const route = this.route();
     if (!route) return null;
@@ -97,20 +103,6 @@ export class DirectiveFormComponent implements OnInit {
 
     return missing > 0 ? { label: missing === 1 ? 'Falta 1' : `Faltan ${missing}`, severity: 'warn' } : { label: ready === 1 ? '1 lista' : `${ready} listas`, severity: 'success' };
   });
-  /** La franja de arriba: dice sin abrir el cajón si la ruta está lista o a quién le falta una persona designada. */
-  readonly routeStrip = computed<{ severity: 'success' | 'warn' | 'info'; title: string; text: string }>(() => {
-    const route = this.route();
-    if (!this.origin()) return { severity: 'info', title: 'Elige la oficina de origen', text: 'Con ella se arma la ruta de firmas.' };
-    if (this.routeLoading() && !route) return { severity: 'info', title: 'Armando la ruta de firmas…', text: 'Consultando a Core quién firma en cada oficina.' };
-    if (!route) return { severity: 'warn', title: 'No se pudo armar la ruta', text: this.routeError() || 'Inténtalo nuevamente.' };
-    const steps = route.steps.filter(step => !step.skipped).length;
-    const missing = route.issues.length;
-    if (missing > 0) return { severity: 'warn', title: missing === 1 ? 'Falta alguien en la ruta' : `Faltan ${missing} personas en la ruta`, text: 'Core no tiene firmante designado en esas oficinas: puedes guardar el borrador, pero no enviarlo a firma.' };
-
-    return { severity: 'success', title: `Ruta lista: ${steps === 1 ? '1 oficina' : `${steps} oficinas`}, todas con firmante designado`, text: 'Cambia si eliges otra oficina de origen o activas «proceso de calidad».' };
-  });
-  /** Cuántos pasos tiene la ruta: es el número del botón «Ruta de firmas». */
-  readonly routeCount = computed(() => this.route()?.steps.filter(step => !step.skipped).length ?? 0);
   readonly errors = computed<Record<string, string>>(() => {
     const errors: Record<string, string> = {};
     if (!this.documentType()) errors['type'] = 'Elige el tipo de documento.';
@@ -123,6 +115,17 @@ export class DirectiveFormComponent implements OnInit {
     if (this.fileError().resolution) errors['resolution'] = this.fileError().resolution;
 
     return errors;
+  });
+  /** Lo que falta antes de guardar, por grupo, para el recuadro «Antes de guardar». */
+  readonly checklist = computed<{ label: string; ok: boolean }[]>(() => {
+    const errors = this.errors();
+    const done = (...keys: string[]): boolean => keys.every(key => !errors[key]);
+
+    return [
+      { label: 'Oficina y tipo', ok: done('origin', 'type') },
+      { label: this.needsSubtype() ? 'Subtipo y título' : 'Título', ok: done('subtype', 'title') },
+      { label: 'Los dos PDF', ok: done('directive', 'resolution') },
+    ];
   });
   readonly formatBytes = formatBytes;
   readonly pagesTag = pagesTag;
@@ -142,6 +145,10 @@ export class DirectiveFormComponent implements OnInit {
     private router: Router,
     private activatedRoute: ActivatedRoute,
   ) {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      window.matchMedia(WIDE_QUERY).addEventListener?.('change', event => this.wide.set(event.matches));
+    }
+
     // La ruta se vuelve a pedir a Core cuando cambia la oficina de origen o la opción de calidad.
     effect(() => {
       const origin = this.origin();
