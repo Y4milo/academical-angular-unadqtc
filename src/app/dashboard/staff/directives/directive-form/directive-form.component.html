@@ -2,19 +2,10 @@
   <div class="page-heading">
     <div>
       <h2>{{ editing() ? 'Corregir el borrador' : 'Nuevo documento' }}</h2>
-      <p>Completa los cuatro pasos. Antes de enviarlo verás quién firma en cada oficina y podrás revisar todo.</p>
+      <p>Elige la oficina y sube los PDF. La ruta de firmas se arma sola mientras completas el formulario.</p>
     </div>
     <div class="header-actions">
-      <app-directive-log-drawer label="Ruta de firmas" icon="network" [count]="routeCount()" [(open)]="routeOpen" testId="route" data-testid="route-panel">
-        @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
-        <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy.</p>
-        @if (!origin()) {
-          <p-message severity="info" data-testid="route-pick-origin">Elige la oficina de origen para ver la ruta.</p-message>
-        } @else {
-          <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
-        }
-      </app-directive-log-drawer>
-    <app-directive-tracking [events]="existing()?.events ?? []" emptyText="Todavía no hay movimientos: se empiezan a registrar al guardar el borrador." [(open)]="trackingOpen"></app-directive-tracking>
+      <app-directive-tracking [events]="existing()?.events ?? []" emptyText="Todavía no hay movimientos: se empiezan a registrar al guardar el borrador." [(open)]="trackingOpen"></app-directive-tracking>
     </div>
   </div>
 
@@ -30,79 +21,65 @@
   } @else {
     <div class="layout">
      <div class="column">
-      <p-message [severity]="routeStrip().severity" styleClass="route-strip" role="status" data-testid="route-strip">
-        <div class="route-strip__body">
-          <span class="route-strip__text">
-            <strong data-testid="route-strip-title">{{ routeStrip().title }}</strong>
-            <small>{{ routeStrip().text }}</small>
-          </span>
-          <p-button label="Ver ruta" [severity]="routeStrip().severity" [outlined]="true" size="small" [disabled]="!origin()" data-testid="route-strip-open" (onClick)="routeOpen.set(true)">
-            <ng-template #icon><app-lucide-icon name="network" [size]="16" /></ng-template></p-button>
-        </div>
-      </p-message>
-
       <section class="panel" aria-labelledby="origin-title" data-testid="origin-section">
         <span class="step-num" aria-hidden="true">1</span>
         <div class="step-body">
           <div>
-            <h3 id="origin-title">Oficina de origen{{ fixedOrigin() ? '' : ' *' }}</h3>
-            @if (access()?.as_administrator && !fixedOrigin()) {
-              <p-message severity="info" size="small" data-testid="admin-origin-note">Como administrador puedes elegir cualquier oficina. La ruta de firmas cambia con tu elección.</p-message>
-            } @else {
-              <p class="field-hint">{{ fixedOrigin() ? 'Core te autoriza a pedir documentos por esta oficina.' : 'Solo ves las oficinas por las que Core te autoriza a pedir documentos. La ruta cambia con tu elección.' }}</p>
-            }
+            <h3 id="origin-title">Origen y clase</h3>
+            <p class="field-hint">La oficina decide la ruta de firmas; el tipo decide si hace falta subtipo.</p>
           </div>
+
           @if (fixedOrigin()) {
             <div class="origin-card" data-testid="origin-card">
               <app-lucide-icon name="building-2" size="1em" class="origin-card__icon" />
               <div class="origin-card__text">
+                <small class="field-hint">Oficina de origen</small>
                 <strong data-testid="origin-name">{{ originName() }}</strong>
-                <small class="field-hint">{{ editing() ? 'Fijada al crear el borrador. Si necesitas otra oficina, elimina el borrador y crea uno nuevo.' : 'Fijada por tu perfil en Core.' }}</small>
+                <small class="field-hint">{{ editing() ? 'Fijada al crear el borrador. Si necesitas otra oficina, elimina el borrador y crea uno nuevo.' : 'Core te autoriza a pedir documentos por esta oficina.' }}</small>
               </div>
               <p-tag [value]="editing() ? 'No editable' : 'Por tu perfil'" [severity]="editing() ? 'secondary' : 'info'" data-testid="origin-tag">
                 <ng-template #icon><app-lucide-icon name="lock" [size]="14" /></ng-template></p-tag>
             </div>
           } @else {
             <div data-testid="origin-choice" class="field">
+              <span class="label" id="origin-label">Oficina de origen *</span>
               @if (originAsCards()) {
-                <p-selectbutton class="origin-options" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [allowEmpty]="false" ariaLabelledBy="origin-title" data-testid="origin-cards"></p-selectbutton>
+                <p-selectbutton class="origin-options" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [allowEmpty]="false" ariaLabelledBy="origin-label" data-testid="origin-cards"></p-selectbutton>
               } @else {
-                <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [filter]="true" placeholder="Elige la oficina" [fluid]="true" appendTo="body" ariaLabelledBy="origin-title"></p-select>
+                <p-select inputId="directive-origin" [options]="originOptions()" optionLabel="name" optionValue="code" [ngModel]="origin()" (ngModelChange)="origin.set($event)" [filter]="true" placeholder="Elige la oficina" [fluid]="true" appendTo="body" ariaLabelledBy="origin-label"></p-select>
+              }
+              @if (access()?.as_administrator) {
+                <small class="field-hint" data-testid="admin-origin-note"><app-lucide-icon name="shield-check" [size]="14" /> Como administrador puedes elegir cualquier oficina.</small>
+              } @else {
+                <small class="field-hint">Solo ves las oficinas por las que Core te autoriza a pedir documentos.</small>
               }
               @if (submitted() && errors()['origin']; as message) { <small class="field-error" role="alert" data-testid="error-origin">{{ message }}</small> }
             </div>
           }
-        </div>
-      </section>
 
-      <section class="panel" aria-labelledby="class-title" data-testid="class-section">
-        <span class="step-num" aria-hidden="true">2</span>
-        <div class="step-body">
-          <div>
-            <h3 id="class-title">Clasificación</h3>
-            <p class="field-hint">El tipo decide si hace falta subtipo.</p>
-          </div>
-          <div class="field">
-            <label for="document-type">Tipo de documento *</label>
-            <p-select inputId="document-type" [options]="types()" optionLabel="label" optionValue="code" [ngModel]="documentType()" (ngModelChange)="selectType($event)" [filter]="true" filterBy="label" [showClear]="true" placeholder="Elige el tipo de documento" emptyFilterMessage="Ningún tipo coincide." [fluid]="true" appendTo="body" [styleClass]="submitted() && !!errors()['type'] ? 'p-invalid' : ''" data-testid="document-type"></p-select>
-            @if (submitted() && errors()['type']; as message) { <small class="field-error" role="alert" data-testid="error-type">{{ message }}</small> }
-          </div>
-
-          @if (needsSubtype()) {
-            <div class="field" data-testid="subtype-field">
-              <span class="label" id="document-subtype-label">Subtipo * <small class="field-hint">(obligatorio en este tipo)</small></span>
-              <p-selectbutton class="subtype-options" [options]="subtypeOptions()" optionLabel="label" optionValue="code" [ngModel]="documentSubtype()" (ngModelChange)="documentSubtype.set($event)" [allowEmpty]="true" size="small" ariaLabelledBy="document-subtype-label" data-testid="document-subtype"></p-selectbutton>
-              @if (submitted() && errors()['subtype']; as message) { <small class="field-error" role="alert" data-testid="error-subtype">{{ message }}</small> }
+          <div class="class-grid" data-testid="class-section">
+            <div class="field">
+              <label for="document-type">Tipo de documento *</label>
+              <p-select inputId="document-type" [options]="types()" optionLabel="label" optionValue="code" [ngModel]="documentType()" (ngModelChange)="selectType($event)" [filter]="true" filterBy="label" [showClear]="true" placeholder="Elige el tipo de documento" emptyFilterMessage="Ningún tipo coincide." [fluid]="true" appendTo="body" [styleClass]="submitted() && !!errors()['type'] ? 'p-invalid' : ''" data-testid="document-type"></p-select>
+              @if (submitted() && errors()['type']; as message) { <small class="field-error" role="alert" data-testid="error-type">{{ message }}</small> }
             </div>
-          }
+
+            @if (needsSubtype()) {
+              <div class="field" data-testid="subtype-field">
+                <span class="label" id="document-subtype-label">Subtipo * <small class="field-hint">(obligatorio en este tipo)</small></span>
+                <p-selectbutton class="subtype-options" [options]="subtypeOptions()" optionLabel="label" optionValue="code" [ngModel]="documentSubtype()" (ngModelChange)="documentSubtype.set($event)" [allowEmpty]="true" size="small" ariaLabelledBy="document-subtype-label" data-testid="document-subtype"></p-selectbutton>
+                @if (submitted() && errors()['subtype']; as message) { <small class="field-error" role="alert" data-testid="error-subtype">{{ message }}</small> }
+              </div>
+            }
+          </div>
         </div>
       </section>
 
       <section class="panel" aria-labelledby="data-title" data-testid="data-section">
-        <span class="step-num" aria-hidden="true">3</span>
+        <span class="step-num" aria-hidden="true">2</span>
         <div class="step-body">
           <div>
-            <h3 id="data-title">Datos del documento</h3>
+            <h3 id="data-title">Datos</h3>
             <p class="field-hint">Cómo lo verán las oficinas en su bandeja.</p>
           </div>
           <div class="field">
@@ -122,7 +99,7 @@
       </section>
 
       <section class="panel" aria-labelledby="files-title" data-testid="files-section">
-        <span class="step-num" aria-hidden="true">4</span>
+        <span class="step-num" aria-hidden="true">3</span>
         <div class="step-body">
           <div>
             <h3 id="files-title">Archivos</h3>
@@ -172,34 +149,58 @@
               @if ((submitted() || fileError().resolution) && errors()['resolution']; as message) { <small class="field-error" role="alert" data-testid="error-resolution">{{ message }}</small> }
             </div>
           </div>
-
-          <p class="pages-total" data-testid="pages-total-line">
-            <strong>Total del expediente:</strong>
-            @if (totalPages(); as total) {
-              <span data-testid="pages-total"><strong>{{ pagesLabel(total.total) }}</strong> <span class="muted-note">({{ total.directive }} del documento + {{ total.resolution }} de la resolución)</span></span>
-            } @else {
-              <span class="muted-note">se calcula al elegir los archivos</span>
-            }
-          </p>
         </div>
       </section>
 
       @if (serverError()) {
         <p-message severity="error" data-testid="server-error">{{ serverError() }}</p-message>
       }
-
-      <p-toolbar styleClass="action-bar" data-testid="action-bar">
-        <ng-template #start>
-          <span class="field-hint action-bar__note">{{ editing() ? 'Los cambios quedan en el seguimiento.' : 'Se guarda como borrador: aún no se envía a nadie.' }}</span>
-        </ng-template>
-        <ng-template #end>
-          <span class="actions">
-            <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="cancel()"></p-button>
-            <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
-          </span>
-        </ng-template>
-      </p-toolbar>
      </div>
+
+     <aside class="rail" aria-label="Ruta de firmas y avance del formulario">
+      <p-panel styleClass="route-panel" [toggleable]="!wide()" [collapsed]="!routeShown()" (collapsedChange)="routeCollapsed.set(!!$event)" data-testid="route-panel">
+        <ng-template #header>
+          <span class="rail__title"><app-lucide-icon name="network" [size]="16" /> Ruta de firmas</span>
+          @if (routeSummary(); as summary) { <p-tag [value]="summary.label" [severity]="summary.severity" data-testid="route-summary"></p-tag> }
+        </ng-template>
+        <p class="field-hint">Cada oficina firma en este orden, con la persona que Core tiene designada hoy. Cambia con la oficina y con «proceso de calidad».</p>
+        @if (!origin()) {
+          <p-message severity="info" data-testid="route-pick-origin">Elige la oficina de origen para ver la ruta.</p-message>
+        } @else {
+          <app-directive-route-steps [route]="route()" [loading]="routeLoading()" [error]="routeError()"></app-directive-route-steps>
+        }
+      </p-panel>
+
+      <section class="rail__card" aria-labelledby="checklist-title" data-testid="checklist">
+        <h3 id="checklist-title">Antes de guardar</h3>
+        @for (item of checklist(); track item.label) {
+          <div class="check" [class.check--ok]="item.ok" data-testid="check-item">
+            <app-lucide-icon [name]="item.ok ? 'circle-check' : 'circle'" [size]="16" />
+            <span>{{ item.label }}</span>
+          </div>
+        }
+        <p class="pages-total" data-testid="pages-total-line">
+          <strong>Expediente:</strong>
+          @if (totalPages(); as total) {
+            <span data-testid="pages-total"><strong>{{ pagesLabel(total.total) }}</strong> <span class="muted-note">({{ total.directive }} del documento + {{ total.resolution }} de la resolución)</span></span>
+          } @else {
+            <span class="muted-note">se calcula al elegir los archivos</span>
+          }
+        </p>
+      </section>
+     </aside>
     </div>
+
+    <p-toolbar styleClass="action-bar" data-testid="action-bar">
+      <ng-template #start>
+        <span class="field-hint action-bar__note">{{ editing() ? 'Los cambios quedan en el seguimiento.' : 'Se guarda como borrador: aún no se envía a nadie.' }}</span>
+      </ng-template>
+      <ng-template #end>
+        <span class="actions">
+          <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="saving()" (onClick)="cancel()"></p-button>
+          <p-button [label]="editing() ? 'Guardar cambios' : 'Guardar borrador'" [loading]="saving()" data-testid="save-directive" (onClick)="save()"></p-button>
+        </span>
+      </ng-template>
+    </p-toolbar>
   }
 </div>
