@@ -152,8 +152,10 @@
                   </p-message>
                 }
                 @if (notice()) { <p-message severity="warn" data-testid="sign-notice">{{ notice() }}</p-message> }
-                <p-button [label]="busy() ? 'Firmando…' : (myRole()?.action ?? 'Firmar con Firma Perú')" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="askSign()">
-                  <ng-template #icon><app-lucide-icon name="square-pen" [size]="16" /></ng-template></p-button>
+                @if (!openElsewhere()) {
+                  <p-button [label]="busy() ? 'Firmando…' : (myRole()?.action ?? 'Firmar con Firma Perú')" styleClass="sign-button" [loading]="busy()" [disabled]="busy()" data-testid="sign-button" (onClick)="askSign()">
+                    <ng-template #icon><app-lucide-icon name="square-pen" [size]="16" /></ng-template></p-button>
+                }
                 @if (current.can_reject) {
                   <p-button label="Rechazar y devolver" styleClass="reject-button" severity="danger" [outlined]="true" [disabled]="busy()" data-testid="reject-button" (onClick)="openReject()">
                     <ng-template #icon><app-lucide-icon name="undo-2" [size]="16" /></ng-template></p-button>

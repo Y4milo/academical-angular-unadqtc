@@ -282,6 +282,7 @@ describe('DirectiveSignComponent', () => {
       expect(text('open-elsewhere')).toContain('para este mismo documento');
       expect(text('open-elsewhere-left')).toMatch(/^0[89]:\d\d$/);
       expect(html().querySelector('[data-testid="cancel-previous"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="sign-button"]')).toBeNull();
       expect(html().querySelector('[data-testid="sign-error"]')).toBeNull();
       expect(signer.start).not.toHaveBeenCalled();
     });
