@@ -67,6 +67,16 @@ export class LoginStaffComponent implements OnInit {
    * obligatorio y el ingreso de siempre vuelve a aparecer (salida de emergencia). Un ingreso con Core que falló muestra su resultado.
    */
   ngOnInit(): void {
+    // The session belongs to the browser: if another tab already signed in, this one goes straight in.
+    if (this.coreError) return this.checkCore();
+    this.loginService.restore('staff').subscribe(signedIn => {
+      const home = signedIn ? home_link[this.loginService.getUser()?.role?.value as HomeKey] : undefined;
+      if (!home) return this.checkCore();
+      navigateAfterLogin(this.router, this.activatedRoute.snapshot.queryParamMap.get('returnUrl'), home);
+    });
+  }
+
+  private checkCore(): void {
     this.coreSso.status().subscribe({
       next: status => {
         this.status.set(status);

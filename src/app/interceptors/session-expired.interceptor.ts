@@ -12,6 +12,8 @@ const SESSION_EXPIRED_STATUSES = [401, 419];
 const AUTH_ENDPOINTS = [
   '/users/v1/staff/login',
   '/users/v1/student/login',
+  // «¿Quién soy?» answers 401 when there is no session: that is an answer, not a session that ended (the guard sends to the login).
+  '/users/v1/session',
 ];
 
 export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
@@ -38,7 +40,12 @@ export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
           notifications.warning('Sesión cerrada', message, 8000);
         }
 
-        loginService.removeUser();
+        // Every tab of the browser leaves too, with the same reason.
+        loginService.signOut({
+          audience: user?.role?.value === ROLE.student ? 'student' : 'staff',
+          title: message ? 'Sesión cerrada' : undefined,
+          message: message ?? undefined,
+        });
         router.navigate([loginPath], returnUrl ? {queryParams: {returnUrl}} : {});
       }
 

@@ -21,7 +21,7 @@ describe('StaffRoleLayoutComponent', () => {
   ];
   let getStaffMenu: jasmine.Spy;
   let logoutStaff: jasmine.Spy;
-  let removeUser: jasmine.Spy;
+  let signOut: jasmine.Spy;
   let goTo: jasmine.Spy;
   let openedWithCore: boolean;
 
@@ -29,7 +29,7 @@ describe('StaffRoleLayoutComponent', () => {
     openedWithCore = false;
     getStaffMenu = jasmine.createSpy('getStaffMenu').and.returnValue(of({payload: {data: groups}}));
     logoutStaff = jasmine.createSpy('logoutStaff').and.returnValue(of({payload: {}}));
-    removeUser = jasmine.createSpy('removeUser');
+    signOut = jasmine.createSpy('signOut');
     goTo = jasmine.createSpy('goTo');
 
     await TestBed.configureTestingModule({
@@ -40,7 +40,7 @@ describe('StaffRoleLayoutComponent', () => {
         {provide: UsersService, useValue: {getStaffMenu, logoutStaff}},
         {provide: NotificationService, useValue: {notifyApiData: () => undefined}},
         {provide: CoreSsoService, useValue: {goTo}},
-        {provide: LoginService, useValue: {getUser: () => ({id: '7', position: {label: 'Jefa de RR. HH.'}, staff: {names: 'Ana Pérez'}}), removeUser, openedWithCore: () => openedWithCore}},
+        {provide: LoginService, useValue: {getUser: () => ({id: '7', position: {label: 'Jefa de RR. HH.'}, staff: {names: 'Ana Pérez'}}), signOut, openedWithCore: () => openedWithCore}},
       ],
     }).compileComponents();
 
@@ -95,7 +95,7 @@ describe('StaffRoleLayoutComponent', () => {
     await fixture.whenStable();
 
     expect(logoutStaff).toHaveBeenCalledTimes(1);
-    expect(removeUser).toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalled();
     expect(store.status()).toBe('idle');
     expect(goTo).not.toHaveBeenCalled();
   });
@@ -114,7 +114,7 @@ describe('StaffRoleLayoutComponent', () => {
   it('goes to the Core portal when the session was opened through Core, without touching the Core session', async () => {
     const navigate = await signOutWith({next: 'core_portal', portal_url: 'https://core.example.test/mis-sistemas'});
 
-    expect(removeUser).toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalled();
     expect(goTo).toHaveBeenCalledOnceWith('https://core.example.test/mis-sistemas');
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -151,7 +151,7 @@ describe('StaffRoleLayoutComponent', () => {
     await fixture.whenStable();
 
     expect(logoutStaff).toHaveBeenCalledOnceWith(true);
-    expect(removeUser).toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalled();
     expect(goTo).toHaveBeenCalledOnceWith('https://core.example.test/api/v1/auth/sso/logout?client_id=abc');
     expect(navigate).not.toHaveBeenCalled();
   });

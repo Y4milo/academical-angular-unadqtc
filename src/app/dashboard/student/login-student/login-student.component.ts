@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {LoginBaseComponent} from '../../login-base/login-base.component';
 import {NotificationService} from '../../../services/notification.service';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -25,7 +25,7 @@ import {StudentService} from '../../../services/student.service';
     ></app-login-base>
   `,
 })
-export class LoginStudentComponent {
+export class LoginStudentComponent implements OnInit {
   user: string = '';
   password: string = '';
 
@@ -36,6 +36,15 @@ export class LoginStudentComponent {
     private studentService: StudentService,
     private loginService: LoginService,
   ) {}
+
+  /** La sesión es del navegador: si otra pestaña ya ingresó, esta entra directo. */
+  ngOnInit(): void {
+    this.loginService.restore('student').subscribe(signedIn => {
+      if (!signedIn) return;
+      const home = home_link[this.loginService.getStudent()?.role?.value as HomeKey] ?? PATHS.student.card.registration;
+      navigateAfterLogin(this.router, this.activatedRoute.snapshot.queryParamMap.get('returnUrl'), home);
+    });
+  }
 
   login() {
     const loginData = new FormData();

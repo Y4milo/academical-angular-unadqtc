@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
@@ -8,6 +8,7 @@ import {MessageService} from 'primeng/api';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {credentialsInterceptor} from './interceptors/credentials.interceptor';
 import {sessionExpiredInterceptor} from './interceptors/session-expired.interceptor';
+import {SessionSyncService} from './services/session-sync.service';
 
 /**
  * Aura trae su propio peso y tamaño por componente (botón 500, tag 700, tarjeta 500 de 1.25 rem, mensaje 500...). Se
@@ -118,5 +119,7 @@ export const appConfig: ApplicationConfig = {
       }
     }),
     MessageService,
+    // The session belongs to the browser: when one tab closes it, the others leave too.
+    provideAppInitializer(() => inject(SessionSyncService).start()),
   ]
 };

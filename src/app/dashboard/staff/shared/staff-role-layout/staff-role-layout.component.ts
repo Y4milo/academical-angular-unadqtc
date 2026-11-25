@@ -161,7 +161,8 @@ export class StaffRoleLayoutComponent implements OnInit {
    */
   private finishLogout(destination?: StaffLogoutDestination): void {
     this.loggingOut.set(false);
-    this.loginService.removeUser();
+    // The session is the browser's: the other tabs leave too.
+    this.loginService.signOut({audience: this.audience() === 'student' ? 'student' : 'staff'});
     this.menuStore.clear();
     if (this.audience() === 'student') {
       this.studentMenu.clear();

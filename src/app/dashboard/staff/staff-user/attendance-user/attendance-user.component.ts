@@ -5,7 +5,7 @@ import {ButtonModule} from 'primeng/button';
 import {Attendance} from '../../../../models/attendance.model';
 import {AttendanceService} from '../../../../services/attendance.service';
 import {NotificationService} from '../../../../services/notification.service';
-import {StaffUser} from '../../../../models/staff-user.model';
+import {LoginService} from '../../../../services/login.service';
 import {DatePicker} from 'primeng/datepicker';
 import {NOTIFICATION_MESSAGE} from '../../../../core/constants/app-messages.constants';
 import {STATUS} from '../../../../core/constants/api-status.constants';
@@ -38,14 +38,14 @@ export class AttendanceUserComponent implements OnInit {
   constructor(
     private attendanceService: AttendanceService,
     private notificationService: NotificationService,
+    private loginService: LoginService,
   ) {}
 
   ngOnInit() {
     setTimeout(() => this.showCalendar = true, 0);
 
-    const userData = sessionStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData) as StaffUser;
+    const user = this.loginService.getUser();
+    if (user) {
       this.names = user.staff?.names ?? 'Empleado';
     }
 
