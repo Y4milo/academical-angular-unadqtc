@@ -244,6 +244,16 @@ export interface SignatureSheetResponse {
 /** Cómo terminó la sesión, visto desde la página: el firmador no lo puede ver por sí mismo, así que se le avisa. */
 export type SessionEventType = 'started' | 'ok_reported' | 'cancelled' | 'timeout' | 'error';
 
+/** The signing session the person already has open (in this or another tab or device): the signer allows only one per person. */
+export interface OpenSigningSession {
+  session_id: string;
+  directive_id: number;
+  document: string | null;
+  office: string | null;
+  expires_at: string | null;
+  opened_at: string | null;
+}
+
 /** La persona que Core tiene designada hoy en una oficina, con el cargo ya escrito y su resolución. */
 export interface RouteHolder {
   person_id: number;
@@ -358,6 +368,31 @@ export class DirectivesService {
   /** Avisa cómo terminó la sesión; cancelar, tiempo agotado y error son obligatorios. `seq` crece en cada aviso de la sesión. */
   reportSigningEvent(id: number, sessionId: string, seq: number, type: SessionEventType, detail?: string): Observable<ApiData<unknown>> {
     return this.http.post<ApiData<unknown>>(`${this.apiURL}/directives/${id}/signing-sessions/${encodeURIComponent(sessionId)}/events`, { seq, type, ...(detail ? { detail } : {}) });
+  }
+
+  /**
+   * The same notice when the tab is closing or reloading: a normal request is dropped when the page goes away, `keepalive` lets it finish.
+   * It carries the session cookie like any other call (the API has no CSRF on `api/*`).
+   */
+  reportSigningEventOnExit(id: number, sessionId: string, seq: number, type: SessionEventType, detail?: string): void {
+    if (typeof fetch !== 'function') return;
+    fetch(`${this.apiURL}/directives/${id}/signing-sessions/${encodeURIComponent(sessionId)}/events`, {
+      method: 'POST',
+      keepalive: true,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ seq, type, ...(detail ? { detail } : {}) }),
+    }).catch(() => undefined);
+  }
+
+  /** The signing session the person has open, or null. */
+  openSigningSessionOfMine(): Observable<ApiData<OpenSigningSession | null>> {
+    return this.http.get<ApiData<OpenSigningSession | null>>(`${this.apiURL}/directives/signing/open-session`);
+  }
+
+  /** Cancels the signing session the person has open, so they can open another one. */
+  cancelOpenSigningSession(): Observable<ApiData<unknown>> {
+    return this.http.post<ApiData<unknown>>(`${this.apiURL}/directives/signing/open-session/cancel`, {});
   }
 
   remove(id: number): Observable<ApiData<unknown>> {

@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
-import { DirectivesService, SigningSession } from '../../../../services/directives.service';
+import { ConfirmationService } from 'primeng/api';
+import { DirectivesService, OpenSigningSession, SigningSession } from '../../../../services/directives.service';
 import { FirmaPeruSignerService, SignerHandlers } from '../../../../services/firma-peru-signer.service';
 import { detail, ok } from '../testing/directive-fixtures';
 import { DirectiveSignComponent } from './directive-sign.component';
@@ -46,7 +47,7 @@ describe('DirectiveSignComponent', () => {
   }
 
   beforeEach(async () => {
-    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'file', 'openSigningSession', 'reportSigningEvent', 'reject', 'signatureSheet']);
+    service = jasmine.createSpyObj<DirectivesService>('DirectivesService', ['detail', 'file', 'openSigningSession', 'reportSigningEvent', 'reportSigningEventOnExit', 'cancelOpenSigningSession', 'reject', 'signatureSheet']);
     signer = jasmine.createSpyObj<FirmaPeruSignerService>('FirmaPeruSignerService', ['environment', 'load', 'start']);
     service.detail.and.returnValue(of(ok(turn())));
     service.file.and.returnValue(of(new Blob(['%PDF'])));
@@ -262,6 +263,115 @@ describe('DirectiveSignComponent', () => {
 
       expect(text('sign-notice')).toContain('Cerraste la firma sin terminar');
       expect(html().querySelector('[data-testid="sign-refused"]')).toBeNull();
+    });
+  });
+
+  describe('a signing session already open elsewhere', () => {
+    const open = (overrides: Partial<OpenSigningSession> = {}): OpenSigningSession => ({
+      session_id: 'ses_0', directive_id: 7, document: 'directiva.pdf', office: 'Asesoría Jurídica',
+      expires_at: new Date(Date.now() + 552_000).toISOString(), opened_at: new Date(Date.now() - 60_000).toISOString(), ...overrides,
+    });
+    const busy = (session: OpenSigningSession) => throwError(() => ({ status: 409, error: { payload: { message: 'Ya tienes una firma abierta', data: { open_session: session } } } }));
+
+    it('says it is for this same document, how long it has left, and offers to cancel it', async () => {
+      service.openSigningSession.and.returnValue(busy(open()));
+      await create();
+      await sign();
+
+      expect(text('open-elsewhere')).toContain('Ya tienes una firma abierta');
+      expect(text('open-elsewhere')).toContain('para este mismo documento');
+      expect(text('open-elsewhere-left')).toMatch(/^0[89]:\d\d$/);
+      expect(html().querySelector('[data-testid="cancel-previous"]')).not.toBeNull();
+      expect(html().querySelector('[data-testid="sign-error"]')).toBeNull();
+      expect(signer.start).not.toHaveBeenCalled();
+    });
+
+    it('names the other document when it is another one', async () => {
+      service.openSigningSession.and.returnValue(busy(open({ directive_id: 99, document: 'otra-directiva.pdf' })));
+      await create();
+      await sign();
+
+      expect(text('open-elsewhere')).toContain('de «otra-directiva.pdf»');
+    });
+
+    it('cancels the previous one and goes on to sign here', async () => {
+      service.openSigningSession.and.returnValue(busy(open()));
+      service.cancelOpenSigningSession.and.returnValue(of(ok({})));
+      await create();
+      await sign();
+      service.openSigningSession.and.returnValue(of(ok(session)));
+
+      (html().querySelector('[data-testid="cancel-previous"] button') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(service.cancelOpenSigningSession).toHaveBeenCalled();
+      expect(text('previous-cancelled')).toContain('Se canceló la firma anterior');
+      expect(html().querySelector('[data-testid="open-elsewhere"]')).toBeNull();
+      expect(fixture.componentInstance.confirmOpen()).toBeTrue();
+    });
+
+    it('explains why it could not be cancelled when the signed file already arrived', async () => {
+      service.openSigningSession.and.returnValue(busy(open()));
+      service.cancelOpenSigningSession.and.returnValue(throwError(() => ({ status: 409, error: { payload: { message: 'Tu firma anterior ya llegó al firmador y se está revisando.' } } })));
+      await create();
+      await sign();
+
+      (html().querySelector('[data-testid="cancel-previous"] button') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(text('sign-error')).toContain('se está revisando');
+      expect(html().querySelector('[data-testid="open-elsewhere"]')).not.toBeNull();
+    });
+  });
+
+  describe('leaving with a signature in progress', () => {
+    it('asks before leaving for another screen and only leaves when the person accepts', async () => {
+      await create();
+      await sign();
+      const confirmation = fixture.debugElement.injector.get(ConfirmationService);
+      let answer: 'accept' | 'reject' = 'reject';
+      spyOn(confirmation, 'confirm').and.callFake(options => {
+        if (answer === 'accept') options.accept?.();
+        else options.reject?.();
+        return confirmation;
+      });
+
+      expect(await fixture.componentInstance.canLeave()).toBeFalse();
+      answer = 'accept';
+      expect(await fixture.componentInstance.canLeave()).toBeTrue();
+      expect(confirmation.confirm).toHaveBeenCalledWith(jasmine.objectContaining({ key: 'leave', header: 'Tienes una firma en curso' }));
+    });
+
+    it('leaves without asking when nothing is being signed', async () => {
+      await create();
+
+      expect(fixture.componentInstance.canLeave()).toBeTrue();
+    });
+
+    it('asks the browser to warn on closing the tab while Firma Perú is open, and not otherwise', async () => {
+      await create();
+      const idle = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
+      fixture.componentInstance.warnBeforeUnload(idle);
+      expect(idle.defaultPrevented).toBeFalse();
+
+      await sign();
+      const signing = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
+      fixture.componentInstance.warnBeforeUnload(signing);
+      expect(signing.defaultPrevented).toBeTrue();
+    });
+
+    it('tells the signer it was cancelled when the tab closes, so it does not end as abandoned, and only once', async () => {
+      await create();
+      await sign();
+      handlers.init?.();
+
+      window.dispatchEvent(new Event('pagehide'));
+      fixture.destroy();
+
+      expect(service.reportSigningEventOnExit).toHaveBeenCalledOnceWith(7, 'ses_1', 2, 'cancelled', 'La persona cerró o recargó la pestaña');
+      expect(service.reportSigningEvent).not.toHaveBeenCalledWith(7, 'ses_1', jasmine.any(Number), 'cancelled', jasmine.anything());
     });
   });
 

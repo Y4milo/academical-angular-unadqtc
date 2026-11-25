@@ -57,3 +57,11 @@
 .confirm-steps { display: grid; gap: var(--space-2); font-size: var(--text-small); color: var(--p-text-muted-color); }
 .confirm-steps ol { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--space-2); }
 @media (max-width: 40rem) { .confirm-body { grid-template-columns: minmax(0, 1fr); } }
+
+/* A signing session already open elsewhere: what it is, until when, and cancel it to sign here. */
+.open-elsewhere { display: grid; gap: var(--space-1); text-align: left; }
+.open-elsewhere__timer { font-variant-numeric: tabular-nums; }
+.open-elsewhere__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+@media (max-width: 640px) {
+  .open-elsewhere__actions > p-button, :host ::ng-deep .open-elsewhere__actions .p-button { width: 100%; }
+}

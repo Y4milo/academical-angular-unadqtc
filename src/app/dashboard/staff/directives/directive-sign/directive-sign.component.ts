@@ -1,12 +1,14 @@
-import { Component, NgZone, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, HostListener, NgZone, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MenuItem, PrimeTemplate } from 'primeng/api';
+import { ConfirmationService, MenuItem, PrimeTemplate } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
@@ -16,7 +18,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
-import { DirectiveDetail, DirectiveFileKind, DirectivesService, SessionEventType, SignatureSheetResponse, SigningSession } from '../../../../services/directives.service';
+import { DirectiveDetail, DirectiveFileKind, DirectivesService, OpenSigningSession, SessionEventType, SignatureSheetResponse, SigningSession } from '../../../../services/directives.service';
 import { FirmaPeruSignerService } from '../../../../services/firma-peru-signer.service';
 import { DirectiveTrackingComponent } from '../directive-tracking/directive-tracking.component';
 import { SignatureSheetViewComponent } from '../signature-sheet-view/signature-sheet-view.component';
@@ -43,7 +45,8 @@ const REFUSAL_EVERY_MS = 1500;
  */
 @Component({
   selector: 'app-directive-sign',
-  imports: [AppLucideIconComponent, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, DirectiveTrackingComponent, SignatureSheetViewComponent],
+  imports: [AppLucideIconComponent, DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, ConfirmDialogModule, DialogModule, MessageModule, SelectButtonModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, DirectiveTrackingComponent, SignatureSheetViewComponent],
+  providers: [ConfirmationService],
   templateUrl: './directive-sign.component.html',
   styleUrl: './directive-sign.component.css',
 })
@@ -62,6 +65,13 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
   readonly previewLoading = signal(false);
   readonly previewError = signal('');
   readonly confirmed = signal(false);
+
+  /** The signing session the person already has open elsewhere (the signer allows one per person), with what to do about it. */
+  readonly openElsewhere = signal<OpenSigningSession | null>(null);
+  readonly cancellingPrevious = signal(false);
+  readonly previousCancelled = signal(false);
+  /** Seconds until the open session ends by itself, for «Termina sola en 09:12». */
+  readonly secondsLeft = signal(0);
 
   /** El diálogo «Confirmar firma»: la hoja dibujada con lo que entrega el firmador (vista referencial) antes de abrir Firma Perú. */
   readonly confirmOpen = signal(false);
@@ -134,9 +144,11 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
   private poll: ReturnType<typeof setTimeout> | null = null;
   private objectUrls: string[] = [];
   private destroyed = false;
+  private countdown: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private service: DirectivesService,
+    private confirmation: ConfirmationService,
     private signer: FirmaPeruSignerService,
     private sanitizer: DomSanitizer,
     private zone: NgZone,
@@ -158,7 +170,77 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
     // Quien sale de la página con la sesión abierta la deja sin terminar: se le avisa al firmador para no dejarla abandonada.
     if (this.phase() === 'waiting') this.report('cancelled', 'La persona salió de la página');
     this.clearTimers();
+    this.stopCountdown();
     this.objectUrls.forEach(url => URL.revokeObjectURL(url));
+  }
+
+  /** Closing or reloading the tab while Firma Perú is open: the browser shows its own warning (its text cannot be changed). */
+  @HostListener('window:beforeunload', ['$event'])
+  warnBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.phase() !== 'waiting' && this.phase() !== 'opening') return;
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
+  /** The tab is going away anyway: tell the signer it was cancelled, so the session does not end as abandoned (three of those block Academical). */
+  @HostListener('window:pagehide')
+  cancelOnPageHide(): void {
+    const session = this.session();
+    if (this.phase() !== 'waiting' || !session) return;
+    this.clearTimers();
+    this.phase.set('idle');
+    this.service.reportSigningEventOnExit(this.id, session.session_id, ++this.seq, 'cancelled', 'La persona cerró o recargó la pestaña');
+  }
+
+  /** Leaving for another screen of Academical while signing: asks first, and leaving cancels the signature (ngOnDestroy tells the signer). */
+  canLeave(): boolean | Promise<boolean> {
+    if (this.phase() !== 'waiting') return true;
+
+    return new Promise(resolve => {
+      this.confirmation.confirm({
+        key: 'leave',
+        header: 'Tienes una firma en curso',
+        message: `Si sales ahora, se cancela la firma de «${this.directive()?.title ?? 'este documento'}». Podrás volver a firmarlo cuando quieras.`,
+        acceptLabel: 'Salir y cancelar la firma',
+        rejectLabel: 'Seguir firmando',
+        acceptButtonProps: { severity: 'danger' },
+        rejectButtonProps: { severity: 'secondary', outlined: true },
+        accept: () => resolve(true),
+        reject: () => resolve(false),
+      });
+    });
+  }
+
+  /** Cancels the signing session left open elsewhere and goes on to sign here. */
+  cancelPrevious(): void {
+    if (this.cancellingPrevious()) return;
+    this.cancellingPrevious.set(true);
+    this.signError.set('');
+    this.service.cancelOpenSigningSession().subscribe({
+      next: () => {
+        this.cancellingPrevious.set(false);
+        this.openElsewhere.set(null);
+        this.stopCountdown();
+        this.previousCancelled.set(true);
+        this.askSign();
+      },
+      error: error => {
+        this.cancellingPrevious.set(false);
+        this.signError.set(error?.error?.payload?.message || 'No se pudo cancelar la firma anterior. Inténtalo nuevamente.');
+        // Not found: it already ended by itself, so there is nothing left to wait for.
+        if (error?.status === 404) {
+          this.openElsewhere.set(null);
+          this.stopCountdown();
+        }
+      },
+    });
+  }
+
+  /** «Termina sola en mm:ss». */
+  timeLeft(): string {
+    const seconds = Math.max(this.secondsLeft(), 0);
+
+    return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
   }
 
   load(): void {
@@ -237,6 +319,8 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
     this.phase.set('opening');
     this.signError.set('');
     this.notice.set('');
+    this.openElsewhere.set(null);
+    this.stopCountdown();
     this.seq = 0;
     this.refusal.set(null);
     this.refusalsBefore = this.refusalCount(this.directive());
@@ -253,7 +337,18 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
         this.watchTime(response.payload.data.expires_at);
         this.startSigner(response.payload.data);
       },
-      error: error => this.failToOpen(error?.error?.payload?.message),
+      error: error => {
+        const open = error?.error?.payload?.data?.open_session as OpenSigningSession | undefined;
+        if (open?.session_id) {
+          this.phase.set('idle');
+          this.previousCancelled.set(false);
+          this.openElsewhere.set(open);
+          this.startCountdown(open.expires_at);
+
+          return;
+        }
+        this.failToOpen(error?.error?.payload?.message);
+      },
     });
   }
 
@@ -418,6 +513,28 @@ export class DirectiveSignComponent implements OnInit, OnDestroy {
     if (!session) return;
     // Un aviso que no llega no debe trabar la pantalla: el firmador cierra por su cuenta la sesión que queda abierta.
     this.service.reportSigningEvent(this.id, session.session_id, ++this.seq, type, detail).subscribe({ error: () => undefined });
+  }
+
+  private startCountdown(expiresAt: string | null): void {
+    this.stopCountdown();
+    const end = expiresAt ? new Date(expiresAt).getTime() : NaN;
+    if (!Number.isFinite(end)) return;
+    const tick = () => {
+      const left = Math.round((end - Date.now()) / 1000);
+      this.secondsLeft.set(Math.max(left, 0));
+      // It ended by itself: the person can sign here now.
+      if (left <= 0) {
+        this.stopCountdown();
+        this.openElsewhere.set(null);
+      }
+    };
+    tick();
+    this.countdown = this.zone.runOutsideAngular(() => setInterval(() => this.zone.run(tick), 1000));
+  }
+
+  private stopCountdown(): void {
+    if (this.countdown) clearInterval(this.countdown);
+    this.countdown = null;
   }
 
   private clearTimers(): void {

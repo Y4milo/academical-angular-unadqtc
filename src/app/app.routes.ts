@@ -325,6 +325,8 @@ export const routes: Routes = [
           },
           {
             path: ':id/firmar',
+            // Leaving with a signature in progress asks first and cancels it in the signer (see DirectiveSignComponent.canLeave).
+            canDeactivate: [(component: {canLeave?: () => boolean | Promise<boolean>} | null) => component?.canLeave?.() ?? true],
             loadComponent: () => import('./dashboard/staff/directives/directive-sign/directive-sign.component').then(m => m.DirectiveSignComponent)
           },
         ]
