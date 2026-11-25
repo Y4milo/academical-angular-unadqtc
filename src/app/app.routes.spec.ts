@@ -1,3 +1,4 @@
+import {of} from 'rxjs';
 import {TestBed} from '@angular/core/testing';
 import {provideRouter, Router} from '@angular/router';
 import {routes} from './app.routes';
@@ -42,7 +43,7 @@ describe('staff routes', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),
-        {provide: LoginService, useValue: {getUser: () => user, getStudent: () => null, isStudentLoggedIn: () => false}},
+        {provide: LoginService, useValue: {getUser: () => user, getStudent: () => null, isStudentLoggedIn: () => false, restore: () => of(false)}},
       ],
     });
     router = TestBed.inject(Router);

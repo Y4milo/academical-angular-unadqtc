@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
+import {Observable, map} from 'rxjs';
 import {PATHS} from '../core/constants/app-paths.constants';
 import {safeReturnUrl} from '../core/utils/return-url.util';
 import {LoginService} from '../services/login.service';
@@ -13,7 +14,19 @@ export class AuthRoleGuard implements CanActivate {
     private router: Router,
   ) {}
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
+  /**
+   * A tab without its own copy of the user (a new tab, a link opened from an email) first asks the API: the session belongs to the browser,
+   * not to the tab, so the person only goes to the login when the API says there is no session.
+   */
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree | Observable<boolean | UrlTree> {
+    if (this.loginService.getUser()) {
+      return this.decide(route, state);
+    }
+
+    return this.loginService.restore('staff').pipe(map(() => this.decide(route, state)));
+  }
+
+  private decide(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
     const allowedRoles = route.data['roles'] as string[] | undefined;
     const allowedPermissions = route.data['permissions'] as string[] | undefined;
     const user = this.loginService.getUser();

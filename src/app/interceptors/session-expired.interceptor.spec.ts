@@ -10,14 +10,14 @@ describe('sessionExpiredInterceptor', () => {
   let http: HttpClient;
   let controller: HttpTestingController;
   let navigate: jasmine.Spy;
-  let removeUser: jasmine.Spy;
+  let signOut: jasmine.Spy;
   let warning: jasmine.Spy;
   let signedIn: boolean;
 
   beforeEach(() => {
     signedIn = true;
     navigate = jasmine.createSpy('navigate').and.resolveTo(true);
-    removeUser = jasmine.createSpy('removeUser');
+    signOut = jasmine.createSpy('signOut');
     warning = jasmine.createSpy('warning');
 
     TestBed.configureTestingModule({
@@ -25,7 +25,7 @@ describe('sessionExpiredInterceptor', () => {
         provideHttpClient(withInterceptors([sessionExpiredInterceptor])),
         provideHttpClientTesting(),
         { provide: Router, useValue: { navigate, url: '/hr/home' } },
-        { provide: LoginService, useValue: { getUser: () => (signedIn ? { role: { value: 'hr' } } : null), removeUser } },
+        { provide: LoginService, useValue: { getUser: () => (signedIn ? { role: { value: 'hr' } } : null), signOut } },
         { provide: NotificationService, useValue: { warning } },
       ],
     });
@@ -44,7 +44,7 @@ describe('sessionExpiredInterceptor', () => {
     fail({ status: 'error', payload: { title: 'Sesión cerrada', message: 'Tu sesión de Core se cerró, así que también se cerró la de Academical. Vuelve a ingresar.', reason: 'core_closed' } });
 
     expect(warning).toHaveBeenCalledOnceWith('Sesión cerrada', 'Tu sesión de Core se cerró, así que también se cerró la de Academical. Vuelve a ingresar.', 8000);
-    expect(removeUser).toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalled();
   });
 
@@ -52,7 +52,7 @@ describe('sessionExpiredInterceptor', () => {
     fail({ message: 'Unauthenticated.' });
 
     expect(warning).not.toHaveBeenCalled();
-    expect(removeUser).toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalled();
   });
 
   it('does not show the message to someone who was not signed in', () => {
@@ -62,10 +62,24 @@ describe('sessionExpiredInterceptor', () => {
     expect(warning).not.toHaveBeenCalled();
   });
 
+  it('tells the other tabs why the session ended', () => {
+    fail({ status: 'error', payload: { title: 'Sesión cerrada', message: 'Tu sesión se cerró por inactividad.', reason: 'idle' } });
+
+    expect(signOut).toHaveBeenCalledOnceWith({ audience: 'staff', title: 'Sesión cerrada', message: 'Tu sesión se cerró por inactividad.' });
+  });
+
+  it('leaves the «who am I» answer to the guard: a 401 there only means there is no session yet', () => {
+    http.get('/api/users/v1/session').subscribe({ error: () => undefined });
+    controller.expectOne('/api/users/v1/session').flush({ status: 'error' }, { status: 401, statusText: 'x' });
+
+    expect(signOut).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('ignores other errors', () => {
     fail({ message: 'boom' }, 500);
 
     expect(warning).not.toHaveBeenCalled();
-    expect(removeUser).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
   });
 });
