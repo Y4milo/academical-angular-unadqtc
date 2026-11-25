@@ -1,0 +1,100 @@
+<div class="devices">
+  <header class="devices__header">
+    <div>
+      <p class="devices__caption">Mi cuenta · Seguridad</p>
+      <h1>Dispositivos y sesiones</h1>
+      <p>Dónde está abierto Academical con tu cuenta. Cierra la sesión de lo que no reconozcas.</p>
+    </div>
+    @if (others().length > 0) {
+      <p-button label="Cerrar en los demás dispositivos" severity="secondary" [outlined]="true" [loading]="working()" data-testid="close-others" (onClick)="askCloseOthers($event)">
+        <ng-template #icon><app-lucide-icon name="log-out" [size]="16"></app-lucide-icon></ng-template>
+      </p-button>
+    }
+  </header>
+  <p-confirmpopup></p-confirmpopup>
+
+  @if (authVia() === 'core') {
+    <p-message severity="info" data-testid="core-note">
+      <span class="devices__note">
+        <app-lucide-icon name="info" [size]="16"></app-lucide-icon>
+        <span class="devices__note-text">Entraste con Core. Aquí cierras solo Academical. Para cerrar también Core en otros equipos, usa <strong>Dispositivos</strong> en Core.</span>
+        @if (coreDevicesUrl()) {
+          <p-button label="Ir a Core" severity="info" [outlined]="true" size="small" data-testid="core-devices-link" (onClick)="goToCore()">
+            <ng-template #icon><app-lucide-icon name="external-link" [size]="16"></app-lucide-icon></ng-template>
+          </p-button>
+        }
+      </span>
+    </p-message>
+  }
+
+  @if (done()) {
+    <p-message severity="success" data-testid="devices-done">
+      <span class="devices__note"><app-lucide-icon name="circle-check" [size]="16"></app-lucide-icon><span>{{ done() }}</span></span>
+    </p-message>
+  }
+
+  @if (error()) {
+    <p-message severity="error" role="alert" data-testid="devices-error">
+      <span class="devices__note"><app-lucide-icon name="circle-alert" [size]="16"></app-lucide-icon><span>{{ error() }}</span></span>
+    </p-message>
+    <div><p-button label="Reintentar" severity="secondary" [outlined]="true" size="small" (onClick)="load()"></p-button></div>
+  } @else if (!loading() && sessions().length === 0) {
+    <div class="devices__empty" data-testid="devices-empty">
+      <app-lucide-icon name="monitor-smartphone" [size]="28"></app-lucide-icon>
+      <strong>No hay sesiones abiertas</strong>
+      <span>Cuando ingreses desde un dispositivo, aparecerá aquí.</span>
+    </div>
+  } @else {
+    <section class="devices__panel" aria-label="Dispositivos con tu cuenta abierta">
+      <p-table styleClass="devices__table" [value]="loading() ? skeletonRows : sessions()" [tableStyle]="{ 'min-width': '40rem' }" [attr.aria-busy]="loading()">
+        <ng-template #header>
+          <tr><th>Dispositivo</th><th>Dirección IP</th><th>Último uso</th><th aria-hidden="true"></th></tr>
+        </ng-template>
+        <ng-template #body let-session>
+          @if (loading()) {
+            <tr class="devices__card" data-testid="devices-skeleton-row" aria-hidden="true">
+              <td><div class="devices__stack"><p-skeleton width="10rem" height="1rem"></p-skeleton><p-skeleton width="6rem" height=".8rem"></p-skeleton></div></td>
+              <td><p-skeleton width="6rem" height="1rem"></p-skeleton></td>
+              <td><p-skeleton width="7rem" height="1rem"></p-skeleton></td>
+              <td><p-skeleton width="6rem" height="2rem"></p-skeleton></td>
+            </tr>
+          } @else {
+            <tr class="devices__card" data-testid="device-row">
+              <td>
+                <div class="devices__device">
+                  <span class="devices__icon" [class.devices__icon--current]="session.current" aria-hidden="true">
+                    <app-lucide-icon [name]="deviceIcon(session)" [size]="18"></app-lucide-icon>
+                  </span>
+                  <div class="devices__stack">
+                    <strong class="devices__name">{{ deviceTitle(session) }}<span class="sr-only"> · {{ deviceSummary(session) }}</span></strong>
+                    <span class="devices__chips">
+                      <p-tag severity="secondary" [rounded]="true" styleClass="devices__chip" data-testid="device-browser">
+                        <app-brand-icon [name]="browserIcon(session.browser)"></app-brand-icon>
+                        <span>{{ session.browser || 'Navegador desconocido' }}</span>
+                      </p-tag>
+                      <p-tag severity="secondary" [rounded]="true" styleClass="devices__chip" data-testid="device-platform">
+                        <app-brand-icon [name]="platformIcon(session.platform)"></app-brand-icon>
+                        <span>{{ session.platform || 'Sistema desconocido' }}</span>
+                      </p-tag>
+                      @if (session.current) {
+                        <p-tag value="Este dispositivo" severity="success" data-testid="current-device"></p-tag>
+                      }
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td><span class="devices__meta" data-testid="device-ip"><span class="devices__label" aria-hidden="true">IP </span>{{ session.ip_address || 'Sin dato' }}</span></td>
+              <td><span class="devices__meta"><span class="devices__label" aria-hidden="true">Último uso </span>{{ session.last_seen_at | date: 'dd/MM/yyyy HH:mm' }}</span></td>
+              <td class="devices__actions">
+                @if (!session.current) {
+                  <p-button label="Cerrar sesión" severity="danger" [outlined]="true" size="small" [disabled]="working()" data-testid="close-device" (onClick)="askClose($event, session)"></p-button>
+                }
+              </td>
+            </tr>
+          }
+        </ng-template>
+      </p-table>
+    </section>
+    <p class="devices__hint">Las sesiones que vencieron por inactividad ya no aparecen.</p>
+  }
+</div>

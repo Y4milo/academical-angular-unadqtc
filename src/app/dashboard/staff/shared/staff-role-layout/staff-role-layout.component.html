@@ -57,6 +57,12 @@
         <span class="shell__link-label">Mis asistencias</span>
       </a>
     }
+    @if (audience() === 'staff') {
+      <a class="shell__link" [routerLink]="devicesLink" routerLinkActive="is-active" (click)="closeDrawer()" data-testid="my-devices">
+        <app-lucide-icon class="shell__link-icon" name="monitor-smartphone" [size]="18"></app-lucide-icon>
+        <span class="shell__link-label">Dispositivos</span>
+      </a>
+    }
     <p-panelmenu [model]="model" [multiple]="false" styleClass="shell__menu">
       <ng-template #item let-item>
         @if (item.routerLink) {

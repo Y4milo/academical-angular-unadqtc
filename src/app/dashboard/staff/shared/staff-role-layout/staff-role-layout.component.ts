@@ -46,6 +46,8 @@ import {buildStaffMenu, initialsOf} from '../staff-menu/staff-menu.util';
 export class StaffRoleLayoutComponent implements OnInit {
   readonly attendanceRouterLink = input('');
   readonly loadRemoteMenu = input(true);
+  /** «Dispositivos y sesiones», right after «Mis asistencias», the same place as in Core. Only for staff. */
+  protected readonly devicesLink = `/${PATHS.devices.link}`;
   /** El mismo contenedor sirve al personal (menú por rol) y al estudiante (menú de sus módulos). */
   readonly audience = input<'staff' | 'student'>('staff');
 

@@ -1,0 +1,49 @@
+:host { display: block; container-type: inline-size; }
+
+.devices { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--page-gutter); color: var(--p-text-color); }
+.devices__header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.devices__header h1 { margin: var(--space-1) 0; }
+.devices__header p { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
+.devices__header .devices__caption { color: var(--p-primary-color); font-size: var(--text-label); font-weight: var(--weight-strong); text-transform: uppercase; }
+
+.devices__note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); text-align: left; }
+.devices__note-text { flex: 1 1 16rem; }
+
+.devices__panel { min-width: 0; background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); overflow: hidden; }
+.devices__device { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.devices__icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); color: var(--p-text-muted-color); }
+.devices__icon--current { border-color: var(--p-tag-success-color); color: var(--p-tag-success-color); }
+.devices__stack { display: grid; gap: var(--space-1); min-width: 0; }
+.devices__name { font-weight: var(--weight-strong); }
+.devices__chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+:host ::ng-deep .devices__chip { gap: var(--space-2); font-weight: 400; }
+.devices__label { display: none; color: var(--p-text-muted-color); }
+.devices__meta { font-size: var(--text-small); }
+.devices__actions { text-align: right; }
+.devices__hint { margin: 0; color: var(--p-text-muted-color); font-size: var(--text-small); }
+
+.devices__empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6) var(--space-4); text-align: center; color: var(--p-text-muted-color); background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: var(--radius-md); }
+.devices__empty strong { color: var(--p-text-color); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* When the page is narrower than the table (a small window or the side menu taking room), each device is a card: the device on top, then
+   the address and the last use, then the action. It looks at the width of the page, not of the window. */
+@container (max-width: 46rem) {
+  .devices__label { display: inline; }
+  :host ::ng-deep .devices__table table { min-width: 0 !important; }
+  :host ::ng-deep .devices__table thead { display: none; }
+  :host ::ng-deep .devices__table tbody tr.devices__card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2) var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--p-content-border-color); }
+  :host ::ng-deep .devices__table tbody tr.devices__card > td { display: block; padding: 0; border: 0; }
+  .devices__card > td:nth-child(1) { grid-column: 1 / -1; }
+  .devices__card > td:nth-child(3) { justify-self: end; }
+  .devices__card > td:nth-child(4) { grid-column: 1 / -1; text-align: left; }
+  .devices__card > td:nth-child(4):empty { display: none; }
+}
+
+@container (max-width: 36rem) {
+  .devices { padding: var(--space-2); }
+  .devices__header > p-button, :host ::ng-deep .devices__header > p-button .p-button { width: 100%; }
+  .devices__card > td:nth-child(3) { grid-column: 1 / -1; justify-self: start; }
+  :host ::ng-deep .devices__actions .p-button { width: 100%; }
+}

@@ -285,6 +285,13 @@ export const routes: Routes = [
           },
         ]
       },
+      {
+        // «Dispositivos y sesiones»: where the person has Academical open, to close the sessions they do not recognize. Every staff role.
+        path: PATHS.devices.path,
+        canActivate: [AuthRoleGuard],
+        data: {roles: [ROLE.admin, ROLE.administrative, ROLE.professor, ROLE.accounting, ROLE.academic, ROLE.degrees_titles, ROLE.hr, ROLE.dbu_admin, ROLE.dbu]},
+        loadComponent: () => import('./dashboard/staff/devices/devices.component').then(m => m.DevicesComponent)
+      },
       // Las direcciones de antes (`directivas/...`, de los correos y favoritos ya enviados) llevan a las de los documentos de gestión.
       {path: PATHS.directives.legacyPath, pathMatch: 'full', redirectTo: PATHS.directives.path},
       {path: `${PATHS.directives.legacyPath}/configuracion`, pathMatch: 'full', redirectTo: PATHS.directives.settingsPath},
