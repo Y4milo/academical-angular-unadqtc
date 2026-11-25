@@ -112,6 +112,10 @@ import {
   LucideCamera,
   LucideBuilding2,
   LucideAtSign,
+  LucideLaptop,
+  LucideSmartphone,
+  LucideTablet,
+  LucideMonitorSmartphone,
 } from '@lucide/angular';
 
 const LUCIDE_ICONS: Record<string, LucideIcon> = {
@@ -235,6 +239,10 @@ const LUCIDE_ICONS: Record<string, LucideIcon> = {
   'camera': LucideCamera,
   'building-2': LucideBuilding2,
   'at-sign': LucideAtSign,
+  laptop: LucideLaptop,
+  smartphone: LucideSmartphone,
+  tablet: LucideTablet,
+  'monitor-smartphone': LucideMonitorSmartphone,
 };
 
 const FONT_AWESOME_ALIASES: Record<string, string> = {

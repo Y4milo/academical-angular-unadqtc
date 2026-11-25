@@ -67,6 +67,17 @@ describe('StaffRoleLayoutComponent', () => {
     expect(text.indexOf('Mis asistencias')).toBeLessThan(text.indexOf('Recursos humanos'));
   });
 
+  it('shows "Dispositivos" right after "Mis asistencias", like Core', async () => {
+    const fixture = await render();
+    const html = fixture.nativeElement as HTMLElement;
+    const link = html.querySelector('[data-testid="my-devices"]');
+    const text = html.textContent ?? '';
+
+    expect(link?.getAttribute('href')).toBe('/dispositivos');
+    expect(text.indexOf('Mis asistencias')).toBeLessThan(text.indexOf('Dispositivos'));
+    expect(text.indexOf('Dispositivos')).toBeLessThan(text.indexOf('Recursos humanos'));
+  });
+
   it('shows the person and their initials in the account area', async () => {
     const fixture = await render();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';

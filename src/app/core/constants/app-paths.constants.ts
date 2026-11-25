@@ -264,6 +264,11 @@ export const PATHS = {
       // link:   `staff/attendance/user`,
     },
   },
+  // «Dispositivos y sesiones»: the browsers where the staff person has Academical open. Every staff role, like Core's «Dispositivos».
+  devices: {
+    path: `dispositivos`,
+    link: `dispositivos`,
+  },
   // Documentos de gestión con firma digital: una sola ruta para todo el personal; quién entra lo decide Core, no el rol. Las direcciones de antes
   // (`directivas/...`) siguen funcionando: redirigen a estas (ver `legacyPath`).
   directives: {
