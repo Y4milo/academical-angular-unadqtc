@@ -90,6 +90,28 @@ describe('DirectivesService', () => {
     expect(http.expectOne(`${api}/directives/7/signing-sessions/ses_1/events`).request.body).toEqual({ seq: 3, type: 'timeout' });
   });
 
+  it('asks for the signing session the person has open and cancels it', () => {
+    service.openSigningSessionOfMine().subscribe();
+    http.expectOne(`${api}/directives/signing/open-session`).flush({});
+
+    service.cancelOpenSigningSession().subscribe();
+    const cancel = http.expectOne(`${api}/directives/signing/open-session/cancel`);
+    expect(cancel.request.method).toBe('POST');
+    cancel.flush({});
+  });
+
+  it('reports on closing the tab with a keepalive request that carries the session cookie', () => {
+    const fetchSpy = spyOn(window, 'fetch').and.resolveTo(new Response('{}'));
+
+    service.reportSigningEventOnExit(7, 'ses/1', 3, 'cancelled', 'Se cerró la pestaña');
+
+    const [url, init] = fetchSpy.calls.mostRecent().args as [string, RequestInit];
+    expect(url).toBe(`${api}/directives/7/signing-sessions/ses%2F1/events`);
+    expect(init.keepalive).toBeTrue();
+    expect(init.credentials).toBe('include');
+    expect(JSON.parse(String(init.body))).toEqual({ seq: 3, type: 'cancelled', detail: 'Se cerró la pestaña' });
+  });
+
   it('downloads a file as a blob', () => {
     service.file(7, 'resolution').subscribe();
     const request = http.expectOne(`${api}/directives/7/files/resolution`);
