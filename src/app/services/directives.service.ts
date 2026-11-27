@@ -195,6 +195,8 @@ export interface DirectiveSettings {
 /** Una directiva que espera la firma de la persona, con el lugar que ocupa su oficina en la ruta. */
 export interface PendingDirective extends DirectiveSummary {
   step: { label: string; position: number; total: number; title?: string | null; role?: StepRole | null; role_label?: string | null };
+  /** Cada oficina de la ruta con su estado, para dibujar el avance en la tarjeta. */
+  progress?: DirectiveProgressStep[];
 }
 
 /** Lo que la página necesita para llamar al firmador local de Firma Perú; el servidor abre la sesión en el firmador. */

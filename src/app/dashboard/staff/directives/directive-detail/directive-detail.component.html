@@ -171,21 +171,7 @@
           <p-button label="Ver ruta" size="small" severity="secondary" [outlined]="true" data-testid="progress-open-route" (onClick)="routeOpen.set(true)">
             <ng-template #icon><app-lucide-icon name="network" [size]="16" /></ng-template></p-button>
         </div>
-        <div class="progress-scroll">
-          <p-timeline [value]="visibleProgress()" layout="horizontal" align="top" styleClass="progress-timeline">
-            <ng-template pTemplate="marker" let-step>
-              <span class="progress-marker" [attr.data-state]="step.state" aria-hidden="true"></span>
-            </ng-template>
-            <ng-template pTemplate="content" let-step>
-              <div class="progress-chip" [attr.data-state]="step.state" data-testid="progress-chip">
-                <strong>{{ step.person || step.label }}</strong>
-                <small class="muted">{{ step.label }}</small>
-                @if (roleOf(step); as role) { <p-tag [value]="role.label" [severity]="role.severity" data-testid="chip-role"></p-tag> }
-                <p-tag [value]="progressOf(step).label" [severity]="progressOf(step).severity"></p-tag>
-              </div>
-            </ng-template>
-          </p-timeline>
-        </div>
+        <app-signature-steps [steps]="stepViews()" data-testid="progress-steps" />
       </p-card>
     }
 

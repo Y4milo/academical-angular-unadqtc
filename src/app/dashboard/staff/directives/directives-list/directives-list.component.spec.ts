@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
-import { DirectivesService } from '../../../../services/directives.service';
+import { DirectiveProgressStep, DirectivesService } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { access, ok, summary } from '../testing/directive-fixtures';
 import { DirectivesListComponent } from './directives-list.component';
@@ -89,13 +89,15 @@ describe('DirectivesListComponent', () => {
 
   it('a signer who cannot request goes straight to what is waiting for the signature', async () => {
     service.access.and.returnValue(of(ok({ ...access, can_request: false, request_units: [], can_sign: true, sign_units: ['oaj'] })));
-    service.pending.and.returnValue(of(ok([{ ...summary({ id: 9, status: 'in_signature', status_label: 'En firma' }), step: { label: 'Asesoría Jurídica', position: 2, total: 4 } }])));
+    service.pending.and.returnValue(of(ok([{ ...summary({ id: 9, status: 'in_signature', status_label: 'En firma' }), step: { label: 'Asesoría Jurídica', position: 2, total: 4 }, progress: <DirectiveProgressStep[]>[{ key: 'origin', label: 'Oficina de origen', person: 'Ana Torres', title: null, role: 'author', state: 'signed' }, { key: 'legal', label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: null, role: 'visto_bueno', state: 'active' }, { key: 'upme', label: 'Modernización', person: 'Marta Salas', title: null, role: 'visto_bueno', state: 'waiting' }, { key: 'pco', label: 'Presidencia', person: 'Rosa Quispe', title: null, role: 'visto_bueno', state: 'waiting' }] }])));
     const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
     await create();
 
     expect(service.list).not.toHaveBeenCalled();
     expect(html().querySelectorAll('[data-testid="pending-row"]').length).toBe(1);
-    expect(html().querySelector('[data-testid="pending-row"]')?.textContent).toContain('Paso 2 de 4');
+    expect(html().querySelector('[data-testid="pending-count"]')?.textContent).toContain('1 de 4 firmas');
+    expect(html().querySelectorAll('[data-testid="signature-step"]').length).toBe(4);
+    expect(html().querySelector('[data-testid="step-mine"]')?.textContent).toContain('Tú');
     (html().querySelector('[data-testid="sign-pending"] button') as HTMLButtonElement).click();
     expect(navigate).toHaveBeenCalledWith('documentos-de-gestion/9/firmar');
   });
@@ -280,10 +282,10 @@ describe('DirectivesListComponent', () => {
 
   it('shows the role of the person in each pending document and names the button after it', async () => {
     service.access.and.returnValue(of(ok({ ...access, can_request: false, request_units: [], can_sign: true, sign_units: ['oaj'] })));
-    service.pending.and.returnValue(of(ok([{ ...summary({ id: 9, status: 'in_signature', status_label: 'En firma' }), step: { label: 'Asesoría Jurídica', position: 2, total: 4, role: 'visto_bueno' as const, role_label: 'Visto bueno' } }])));
+    service.pending.and.returnValue(of(ok([{ ...summary({ id: 9, status: 'in_signature', status_label: 'En firma' }), step: { label: 'Asesoría Jurídica', position: 2, total: 4, role: 'visto_bueno' as const, role_label: 'Visto bueno' }, progress: <DirectiveProgressStep[]>[{ key: 'legal', label: 'Asesoría Jurídica', person: 'Carlos Paucar', title: null, role: 'visto_bueno', state: 'active' }] }])));
     await create();
 
-    expect(html().querySelector('[data-testid="pending-role"]')?.textContent).toContain('Visto bueno');
+    expect(html().querySelector('[data-testid="step-role"]')?.textContent).toContain('Visto bueno');
     expect(html().querySelector('[data-testid="sign-pending"]')?.textContent).toContain('Dar visto bueno');
   });
 });

@@ -55,3 +55,11 @@
   .toolbar__search { max-width: none; }
   :host ::ng-deep .p-tab { padding: var(--space-3) var(--space-3); }
 }
+
+:host ::ng-deep .pending-card .p-card-body { gap: var(--space-4); }
+.pending-card__top { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); flex-wrap: wrap; padding-bottom: var(--space-3); border-bottom: 1px solid var(--p-content-border-color); font-size: var(--text-small); }
+.pending-card__title { font-size: var(--text-card-title); overflow-wrap: anywhere; }
+.pending-card__head { margin-bottom: var(--space-2); display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-3); flex-wrap: wrap; }
+.pending-card__head .muted { margin-inline-start: var(--space-2); font-size: var(--text-small); }
+.pending-card__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+@media (max-width: 40rem) { .pending-card__actions { width: 100%; } .pending-card__actions p-button { flex: 1 1 0; } :host ::ng-deep .pending-card__actions .p-button { width: 100%; } }

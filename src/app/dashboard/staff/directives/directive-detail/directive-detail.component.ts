@@ -18,6 +18,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
+import { SignatureStepsComponent, SignatureStepView } from '../signature-steps/signature-steps.component';
 import { TooltipModule } from 'primeng/tooltip';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
@@ -46,7 +47,7 @@ interface StagedPdf {
  */
 @Component({
   selector: 'app-directive-detail',
-  imports: [LucideClassPipe, AppLucideIconComponent, DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, MenuModule, PanelModule, ConfirmDialogModule, DialogModule, FileUploadModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
+  imports: [SignatureStepsComponent, LucideClassPipe, AppLucideIconComponent, DatePipe, FormsModule, PrimeTemplate, BreadcrumbModule, ButtonModule, CardModule, CheckboxModule, MenuModule, PanelModule, ConfirmDialogModule, DialogModule, FileUploadModule, MessageModule, SkeletonModule, TagModule, TextareaModule, TimelineModule, TooltipModule, DirectiveRouteStepsComponent, DirectiveTrackingComponent, DirectiveLogDrawerComponent],
   providers: [ConfirmationService],
   templateUrl: './directive-detail.component.html',
   styleUrl: './directive-detail.component.css',
@@ -55,6 +56,19 @@ export class DirectiveDetailComponent implements OnInit {
   readonly directive = signal<DirectiveDetail | null>(null);
   /** Los pasos que no firman (Calidad en una directiva que no es de calidad) no se muestran. */
   readonly visibleProgress = computed(() => (this.directive()?.progress ?? []).filter(step => step.state !== 'skipped'));
+  /** Cada oficina lista para dibujarse como nodo: su rol, su estado de hoy y, si la persona que mira tiene el turno, la etiqueta «Tú». */
+  readonly stepViews = computed<SignatureStepView[]>(() => {
+    const canSign = this.directive()?.can_sign ?? false;
+    return this.visibleProgress().map(step => ({
+      key: step.key,
+      person: step.person || step.label,
+      office: step.label,
+      state: step.state,
+      role: this.roleOf(step),
+      status: this.progressOf(step),
+      mine: canSign && step.state === 'active',
+    }));
+  });
   /** El cajón de la ruta de firmas (botón «Ruta de firmas» de la cabecera). */
   readonly routeOpen = signal(false);
   /** Cuántos pasos firman: el número del botón. */
