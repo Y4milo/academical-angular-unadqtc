@@ -18,9 +18,10 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { PATHS } from '../../../../core/constants/app-paths.constants';
 import { STATUS } from '../../../../core/constants/api-status.constants';
-import { DirectiveAccess, DirectiveStatus, DirectiveSummary, DirectivesService, PendingDirective } from '../../../../services/directives.service';
+import { DirectiveProgressStep, DirectiveAccess, DirectiveStatus, DirectiveSummary, DirectivesService, PendingDirective } from '../../../../services/directives.service';
 import { NotificationService } from '../../../../services/notification.service';
-import { DIRECTIVE_STATUS, STEP_ROLE } from '../directive-status';
+import { DIRECTIVE_PROGRESS, DIRECTIVE_STATUS, STEP_ROLE } from '../directive-status';
+import { SignatureStepView, SignatureStepsComponent } from '../signature-steps/signature-steps.component';
 import { pagesLabel } from '../pdf-pages';
 import { SUBTYPE_DOCUMENT_TYPE, documentTypeColor, documentTypeText } from '../document-type';
 import {AppLucideIconComponent} from '../../../../core/components/lucide-icon/lucide-icon.component';
@@ -34,7 +35,7 @@ type Section = 'mine' | 'pending' | 'route';
  */
 @Component({
   selector: 'app-directives-list',
-  imports: [AppLucideIconComponent, CardModule, DatePipe, NgTemplateOutlet, FormsModule, BadgeModule, ButtonModule, ChipModule, DialogModule, IconFieldModule, InputIconModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule],
+  imports: [SignatureStepsComponent, AppLucideIconComponent, CardModule, DatePipe, NgTemplateOutlet, FormsModule, BadgeModule, ButtonModule, ChipModule, DialogModule, IconFieldModule, InputIconModule, InputTextModule, MessageModule, SelectButtonModule, SkeletonModule, TableModule, TabsModule, TagModule],
   templateUrl: './directives-list.component.html',
   styleUrl: './directives-list.component.css',
 })
@@ -58,6 +59,27 @@ export class DirectivesListComponent implements OnInit {
   /** En el celular cada documento es una tarjeta en vez de una fila. */
   private readonly media = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 640px)') : null;
   readonly isMobile = signal(this.media?.matches ?? false);
+  /** El avance de un documento por firmar: cada oficina con su estado; el turno es de quien mira, así que lleva «Tú». */
+  stepViews(directive: PendingDirective): SignatureStepView[] {
+    return (directive.progress ?? []).filter((step: DirectiveProgressStep) => step.state !== 'skipped').map((step: DirectiveProgressStep) => ({
+      key: step.key,
+      person: step.person || step.label,
+      office: step.label,
+      state: step.state,
+      role: step.role ? STEP_ROLE[step.role] : null,
+      status: DIRECTIVE_PROGRESS[step.state],
+      mine: step.state === 'active',
+    }));
+  }
+
+  signedOf(directive: PendingDirective): number {
+    return (directive.progress ?? []).filter(step => step.state === 'signed').length;
+  }
+
+  totalOf(directive: PendingDirective): number {
+    return (directive.progress ?? []).filter(step => step.state !== 'skipped').length;
+  }
+
   roleOf(directive: PendingDirective) {
     return directive.step.role ? STEP_ROLE[directive.step.role] : null;
   }

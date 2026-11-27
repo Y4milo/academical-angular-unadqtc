@@ -844,7 +844,7 @@ describe('DirectiveDetailComponent', () => {
       await create();
 
       expect(text('progress-count')).toBe('1 de 3 firmas');
-      expect(findAll('progress-chip').length).toBe(3);
+      expect(findAll('signature-step').length).toBe(3);
       expect(text('progress-card')).toContain('Ana Torres');
     });
 

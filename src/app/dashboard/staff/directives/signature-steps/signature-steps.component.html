@@ -1,0 +1,16 @@
+<ol class="steps" aria-label="Avance de las firmas">
+  @for (step of steps(); track step.key) {
+    <li class="step" [attr.data-state]="step.state" data-testid="signature-step">
+      <span class="node" aria-hidden="true"><app-lucide-icon [name]="icon(step.state)" [size]="18" /></span>
+      <div class="body">
+        <strong class="name" data-testid="step-person">{{ step.person }}</strong>
+        <small class="office">{{ step.office }}</small>
+        <div class="chips">
+          @if (step.role) { <p-tag [value]="step.role.label" [severity]="step.role.severity" data-testid="step-role"></p-tag> }
+          <p-tag [value]="step.status.label" [severity]="step.status.severity" data-testid="step-status"></p-tag>
+          @if (step.mine) { <p-tag value="Tú" severity="info" data-testid="step-mine"></p-tag> }
+        </div>
+      </div>
+    </li>
+  }
+</ol>

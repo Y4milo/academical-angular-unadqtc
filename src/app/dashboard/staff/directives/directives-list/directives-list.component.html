@@ -97,53 +97,32 @@
         </p-table>
       }
     } @else if (section() === 'pending' && canSign()) {
-      @if (isMobile()) {
-        <div class="cards">
-          @for (directive of pendingRows(); track directive.id) {
-            <p-card class="row-card" data-testid="pending-row">
-              <div class="row-card__head"><strong>{{ directive.title }}</strong></div>
+      <div class="cards">
+        @for (directive of pendingRows(); track directive.id) {
+          <p-card class="pending-card" data-testid="pending-row">
+            <div class="pending-card__top">
+              <span class="muted">{{ directive.origin.name }} · {{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</span>
               <span class="type-cell" data-testid="pending-type"><span class="type-dot" [style.background]="documentTypeColor(directive.document_type.code)" aria-hidden="true"></span>{{ documentTypeText(directive.document_type, directive.document_subtype) }}</span>
-              <span class="muted">{{ directive.origin.name }} · Tu turno: {{ directive.step.label }} · Paso {{ directive.step.position }} de {{ directive.step.total }}</span>
-              @if (roleOf(directive)) { <p-tag [value]="roleOf(directive)!.label" [severity]="roleOf(directive)!.severity" data-testid="pending-role"></p-tag> }
-              <p-button [label]="roleOf(directive) ? roleOf(directive)!.action : 'Revisar y firmar'" styleClass="w-full" [fluid]="true" data-testid="sign-pending" (onClick)="sign(directive)"></p-button>
-            </p-card>
-          } @empty {
-            <div class="empty" data-testid="pending-empty"><app-lucide-icon name="circle-check" size="1em" class="empty__icon" /><h3>No tienes firmas pendientes</h3><p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p></div>
-          }
-        </div>
-      } @else {
-        <p-table styleClass="directives-table" size="small" [scrollable]="true" [value]="pendingRows()" [tableStyle]="{ 'min-width': '52rem' }">
-          <ng-template #header>
-            <tr><th>Documento</th><th>Oficina de origen</th><th>Tu turno</th><th>Tu rol</th><th>Actualizado</th><th class="actions-col"><span class="sr-only">Firmar</span></th></tr>
-          </ng-template>
-          <ng-template #body let-directive>
-            <tr class="row" data-testid="pending-row" (click)="open(directive)">
-              <td><ng-container [ngTemplateOutlet]="documentCell" [ngTemplateOutletContext]="{ $implicit: directive, testid: 'pending-type' }"></ng-container></td>
-              <td>{{ directive.origin.name }}</td>
-              <td>
-                <div class="cell-stack">
-                  <strong>{{ directive.step.label }}</strong>
-                  <span class="muted">Paso {{ directive.step.position }} de {{ directive.step.total }}</span>
-                </div>
-              </td>
-              <td>@if (roleOf(directive)) { <p-tag [value]="roleOf(directive)!.label" [severity]="roleOf(directive)!.severity" data-testid="pending-role"></p-tag> }</td>
-              <td class="muted">{{ directive.updated_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-              <td class="actions-col"><p-button [label]="roleOf(directive) ? roleOf(directive)!.action : 'Revisar y firmar'" size="small" data-testid="sign-pending" (onClick)="sign(directive); $event.stopPropagation()"></p-button></td>
-            </tr>
-          </ng-template>
-          <ng-template #emptymessage>
-            <tr>
-              <td colspan="5">
-                <div class="empty" data-testid="pending-empty">
-                  <app-lucide-icon name="circle-check" size="1em" class="empty__icon" />
-                  <h3>No tienes firmas pendientes</h3>
-                  <p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      }
+            </div>
+            <div class="cell-stack">
+              <strong class="pending-card__title">{{ directive.title }}</strong>
+              <span class="muted">{{ pagesText(directive) }}Versión {{ directive.version }}{{ directive.is_quality ? ' · Proceso de calidad' : '' }}</span>
+            </div>
+            <div class="pending-card__head">
+              <span><strong>Avance de las firmas</strong> <span class="muted" data-testid="pending-count">{{ signedOf(directive) }} de {{ totalOf(directive) }} firmas</span></span>
+              <span class="pending-card__actions">
+                <p-button label="Vista previa" size="small" severity="secondary" [outlined]="true" data-testid="open-pending" (onClick)="open(directive)">
+                  <ng-template #icon><app-lucide-icon name="eye" [size]="16" /></ng-template></p-button>
+                <p-button [label]="roleOf(directive) ? roleOf(directive)!.action : 'Revisar y firmar'" size="small" data-testid="sign-pending" (onClick)="sign(directive)">
+                  <ng-template #icon><app-lucide-icon name="signature" [size]="16" /></ng-template></p-button>
+              </span>
+            </div>
+            <app-signature-steps [steps]="stepViews(directive)" data-testid="pending-steps" />
+          </p-card>
+        } @empty {
+          <div class="empty" data-testid="pending-empty"><app-lucide-icon name="circle-check" size="1em" class="empty__icon" /><h3>No tienes firmas pendientes</h3><p>Cuando un documento llegue a tu oficina, aparecerá aquí.</p></div>
+        }
+      </div>
     } @else {
       @if (isMobile() && !loading()) {
         <div class="cards">
