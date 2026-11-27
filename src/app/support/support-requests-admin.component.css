@@ -10,7 +10,7 @@ td small{display:block;color:var(--p-text-muted-color);margin-top:.25rem}
 :host ::ng-deep .detail>.p-message{width:100%;margin:0}:host ::ng-deep .detail>.p-message .p-message-content{width:100%}
 :host ::ng-deep .detail>.p-message div{display:flex;flex-direction:column;gap:.25rem}
 .detail h3{margin:.2rem 0 0}.validation-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
-:host ::ng-deep .validation-grid .p-tag{justify-content:flex-start;width:100%;padding:.55rem .7rem;font-weight: var(--weight-regular)}
+:host ::ng-deep .validation-grid .p-tag{justify-content:flex-start;width:100%;padding:.55rem .7rem;font-weight: var(--weight-strong)}
 .contact-comparison-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1rem 0}.contact-comparison-header>div{display:flex;flex-direction:column;gap:.2rem}.contact-comparison-header small,.contact-values small{color:var(--p-text-muted-color);font-size: var(--text-label);font-weight: var(--weight-strong);letter-spacing:.04em}
 :host ::ng-deep .contact-comparison-card{border:1px solid var(--p-content-border-color);box-shadow:none;background:var(--p-content-background)}:host ::ng-deep .contact-comparison-card .p-card-body{padding:1rem}:host ::ng-deep .contact-comparison-card .p-card-content{padding:0}
 .contact-values{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem}.contact-values>div{display:flex;flex-direction:column;gap:.35rem;min-width:0;padding:.85rem;border-radius:var(--p-border-radius-md);background:var(--p-content-hover-background)}.contact-values strong{overflow-wrap:anywhere}.contact-values>i{color:var(--p-text-muted-color)}.comparison-help{margin:.75rem 0 0;color:var(--p-text-muted-color);font-size: var(--text-small)}
